@@ -41,8 +41,10 @@ static HTML, so the site keeps its current performance profile.
 | GitHub repository | https://github.com/allanconcepcion/vivid-smile-dentistry-headless |
 | Vercel project | `vivid-smiles-headless` (team `allans-projects-cc55d7b7`) |
 
-The CMS hostname is GoDaddy's temporary one. Anyone who visits it directly is
-redirected to the matching path on the front end; only wp-admin, GraphQL, the
+The CMS hostname is GoDaddy's temporary one. Any anonymous visitor who lands on it
+is redirected to the matching path on the front end — signed-in users are exempt so
+an editor can preview a draft, which means testing the redirect while logged into
+wp-admin shows the WordPress theme rather than a 302; only wp-admin, GraphQL, the
 WordPress JSON and cron endpoints, `robots.txt` and Yoast's sitemap files answer
 there. `robots.txt` is `Disallow: /`. The sitemaps are exempt from the redirect
 because the Astro build reads them and rewrites their URLs onto the public
@@ -56,6 +58,7 @@ origin.
 | `vivid-smiles-website/` | The Astro front end — 35 route files, 48 built pages |
 | `cms/` | WordPress: content model, import scripts, and the local wp-env stack |
 | `docs/` | Deployment and the migration record |
+| `.claude/` | Agent instructions for this repository |
 
 ## Documentation
 
