@@ -188,13 +188,19 @@ version-controlled. Editing these field groups in the ACF UI will not persist.
 Must-use plugins load in **filename order**, and the `vs-` prefix keeps that
 order meaningful:
 
-- **`vs-config.php`** — per-environment constants, currently just
-  `VS_FRONTEND_URL`. Sorts first so it is defined before `vs-content-model.php`
-  and `vs-headless.php` read it.
+- **`vs-config.php`** — per-environment constants: `VS_FRONTEND_URL`, and
+  `VS_DEPLOY_HOOK_URL` where it is set. Sorts first so both are defined before
+  `vs-content-model.php`, `vs-deploy.php` and `vs-headless.php` read them.
 - **`vs-content-model.php`** — the `vs_testimonial` post type, the
   `vs_testimonial_tag` taxonomy, the three ACF field groups, the five canonical
   blog categories, and two custom GraphQL fields (`Page.vsRoute`,
   `Post.contentUpdatedAt`).
+- **`vs-deploy.php`** — calls the Vercel deploy hook when content changes, so
+  the static front end catches up without anyone touching Vercel. Debounced
+  through WP-Cron: the first change schedules one build two minutes out and
+  later changes reuse it. Inert unless `VS_DEPLOY_HOOK_URL` is defined, which it
+  deliberately is not in this repository — see
+  [../docs/DEPLOYING.md](../docs/DEPLOYING.md).
 - **`vs-headless.php`** — front-end redirect, GraphQL CORS, `robots.txt`,
   `noindex` headers, and assorted trimming.
 - **`vs-menus.php`** — the `primary` and `footer` menu locations plus the
