@@ -1,9 +1,42 @@
 # Vivid Smiles Dentistry — Headless WordPress Migration Plan
 
-**Repo:** `/Volumes/Concepcion Work/Vivid smiles/headless setup/vivid-smiles-website`
-**Current state:** Astro 6.1.9, fully static, no adapter, deployed to Vercel, `site: https://vividsmilesdentistry.com`, `trailingSlash: 'always'`, 35 routes, 14 blog posts + 20 reviews in `src/content/`, 149 local images (13.7 MiB).
+> ## Read this first — historical record, not a runbook
+>
+> **This file is the record of how the migration was planned and carried out.**
+> It was written before Phase 1 and was never rewritten as decisions changed, so
+> what is worth reading here is the reasoning: the forks that were considered,
+> the options that were rejected and why, the traps that were found, and the
+> risks that were weighed. That part is still accurate and is not reproduced
+> anywhere else.
+>
+> **Operational instructions in it have been superseded in several places.**
+> Where following a step would now do damage or waste time, an indented note
+> immediately below it says what actually happened — look for *Superseded*,
+> *Not executed*, *Partly implemented* or *Resolved*. Steps carrying no such
+> note may still be stale; check them against the current docs before acting.
+>
+> **Current sources of truth:** [../README.md](../README.md) for what the system
+> is, and [DEPLOYING.md](DEPLOYING.md) for how to deploy and operate it. Where
+> this file disagrees with either, those two are right.
+>
+> Three divergences change the meaning of whole sections below:
+>
+> | This plan recommends | What actually shipped |
+> |---|---|
+> | WordPress REST API | **WPGraphQL**, plus WPGraphQL for ACF, Yoast and `add-wpgraphql-seo` |
+> | v1 scope = blog + reviews only | **Full scope** — 14 posts, 20 reviews, 31 pages of structured copy, page images, navigation menus, SEO fields and practice settings |
+> | CMS at `cms.vividsmilesdentistry.com` | `https://1230613.us28.myftpupload.com` — GoDaddy Managed WordPress on a **temporary** hostname. The permanent subdomain is still outstanding, so every command below naming `cms.vividsmilesdentistry.com` needs the temporary host substituted. |
+>
+> **WordPress is hosted, live and publicly reachable, and the front end is
+> deployed** at `https://vivid-smiles-headless.vercel.app` from a Vercel Git
+> integration that rebuilds on every push to `main`. Nothing in this file should
+> be read as saying the CMS is local-only or that the site is undeployed.
+
+**Repo:** `/Volumes/Concepcion Work/Vivid smiles/headless setup/vivid-smiles-website` — this is now the Astro app subdirectory; the git repository root is its parent, and `vercel.json` lives there.
+**State at the time of writing (pre-migration):** Astro 6.1.9, fully static, no adapter, deployed to Vercel, `site: https://vividsmilesdentistry.com`, `trailingSlash: 'always'`, 35 routes, 14 blog posts + 20 reviews in `src/content/`, 149 local images (13.7 MiB). The markdown in `src/content/` is now inert — all three collections are WordPress-backed.
 **Author:** Lead architect
-**Status:** Decision-ready. Execute top to bottom.
+**Status when written:** Decision-ready. Execute top to bottom.
+**Status now:** Executed, with the divergences listed above and the corrections noted inline.
 
 ---
 
@@ -91,6 +124,13 @@ Keep the Astro site exactly as it is — static output, no adapter, no SSR, depl
 
 **One sentence to hold onto:** WordPress is only ever touched at build time. There is no request-time coupling anywhere in this design, and there must not be one.
 
+> **That sentence held. Two details of the diagram above did not.**
+>
+> - **The publish → deploy hook link was never built.** No mu-plugin POSTs to a Vercel Deploy Hook, and there is no debounce, no admin notice and no status pill. Deploys are triggered by a push to `main` through the Vercel Git integration, which is connected and verified. An editor publishing in WordPress does **not** currently update the live site — someone has to push. Wiring the hook is still outstanding; see the note on Phase 7.
+> - **The loaders do a full replace, not an incremental diff.** The index-sweep-and-diff design described in step 2 was not implemented; each build refetches everything and calls `store.clear()`. Correct, just not cheap.
+>
+> The rest of the diagram is what runs: build-time-only fetches, `astro:assets` downloading and re-encoding every WordPress image into hashed `/_assets/` files, no CMS hostname in the shipped HTML, and the previous deployment staying live when a build fails.
+
 ---
 
 ## 2. Decision forks
@@ -149,6 +189,8 @@ Reasoning per tier:
 
 **Recommendation: build on `@wordpress/env` locally first, then deploy to SpinupWP + Hetzner (~$18–24/mo). Do not reuse a legacy install.**
 
+> **Half taken.** `@wordpress/env` on Docker is what the local CMS runs on, and `cms/.wp-env.json` is committed exactly as argued for. Production went to **GoDaddy Managed WordPress**, not SpinupWP — which brings the constraint that fills the rest of these docs: the platform rewrites `wp-config.php` during its own updates and silently drops hand-added lines, so per-environment constants live in `cms/mu-plugins/vs-config.php` instead. The managed platform also fronts the site with Cloudflare bot protection, which is the direct cause of the build-time 429s discussed under risk 3.
+
 - **Local dev (`wp-env`)** — non-negotiable for the build phase, whatever production ends up being. `.wp-env.json` is committed to this repo, so the whole CMS is reproducible from source; `mappings` mounts `wp/mu-plugins` and `wp/acf-json` straight from the repo; and `wp-env run cli wp …` gives you WP-CLI, which the content importer depends on. **Use the Docker runtime.** The experimental `--runtime=playground` flag drops the Docker requirement but uses SQLite, has no test environment, and — decisively — **does not support `wp-env run`**, so WP-CLI is unavailable and the importer cannot run.
 - **Production: SpinupWP Essentials ($12/mo) on a Hetzner CX22 (~€4/mo)** — ~$18–24 all-in, unlimited sites on the box (relevant if Concepcion.Work runs other client CMS installs), Nginx + PHP 8.3 + Redis + Let's Encrypt configured correctly by default, and you own the server so there are no visit caps or renewal cliffs.
 - **Alternative if nobody wants a server to exist: Cloudways (~$11–14/mo)**, fully managed, Redis included, one-click staging. Slightly worse economics, materially less ops.
@@ -173,6 +215,8 @@ Ordering rule: **the site is deployable and correct at the end of every phase.**
 **Repo changes:**
 
 1. **Create `vercel.json`** (does not exist; `VERCEL-DEPLOYMENT-NOTES.md` §5 says it is still missing). Today `public/_redirects` and `public/_headers` are Netlify/Cloudflare format and **Vercel ignores both** — so the ~65 legacy WP redirects are not firing, HSTS/X-Frame-Options/X-Content-Type-Options/Referrer-Policy are unapplied, the `/_assets/*` immutable cache is unapplied, and both files are publicly readable at `/_redirects` and `/_headers`.
+
+> **Superseded — done, but differently.** `vercel.json` now exists, committed at the **repository root** (not in the app directory), carrying `trailingSlash: true`, 2 header groups and **65** redirects, plus the `installCommand` / `buildCommand` / `outputDirectory` that point the build into `vivid-smiles-website/`. It is **generated, not hand-written**: `vivid-smiles-website/scripts/build-vercel-config.mjs` reads `public/_headers` and `public/_redirects` and writes it. Regenerate with `cd vivid-smiles-website && npm run vercel:config` after editing either source file. See [DEPLOYING.md](DEPLOYING.md).
 
 ```json
 {
@@ -201,6 +245,8 @@ Ordering rule: **the site is deployable and correct at the end of every phase.**
 }
 ```
    Machine-translate all ~65 rules from `public/_redirects` (a one-off script; Vercel matches without needing the duplicated slash/no-slash pairs that file carries, since `trailingSlash: true` normalizes). **Then delete `public/_redirects` and `public/_headers`** so there is one source of truth and they stop being publicly readable.
+
+> **Superseded — do not delete those two files.** The translation script was not made a one-off: `public/_headers` and `public/_redirects` are the *source* that `scripts/build-vercel-config.mjs` regenerates `vercel.json` from, so deleting them removes the input the generator needs. Both files still ship into `dist/` and so are still publicly readable at `/_redirects` and `/_headers` — that half of the concern is unresolved, and both files carry a banner explaining that Vercel does not read them.
 
 2. **`.nvmrc`**: change `22` → `22.12.1` (both `DEPLOYMENT.md:9` and `VERCEL-DEPLOYMENT-NOTES.md:21` already *claim* it is pinned to 22.12+; it is not). Add `"packageManager": "npm@10.x"` to `package.json`. Set the Node version in Vercel project settings to match — **Vercel reads project settings, not `.nvmrc`**, and the build-cache key includes the Node version, so a silent drift throws away the image cache.
 
@@ -262,6 +308,10 @@ wp/acf-json/                       ← ACF Local JSON (field groups in git, not 
 4. Build the two ACF field groups in wp-admin, set each to **Show in REST API = Yes**, and confirm the JSON lands in `wp/acf-json/`. Commit it.
 5. Create a dedicated **`astro-build`** user, role **Editor**, and issue an Application Password. Never use an admin account for the build.
 6. Production hardening (in the mu-plugin + at the edge):
+
+> **Partly implemented — do not assume `/wp-admin` is protected.** `cms/mu-plugins/vs-headless.php` ships the front-end bounce (a **302**, not a 301, with a passthrough list for `/graphql`, `/wp-admin`, `/wp-login.php`, `/wp-json`, `/wp-cron.php` and `/robots.txt`, plus logged-in users so previews work), the `X-Robots-Tag: noindex, nofollow` header on every response, a `robots.txt` of `Disallow: /` filtered at `PHP_INT_MAX` so Yoast cannot append a permissive block over it, and `xmlrpc_enabled → false`. **Cloudflare Access was never put in front of `/wp-admin` or `/wp-login.php`**, and there is no `astro-build` service user or service token — WPGraphQL is queried anonymously. The remaining items in this list (unsetting `/wp/v2/users`, `DISALLOW_FILE_EDIT`, 2FA, no user named `admin`) are unverified on the hosted install.
+>
+> One passthrough this list does not mention is load-bearing: the Yoast sitemap paths (`/sitemap_index.xml`, `/page-sitemap.xml`, `/post-sitemap.xml`) must stay reachable on the CMS host, because the Astro build fetches them. They are **not** in `vs-headless.php`'s passthrough array — they survive only because Yoast emits and exits on the `wp` hook, before `template_redirect` runs at priority 0.
    - `template_redirect` 301 of anything that isn't `/wp-admin`, `/wp-login.php`, `/wp-json` to `https://vividsmilesdentistry.com` + path. **This must be live before DNS points anywhere**, or `cms.vividsmilesdentistry.com/blog/how-much-do-veneers-cost/` competes with the canonical URL.
    - `X-Robots-Tag: noindex, nofollow, noarchive` as an **HTTP response header on the whole host**, set at Nginx/Cloudflare. The Settings → Reading checkbox is advisory only and Google routinely ignores `robots.txt` for URLs it discovers via links.
    - `robots.txt` on the CMS host returning `User-agent: *\nDisallow: /`.
@@ -340,6 +390,8 @@ export function readingTime(body: string): number {
 - `package.json` — promote `entities`, `github-slugger`, `ultrahtml` from transitive Astro deps to explicit `dependencies`.
 - `src/content/reviews/` → move to `content-archive/reviews/` (**do not delete** — this is your rollback, and leaving them in `src/content/` guarantees someone edits the wrong copy within a month).
 
+> **Not executed.** `content-archive/` was never created. The 20 review markdown files are still at `vivid-smiles-website/src/content/reviews/` and the 14 blog files at `src/content/blog/`. Nothing in the Astro build reads either directory — no `glob()` loader is instantiated anywhere in `src/` — so they are inert rollback copies and inputs to the one-time CMS importers (`cms/import/build-blog-payload.mjs`, `cms/import/import-reviews.php`). The "someone edits the wrong copy" hazard this step was meant to remove is still open.
+
 **WordPress-side:** import the 20 reviews (see §6, `wp vivid import-reviews`).
 
 **Verification:**
@@ -389,6 +441,8 @@ npx wp-env run cli wp db query "SELECT post_name FROM wp_posts WHERE post_conten
    - L93-99: `<Image>` gains `width={data.heroWidth} height={data.heroHeight}`, and add `fetchpriority="high"` — this is the only hero on the site without it (`index.astro:108`, `about-us/index.astro:307`, `smile-gallery/index.astro:86` all have it), and the gap gets materially worse once the source is remote.
 4. `src/components/cards/BlogCard.astro:26-32` — same `width`/`height` addition.
 5. `src/content/blog/` → `content-archive/blog/`. `src/assets/images/blog/` → **keep for now** (Phase 6 fallback); delete in Phase 7 once the pipeline is proven.
+
+> **Not executed** — see the note in Phase 3. Both the markdown and `src/assets/images/blog/` are still in place. `src/assets/images/` as a whole is now roughly 97% orphaned: only four ESM image imports survive in the codebase, all in `src/pages/design-system.astro`. Nothing has been deleted, so the fallback is intact; nothing has been archived either.
 
 **WordPress-side:** none (Phase 4 did it).
 
@@ -441,8 +495,10 @@ node -e "0" # placeholder — actually: add `import { getImage } from 'astro:ass
 
 **WordPress-side:** `wp/mu-plugins/vivid-deploy.php` (see §7).
 
+> **Not built, and one instruction below is now wrong.** No deploy-hook code exists in `cms/mu-plugins/`; publishing in WordPress does not yet trigger a rebuild. Deploys currently happen on a push to `main` via the Vercel Git integration. When this does get built, **`wp-config.php` is the wrong place for the hook URL**: GoDaddy's managed platform rewrites `wp-config.php` during platform updates and drops hand-added lines silently, which is exactly the failure that produced `cms/mu-plugins/vs-config.php`. Put the constant in a mu-plugin alongside `VS_FRONTEND_URL` instead. The rest of this phase — the `transition_post_status` hook, the debounce, the WP-Cron trap, the status pill, the three dead plugins — is unaffected and still applies.
+
 **Vercel-side:**
-- Create a Deploy Hook on `main`. Store the URL in `wp-config.php` as `VS_VERCEL_DEPLOY_HOOK` (**not** in the database — it's a write credential).
+- Create a Deploy Hook on `main`. Store the URL in `wp-config.php` as `VS_VERCEL_DEPLOY_HOOK` (**not** in the database — it's a write credential). *(See the note above: use a mu-plugin, not `wp-config.php`.)*
 - **Upgrade to Vercel Pro ($20/mo).** Hobby gives 1 concurrent build; the entire editorial promise ("about two minutes") depends on builds starting promptly, and this is a revenue-generating asset.
 - Configure a `deployment.error` webhook → Slack **and** back to WP. **The default "email the deployment creator" does not reliably reach a human when the build was fired by a hook.** Deliberately break a build once and confirm the alert lands.
 
@@ -466,6 +522,12 @@ node -e "0" # placeholder — actually: add `import { getImage } from 'astro:ass
 
 ### Phase 9 (deferred) — Scope expansion
 
+> **Items 1 and 2 were done, not deferred.** Do not treat them as open work.
+>
+> - **Item 1 (contact + hours → Options page): done.** The options page is `Practice Settings`, registered in `cms/mu-plugins/vs-settings.php` and read through `src/lib/settings.ts`. `src/data/contact.ts` and `src/data/hours.ts` survive as thin adapters over it, with their export surface deliberately unchanged so the **38** importing files needed no edits. The atoms-only rule below was followed exactly: WordPress stores days, `opens` and `closes`; every display string and `openingHoursSpecification` is still derived in TypeScript. **What was not done:** the JSON-LD address literals. `streetAddress: '17167 Cedar Gulch Pkwy Ste 102'` is still hardcoded in the JSON-LD blocks on the pages listed below, and `LocalTrust.astro:113` still hardcodes `300+`.
+> - **Item 2 (navigation → WP menus): done.** `cms/mu-plugins/vs-menus.php` registers the `primary` and `footer` locations plus the per-item appearance fields; `src/lib/menus.ts` flattens them. All six components — `Nav`, `MobileMenu`, the three mega panels and `Footer` — were migrated in one pass, as this item demanded.
+> - **Item 3 (service page copy): done, and beyond what is described here.** 31 routes of structured copy, 213 sections, 187 cards and 200 image slots now live in WordPress. See §4's note.
+
 Only after 60 days of stable operation. In priority order:
 1. **`src/data/contact.ts` + `src/data/hours.ts` → one ACF Options page.** Highest ROI on the site: 12 constants consumed by `Nav:28`, `MobileMenu:26`, `Footer:6-17`, `LandingLayout:42-48`, `LocalTrust:12-20`, `FinalBand:21` and 20 of 35 pages. Store only the atoms (street/city/state/zip, phone_e164, opens/closes/days); keep `addressLine`, `emailHref`, `hoursLong`, `hoursShort`, `shortDays`, `openingHoursSpecification` and `isOpenNow()` as **derived code** — modelling the display strings as editable fields guarantees the footer pill and the JSON-LD disagree. Same pass fixes the 10 places that hardcode the practice address as string literals in JSON-LD (`porcelain-veneers:631-637`, `clear-aligners:658-664`, `teeth-whitening:802-808`, `all-on-4:840-846`, `bone-grafting:695-701`, `full-mouth-dental-implants:779-785`, `single-tooth:678-684`, `sinus-lift:651-657`, `about-us:700-704`, `dental-membership-plan:356`) and the hardcoded `300+` review count at `LocalTrust.astro:113-114`.
 2. **Navigation → WP menus.** The link tree is maintained in **four** places today (`Nav.astro:76-82`, the three Mega components, `MobileMenu.astro:67-125`, `Footer.astro:50-69`) with five separate docblocks warning that parity is manual. **Migrate all four in one pass or none** — moving desktop megas to WP while leaving MobileMenu hardcoded makes drift strictly worse, because the WP side will change without anyone opening the repo. Prerequisite: unify the icon systems (desktop megas use FontAwesome class strings; `MobileMenu.astro:51-58` uses four raw inline SVG constants).
@@ -474,6 +536,25 @@ Only after 60 days of stable operation. In priority order:
 ---
 
 ## 4. WordPress content model
+
+> **Superseded as a specification; still useful as reasoning.** The shipped
+> content model is declared in code under `cms/mu-plugins/` and is larger than
+> what is described here. The differences that matter if you go looking for
+> these objects:
+>
+> | This section says | What exists |
+> |---|---|
+> | `review` CPT, `public: false` | `vs_testimonial`, **`public: true`** — WPGraphQL gates public visibility on that flag and the build queries anonymously, so `public: false` makes the testimonials query return an empty list rather than an error. `rewrite` is off and `vs-headless.php` redirects front-end requests, so nothing is actually exposed. |
+> | `review_tag` taxonomy | `vs_testimonial_tag`, `public: true` for the same reason |
+> | Category matched by **slug** via a `categoryMap` | Matched by **name**. The five names are a public contract duplicated across `content.config.ts`, `src/loaders/blog.ts`, `src/lib/blog.ts` and `vs-content-model.php`, and they appear verbatim in shared `/blog/?category=<name>` URLs. |
+> | Two ACF field groups (`Blog Post Extras`, `Review Details`) | Five groups — testimonial, post, page, menu item and practice settings — declared with `acf_add_local_field_group()`, so **editing them in the SCF/ACF admin UI does not persist** |
+> | ACF Local JSON in `wp/acf-json/` | No `acf-json` directory; the model is PHP in `cms/mu-plugins/` |
+> | `byline` ACF field | `author_name`, alongside a required `hero_alt` |
+>
+> The reasoning below — why the slug is the URL contract, why `menu_order` is
+> the deterministic tie-break, why the category enum is closed, why display
+> strings must stay derived — all still holds and is why the shipped model looks
+> the way it does.
 
 ### 4.1 Post types
 
@@ -564,6 +645,23 @@ Every row is load-bearing. Consumer citations are from the audit.
 ---
 
 ## 5. Code
+
+> **Superseded — this code was not shipped. Do not copy it into the repo.**
+> `src/loaders/wordpress.ts` does not exist. The build uses three WPGraphQL
+> loaders — `src/loaders/blog.ts`, `src/loaders/pages.ts`,
+> `src/loaders/reviews.ts` — over a shared client at `src/lib/wp.ts`. Read those
+> files, not this listing.
+>
+> Several ideas below did survive intact and are worth recognising in the real
+> code: appending `Z` to zoneless WordPress timestamps, sanitizing body HTML
+> through `ultrahtml` as the only barrier between wp-admin and production,
+> minting heading ids with `github-slugger` in the same pass that collects the
+> `headings` array, and refusing to write a store that came back empty. Two
+> ideas did not: the loaders call `store.clear()` and do a full replace on every
+> build rather than diffing a persisted `meta` index, and `ultrahtml` /
+> `github-slugger` were **never promoted to explicit `dependencies`** — they
+> still resolve only as hoisted transitive dependencies of `astro`, which is the
+> exact fragility §5.4 warns about.
 
 ### 5.1 `src/loaders/wordpress.ts` (new)
 
@@ -1189,6 +1287,23 @@ export const collections = { reviews, blog };
 
 ### 5.4 Environment and config
 
+> **Superseded.** The build reads **exactly one** environment variable:
+> `WP_GRAPHQL_ENDPOINT`. None of the five below exist. There is no Application
+> Password (WPGraphQL is queried anonymously), no Cloudflare Access service
+> token (Zero Trust was never put in front of the CMS), and no preview secret
+> (Phase 8 was not built). In the Vercel project the one variable is set for
+> Production and Preview; `vivid-smiles-website/.env.example` documents the
+> local, temporary-host and permanent-host values.
+>
+> One warning below is real and unaddressed: `ultrahtml` and `github-slugger`
+> were never added to `package.json`, so `src/loaders/blog.ts` imports two
+> packages that resolve only because Astro hoists them. `entities` is not used.
+>
+> A related trap the plan did not anticipate: `vivid-smiles-website/.gitignore`
+> ends with `.env*`, which matches `.env.example` too. That file survives only
+> because it was committed before the rule was added — untrack and re-add it and
+> it disappears silently.
+
 **`.env.example`** (commit this; `.env*` is already gitignored):
 ```bash
 # WordPress origin — no trailing slash, no path.
@@ -1224,6 +1339,24 @@ npm i entities@^6 github-slugger@^2 ultrahtml@^1
 ---
 
 ## 6. One-time content migration
+
+> **Superseded — the importers below were not what shipped.** The `use WP-CLI,
+> not REST` call was right and was followed; the single `vivid-import.php`
+> command was not. What exists is `cms/import/`, run through the `import:*`
+> scripts in `cms/package.json` in this order: `wp-settings` → `settings` →
+> `gallery` → `reviews` → `blog` → `pages` → `sections` → `images` → `menus`
+> (`npm run import:all` runs the chain). Two families of script: host-side
+> `build-*.mjs` that read the Astro source and emit committed JSON payloads, and
+> container-side `import-*.php` run via `wp eval-file`. Markdown is rendered
+> with **Astro's own `@astrojs/markdown-remark`**, resolved out of the site's
+> `package.json`, rather than Parsedown — anything else produces subtly
+> different smart quotes, table markup and heading slugs.
+>
+> Two hard-won details from the real importers that this listing has no
+> equivalent for: **ACF values must be written by field KEY, not name**, or the
+> rows are invisible to both the admin UI and WPGraphQL; and `wp eval-file` runs
+> the script through `eval()`, so none of the `import-*.php` files may carry
+> `declare(strict_types=1)` or a `namespace`.
 
 **Use WP-CLI, not the REST API.** WP-CLI runs as an authenticated superuser with no HTTP round trip, no auth handshake, and no rate limiting. Decisively: **Application Passwords are refused over plain HTTP**, so a REST-based importer against `http://localhost:8888` needs an SSL-bypass filter you'd then have to remember to remove. WP-CLI also gives you `media_handle_sideload`, which handles attachment metadata and thumbnail generation in one call.
 
@@ -1449,6 +1582,20 @@ curl -s "http://localhost:8888/wp-json/wp/v2/posts?per_page=100&_fields=slug,dat
 
 ### Migrating to production WordPress
 
+> **Superseded — use the committed scripts.** `cms/bin/backup.sh` and
+> `cms/bin/restore.sh` do this, and `restore.sh` takes the target URL as an
+> argument: `bash cms/bin/restore.sh https://cms.vividsmilesdentistry.com`. The
+> dump lives at `cms/backup/database.sql` and the origin it was taken from at
+> `cms/backup/SITEURL`, which is what makes the rewrite decidable. Media is
+> deliberately **not** exported — `wp-content/uploads` is mapped to
+> `cms/uploads/` and is committed with the repo, so dump plus uploads is a
+> complete portable copy. The `--skip-columns=guid` flag below is wrong for this
+> setup: `restore.sh` rewrites all tables precisely, because WordPress stores
+> serialized PHP in `wp_options` with string lengths encoded alongside the
+> values, so the rewrite must go through `wp search-replace` and must not skip
+> the columns that carry it. The field groups do **not** travel in
+> `wp/acf-json/`; they are PHP in `cms/mu-plugins/`, deployed with the code.
+
 Export locally, import to prod (WP's XML exporter mangles custom fields; use SQL):
 ```bash
 npx wp-env run cli wp db export /var/www/html/seed.sql
@@ -1506,7 +1653,10 @@ function vs_queue_deploy(bool $now = false): void {
 }
 
 add_action(VS_HOOK, function () {
-    if (!defined('VS_VERCEL_DEPLOY_HOOK')) return;           // set in wp-config.php
+    if (!defined('VS_VERCEL_DEPLOY_HOOK')) return;           // set in a mu-plugin,
+                                                             // NOT wp-config.php —
+                                                             // the managed host
+                                                             // rewrites that file
     $res = wp_remote_post(VS_VERCEL_DEPLOY_HOOK, ['timeout' => 15]);
     delete_transient('vs_deploy_pending');
     if (is_wp_error($res)) {
@@ -1584,7 +1734,7 @@ I'll do the honest part first.
 |---|---|---|---|
 | 1 | **Slug drift → 404s on indexed URLs.** `postUrl()` derives `/blog/<id>/` purely from the slug. Two posts have titles that diverge sharply from their slugs. | Critical | Phase 4 slug diff is a hard gate. Re-run it in CI. |
 | 2 | **A build that SUCCEEDS with missing pages.** A 200 response with a partial result set produces a successful build that silently deletes live URLs, regenerates the sitemap without them, and turns redirect destinations into 301→404 chains. | Critical | `minEntries` floor assertion throws. A *failed* fetch is the safe case. |
-| 3 | **A media URL redirects → whole build fails.** `loadRemoteImage` uses `redirect: 'manual'` and throws on **any** 3xx. WP media redirects for routine reasons: http→https canonicalization, a trailing-slash rule, Jetpack/Photon, a CDN rewrite. | High | Verify every `source_url` returns 200 on first hit with zero hops. Put a plain caching CDN in front of `/wp-content/uploads/`. |
+| 3 | **A media URL redirects → whole build fails.** `loadRemoteImage` uses `redirect: 'manual'` and throws on **any** 3xx. WP media redirects for routine reasons: http→https canonicalization, a trailing-slash rule, Jetpack/Photon, a CDN rewrite. | High | Verify every `source_url` returns 200 on first hit with zero hops. Put a plain caching CDN in front of `/wp-content/uploads/`. **See the note below — the CDN turned out to be the hazard, not the fix.** |
 | 4 | **Dead TOC anchors.** WP emits no heading ids; `toc-spy.ts` fails with **no console error and no build error**. | High | Loader assigns ids and builds the headings array in the same pass. Phase 5 verification clicks every TOC link on 3 posts. |
 | 5 | **Redirect/route collision at paths WP can resurrect.** `public/_redirects:150-151` explicitly warns that a routed asset and a redirect at the same path is undefined. The four `/blog/<veneers-slug>/` rules (`:137-140`) and the `/before-and-afters/` pair (`:152-153`) sit at paths a WP-sourced build regenerates if that content still exists in the install. | High | Phase 0 translates redirects into `vercel.json`; Phase 4 slug diff surfaces any resurrection; delete both rule sets in the same commit if the content returns. |
 | 6 | **Stored XSS.** `public/_headers:5-7` deliberately omits CSP so GTM can inject tags. `<Content />` is `unescapeHTML()` with zero sanitization. An editor account — or a compromised WP install — can execute script on a production dental site. | High | Loader sanitizes with `ultrahtml`, dropping `script/style/iframe/object/embed/form/input`. Revisit the CSP decision. |
@@ -1597,6 +1747,19 @@ I'll do the honest part first.
 | 13 | **WP origin gets indexed**, creating a full duplicate-content competitor. | Medium | `X-Robots-Tag` header + `robots.txt` + front-end 301 + never linking to `cms.` from anywhere public. |
 | 14 | **Sitemap exclusion list drifts.** `astro.config.mjs:17-32` is six literal strings and cannot import `astro:content`. | Low *at this scope* (route set is unchanged) | Becomes High the moment scope expands to page copy — then it must become a data-driven manifest written by a prebuild step. |
 | 15 | **DNS/email blast radius.** Google Workspace MX, SPF, `_dmarc`, and two verification TXT records share the Cloudflare zone. | Low probability, catastrophic impact | Only apex, `www`, and the new `cms` record ever change. Nothing else in the zone is touched. Document this in the runbook. |
+
+> **What actually bit, and it was risk 3 from an unexpected direction.** The
+> managed host sits behind Cloudflare bot protection that returns **429 with
+> `cf-mitigated: challenge`** under burst load. Astro downloads remote images at
+> high concurrency, so a cold cache produced exactly the "whole build fails"
+> outcome this risk predicted — twice, on production deploys — but through rate
+> limiting rather than a 3xx hop. Two mitigations shipped:
+> `vivid-smiles-website/scripts/warm-media-cache.mjs` runs as `prebuild` and
+> GETs every media URL at concurrency 3 with backoff so the edge is warm before
+> Astro touches it, and `src/lib/wp.ts` now treats 429 as retryable, honouring
+> `Retry-After` across 5 attempts. Deploys have succeeded since. **The durable
+> fix — relaxing the host's Cloudflare rules for `/wp-content/uploads/` and
+> `/graphql` — is still outstanding.**
 
 ---
 
@@ -1626,8 +1789,8 @@ I'll do the honest part first.
 
 **Should be raised now even though it isn't blocking:**
 
-14. **`src/components/SmileGallery.astro` is entirely orphaned** — zero importers; the only occurrence of the string `SmileGallery` in `src/` is its own docblock. It is easily confused with the live gallery, which is actually `src/lib/smiles.ts`. Confirm it can be deleted so it is not carried forward into a WordPress field group that renders nowhere.
+14. ~~**`src/components/SmileGallery.astro` is entirely orphaned**~~ — **Resolved.** Deleted in commit `180270c`, confirmed absent from all 48 built pages. The live gallery is `src/lib/smiles.ts`, which now reads Practice Settings → Smile gallery rather than globbing `src/assets/images/smiles/`.
 15. **The "300+ five-star reviews" claim is hardcoded** at `LocalTrust.astro:113-114` **and** duplicated in at least four page meta descriptions and body copy. Centralizing only the component leaves the meta descriptions stale. Also: despite 20 structured reviews existing, there is **zero `Review` or `AggregateRating` schema anywhere on the site** — that is an unclaimed rich-result opportunity, but it needs a real, defensible source number before we emit it.
 16. **`src/assets/videos/hero.mp4` is 6.6 MB of unreferenced dead weight**, along with `brand/hero-poster.jpg` and `_missing.webp`. Confirm before deletion.
 17. **The WhatConverts dynamic-number-insertion tag** (`BaseLayout.astro:90-106`, duplicated at `LandingLayout.astro:114-127`) rewrites the practice's displayed phone number and POSTs visitor data offsite. It is absent from `DEPLOYMENT.md`'s third-party table and `VERCEL-DEPLOYMENT-NOTES.md:75-79` still flags it as unverified. Confirm it is intentional and authorized.
-18. **Currently every page is live at two URLs** (`/about-us` returns 200 alongside `/about-us/`) because `trailingSlash: 'always'` is not enforced by Vercel and no `vercel.json` exists. Phase 0 fixes it, but it means any before/after SEO comparison run today measures an unrepresentative baseline.
+18. ~~**Currently every page is live at two URLs**~~ — **Resolved.** `vercel.json` sets `trailingSlash: true`, matching Astro's `trailingSlash: 'always'`, so the no-slash form now redirects rather than returning 200. The caveat still stands historically: any SEO comparison drawn against a baseline measured before this landed is measuring an unrepresentative state.

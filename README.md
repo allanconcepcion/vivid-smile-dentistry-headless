@@ -13,6 +13,11 @@ pre-conversion history of the site is preserved locally in
 > full content export of the practice's site. Neither belongs in a public repo.
 > Make it private. Account tables are excluded from the database dump, but the
 > photographs are not something an access-control change can undo after the fact.
+>
+> The dump only stopped carrying `wp_users` in commit `9f41107`, so the local
+> install's password hash is still in git history. Making the repo private does
+> not remove it. Any WordPress install restored from a dump older than that
+> commit should have its password rotated.
 
 ```
                         edit                     build-time fetch
@@ -33,18 +38,22 @@ static HTML, so the site keeps its current performance profile.
 | Production site | https://vivid-smiles-headless.vercel.app |
 | WordPress admin | https://1230613.us28.myftpupload.com/wp-admin |
 | GraphQL endpoint | https://1230613.us28.myftpupload.com/graphql |
+| GitHub repository | https://github.com/allanconcepcion/vivid-smile-dentistry-headless |
 | Vercel project | `vivid-smiles-headless` (team `allans-projects-cc55d7b7`) |
 
 The CMS hostname is GoDaddy's temporary one. Anyone who visits it directly is
-redirected to the matching path on the front end — it serves wp-admin and
-GraphQL, nothing else, and `robots.txt` there is `Disallow: /`.
+redirected to the matching path on the front end; only wp-admin, GraphQL, the
+WordPress JSON and cron endpoints, `robots.txt` and Yoast's sitemap files answer
+there. `robots.txt` is `Disallow: /`. The sitemaps are exempt from the redirect
+because the Astro build reads them and rewrites their URLs onto the public
+origin.
 
 `vividsmilesdentistry.com` has **not** been cut over yet. See
 [docs/DEPLOYING.md](docs/DEPLOYING.md).
 
 | Directory | What |
 | --- | --- |
-| `vivid-smiles-website/` | The Astro front end — 35 route files, 47 built pages |
+| `vivid-smiles-website/` | The Astro front end — 35 route files, 48 built pages |
 | `cms/` | WordPress: content model, import scripts, and the local wp-env stack |
 | `docs/` | Deployment and the migration record |
 
@@ -55,6 +64,8 @@ GraphQL, nothing else, and `robots.txt` there is `Disallow: /`.
 | [cms/README.md](cms/README.md) | Running WordPress locally, the content model, the import scripts |
 | [docs/DEPLOYING.md](docs/DEPLOYING.md) | Hosting, the Vercel project, build behaviour, the domain cutover |
 | [vivid-smiles-website/README.md](vivid-smiles-website/README.md) | The Astro app itself |
+| [vivid-smiles-website/DEPLOYMENT.md](vivid-smiles-website/DEPLOYMENT.md) | Touching DNS — the Google Workspace MX and `_dmarc` records that must survive any zone move — plus the redirect, header and third-party tag inventory |
+| [vivid-smiles-website/VERCEL-DEPLOYMENT-NOTES.md](vivid-smiles-website/VERCEL-DEPLOYMENT-NOTES.md) | Vercel-specific working notes, including the stale deployments below |
 | [docs/MIGRATION-PLAN.md](docs/MIGRATION-PLAN.md) | How the migration was carried out — a historical record |
 
 ## Quick start
@@ -161,7 +172,7 @@ for — so this uses Secure Custom Fields, WordPress.org's fork of ACF, which
 ships repeater, flexible content, gallery, clone and options pages free and GPL.
 It is a drop-in for ACF: same function surface, same storage format, and
 WPGraphQL for ACF resolves against it unchanged. See
-[cms/README.md](cms/README.md).
+[cms/README.md](cms/README.md#secure-custom-fields-not-acf).
 
 **Publishing is not deploying.** Because content is fetched at build time, an
 edit in wp-admin does not appear until the next build. This is the trade for
@@ -184,9 +195,19 @@ concern, not an editor-facing one.
 - Relax GoDaddy's Cloudflare rules for `/wp-content/uploads/` and `/graphql`.
   Bot protection returns 429 under the burst a cold build produces; the build
   works around it, but the workaround is not the fix.
+- Retire the previous Vercel project. `vivid-smiles.vercel.app` and
+  `vivid-smiles-website.vercel.app` both still return 200 and serve a
+  pre-migration copy of the site — no legacy redirects, no trailing-slash
+  enforcement, no Yoast sitemap, and `robots.txt` set to `Allow: /`. Three
+  crawlable copies of the same marketing site is a duplicate-content problem
+  that gets worse the moment the real domain is attached. Handle it before
+  cutover.
 - Confirm the Facebook URL `facebook.com/VivdSmiles/` — it appears to be missing
-  an "i".
-- Confirm the call-tracking script documented in
-  [vivid-smiles-website/VERCEL-DEPLOYMENT-NOTES.md](vivid-smiles-website/VERCEL-DEPLOYMENT-NOTES.md),
-  which rewrites the displayed phone number and is not among the practice's
-  documented vendors.
+  an "i". Fixing it means editing `src/components/Footer.astro`,
+  `cms/import/import-wp-settings.php` and the stored option in WordPress; the
+  importer will not overwrite a value already corrected in wp-admin.
+- Confirm the call-tracking account is the practice's own. The script that
+  rewrites the displayed phone number is WhatConverts profile `162233` —
+  identified in `BaseLayout.astro` and `LandingLayout.astro` and disclosed by
+  name in the privacy policy — but the account itself has not been confirmed
+  against the client's vendor list.
