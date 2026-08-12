@@ -138,5 +138,7 @@ wp plugin list --format=table
 
 echo
 echo "Done."
-echo "  Admin:    http://localhost:8888/wp-admin  (admin / password)"
+# Deliberately not echoing the sign-in details: this script is committed to a
+# public repository, and wp-env's defaults are documented upstream.
+echo "  Admin:    http://localhost:8888/wp-admin"
 echo "  GraphQL:  http://localhost:8888/graphql"
