@@ -61,6 +61,20 @@ const PAGES_QUERY = /* GraphQL */ `
             meta
             href
           }
+          images {
+            slot
+            alt
+            image {
+              node {
+                sourceUrl
+                altText
+                mediaDetails {
+                  width
+                  height
+                }
+              }
+            }
+          }
         }
       }
     }
@@ -91,6 +105,17 @@ type PageNode = {
       body: string | null;
       meta: string | null;
       href: string | null;
+    }> | null;
+    images: Array<{
+      slot: string | null;
+      alt: string | null;
+      image: {
+        node: {
+          sourceUrl: string | null;
+          altText: string | null;
+          mediaDetails: { width: number | null; height: number | null } | null;
+        } | null;
+      } | null;
     }> | null;
   } | null;
 };
@@ -172,6 +197,18 @@ export function pagesLoader(): Loader {
                 body: c.body ?? "",
                 meta: c.meta ?? "",
                 href: c.href ?? "",
+              })),
+            // Dimensions are required, not optional: <Image> refuses a remote
+            // source without them, and a slot missing them would fail the build
+            // rather than silently ship a layout-shifting image.
+            images: (f?.images ?? [])
+              .filter((i) => i.slot && i.image?.node?.sourceUrl)
+              .map((i) => ({
+                slot: i.slot!,
+                url: i.image!.node!.sourceUrl!,
+                width: i.image!.node!.mediaDetails?.width ?? 0,
+                height: i.image!.node!.mediaDetails?.height ?? 0,
+                alt: (i.alt || i.image!.node!.altText || "").trim(),
               })),
           },
         });

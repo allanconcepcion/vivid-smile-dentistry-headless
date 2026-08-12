@@ -483,6 +483,54 @@ function register_field_groups(): void {
 					],
 				],
 				[
+					'key'   => 'field_vs_images_tab',
+					'label' => 'Images',
+					'type'  => 'tab',
+				],
+				[
+					'key'          => 'field_vs_images',
+					'label'        => 'Images',
+					'name'         => 'images',
+					'type'         => 'repeater',
+					'layout'       => 'table',
+					'button_label' => 'Add image',
+					'instructions' => 'Every photo on this page. Swap one by choosing a different file — '
+						. 'the slot name ties it to its place in the layout, so leave that alone. '
+						. 'Alt text describes the picture for screen readers and search engines; '
+						. 'it is worth writing properly on every image.',
+					'sub_fields'   => [
+						[
+							'key'          => 'field_vs_image_slot',
+							'label'        => 'Slot',
+							'name'         => 'slot',
+							'type'         => 'text',
+							'required'     => 1,
+							'instructions' => 'Set by the migration. Do not change.',
+							'readonly'     => 1,
+						],
+						[
+							'key'   => 'field_vs_image_file',
+							'label' => 'Image',
+							'name'  => 'image',
+							'type'  => 'image',
+							// The Astro loader needs a URL plus intrinsic
+							// dimensions: <Image> refuses a remote source
+							// without them, and they are what prevents layout
+							// shift. An ID would cost a second query per image.
+							'return_format' => 'array',
+							'preview_size'  => 'thumbnail',
+							'library'       => 'all',
+						],
+						[
+							'key'          => 'field_vs_image_alt',
+							'label'        => 'Alt text',
+							'name'         => 'alt',
+							'type'         => 'text',
+							'instructions' => 'Leave blank to use the alt text stored on the file in the Media Library.',
+						],
+					],
+				],
+				[
 					'key'   => 'field_vs_cards_tab',
 					'label' => 'Cards & lists',
 					'type'  => 'tab',

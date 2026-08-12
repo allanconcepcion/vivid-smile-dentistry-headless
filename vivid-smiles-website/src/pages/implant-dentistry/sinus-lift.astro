@@ -85,7 +85,7 @@ const costBullets = [
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Sinus Lift Procedure in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url.pathname);
+const { tocLinks, processSteps, faqs, section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -137,7 +137,7 @@ const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url
           </div>
           <div class="hero-img" data-vs-parallax data-parallax="-30">
             <Image
-              src={heroImg}
+              src={image("heroImg").url} width={image("heroImg").width} height={image("heroImg").height}
               alt="Smiling woman photographed outdoors in the Colorado foothills"
               widths={[600, 900, 1400]}
               sizes="(max-width: 991px) 100vw, 50vw"
@@ -181,7 +181,7 @@ const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url
           <div class="why-editorial">
             <div class="why-image" data-vs-parallax data-parallax="-20">
               <Image
-                src={drRichardsonImg}
+                src={image("drRichardsonImg").url} width={image("drRichardsonImg").width} height={image("drRichardsonImg").height}
                 alt="Dr. Bryce Richardson, lead surgeon at Vivid Smiles Dentistry in Parker, CO"
                 widths={[500, 800, 1100]}
                 sizes="(max-width: 991px) 100vw, 45vw"
@@ -218,7 +218,7 @@ const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url
           <div class="what-grid">
             <div class="what-img" data-vs-parallax data-parallax="-25">
               <Image
-                src={whatImg}
+                src={image("whatImg").url} width={image("whatImg").width} height={image("whatImg").height}
                 alt="Cross-section illustration of a sinus lift — graft material placed beneath the lifted sinus membrane above an implant fixture"
                 widths={[500, 800, 1100]}
                 sizes="(max-width: 991px) 100vw, 50vw"
@@ -368,7 +368,7 @@ const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url
             </div>
             <div class="natural-img" data-vs-parallax data-parallax="-25">
               <Image
-                src={yomiImg}
+                src={image("yomiImg").url} width={image("yomiImg").width} height={image("yomiImg").height}
                 alt="Dr. Bryce Richardson placing a dental implant with the Yomi robotic arm at Vivid Smiles Dentistry"
                 widths={[500, 800, 1100]}
                 sizes="(max-width: 991px) 100vw, 50vw"

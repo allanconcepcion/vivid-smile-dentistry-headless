@@ -34,7 +34,7 @@ const lightboxSrcs = await Promise.all(
   cases.map((c) => getImage({ src: c.src, width: 1280, format: 'webp' }).then((g) => g.src)),
 );
 // Section copy is edited in WordPress (Pages -> this page -> Section copy).
-const { section } = await getPageContent(Astro.url.pathname);
+const { section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -82,7 +82,7 @@ const { section } = await getPageContent(Astro.url.pathname);
           </div>
           <div class="hero-img" data-vs-reveal>
             <Image
-              src={heroImg}
+              src={image("heroImg").url} width={image("heroImg").width} height={image("heroImg").height}
               alt="Close-up photograph of a Vivid Smiles patient smiling, three-quarter view"
               widths={[600, 900, 1300]}
               sizes="(max-width: 991px) 100vw, 45vw"

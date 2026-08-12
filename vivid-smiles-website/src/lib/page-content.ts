@@ -24,6 +24,13 @@ export type Section = {
   cta_href: string;
 };
 export type Card = { group: string; title: string; body: string; meta: string; href: string };
+export type PageImage = {
+  slot: string;
+  url: string;
+  width: number;
+  height: number;
+  alt: string;
+};
 
 const EMPTY_SECTION: Section = {
   section_id: "",
@@ -50,6 +57,15 @@ export type PageContent = {
    * here would take the whole site's build down over one blank heading.
    */
   section: (id: string) => Section;
+  /**
+   * A page image by slot, for <Image src={…} width={…} height={…} />.
+   *
+   * `src` must be the URL STRING and width/height must be passed explicitly.
+   * Handing <Image> an ImageMetadata-shaped object whose src is a remote URL
+   * looks like it should work and does not — Astro treats it as a local asset
+   * and emits "/http://host/…", a broken path. Verified, not assumed.
+   */
+  image: (slot: string) => PageImage;
 };
 
 /**
@@ -82,6 +98,8 @@ export async function getPageContent(route: string): Promise<PageContent> {
     (cards[card.group] ??= []).push(card);
   }
 
+  const images = entry.data.images;
+
   return {
     title: entry.data.title,
     tocLinks: entry.data.tocLinks,
@@ -91,5 +109,21 @@ export async function getPageContent(route: string): Promise<PageContent> {
     cards,
     section: (sectionId: string) =>
       sections.find((s) => s.section_id === sectionId) ?? EMPTY_SECTION,
+    image: (slot: string) => {
+      const found = images.find((i) => i.slot === slot);
+
+      // Unlike section(), this throws. An absent image cannot render as
+      // "nothing" — <Image> would receive an empty src and fail the build with
+      // a message pointing at Astro internals rather than at the missing slot.
+      if (!found) {
+        throw new Error(
+          `No image in WordPress for slot "${slot}" on "${id}".\n` +
+            `Add it under Pages -> this page -> Images, or re-run:\n` +
+            `  cd cms && npm run import:images`,
+        );
+      }
+
+      return found;
+    },
   };
 }

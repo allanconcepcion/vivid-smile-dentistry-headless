@@ -113,7 +113,7 @@ const faqs = [
   },
 ];
 // Section copy is edited in WordPress (Pages -> this page -> Section copy).
-const { section } = await getPageContent(Astro.url.pathname);
+const { section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -160,7 +160,7 @@ const { section } = await getPageContent(Astro.url.pathname);
 
         <div class="hero-stack" data-vs-parallax data-parallax="-25">
           <div class="hero-primary">
-            <Image src={heroImg} alt="The Vivid Smiles Dentistry team" widths={[480, 720, 1080]} sizes="(max-width: 991px) 90vw, 540px" loading="eager" fetchpriority="high" />
+            <Image src={image("heroImg").url} width={image("heroImg").width} height={image("heroImg").height} alt="The Vivid Smiles Dentistry team" widths={[480, 720, 1080]} sizes="(max-width: 991px) 90vw, 540px" loading="eager" fetchpriority="high" />
           </div>
           <span class="hero-tag">The Vivid Smiles Team</span>
         </div>

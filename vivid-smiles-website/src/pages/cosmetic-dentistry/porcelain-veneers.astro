@@ -41,7 +41,7 @@ import naturalImg from '../../assets/images/procedures/finished-veneers-lip-deta
 // Table of contents, process steps and FAQs are edited in WordPress
 // (Pages -> Porcelain Veneers). The shapes are identical to the arrays that
 // used to live here, so the markup below is unchanged.
-const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url.pathname);
+const { tocLinks, processSteps, faqs, section, image } = await getPageContent(Astro.url.pathname);
 
 const galleryTiles = getSmiles();
 const galleryTrack = [...galleryTiles, ...galleryTiles];
@@ -95,7 +95,7 @@ const galleryTrack = [...galleryTiles, ...galleryTiles];
           </div>
           <div class="hero-img" data-vs-parallax data-parallax="-30">
             <Image
-              src={heroImg}
+              src={image("heroImg").url} width={image("heroImg").width} height={image("heroImg").height}
               alt="Vivid Smiles patient smiling in front of the practice neon sign"
               widths={[500, 750, 1000]}
               sizes="(max-width: 991px) 100vw, 50vw"
@@ -189,7 +189,7 @@ const galleryTrack = [...galleryTiles, ...galleryTiles];
           <div class="what-grid">
             <div class="what-img" data-vs-parallax data-parallax="-25">
               <Image
-                src={whatImg}
+                src={image("whatImg").url} width={image("whatImg").width} height={image("whatImg").height}
                 alt="Porcelain veneer shells seated on a dental model at Vivid Smiles in Parker, CO"
                 widths={[500, 800, 1100]}
                 sizes="(max-width: 991px) 100vw, 50vw"
@@ -318,7 +318,7 @@ const galleryTrack = [...galleryTiles, ...galleryTiles];
             </div>
             <div class="natural-img" data-vs-parallax data-parallax="-25">
               <Image
-                src={naturalImg}
+                src={image("naturalImg").url} width={image("naturalImg").width} height={image("naturalImg").height}
                 alt="Macro close-up of finished porcelain veneers in place"
                 widths={[500, 800, 1100]}
                 sizes="(max-width: 991px) 100vw, 50vw"

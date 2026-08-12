@@ -1,0 +1,1223 @@
+{
+  "pages": [
+    {
+      "route": "/",
+      "images": [
+        {
+          "slot": "heroBg",
+          "rel": "images/team/vivid-smiles-team-candid.webp",
+          "alt": "The Vivid Smiles Dentistry team"
+        },
+        {
+          "slot": "logoAACD",
+          "rel": "images/credentials/american-academy-of-cosmetic-dentistry.webp",
+          "alt": ""
+        },
+        {
+          "slot": "logoAAID",
+          "rel": "images/credentials/american-academy-of-implant-dentistry.webp",
+          "alt": ""
+        },
+        {
+          "slot": "logoFAM",
+          "rel": "images/credentials/full-arch-masters.webp",
+          "alt": ""
+        },
+        {
+          "slot": "logoYomi",
+          "rel": "images/facility/yomi-robotics.webp",
+          "alt": ""
+        },
+        {
+          "slot": "logoADA",
+          "rel": "images/credentials/american-dental-association.webp",
+          "alt": ""
+        },
+        {
+          "slot": "logoGoogle",
+          "rel": "images/credentials/google-reviews.png",
+          "alt": ""
+        },
+        {
+          "slot": "imgVeneers",
+          "rel": "images/procedures/veneer-application-brush-macro.webp",
+          "alt": "Cosmetic dentist applying a porcelain veneer with a fine brush — close-up of polished white teeth"
+        },
+        {
+          "slot": "imgImplants",
+          "rel": "images/procedures/implant-prosthesis-underside.webp",
+          "alt": "An implant-supported restoration held on a dental model"
+        },
+        {
+          "slot": "imgGeneral",
+          "rel": "images/procedures/hygienist-polishing-teeth.webp",
+          "alt": "Hygienist polishing a patient"
+        },
+        {
+          "slot": "imgEmergency",
+          "rel": "images/procedures/same-day-emergency-dental-care.webp",
+          "alt": "Same-day emergency dental care"
+        },
+        {
+          "slot": "drPortrait",
+          "rel": "images/team/dr-bryce-richardson.webp",
+          "alt": "Dr. Bryce Richardson — editorial portrait"
+        },
+        {
+          "slot": "techYomi",
+          "rel": "images/procedures/dr-richardson-performing-yomi-guided-implant-surgery.webp",
+          "alt": "Dr. Bryce Richardson placing a dental implant with the Yomi robotic arm at Vivid Smiles Dentistry"
+        },
+        {
+          "slot": "techVeneerShells",
+          "rel": "images/procedures/veneer-shells-backlit-white.webp",
+          "alt": "Porcelain veneer shells seated on a dental model, lit against white"
+        },
+        {
+          "slot": "storyVeneersMore",
+          "rel": "images/video-stories/veneers-story-more-than-a-smile.webp",
+          "alt": "Porcelain veneers patient — confident smile after treatment"
+        },
+        {
+          "slot": "storyVeneersConfidence",
+          "rel": "images/video-stories/veneers-story-confidence-restored.webp",
+          "alt": "Porcelain veneers patient — close-up smile after treatment"
+        },
+        {
+          "slot": "storyVeneersLength",
+          "rel": "images/video-stories/veneers-story-length-and-balance.webp",
+          "alt": "Porcelain veneers patient — after photo showing restored tooth length and balance"
+        },
+        {
+          "slot": "notableAnnMarie",
+          "rel": "images/people/real/ann-marie-muscarello-veneer-makeover.webp",
+          "alt": "Ann-Marie Muscarello — Denver Broncos cheerleader and Vivid Smiles cosmetic patient"
+        },
+        {
+          "slot": "notableBrittany",
+          "rel": "images/people/real/brittany-fanning-smile-makeover.webp",
+          "alt": "Brittany Fanning — Denver Broncos cheerleader and Vivid Smiles cosmetic patient"
+        }
+      ]
+    },
+    {
+      "route": "/about-us/",
+      "images": [
+        {
+          "slot": "heroTeam",
+          "rel": "images/team/annie-and-bryce.webp",
+          "alt": "Dr. Annie and Dr. Bryce of Vivid Smiles Dentistry in Parker, Colorado"
+        },
+        {
+          "slot": "storyOffice",
+          "rel": "images/facility/neon-smile-sign-detail.webp",
+          "alt": "The neon smile sign inside Vivid Smiles Dentistry in Parker, CO"
+        },
+        {
+          "slot": "drBryceMain",
+          "rel": "images/team/dr-bryce-richardson.webp",
+          "alt": ""
+        },
+        {
+          "slot": "drBryceInset",
+          "rel": "images/procedures/dr-rich-mid-procedure.webp",
+          "alt": ""
+        },
+        {
+          "slot": "drAnnieMain",
+          "rel": "images/team/dr-annie.webp",
+          "alt": ""
+        },
+        {
+          "slot": "drAnnieInset",
+          "rel": "images/team/dr-annie-candid.webp",
+          "alt": ""
+        },
+        {
+          "slot": "yomiImg",
+          "rel": "images/facility/operating-room.webp",
+          "alt": "A treatment room at Vivid Smiles Dentistry in Parker, CO"
+        },
+        {
+          "slot": "aacdLogo",
+          "rel": "images/credentials/american-academy-of-cosmetic-dentistry.webp",
+          "alt": ""
+        },
+        {
+          "slot": "aaidLogo",
+          "rel": "images/credentials/american-academy-of-implant-dentistry.webp",
+          "alt": ""
+        },
+        {
+          "slot": "adaLogo",
+          "rel": "images/credentials/american-dental-association.webp",
+          "alt": ""
+        },
+        {
+          "slot": "iuLogo",
+          "rel": "images/credentials/indiana-university-school-of-dentistry.webp",
+          "alt": ""
+        },
+        {
+          "slot": "famLogo",
+          "rel": "images/credentials/full-arch-masters.webp",
+          "alt": ""
+        },
+        {
+          "slot": "yomiLogo",
+          "rel": "images/facility/yomi-robotics.webp",
+          "alt": ""
+        },
+        {
+          "slot": "googleLogo",
+          "rel": "images/credentials/google-reviews.png",
+          "alt": ""
+        },
+        {
+          "slot": "vsLogo",
+          "rel": "images/brand/vivid-logo-green.webp",
+          "alt": ""
+        },
+        {
+          "slot": "teamMandy",
+          "rel": "images/team/mandy.webp",
+          "alt": ""
+        },
+        {
+          "slot": "teamSammie",
+          "rel": "images/team/sammie.webp",
+          "alt": ""
+        },
+        {
+          "slot": "teamLinh",
+          "rel": "images/team/linh.webp",
+          "alt": ""
+        },
+        {
+          "slot": "teamTina",
+          "rel": "images/team/tina.webp",
+          "alt": ""
+        },
+        {
+          "slot": "teamAlly",
+          "rel": "images/team/ally.webp",
+          "alt": ""
+        },
+        {
+          "slot": "teamSara",
+          "rel": "images/team/sara.webp",
+          "alt": ""
+        },
+        {
+          "slot": "teamKt",
+          "rel": "images/team/kt.webp",
+          "alt": ""
+        },
+        {
+          "slot": "teamCarol",
+          "rel": "images/team/carol.webp",
+          "alt": ""
+        },
+        {
+          "slot": "teamKnox",
+          "rel": "images/team/knox-dog.webp",
+          "alt": ""
+        },
+        {
+          "slot": "teamBirdie",
+          "rel": "images/team/birdie-dog.webp",
+          "alt": ""
+        }
+      ]
+    },
+    {
+      "route": "/cosmetic-dentistry-lp/",
+      "images": [
+        {
+          "slot": "imgRichardson",
+          "rel": "images/team/dr-bryce-richardson.webp",
+          "alt": "Dr. Bryce Richardson, cosmetic dentist in Parker, Colorado"
+        },
+        {
+          "slot": "imgAnnMarie",
+          "rel": "images/people/real/ann-marie-muscarello-veneer-makeover.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgBrittany",
+          "rel": "images/people/real/brittany-fanning-smile-makeover.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgBrushFront",
+          "rel": "images/procedures/veneer-application-brush-front-closeup.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgHeroTilted",
+          "rel": "images/procedures/finished-veneers-tilted-black.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgHeroDaylight",
+          "rel": "images/procedures/natural-smile-macro-daylight.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgBrush",
+          "rel": "images/procedures/veneer-bonding-etch-application.webp",
+          "alt": "Etchant being brushed onto teeth with a fine applicator during veneer bonding at Vivid Smiles Dentistry"
+        },
+        {
+          "slot": "storyMore",
+          "rel": "images/video-stories/veneers-story-more-than-a-smile.webp",
+          "alt": ""
+        },
+        {
+          "slot": "storyConfidence",
+          "rel": "images/video-stories/veneers-story-confidence-restored.webp",
+          "alt": ""
+        },
+        {
+          "slot": "storyLength",
+          "rel": "images/video-stories/veneers-story-length-and-balance.webp",
+          "alt": ""
+        },
+        {
+          "slot": "logoAACD",
+          "rel": "images/credentials/american-academy-of-cosmetic-dentistry.webp",
+          "alt": ""
+        },
+        {
+          "slot": "logoAAID",
+          "rel": "images/credentials/american-academy-of-implant-dentistry.webp",
+          "alt": ""
+        },
+        {
+          "slot": "logoFAM",
+          "rel": "images/credentials/full-arch-masters.webp",
+          "alt": ""
+        },
+        {
+          "slot": "logoYomi",
+          "rel": "images/facility/yomi-robotics.webp",
+          "alt": ""
+        },
+        {
+          "slot": "logoADA",
+          "rel": "images/credentials/american-dental-association.webp",
+          "alt": ""
+        },
+        {
+          "slot": "logoGoogle",
+          "rel": "images/credentials/google-reviews.png",
+          "alt": "Google"
+        }
+      ]
+    },
+    {
+      "route": "/cosmetic-dentistry/",
+      "images": [
+        {
+          "slot": "imgHero",
+          "rel": "images/people/real/woman-neon-smile-portrait.webp",
+          "alt": "Smiling woman photographed at the Vivid Smiles Dentistry neon smile wall in Parker, CO"
+        },
+        {
+          "slot": "imgDsd",
+          "rel": "images/procedures/smile-macro-tilted-warm.webp",
+          "alt": "Close-up of a smile at a three-quarter angle in warm light"
+        },
+        {
+          "slot": "imgDrBryce",
+          "rel": "images/team/dr-bryce-richardson.webp",
+          "alt": "Dr. Bryce Richardson, founder of Vivid Smiles Dentistry"
+        },
+        {
+          "slot": "imgDrAnnie",
+          "rel": "images/team/dr-annie-thumbnail.webp",
+          "alt": "Dr. Annelise Westermeier, known to patients as Dr. Annie"
+        },
+        {
+          "slot": "imgVeneers",
+          "rel": "images/procedures/veneer-application-brush-front-closeup.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgAligners",
+          "rel": "images/people/generated/clear-aligners.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgWhitening",
+          "rel": "images/people/real/man-bearded-natural-smile.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgGum",
+          "rel": "images/procedures/smile-macro-front-view.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgMakeover",
+          "rel": "images/people/real/woman-radiant-smile-green-dress.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgFullMouth",
+          "rel": "images/procedures/implant-prosthesis-arch-detail.webp",
+          "alt": ""
+        }
+      ]
+    },
+    {
+      "route": "/cosmetic-dentistry/clear-aligners/",
+      "images": [
+        {
+          "slot": "heroImg",
+          "rel": "images/people/generated/clear-aligners.webp",
+          "alt": "Patient holding a clear aligner tray — Spark clear aligners in Parker, CO"
+        },
+        {
+          "slot": "whatImg",
+          "rel": "images/people/real/woman-colorado-lakeside.webp",
+          "alt": "Smiling woman seated beside a Colorado mountain lake"
+        },
+        {
+          "slot": "naturalImg",
+          "rel": "images/people/real/woman-blonde-warm-interior.webp",
+          "alt": "Smiling woman photographed indoors in Parker, CO"
+        }
+      ]
+    },
+    {
+      "route": "/cosmetic-dentistry/full-mouth-rehabilitation/",
+      "images": [
+        {
+          "slot": "heroImg",
+          "rel": "images/people/real/woman-glasses-cream-blazer.webp",
+          "alt": "Smiling woman photographed at the Vivid Smiles Dentistry office in Parker, CO"
+        },
+        {
+          "slot": "whatImg",
+          "rel": "images/procedures/full-arch-restoration-model.webp",
+          "alt": "Full-arch restoration on a dental model, held in a gloved hand"
+        },
+        {
+          "slot": "designImg",
+          "rel": "images/procedures/finished-veneers-side-smile-black.webp",
+          "alt": "Close-up of a smile in profile, photographed against black"
+        }
+      ]
+    },
+    {
+      "route": "/cosmetic-dentistry/gum-contouring/",
+      "images": [
+        {
+          "slot": "heroImg",
+          "rel": "images/people/real/woman-pines-portrait.webp",
+          "alt": "Smiling woman photographed outdoors among Colorado pines"
+        },
+        {
+          "slot": "whatImg",
+          "rel": "images/procedures/smile-macro-front-view.webp",
+          "alt": "Close-up of a smile showing the gum line framing the upper teeth"
+        },
+        {
+          "slot": "gumlineImg",
+          "rel": "images/procedures/finished-veneers-lip-detail.webp",
+          "alt": "Side-lit macro close-up of lips and upper teeth"
+        },
+        {
+          "slot": "resultsImg",
+          "rel": "images/people/real/woman-office-portrait.webp",
+          "alt": "Smiling woman photographed inside the Vivid Smiles Dentistry office in Parker, CO"
+        }
+      ]
+    },
+    {
+      "route": "/cosmetic-dentistry/porcelain-veneers/",
+      "images": [
+        {
+          "slot": "heroImg",
+          "rel": "images/people/real/woman-radiant-smile-green-dress.webp",
+          "alt": "Vivid Smiles patient smiling in front of the practice neon sign"
+        },
+        {
+          "slot": "whatImg",
+          "rel": "images/procedures/veneer-shells-on-model.webp",
+          "alt": "Porcelain veneer shells seated on a dental model at Vivid Smiles in Parker, CO"
+        },
+        {
+          "slot": "naturalImg",
+          "rel": "images/procedures/finished-veneers-lip-detail.webp",
+          "alt": "Macro close-up of finished porcelain veneers in place"
+        }
+      ]
+    },
+    {
+      "route": "/cosmetic-dentistry/smile-makeover/",
+      "images": [
+        {
+          "slot": "heroImg",
+          "rel": "images/people/real/woman-blonde-studio-portrait.webp",
+          "alt": "Smiling woman photographed against a dark studio background"
+        },
+        {
+          "slot": "whatImg",
+          "rel": "images/procedures/finished-veneers-tilted-black.webp",
+          "alt": "Close-up of a smile at a three-quarter angle against black"
+        },
+        {
+          "slot": "editorialImg",
+          "rel": "images/procedures/berry-lip-smile-tilted.webp",
+          "alt": "Editorial close-up of a smile with berry lipstick"
+        }
+      ]
+    },
+    {
+      "route": "/cosmetic-dentistry/teeth-whitening/",
+      "images": [
+        {
+          "slot": "heroImg",
+          "rel": "images/people/real/man-bearded-natural-smile.webp",
+          "alt": "Smiling man photographed at the Vivid Smiles Dentistry neon smile wall in Parker, CO"
+        },
+        {
+          "slot": "whatImg",
+          "rel": "images/procedures/natural-smile-macro-daylight.webp",
+          "alt": "Close-up of a natural smile in daylight"
+        },
+        {
+          "slot": "naturalImg",
+          "rel": "images/people/real/woman-blonde-warm-interior.webp",
+          "alt": "Smiling woman photographed indoors in Parker, CO"
+        }
+      ]
+    },
+    {
+      "route": "/dental-membership-plan/",
+      "images": [
+        {
+          "slot": "heroImg",
+          "rel": "images/team/vivid-smiles-team-candid.webp",
+          "alt": "The Vivid Smiles Dentistry team"
+        },
+        {
+          "slot": "step1Img",
+          "rel": "images/people/real/patient-at-reception-check-in.webp",
+          "alt": ""
+        },
+        {
+          "slot": "step2Img",
+          "rel": "images/procedures/hygienist-polishing-teeth.webp",
+          "alt": ""
+        },
+        {
+          "slot": "step3Img",
+          "rel": "images/facility/waiting-room-lounge-with-neon-smile.webp",
+          "alt": ""
+        }
+      ]
+    },
+    {
+      "route": "/emergency-dentistry/",
+      "images": [
+        {
+          "slot": "imgHero",
+          "rel": "images/people/real/woman-blonde-warm-interior.webp",
+          "alt": "Smiling woman photographed in a warm interior setting"
+        },
+        {
+          "slot": "imgHow",
+          "rel": "images/procedures/same-day-emergency-dental-care.webp",
+          "alt": "A Vivid Smiles dentist and assistant treating an emergency patient in Parker, CO"
+        }
+      ]
+    },
+    {
+      "route": "/general-dentistry/",
+      "images": [
+        {
+          "slot": "imgHero",
+          "rel": "images/procedures/hygienist-polishing-teeth.webp",
+          "alt": "Polishing a patient"
+        },
+        {
+          "slot": "imgDoctors",
+          "rel": "images/team/annie-and-bryce.webp",
+          "alt": "Dr. Bryce Richardson and Dr. Annelise Westermeier (Dr. Annie) at Vivid Smiles Dentistry"
+        },
+        {
+          "slot": "imgFirstVisit",
+          "rel": "images/facility/entry-doors-with-vivid-logos.webp",
+          "alt": "Entry doors at Vivid Smiles Dentistry in Parker, CO, etched with the practice logo"
+        },
+        {
+          "slot": "imgGateway",
+          "rel": "images/people/real/woman-neon-smile-portrait.webp",
+          "alt": "Smiling woman photographed at the Vivid Smiles Dentistry neon smile wall in Parker, CO"
+        },
+        {
+          "slot": "imgPreventive",
+          "rel": "images/people/real/woman-blonde-warm-interior.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgRestorative",
+          "rel": "images/procedures/dr-rich-mid-procedure.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgPeriodontal",
+          "rel": "images/procedures/smile-macro-front-view.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgEmergency",
+          "rel": "images/procedures/same-day-emergency-dental-care.webp",
+          "alt": ""
+        }
+      ]
+    },
+    {
+      "route": "/general-lp/",
+      "images": [
+        {
+          "slot": "imgRichardson",
+          "rel": "images/team/dr-bryce-richardson.webp",
+          "alt": "Dr. Bryce Richardson, DDS, of Vivid Smiles Dentistry in Parker, Colorado"
+        },
+        {
+          "slot": "imgConsult",
+          "rel": "images/people/real/woman-glasses-cream-blazer.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgLounge",
+          "rel": "images/facility/waiting-room-lounge-with-neon-smile.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgHygienist",
+          "rel": "images/procedures/hygienist-polishing-teeth.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgDrPortrait",
+          "rel": "images/team/dr-bryce-richardson-neon-portrait.webp",
+          "alt": "Dr. Bryce Richardson at the Vivid Smiles neon smile wall in Parker, CO"
+        },
+        {
+          "slot": "logoAACD",
+          "rel": "images/credentials/american-academy-of-cosmetic-dentistry.webp",
+          "alt": ""
+        },
+        {
+          "slot": "logoAAID",
+          "rel": "images/credentials/american-academy-of-implant-dentistry.webp",
+          "alt": ""
+        },
+        {
+          "slot": "logoFAM",
+          "rel": "images/credentials/full-arch-masters.webp",
+          "alt": ""
+        },
+        {
+          "slot": "logoYomi",
+          "rel": "images/facility/yomi-robotics.webp",
+          "alt": ""
+        },
+        {
+          "slot": "logoADA",
+          "rel": "images/credentials/american-dental-association.webp",
+          "alt": ""
+        },
+        {
+          "slot": "logoGoogle",
+          "rel": "images/credentials/google-reviews.png",
+          "alt": "Google"
+        }
+      ]
+    },
+    {
+      "route": "/implant-dentistry/",
+      "images": [
+        {
+          "slot": "imgHero",
+          "rel": "images/procedures/implant-prosthesis-underside.webp",
+          "alt": "An implant-supported restoration held on a dental model"
+        },
+        {
+          "slot": "imgWhat",
+          "rel": "images/people/real/woman-glasses-cream-blazer.webp",
+          "alt": "Smiling woman photographed at the Vivid Smiles Dentistry office in Parker, CO"
+        },
+        {
+          "slot": "imgDrBryce",
+          "rel": "images/team/dr-bryce-richardson.webp",
+          "alt": "Dr. Bryce Richardson, founder of Vivid Smiles Dentistry and lead implant surgeon"
+        },
+        {
+          "slot": "imgSingleTooth",
+          "rel": "images/procedures/implant-prosthesis-arch-detail.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgFullMouth",
+          "rel": "images/people/real/woman-colorado-lakeside.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgAllOn4",
+          "rel": "images/people/real/man-bearded-natural-smile.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgBoneGrafting",
+          "rel": "images/people/real/woman-office-portrait.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgSinusLift",
+          "rel": "images/facility/operating-room.webp",
+          "alt": ""
+        }
+      ]
+    },
+    {
+      "route": "/implant-dentistry/all-on-4-single-arch/",
+      "images": [
+        {
+          "slot": "heroImg",
+          "rel": "images/people/real/woman-glasses-cream-blazer.webp",
+          "alt": "Smiling woman photographed at the Vivid Smiles Dentistry office in Parker, CO"
+        },
+        {
+          "slot": "whatImg",
+          "rel": "images/procedures/full-arch-restoration-model.webp",
+          "alt": "Full-arch restoration on a dental model, held in a gloved hand"
+        },
+        {
+          "slot": "roboticsImg",
+          "rel": "images/procedures/dr-richardson-performing-yomi-guided-implant-surgery.webp",
+          "alt": "Dr. Bryce Richardson placing a dental implant with the Yomi robotic arm at Vivid Smiles Dentistry"
+        },
+        {
+          "slot": "candidacyImg",
+          "rel": "images/people/real/woman-mountain-portrait.webp",
+          "alt": "Smiling woman photographed outdoors in the Colorado foothills"
+        }
+      ]
+    },
+    {
+      "route": "/implant-dentistry/bone-grafting/",
+      "images": [
+        {
+          "slot": "heroImg",
+          "rel": "images/people/real/man-bearded-natural-smile.webp",
+          "alt": "Smiling man photographed at the Vivid Smiles Dentistry neon smile wall in Parker, CO"
+        },
+        {
+          "slot": "whatImg",
+          "rel": "images/procedures/bone-graft-cross-section-diagram.webp",
+          "alt": "Cross-section illustration showing bone-graft material placed under a collagen barrier membrane against native jawbone"
+        },
+        {
+          "slot": "implantsImg",
+          "rel": "images/procedures/implant-prosthesis-arch-detail.webp",
+          "alt": "Close-up of an implant-supported restoration on a dental model"
+        },
+        {
+          "slot": "candidacyImg",
+          "rel": "images/people/real/woman-stone-wall-portrait.webp",
+          "alt": "Woman standing beside a stone wall on a bright afternoon"
+        }
+      ]
+    },
+    {
+      "route": "/implant-dentistry/full-mouth-dental-implants/",
+      "images": [
+        {
+          "slot": "heroImg",
+          "rel": "images/people/real/woman-office-portrait.webp",
+          "alt": "Smiling woman photographed inside the Vivid Smiles Dentistry office in Parker, CO"
+        },
+        {
+          "slot": "whatImg",
+          "rel": "images/procedures/full-arch-restoration-model.webp",
+          "alt": "Full-arch restoration on a dental model, held in a gloved hand"
+        },
+        {
+          "slot": "roboticsImg",
+          "rel": "images/procedures/dr-richardson-performing-yomi-guided-implant-surgery.webp",
+          "alt": "Dr. Bryce Richardson placing a dental implant with the Yomi robotic arm at Vivid Smiles Dentistry"
+        },
+        {
+          "slot": "candidacyImg",
+          "rel": "images/people/real/woman-lakeside-seated.webp",
+          "alt": "Woman seated in tall grass above a Colorado lake"
+        }
+      ]
+    },
+    {
+      "route": "/implant-dentistry/single-tooth-dental-implants/",
+      "images": [
+        {
+          "slot": "heroImg",
+          "rel": "images/people/real/woman-blonde-warm-interior.webp",
+          "alt": "Smiling woman photographed indoors in Parker, CO"
+        },
+        {
+          "slot": "whatImg",
+          "rel": "images/procedures/implant-prosthesis-arch-detail.webp",
+          "alt": "Close-up of an implant-supported restoration on a dental model"
+        },
+        {
+          "slot": "candidacyImg",
+          "rel": "images/people/real/woman-pines-portrait.webp",
+          "alt": "Woman standing among pines on a Colorado hillside"
+        }
+      ]
+    },
+    {
+      "route": "/implant-dentistry/sinus-lift/",
+      "images": [
+        {
+          "slot": "heroImg",
+          "rel": "images/people/real/woman-mountain-portrait.webp",
+          "alt": "Smiling woman photographed outdoors in the Colorado foothills"
+        },
+        {
+          "slot": "whatImg",
+          "rel": "images/procedures/sinus-lift-cross-section-diagram.webp",
+          "alt": "Cross-section illustration of a sinus lift — graft material placed beneath the lifted sinus membrane above an implant fixture"
+        },
+        {
+          "slot": "yomiImg",
+          "rel": "images/procedures/dr-richardson-performing-yomi-guided-implant-surgery.webp",
+          "alt": "Dr. Bryce Richardson placing a dental implant with the Yomi robotic arm at Vivid Smiles Dentistry"
+        },
+        {
+          "slot": "drRichardsonImg",
+          "rel": "images/team/dr-bryce-richardson.webp",
+          "alt": "Dr. Bryce Richardson, lead surgeon at Vivid Smiles Dentistry in Parker, CO"
+        }
+      ]
+    },
+    {
+      "route": "/new-patients/",
+      "images": [
+        {
+          "slot": "heroImg",
+          "rel": "images/team/vivid-smiles-team-candid.webp",
+          "alt": "The Vivid Smiles team walking outside the Parker, CO office"
+        },
+        {
+          "slot": "imgCosmetic",
+          "rel": "images/procedures/veneer-application-brush-front-closeup.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgImplant",
+          "rel": "images/procedures/full-arch-model-in-hand.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgGeneral",
+          "rel": "images/people/real/woman-portrait-office-lounge.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgEmergency",
+          "rel": "images/procedures/same-day-emergency-dental-care.webp",
+          "alt": ""
+        }
+      ]
+    },
+    {
+      "route": "/our-office/",
+      "images": [
+        {
+          "slot": "heroPrimary",
+          "rel": "images/facility/waiting-room-lounge-with-neon-smile.webp",
+          "alt": ""
+        },
+        {
+          "slot": "heroInset",
+          "rel": "images/facility/entry-doors-with-vivid-logos.webp",
+          "alt": ""
+        },
+        {
+          "slot": "bentoA",
+          "rel": "images/facility/reception-desk-and-front-office.webp",
+          "alt": "Reception desk and front office area at Vivid Smiles"
+        },
+        {
+          "slot": "bentoB",
+          "rel": "images/facility/operating-room.webp",
+          "alt": "Operatory at Vivid Smiles Dentistry, Parker, CO"
+        },
+        {
+          "slot": "bentoC",
+          "rel": "images/facility/neon-smile-sign-detail.webp",
+          "alt": "Neon Vivid Smiles sign glowing softly in the waiting lounge"
+        },
+        {
+          "slot": "bentoD",
+          "rel": "images/team/drs-richardson-and-westermeier-neon.webp",
+          "alt": "Dr. Bryce Richardson and Dr. Annelise Westermeier in the Vivid Smiles hallway"
+        },
+        {
+          "slot": "bentoE",
+          "rel": "images/people/real/patient-at-reception-check-in.webp",
+          "alt": "A patient being welcomed at the reception desk"
+        },
+        {
+          "slot": "techPrimary",
+          "rel": "images/procedures/dr-richardson-performing-yomi-guided-implant-surgery.webp",
+          "alt": ""
+        },
+        {
+          "slot": "techInset",
+          "rel": "images/procedures/hygienist-polishing-teeth.webp",
+          "alt": ""
+        }
+      ]
+    },
+    {
+      "route": "/patient-testimonials/",
+      "images": [
+        {
+          "slot": "storyJames",
+          "rel": "images/video-stories/james.webp",
+          "alt": "James — patient story"
+        },
+        {
+          "slot": "storyChanel",
+          "rel": "images/video-stories/chanel-patient-story.webp",
+          "alt": "Chanel — patient story"
+        },
+        {
+          "slot": "storyJosh",
+          "rel": "images/video-stories/josh.webp",
+          "alt": "Josh — patient story"
+        },
+        {
+          "slot": "veneerMore",
+          "rel": "images/video-stories/veneers-story-more-than-a-smile.webp",
+          "alt": "Porcelain veneers patient — confident after treatment"
+        },
+        {
+          "slot": "veneerConfidence",
+          "rel": "images/video-stories/veneers-story-confidence-restored.webp",
+          "alt": "Porcelain veneers patient — close-up smile"
+        },
+        {
+          "slot": "veneerLength",
+          "rel": "images/video-stories/veneers-story-length-and-balance.webp",
+          "alt": "Porcelain veneers patient — after photo showing restored tooth length"
+        },
+        {
+          "slot": "veneerFromTo",
+          "rel": "images/video-stories/veneers-story-from-veneers-to-allon-x.webp",
+          "alt": "Cosmetic dentistry patient seated during her story interview"
+        },
+        {
+          "slot": "veneerBonding",
+          "rel": "images/video-stories/veneers-story-bonding-vs-veneers.webp",
+          "alt": "Cosmetic dentistry patient with natural smile"
+        },
+        {
+          "slot": "veneerAnneMarie",
+          "rel": "images/video-stories/veneers-story-anne-marie.webp",
+          "alt": "Anne Marie — porcelain veneers patient story"
+        },
+        {
+          "slot": "veneerPrep",
+          "rel": "images/video-stories/veneers-story-no-prep-vs-minimal-prep.webp",
+          "alt": "Cosmetic dentistry patient laughing in studio"
+        },
+        {
+          "slot": "featuredImg",
+          "rel": "images/procedures/full-arch-restoration-model.webp",
+          "alt": "Full-arch restoration on a dental model, held in a gloved hand"
+        },
+        {
+          "slot": "heroImg",
+          "rel": "images/team/vivid-smiles-team-candid.webp",
+          "alt": "The Vivid Smiles Dentistry team walking outside their Parker, Colorado office"
+        }
+      ]
+    },
+    {
+      "route": "/referral-program/",
+      "images": [
+        {
+          "slot": "heroPrimary",
+          "rel": "images/people/real/patient-at-reception-check-in.webp",
+          "alt": "A patient checking in at the Vivid Smiles Dentistry front desk in Parker, CO"
+        }
+      ]
+    },
+    {
+      "route": "/services/",
+      "images": [
+        {
+          "slot": "imgVeneers",
+          "rel": "images/procedures/finished-veneers-tilted-black.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgSmileMakeover",
+          "rel": "images/people/real/woman-radiant-smile-green-dress.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgClearAligners",
+          "rel": "images/people/generated/clear-aligners.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgWhitening",
+          "rel": "images/people/real/man-bearded-natural-smile.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgGumContouring",
+          "rel": "images/people/real/woman-mountain-portrait.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgFullMouthRehab",
+          "rel": "images/procedures/full-arch-restoration-model.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgSingleImplant",
+          "rel": "images/procedures/dr-richardson-performing-yomi-guided-implant-surgery.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgFullMouthImplants",
+          "rel": "images/people/real/woman-blonde-studio-portrait.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgAllOn4",
+          "rel": "images/people/real/woman-glasses-cream-blazer.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgBoneGraft",
+          "rel": "images/procedures/dr-rich-mid-procedure.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgSinusLift",
+          "rel": "images/facility/operating-room.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgGeneral",
+          "rel": "images/people/real/woman-portrait-office-lounge.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgEmergency",
+          "rel": "images/procedures/same-day-emergency-dental-care.webp",
+          "alt": ""
+        }
+      ]
+    },
+    {
+      "route": "/smile-gallery/",
+      "images": [
+        {
+          "slot": "heroImg",
+          "rel": "images/procedures/smile-three-quarter-glossy-lip.webp",
+          "alt": "Close-up photograph of a Vivid Smiles patient smiling, three-quarter view"
+        }
+      ]
+    },
+    {
+      "route": "/thank-you/",
+      "images": [
+        {
+          "slot": "heroBg",
+          "rel": "images/team/vivid-smiles-team-candid.webp",
+          "alt": "The Vivid Smiles team walking together outside the Parker practice"
+        }
+      ]
+    },
+    {
+      "route": "/veneers-lp/",
+      "images": [
+        {
+          "slot": "imgRichardson",
+          "rel": "images/team/dr-bryce-richardson.webp",
+          "alt": "Dr. Bryce Richardson, cosmetic dentist in Parker, Colorado"
+        },
+        {
+          "slot": "imgAnnMarie",
+          "rel": "images/people/real/ann-marie-muscarello-veneer-makeover.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgBrittany",
+          "rel": "images/people/real/brittany-fanning-smile-makeover.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgHeroSide",
+          "rel": "images/procedures/finished-veneers-side-smile-black.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgHeroBerry",
+          "rel": "images/procedures/berry-lip-smile-tilted.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgHeroMacro",
+          "rel": "images/procedures/smile-macro-front-view.webp",
+          "alt": ""
+        },
+        {
+          "slot": "imgEditorial",
+          "rel": "images/procedures/smile-with-diamond-detail.webp",
+          "alt": "Macro close-up of a smile holding an emerald-cut diamond between the teeth — editorial detail"
+        },
+        {
+          "slot": "storyMore",
+          "rel": "images/video-stories/veneers-story-more-than-a-smile.webp",
+          "alt": ""
+        },
+        {
+          "slot": "storyConfidence",
+          "rel": "images/video-stories/veneers-story-confidence-restored.webp",
+          "alt": ""
+        },
+        {
+          "slot": "storyLength",
+          "rel": "images/video-stories/veneers-story-length-and-balance.webp",
+          "alt": ""
+        },
+        {
+          "slot": "logoAACD",
+          "rel": "images/credentials/american-academy-of-cosmetic-dentistry.webp",
+          "alt": ""
+        },
+        {
+          "slot": "logoAAID",
+          "rel": "images/credentials/american-academy-of-implant-dentistry.webp",
+          "alt": ""
+        },
+        {
+          "slot": "logoFAM",
+          "rel": "images/credentials/full-arch-masters.webp",
+          "alt": ""
+        },
+        {
+          "slot": "logoYomi",
+          "rel": "images/facility/yomi-robotics.webp",
+          "alt": ""
+        },
+        {
+          "slot": "logoADA",
+          "rel": "images/credentials/american-dental-association.webp",
+          "alt": ""
+        },
+        {
+          "slot": "logoGoogle",
+          "rel": "images/credentials/google-reviews.png",
+          "alt": "Google"
+        }
+      ]
+    }
+  ],
+  "files": [
+    "images/brand/vivid-logo-green.webp",
+    "images/credentials/american-academy-of-cosmetic-dentistry.webp",
+    "images/credentials/american-academy-of-implant-dentistry.webp",
+    "images/credentials/american-dental-association.webp",
+    "images/credentials/full-arch-masters.webp",
+    "images/credentials/google-reviews.png",
+    "images/credentials/indiana-university-school-of-dentistry.webp",
+    "images/facility/entry-doors-with-vivid-logos.webp",
+    "images/facility/neon-smile-sign-detail.webp",
+    "images/facility/operating-room.webp",
+    "images/facility/reception-desk-and-front-office.webp",
+    "images/facility/waiting-room-lounge-with-neon-smile.webp",
+    "images/facility/yomi-robotics.webp",
+    "images/people/generated/clear-aligners.webp",
+    "images/people/real/ann-marie-muscarello-veneer-makeover.webp",
+    "images/people/real/brittany-fanning-smile-makeover.webp",
+    "images/people/real/man-bearded-natural-smile.webp",
+    "images/people/real/patient-at-reception-check-in.webp",
+    "images/people/real/woman-blonde-studio-portrait.webp",
+    "images/people/real/woman-blonde-warm-interior.webp",
+    "images/people/real/woman-colorado-lakeside.webp",
+    "images/people/real/woman-glasses-cream-blazer.webp",
+    "images/people/real/woman-lakeside-seated.webp",
+    "images/people/real/woman-mountain-portrait.webp",
+    "images/people/real/woman-neon-smile-portrait.webp",
+    "images/people/real/woman-office-portrait.webp",
+    "images/people/real/woman-pines-portrait.webp",
+    "images/people/real/woman-portrait-office-lounge.webp",
+    "images/people/real/woman-radiant-smile-green-dress.webp",
+    "images/people/real/woman-stone-wall-portrait.webp",
+    "images/procedures/berry-lip-smile-tilted.webp",
+    "images/procedures/bone-graft-cross-section-diagram.webp",
+    "images/procedures/dr-rich-mid-procedure.webp",
+    "images/procedures/dr-richardson-performing-yomi-guided-implant-surgery.webp",
+    "images/procedures/finished-veneers-lip-detail.webp",
+    "images/procedures/finished-veneers-side-smile-black.webp",
+    "images/procedures/finished-veneers-tilted-black.webp",
+    "images/procedures/full-arch-model-in-hand.webp",
+    "images/procedures/full-arch-restoration-model.webp",
+    "images/procedures/hygienist-polishing-teeth.webp",
+    "images/procedures/implant-prosthesis-arch-detail.webp",
+    "images/procedures/implant-prosthesis-underside.webp",
+    "images/procedures/natural-smile-macro-daylight.webp",
+    "images/procedures/same-day-emergency-dental-care.webp",
+    "images/procedures/sinus-lift-cross-section-diagram.webp",
+    "images/procedures/smile-macro-front-view.webp",
+    "images/procedures/smile-macro-tilted-warm.webp",
+    "images/procedures/smile-three-quarter-glossy-lip.webp",
+    "images/procedures/smile-with-diamond-detail.webp",
+    "images/procedures/veneer-application-brush-front-closeup.webp",
+    "images/procedures/veneer-application-brush-macro.webp",
+    "images/procedures/veneer-bonding-etch-application.webp",
+    "images/procedures/veneer-shells-backlit-white.webp",
+    "images/procedures/veneer-shells-on-model.webp",
+    "images/team/ally.webp",
+    "images/team/annie-and-bryce.webp",
+    "images/team/birdie-dog.webp",
+    "images/team/carol.webp",
+    "images/team/dr-annie-candid.webp",
+    "images/team/dr-annie-thumbnail.webp",
+    "images/team/dr-annie.webp",
+    "images/team/dr-bryce-richardson-neon-portrait.webp",
+    "images/team/dr-bryce-richardson.webp",
+    "images/team/drs-richardson-and-westermeier-neon.webp",
+    "images/team/knox-dog.webp",
+    "images/team/kt.webp",
+    "images/team/linh.webp",
+    "images/team/mandy.webp",
+    "images/team/sammie.webp",
+    "images/team/sara.webp",
+    "images/team/tina.webp",
+    "images/team/vivid-smiles-team-candid.webp",
+    "images/video-stories/chanel-patient-story.webp",
+    "images/video-stories/james.webp",
+    "images/video-stories/josh.webp",
+    "images/video-stories/veneers-story-anne-marie.webp",
+    "images/video-stories/veneers-story-bonding-vs-veneers.webp",
+    "images/video-stories/veneers-story-confidence-restored.webp",
+    "images/video-stories/veneers-story-from-veneers-to-allon-x.webp",
+    "images/video-stories/veneers-story-length-and-balance.webp",
+    "images/video-stories/veneers-story-more-than-a-smile.webp",
+    "images/video-stories/veneers-story-no-prep-vs-minimal-prep.webp"
+  ]
+}

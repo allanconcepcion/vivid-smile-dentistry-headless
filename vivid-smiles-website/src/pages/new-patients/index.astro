@@ -99,7 +99,7 @@ const description =
 // faqs is edited in WordPress (Pages -> New Patients in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { faqs, section } = await getPageContent(Astro.url.pathname);
+const { faqs, section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -146,7 +146,7 @@ const { faqs, section } = await getPageContent(Astro.url.pathname);
 
         <div class="hero-img" data-vs-parallax data-parallax="-30">
           <Image
-            src={heroImg}
+            src={image("heroImg").url} width={image("heroImg").width} height={image("heroImg").height}
             alt="The Vivid Smiles team walking outside the Parker, CO office"
             widths={[600, 900, 1400]}
             sizes="(max-width: 991px) 100vw, 50vw"

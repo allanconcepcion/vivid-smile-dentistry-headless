@@ -67,7 +67,7 @@ const description =
 // faqs is edited in WordPress (Pages -> Our Office in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { faqs, section } = await getPageContent(Astro.url.pathname);
+const { faqs, section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -134,7 +134,7 @@ const { faqs, section } = await getPageContent(Astro.url.pathname);
         <div class="bento">
           <div class="bento-tile tile-a">
             <Image
-              src={bentoA}
+              src={image("bentoA").url} width={image("bentoA").width} height={image("bentoA").height}
               alt="Reception desk and front office area at Vivid Smiles"
               widths={[480, 720, 960, 1280]}
               sizes="(max-width: 640px) 100vw, (max-width: 991px) 60vw, 50vw"
@@ -142,7 +142,7 @@ const { faqs, section } = await getPageContent(Astro.url.pathname);
           </div>
           <div class="bento-tile tile-b">
             <Image
-              src={bentoB}
+              src={image("bentoB").url} width={image("bentoB").width} height={image("bentoB").height}
               alt="Operatory at Vivid Smiles Dentistry, Parker, CO"
               widths={[260, 420, 560]}
               sizes="(max-width: 640px) 100vw, 22vw"
@@ -150,7 +150,7 @@ const { faqs, section } = await getPageContent(Astro.url.pathname);
           </div>
           <div class="bento-tile tile-c">
             <Image
-              src={bentoC}
+              src={image("bentoC").url} width={image("bentoC").width} height={image("bentoC").height}
               alt="Neon Vivid Smiles sign glowing softly in the waiting lounge"
               widths={[260, 420, 560]}
               sizes="(max-width: 640px) 100vw, 22vw"
@@ -158,7 +158,7 @@ const { faqs, section } = await getPageContent(Astro.url.pathname);
           </div>
           <div class="bento-tile tile-d">
             <Image
-              src={bentoD}
+              src={image("bentoD").url} width={image("bentoD").width} height={image("bentoD").height}
               alt="Dr. Bryce Richardson and Dr. Annelise Westermeier in the Vivid Smiles hallway"
               widths={[480, 720, 960]}
               sizes="(max-width: 640px) 100vw, 50vw"
@@ -166,7 +166,7 @@ const { faqs, section } = await getPageContent(Astro.url.pathname);
           </div>
           <div class="bento-tile tile-e">
             <Image
-              src={bentoE}
+              src={image("bentoE").url} width={image("bentoE").width} height={image("bentoE").height}
               alt="A patient being welcomed at the reception desk"
               widths={[480, 720, 960]}
               sizes="(max-width: 640px) 100vw, 50vw"

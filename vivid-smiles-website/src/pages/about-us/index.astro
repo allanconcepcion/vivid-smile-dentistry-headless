@@ -257,7 +257,7 @@ const teamGroups = [
 // seamless marquee. Mirrors the home-page testimonials section.
 const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +a.data.date);
 // Section copy is edited in WordPress (Pages -> this page -> Section copy).
-const { section } = await getPageContent(Astro.url.pathname);
+const { section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -303,7 +303,7 @@ const { section } = await getPageContent(Astro.url.pathname);
           </div>
           <div class="hero-img" data-vs-reveal data-vs-parallax data-parallax="-30">
             <Image
-              src={heroTeam}
+              src={image("heroTeam").url} width={image("heroTeam").width} height={image("heroTeam").height}
               alt="Dr. Annie and Dr. Bryce of Vivid Smiles Dentistry in Parker, Colorado"
               widths={[600, 900, 1400]}
               sizes="(max-width: 991px) 100vw, 45vw"
@@ -331,7 +331,7 @@ const { section } = await getPageContent(Astro.url.pathname);
           <div class="story-grid">
             <div class="story-img" data-vs-reveal>
               <Image
-                src={storyOffice}
+                src={image("storyOffice").url} width={image("storyOffice").width} height={image("storyOffice").height}
                 alt="The neon smile sign inside Vivid Smiles Dentistry in Parker, CO"
                 widths={[480, 720, 1080]}
                 sizes="(max-width: 991px) 100vw, 45vw"
@@ -554,7 +554,7 @@ const { section } = await getPageContent(Astro.url.pathname);
           <div class="tech-grid">
             <div class="tech-img" data-vs-reveal>
               <Image
-                src={yomiImg}
+                src={image("yomiImg").url} width={image("yomiImg").width} height={image("yomiImg").height}
                 alt="A treatment room at Vivid Smiles Dentistry in Parker, CO"
                 widths={[480, 720, 1080]}
                 sizes="(max-width: 991px) 100vw, 50vw"

@@ -203,7 +203,7 @@ const ledger = [
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Dental Implants in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url.pathname);
+const { tocLinks, processSteps, faqs, section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -249,7 +249,7 @@ const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url
         <div class="hero-stack">
           <div class="hero-primary" data-vs-parallax data-parallax="-25">
             <Image
-              src={imgHero}
+              src={image("imgHero").url} width={image("imgHero").width} height={image("imgHero").height}
               alt="An implant-supported restoration held on a dental model"
               widths={[540, 800, 1080]}
               sizes="(max-width: 991px) 100vw, 540px"
@@ -313,7 +313,7 @@ const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url
         <div class="what-grid">
           <div class="what-img" data-vs-parallax data-parallax="-25">
             <Image
-              src={imgWhat}
+              src={image("imgWhat").url} width={image("imgWhat").width} height={image("imgWhat").height}
               alt="Smiling woman photographed at the Vivid Smiles Dentistry office in Parker, CO"
               widths={[500, 800, 1100]}
               sizes="(max-width: 991px) 100vw, 50vw"
@@ -448,7 +448,7 @@ const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url
           <div class="doctor-portrait">
             <span class="doctor-pill">Founder · Surgical &amp; Restorative</span>
             <Image
-              src={imgDrBryce}
+              src={image("imgDrBryce").url} width={image("imgDrBryce").width} height={image("imgDrBryce").height}
               alt="Dr. Bryce Richardson, founder of Vivid Smiles Dentistry and lead implant surgeon"
               widths={[420, 640, 880]}
               sizes="(max-width: 991px) 100vw, 50vw"

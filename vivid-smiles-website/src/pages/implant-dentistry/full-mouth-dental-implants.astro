@@ -109,7 +109,7 @@ const keyStats: [string, string][] = [
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Full Mouth Dental Implants in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url.pathname);
+const { tocLinks, processSteps, faqs, section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -159,7 +159,7 @@ const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url
           </div>
           <div class="hero-img" data-vs-parallax data-parallax="-30">
             <Image
-              src={heroImg}
+              src={image("heroImg").url} width={image("heroImg").width} height={image("heroImg").height}
               alt="Smiling woman photographed inside the Vivid Smiles Dentistry office in Parker, CO"
               widths={[600, 900, 1400]}
               sizes="(max-width: 991px) 100vw, 50vw"
@@ -232,7 +232,7 @@ const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url
           <div class="what-grid">
             <div class="what-img" data-vs-parallax data-parallax="-25">
               <Image
-                src={whatImg}
+                src={image("whatImg").url} width={image("whatImg").width} height={image("whatImg").height}
                 alt="Full-arch restoration on a dental model, held in a gloved hand"
                 widths={[500, 800, 1100]}
                 sizes="(max-width: 991px) 100vw, 50vw"
@@ -265,7 +265,7 @@ const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url
           <div class="robotics-grid">
             <div class="robotics-img" data-vs-parallax data-parallax="-25">
               <Image
-                src={roboticsImg}
+                src={image("roboticsImg").url} width={image("roboticsImg").width} height={image("roboticsImg").height}
                 alt="Dr. Bryce Richardson placing a dental implant with the Yomi robotic arm at Vivid Smiles Dentistry"
                 widths={[500, 800, 1100]}
                 sizes="(max-width: 991px) 100vw, 50vw"
@@ -470,7 +470,7 @@ const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url
             </div>
             <div class="natural-img" data-vs-parallax data-parallax="-25">
               <Image
-                src={candidacyImg}
+                src={image("candidacyImg").url} width={image("candidacyImg").width} height={image("candidacyImg").height}
                 alt="Woman seated in tall grass above a Colorado lake"
                 widths={[500, 800, 1100]}
                 sizes="(max-width: 991px) 100vw, 50vw"

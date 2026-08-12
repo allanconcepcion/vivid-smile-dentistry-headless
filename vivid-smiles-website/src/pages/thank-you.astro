@@ -26,6 +26,7 @@ import ArrowBadge from "../components/ArrowBadge.astro";
 import "../styles/pages/thank-you.css";
 
 import heroBg from "../assets/images/team/vivid-smiles-team-candid.webp";
+import { getPageContent } from '../lib/page-content';
 
 const steps = [
   {
@@ -65,6 +66,9 @@ const explore = [
     href: "/blog/",
   },
 ];
+// Images are managed in WordPress (Pages -> this page -> Images).
+const { image } = await getPageContent(Astro.url.pathname);
+
 ---
 
 <BaseLayout
@@ -87,7 +91,7 @@ const explore = [
       <section class="hero">
         <Image
           class="hero-bg"
-          src={heroBg}
+          src={image("heroBg").url} width={image("heroBg").width} height={image("heroBg").height}
           alt="The Vivid Smiles team walking together outside the Parker practice"
           widths={[768, 1280, 1600]}
           sizes="100vw"

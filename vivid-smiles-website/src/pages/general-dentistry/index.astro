@@ -135,7 +135,7 @@ const offerCatalog = services.map((s) => {
 // tocLinks, faqs are edited in WordPress (Pages -> General Dentistry in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, faqs, section } = await getPageContent(Astro.url.pathname);
+const { tocLinks, faqs, section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -182,7 +182,7 @@ const { tocLinks, faqs, section } = await getPageContent(Astro.url.pathname);
           <div class="hero-stack">
             <div class="hero-primary" data-vs-parallax data-parallax="-25">
               <Image
-                src={imgHero}
+                src={image("imgHero").url} width={image("imgHero").width} height={image("imgHero").height}
                 alt="Polishing a patient's teeth during a routine hygiene visit at Vivid Smiles Dentistry"
                 widths={[540, 800, 1080]}
                 sizes="(max-width: 991px) 100vw, 540px"
@@ -290,7 +290,7 @@ const { tocLinks, faqs, section } = await getPageContent(Astro.url.pathname);
           <div class="what-grid">
             <div class="what-img" data-vs-parallax data-parallax="-25">
               <Image
-                src={imgFirstVisit}
+                src={image("imgFirstVisit").url} width={image("imgFirstVisit").width} height={image("imgFirstVisit").height}
                 alt="Entry doors at Vivid Smiles Dentistry in Parker, CO, etched with the practice logo"
                 widths={[560, 840, 1116]}
                 sizes="(max-width: 991px) 100vw, 50vw"
@@ -335,7 +335,7 @@ const { tocLinks, faqs, section } = await getPageContent(Astro.url.pathname);
             </div>
             <div class="what-img" data-vs-parallax data-parallax="-25">
               <Image
-                src={imgGateway}
+                src={image("imgGateway").url} width={image("imgGateway").width} height={image("imgGateway").height}
                 alt="Smiling woman photographed at the Vivid Smiles Dentistry neon smile wall in Parker, CO"
                 widths={[500, 800, 1100]}
                 sizes="(max-width: 991px) 100vw, 50vw"
@@ -374,7 +374,7 @@ const { tocLinks, faqs, section } = await getPageContent(Astro.url.pathname);
             <div class="doctor-portrait">
               <span class="doctor-pill">Dr. Bryce &amp; Dr. Annie</span>
               <Image
-                src={imgDoctors}
+                src={image("imgDoctors").url} width={image("imgDoctors").width} height={image("imgDoctors").height}
                 alt="Dr. Bryce Richardson and Dr. Annelise Westermeier (Dr. Annie) at Vivid Smiles Dentistry"
                 widths={[420, 640, 880, 1100]}
                 sizes="(max-width: 991px) 100vw, 50vw"

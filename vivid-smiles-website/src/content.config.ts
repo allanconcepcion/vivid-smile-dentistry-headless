@@ -145,6 +145,17 @@ const pages = defineCollection({
         }),
       )
       .default([]),
+    images: z
+      .array(
+        z.object({
+          slot: z.string(),
+          url: z.string().url(),
+          width: z.number().int().positive(),
+          height: z.number().int().positive(),
+          alt: z.string(),
+        }),
+      )
+      .default([]),
   }),
 });
 

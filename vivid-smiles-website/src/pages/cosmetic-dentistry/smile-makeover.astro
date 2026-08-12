@@ -74,7 +74,7 @@ const issuesList = [
 // tocLinks, faqs are edited in WordPress (Pages -> Smile Makeover in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, faqs, section } = await getPageContent(Astro.url.pathname);
+const { tocLinks, faqs, section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -127,7 +127,7 @@ const { tocLinks, faqs, section } = await getPageContent(Astro.url.pathname);
           </div>
           <div class="hero-img" data-vs-parallax data-parallax="-30">
             <Image
-              src={heroImg}
+              src={image("heroImg").url} width={image("heroImg").width} height={image("heroImg").height}
               alt="Smiling woman photographed against a dark studio background"
               widths={[600, 900, 1400]}
               sizes="(max-width: 991px) 100vw, 50vw"
@@ -173,7 +173,7 @@ const { tocLinks, faqs, section } = await getPageContent(Astro.url.pathname);
           <div class="what-grid">
             <div class="what-img" data-vs-parallax data-parallax="-25">
               <Image
-                src={whatImg}
+                src={image("whatImg").url} width={image("whatImg").width} height={image("whatImg").height}
                 alt="Close-up of a smile at a three-quarter angle against black"
                 widths={[500, 800, 1100]}
                 sizes="(max-width: 991px) 100vw, 50vw"
@@ -251,7 +251,7 @@ const { tocLinks, faqs, section } = await getPageContent(Astro.url.pathname);
             </div>
             <div class="natural-img" data-vs-parallax data-parallax="-25">
               <Image
-                src={editorialImg}
+                src={image("editorialImg").url} width={image("editorialImg").width} height={image("editorialImg").height}
                 alt="Editorial close-up of a smile with berry lipstick"
                 widths={[500, 800, 1100]}
                 sizes="(max-width: 991px) 100vw, 50vw"

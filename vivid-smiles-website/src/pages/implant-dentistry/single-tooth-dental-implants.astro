@@ -95,7 +95,7 @@ const keyStats: [string, string][] = [
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Single Tooth Dental Implants in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url.pathname);
+const { tocLinks, processSteps, faqs, section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -144,7 +144,7 @@ const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url
           </div>
           <div class="hero-img" data-vs-parallax data-parallax="-30">
             <Image
-              src={heroImg}
+              src={image("heroImg").url} width={image("heroImg").width} height={image("heroImg").height}
               alt="Smiling woman photographed indoors in Parker, CO"
               widths={[600, 900, 1400]}
               sizes="(max-width: 991px) 100vw, 50vw"
@@ -216,7 +216,7 @@ const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url
           <div class="what-grid">
             <div class="what-img" data-vs-parallax data-parallax="-25">
               <Image
-                src={whatImg}
+                src={image("whatImg").url} width={image("whatImg").width} height={image("whatImg").height}
                 alt="Close-up of an implant-supported restoration on a dental model"
                 widths={[500, 800, 1100]}
                 sizes="(max-width: 991px) 100vw, 50vw"
@@ -373,7 +373,7 @@ const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url
             </div>
             <div class="natural-img" data-vs-parallax data-parallax="-25">
               <Image
-                src={candidacyImg}
+                src={image("candidacyImg").url} width={image("candidacyImg").width} height={image("candidacyImg").height}
                 alt="Woman standing among pines on a Colorado hillside"
                 widths={[500, 800, 1100]}
                 sizes="(max-width: 991px) 100vw, 50vw"

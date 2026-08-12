@@ -159,7 +159,7 @@ const pageDescription =
 // faqs is edited in WordPress (Pages -> General Lp).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { faqs } = await getPageContent(Astro.url.pathname);
+const { faqs, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -184,7 +184,7 @@ const { faqs } = await getPageContent(Astro.url.pathname);
         <p class="glp-hero-byline">
           <span class="glp-hero-byline-photo">
             <Image
-              src={imgRichardson}
+              src={image("imgRichardson").url} width={image("imgRichardson").width} height={image("imgRichardson").height}
               alt="Dr. Bryce Richardson, DDS, of Vivid Smiles Dentistry in Parker, Colorado"
               widths={[96, 144]}
               sizes="72px"
@@ -400,7 +400,7 @@ const { faqs } = await getPageContent(Astro.url.pathname);
     <div class="glp-philo-wrap">
       <div class="glp-philo-portrait" data-vs-reveal>
         <Image
-          src={imgRichardson}
+          src={image("imgRichardson").url} width={image("imgRichardson").width} height={image("imgRichardson").height}
           alt="Dr. Bryce Richardson, DDS, founder of Vivid Smiles Dentistry"
           widths={[420, 640, 900]}
           sizes="(max-width: 991px) 100vw, 480px"
@@ -447,7 +447,7 @@ const { faqs } = await getPageContent(Astro.url.pathname);
           <span class="glp-reviews-score">5.0</span>
           <span class="glp-reviews-stars">★★★★★</span>
           <span class="glp-reviews-count">
-            <Image src={logoGoogle} alt="Google" class="glp-reviews-google" widths={[120]} sizes="80px" />
+            <Image src={image("logoGoogle").url} width={image("logoGoogle").width} height={image("logoGoogle").height} alt="Google" class="glp-reviews-google" widths={[120]} sizes="80px" />
             300+ five-star reviews
           </span>
         </div>
@@ -488,7 +488,7 @@ const { faqs } = await getPageContent(Astro.url.pathname);
     <div class="glp-close-wrap">
       <div class="glp-close-photo" data-vs-reveal>
         <Image
-          src={imgDrPortrait}
+          src={image("imgDrPortrait").url} width={image("imgDrPortrait").width} height={image("imgDrPortrait").height}
           alt="Dr. Bryce Richardson at the Vivid Smiles neon smile wall in Parker, CO"
           widths={[400, 600, 800]}
           sizes="(max-width: 880px) 100vw, 440px"

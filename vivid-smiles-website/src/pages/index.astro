@@ -87,7 +87,7 @@ const trustBar = [
 // Duplicate trust bar so the marquee animation has seamless loop content
 const trustTrack = [...trustBar, ...trustBar];
 // Section copy is edited in WordPress (Pages -> this page -> Section copy).
-const { section } = await getPageContent(Astro.url.pathname);
+const { section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -104,7 +104,7 @@ const { section } = await getPageContent(Astro.url.pathname);
       <div class="hero-card">
         <div class="hero-bg" aria-hidden="true">
           <Image
-            src={heroBg}
+            src={image("heroBg").url} width={image("heroBg").width} height={image("heroBg").height}
             alt="The Vivid Smiles Dentistry team"
             widths={[1280, 1920, 2560]}
             sizes="100vw"
@@ -191,7 +191,7 @@ const { section } = await getPageContent(Astro.url.pathname);
         <div class="services-shell" data-vs-reveal-batch>
           <a class="svc-card featured" href="/cosmetic-dentistry/" data-vs-arrow>
             <div class="svc-img">
-              <Image src={imgVeneers} alt="Cosmetic dentist applying a porcelain veneer with a fine brush — close-up of polished white teeth" widths={[800, 1200, 1600]} sizes="100vw" />
+              <Image src={image("imgVeneers").url} width={image("imgVeneers").width} height={image("imgVeneers").height} alt="Cosmetic dentist applying a porcelain veneer with a fine brush — close-up of polished white teeth" widths={[800, 1200, 1600]} sizes="100vw" />
             </div>
             <span class="svc-tag">Our Signature Work</span>
             <div class="svc-body">
@@ -208,7 +208,7 @@ const { section } = await getPageContent(Astro.url.pathname);
 
           <a class="svc-card compact" href="/implant-dentistry/" data-vs-arrow>
             <div class="svc-img">
-              <Image src={imgImplants} alt="An implant-supported restoration held on a dental model" widths={[600, 900, 1200]} sizes="(max-width: 780px) 100vw, 33vw" />
+              <Image src={image("imgImplants").url} width={image("imgImplants").width} height={image("imgImplants").height} alt="An implant-supported restoration held on a dental model" widths={[600, 900, 1200]} sizes="(max-width: 780px) 100vw, 33vw" />
             </div>
             <span class="svc-tag">Yomi&nbsp;Robotic</span>
             <div class="svc-body">
@@ -224,7 +224,7 @@ const { section } = await getPageContent(Astro.url.pathname);
 
           <a class="svc-card compact" href="/general-dentistry/" data-vs-arrow>
             <div class="svc-img">
-              <Image src={imgGeneral} alt="Hygienist polishing a patient's teeth during a cleaning" widths={[600, 900, 1200]} sizes="(max-width: 780px) 100vw, 33vw" style="object-position: center 25%" />
+              <Image src={image("imgGeneral").url} width={image("imgGeneral").width} height={image("imgGeneral").height} alt="Hygienist polishing a patient's teeth during a cleaning" widths={[600, 900, 1200]} sizes="(max-width: 780px) 100vw, 33vw" style="object-position: center 25%" />
             </div>
             <span class="svc-tag">Cleanings&nbsp;&amp;&nbsp;Care</span>
             <div class="svc-body">
@@ -240,7 +240,7 @@ const { section } = await getPageContent(Astro.url.pathname);
 
           <a class="svc-card compact" href="/emergency-dentistry/" data-vs-arrow>
             <div class="svc-img">
-              <Image src={imgEmergency} alt="Same-day emergency dental care" widths={[600, 900, 1200]} sizes="(max-width: 780px) 100vw, 33vw" />
+              <Image src={image("imgEmergency").url} width={image("imgEmergency").width} height={image("imgEmergency").height} alt="Same-day emergency dental care" widths={[600, 900, 1200]} sizes="(max-width: 780px) 100vw, 33vw" />
             </div>
             <span class="svc-tag">Same-Day</span>
             <div class="svc-body">
@@ -269,7 +269,7 @@ const { section } = await getPageContent(Astro.url.pathname);
         <div class="stories-grid" data-vs-reveal-batch>
           <button type="button" class="story-card" data-video-id="Nm7RjGKP8jw" data-video-short="true" data-video-title="How veneers can change more than just your smile" aria-label="Play porcelain veneers patient story: more than a smile">
             <div class="story-photo">
-              <Image src={storyVeneersMore} alt="Porcelain veneers patient — confident smile after treatment" widths={[400, 800]} sizes="(max-width: 780px) 100vw, 33vw" />
+              <Image src={image("storyVeneersMore").url} width={image("storyVeneersMore").width} height={image("storyVeneersMore").height} alt="Porcelain veneers patient — confident smile after treatment" widths={[400, 800]} sizes="(max-width: 780px) 100vw, 33vw" />
               <span class="play-btn" aria-hidden="true">
                 <svg viewBox="0 0 24 24" focusable="false"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
               </span>
@@ -282,7 +282,7 @@ const { section } = await getPageContent(Astro.url.pathname);
           </button>
           <button type="button" class="story-card" data-video-id="EA19QZ4lk8k" data-video-short="true" data-video-title="Her confidence after veneers says everything" aria-label="Play porcelain veneers patient story: confidence after veneers">
             <div class="story-photo">
-              <Image src={storyVeneersConfidence} alt="Porcelain veneers patient — close-up smile after treatment" widths={[400, 800]} sizes="(max-width: 780px) 100vw, 33vw" />
+              <Image src={image("storyVeneersConfidence").url} width={image("storyVeneersConfidence").width} height={image("storyVeneersConfidence").height} alt="Porcelain veneers patient — close-up smile after treatment" widths={[400, 800]} sizes="(max-width: 780px) 100vw, 33vw" />
               <span class="play-btn" aria-hidden="true">
                 <svg viewBox="0 0 24 24" focusable="false"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
               </span>
@@ -295,7 +295,7 @@ const { section } = await getPageContent(Astro.url.pathname);
           </button>
           <button type="button" class="story-card" data-video-id="fRyN4dHhizo" data-video-short="true" data-video-title="How veneers can add length and improve your smile" aria-label="Play porcelain veneers patient story: length and balance">
             <div class="story-photo">
-              <Image src={storyVeneersLength} alt="Porcelain veneers patient — after photo showing restored tooth length and balance" widths={[400, 800]} sizes="(max-width: 780px) 100vw, 33vw" />
+              <Image src={image("storyVeneersLength").url} width={image("storyVeneersLength").width} height={image("storyVeneersLength").height} alt="Porcelain veneers patient — after photo showing restored tooth length and balance" widths={[400, 800]} sizes="(max-width: 780px) 100vw, 33vw" />
               <span class="play-btn" aria-hidden="true">
                 <svg viewBox="0 0 24 24" focusable="false"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
               </span>
@@ -378,7 +378,7 @@ const { section } = await getPageContent(Astro.url.pathname);
         <div class="notable-grid" data-vs-reveal-batch>
           <figure class="notable-card">
             <div class="notable-photo">
-              <Image src={notableAnnMarie} alt="Ann-Marie Muscarello — Denver Broncos cheerleader and Vivid Smiles cosmetic patient" widths={[420, 600, 800]} sizes="(max-width: 780px) 90vw, 480px" />
+              <Image src={image("notableAnnMarie").url} width={image("notableAnnMarie").width} height={image("notableAnnMarie").height} alt="Ann-Marie Muscarello — Denver Broncos cheerleader and Vivid Smiles cosmetic patient" widths={[420, 600, 800]} sizes="(max-width: 780px) 90vw, 480px" />
             </div>
             <figcaption>
               <span class="notable-tag">Denver Broncos Cheerleader</span>
@@ -389,7 +389,7 @@ const { section } = await getPageContent(Astro.url.pathname);
 
           <figure class="notable-card">
             <div class="notable-photo">
-              <Image src={notableBrittany} alt="Brittany Fanning — Denver Broncos cheerleader and Vivid Smiles cosmetic patient" widths={[420, 600, 800, 1000]} sizes="(max-width: 780px) 90vw, 480px" />
+              <Image src={image("notableBrittany").url} width={image("notableBrittany").width} height={image("notableBrittany").height} alt="Brittany Fanning — Denver Broncos cheerleader and Vivid Smiles cosmetic patient" widths={[420, 600, 800, 1000]} sizes="(max-width: 780px) 90vw, 480px" />
             </div>
             <figcaption>
               <span class="notable-tag">Denver Broncos Cheerleader</span>
@@ -407,7 +407,7 @@ const { section } = await getPageContent(Astro.url.pathname);
         <div class="doc-grid">
           <div class="doc-imagery" data-vs-reveal>
             <div class="doc-portrait" data-vs-parallax data-parallax="-40">
-              <Image src={drPortrait} alt="Dr. Bryce Richardson — editorial portrait" widths={[600, 900, 1200]} sizes="(max-width: 780px) 100vw, 50vw" />
+              <Image src={image("drPortrait").url} width={image("drPortrait").width} height={image("drPortrait").height} alt="Dr. Bryce Richardson — editorial portrait" widths={[600, 900, 1200]} sizes="(max-width: 780px) 100vw, 50vw" />
             </div>
             <div class="signature">— Dr. Bryce</div>
             <div class="badge">
@@ -475,8 +475,8 @@ const { section } = await getPageContent(Astro.url.pathname);
         <div class="tech-grid">
           <div class="tech-imagery" data-vs-reveal>
             <div class="stamp"><b>FDA</b><small>Cleared robotic system</small></div>
-            <div class="ph-a" data-vs-parallax data-parallax="-50"><Image src={techYomi} alt="Dr. Bryce Richardson placing a dental implant with the Yomi robotic arm at Vivid Smiles Dentistry" widths={[600, 900, 1200]} sizes="50vw" /></div>
-            <div class="ph-b" data-vs-parallax data-parallax="30"><Image src={techVeneerShells} alt="Porcelain veneer shells seated on a dental model, lit against white" widths={[400, 800]} sizes="30vw" /></div>
+            <div class="ph-a" data-vs-parallax data-parallax="-50"><Image src={image("techYomi").url} width={image("techYomi").width} height={image("techYomi").height} alt="Dr. Bryce Richardson placing a dental implant with the Yomi robotic arm at Vivid Smiles Dentistry" widths={[600, 900, 1200]} sizes="50vw" /></div>
+            <div class="ph-b" data-vs-parallax data-parallax="30"><Image src={image("techVeneerShells").url} width={image("techVeneerShells").width} height={image("techVeneerShells").height} alt="Porcelain veneer shells seated on a dental model, lit against white" widths={[400, 800]} sizes="30vw" /></div>
           </div>
           <div class="tech-copy" data-vs-reveal-batch>
             <span class="eyebrow">{section("technology").eyebrow}</span>
@@ -569,7 +569,7 @@ const { section } = await getPageContent(Astro.url.pathname);
         </div>
 
         <div class="process-sign" data-vs-reveal>
-          <div class="av" aria-hidden="true"><Image src={drPortrait} alt="Dr. Bryce Richardson" /></div>
+          <div class="av" aria-hidden="true"><Image src={image("drPortrait").url} width={image("drPortrait").width} height={image("drPortrait").height} alt="Dr. Bryce Richardson" /></div>
           <div>
             <b>Dr. Bryce Richardson</b>
             <small>Creator · Vivid Smile Cosmetic Process</small>

@@ -163,7 +163,7 @@ const ledger = [
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Cosmetic Dentistry in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url.pathname);
+const { tocLinks, processSteps, faqs, section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -211,7 +211,7 @@ const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url
           <div class="hero-stack">
             <div class="hero-primary" data-vs-parallax data-parallax="-25">
               <Image
-                src={imgHero}
+                src={image("imgHero").url} width={image("imgHero").width} height={image("imgHero").height}
                 alt="Smiling woman photographed at the Vivid Smiles Dentistry neon smile wall in Parker, CO"
                 widths={[500, 750, 1000]}
                 sizes="(max-width: 991px) 100vw, 540px"
@@ -357,7 +357,7 @@ const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url
             <div class="dsd-visual" data-vs-parallax data-parallax="-30">
               <span class="dsd-tag">Approve before we begin</span>
               <Image
-                src={imgDsd}
+                src={image("imgDsd").url} width={image("imgDsd").width} height={image("imgDsd").height}
                 alt="Close-up of a smile at a three-quarter angle in warm light"
                 widths={[500, 800, 1100]}
                 sizes="(max-width: 991px) 100vw, 50vw"
@@ -378,7 +378,7 @@ const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url
             <div class="doctor-portrait">
               <span class="doctor-pill">Founder · Cosmetic &amp; Implants</span>
               <Image
-                src={imgDrBryce}
+                src={image("imgDrBryce").url} width={image("imgDrBryce").width} height={image("imgDrBryce").height}
                 alt="Dr. Bryce Richardson, founder of Vivid Smiles Dentistry"
                 widths={[420, 640, 880]}
                 sizes="(max-width: 991px) 100vw, 50vw"
@@ -398,7 +398,7 @@ const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url
                 <div class="doctor-secondary-head">
                   <div class="doctor-thumb">
                     <Image
-                      src={imgDrAnnie}
+                      src={image("imgDrAnnie").url} width={image("imgDrAnnie").width} height={image("imgDrAnnie").height}
                       alt="Dr. Annelise Westermeier, known to patients as Dr. Annie"
                       widths={[120, 200]}
                       sizes="(max-width: 991px) 48px, 56px"

@@ -41,7 +41,7 @@ const description =
 // faqs is edited in WordPress (Pages -> Referral Program).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { faqs, section } = await getPageContent(Astro.url.pathname);
+const { faqs, section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -92,7 +92,7 @@ const { faqs, section } = await getPageContent(Astro.url.pathname);
 
         <div class="hero-frame" data-vs-reveal>
           <Image
-            src={heroPrimary}
+            src={image("heroPrimary").url} width={image("heroPrimary").width} height={image("heroPrimary").height}
             alt="A patient checking in at the Vivid Smiles Dentistry front desk in Parker, CO"
             widths={[480, 720, 1080]}
             sizes="(max-width: 991px) 90vw, 540px"

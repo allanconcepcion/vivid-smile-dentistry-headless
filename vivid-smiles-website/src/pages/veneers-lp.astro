@@ -218,7 +218,7 @@ const pageDescription =
 // faqs is edited in WordPress (Pages -> Veneers Lp).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { faqs } = await getPageContent(Astro.url.pathname);
+const { faqs, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -239,7 +239,7 @@ const { faqs } = await getPageContent(Astro.url.pathname);
           <p class="vlp-hero-byline">
             <span class="vlp-hero-byline-photo">
               <Image
-                src={imgRichardson}
+                src={image("imgRichardson").url} width={image("imgRichardson").width} height={image("imgRichardson").height}
                 alt="Dr. Bryce Richardson, cosmetic dentist in Parker, Colorado"
                 widths={[96, 144]}
                 sizes="72px"
@@ -622,7 +622,7 @@ const { faqs } = await getPageContent(Astro.url.pathname);
       <div class="vlp-philo-wrap">
         <div class="vlp-philo-portrait" data-vs-reveal>
           <Image
-            src={imgRichardson}
+            src={image("imgRichardson").url} width={image("imgRichardson").width} height={image("imgRichardson").height}
             alt="Dr. Bryce Richardson, founder and cosmetic dentist at Vivid Smiles"
             widths={[420, 640, 900]}
             sizes="(max-width: 991px) 100vw, 480px"
@@ -672,7 +672,7 @@ const { faqs } = await getPageContent(Astro.url.pathname);
             <span class="vlp-reviews-stars">★★★★★</span>
             <span class="vlp-reviews-count">
               <Image
-                src={logoGoogle}
+                src={image("logoGoogle").url} width={image("logoGoogle").width} height={image("logoGoogle").height}
                 alt="Google"
                 class="vlp-reviews-google"
                 widths={[120]}
@@ -721,7 +721,7 @@ const { faqs } = await getPageContent(Astro.url.pathname);
       <div class="vlp-close-wrap">
         <div class="vlp-close-photo" data-vs-reveal>
           <Image
-            src={imgEditorial}
+            src={image("imgEditorial").url} width={image("imgEditorial").width} height={image("imgEditorial").height}
             alt="Macro close-up of a smile holding an emerald-cut diamond between the teeth — editorial detail"
             widths={[400, 600, 800]}
             sizes="(max-width: 880px) 100vw, 440px"
