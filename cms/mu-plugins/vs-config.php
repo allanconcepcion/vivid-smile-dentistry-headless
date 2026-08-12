@@ -42,3 +42,21 @@ if ( ! defined( 'ABSPATH' ) ) {
  * the front-end URL is configured on the CMS side.
  */
 defined( 'VS_FRONTEND_URL' ) || define( 'VS_FRONTEND_URL', 'https://vivid-smiles-headless.vercel.app' );
+
+/**
+ * Vercel deploy hook, read by vs-deploy.php to rebuild the front end when
+ * content changes.
+ *
+ * Deliberately NOT set here. A deploy hook URL is a credential — anyone holding
+ * it can start builds on the project — and this repository is public. Define it
+ * on the host only, by adding a line like this to this file in
+ * wp-content/mu-plugins/:
+ *
+ *   define( 'VS_DEPLOY_HOOK_URL', 'https://api.vercel.com/v1/integrations/deploy/...' );
+ *
+ * The value comes from the Vercel project under Settings, Git, Deploy Hooks.
+ * With the constant absent, vs-deploy.php loads and does nothing — which is what
+ * a local or staging copy of this site should do, since neither has any business
+ * rebuilding production.
+ */
+
