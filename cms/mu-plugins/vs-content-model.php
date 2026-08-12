@@ -155,11 +155,11 @@ function register_testimonial_tag_taxonomy(): void {
 add_action( 'init', __NAMESPACE__ . '\\register_testimonial_tag_taxonomy', 10 );
 
 /**
- * ACF field groups.
+ * Field groups.
  *
- * Every field type used here (text, number, select, date_picker) ships in ACF
- * free. Repeater / flexible-content fields are ACF Pro only and are avoided
- * until the page-content model needs them.
+ * Requires Secure Custom Fields (WordPress.org's ACF fork), not ACF free — the
+ * page group below uses `repeater`, which ACF charges for and SCF ships free.
+ * See cms/bin/setup.sh.
  */
 function register_field_groups(): void {
 	if ( ! function_exists( 'acf_add_local_field_group' ) ) {
@@ -275,6 +275,177 @@ function register_field_groups(): void {
 					'type'         => 'text',
 					'required'     => 0,
 					'instructions' => 'Leave blank to use the WordPress author. Defaults to "Slate" on the site.',
+				],
+			],
+		]
+	);
+	/**
+	 * Page content.
+	 *
+	 * Modelled directly on how the Astro pages already store their editable
+	 * content — see src/pages/cosmetic-dentistry/porcelain-veneers.astro, where
+	 * `tocLinks`, `processSteps` and `faqs` are arrays in frontmatter. Each maps
+	 * to a repeater here, one sub-field per object key, so the Astro template
+	 * keeps its markup and only changes where the array comes from.
+	 *
+	 * Deliberately NOT a free-form page builder. The layouts are bespoke and the
+	 * design system is the product; giving an editor arbitrary section ordering
+	 * would let them build pages the CSS was never written for. These fields
+	 * change the words, not the design.
+	 */
+	acf_add_local_field_group(
+		[
+			'key'                                   => 'group_vs_page',
+			'title'                                 => 'Page content',
+			'location'                              => [
+				[
+					[
+						'param'    => 'post_type',
+						'operator' => '==',
+						'value'    => 'page',
+					],
+				],
+			],
+			'show_in_graphql'                       => true,
+			'graphql_field_name'                    => 'pageFields',
+			'map_graphql_types_from_location_rules' => true,
+			'graphql_types'                         => [ 'Page' ],
+			'fields'                                => [
+				[
+					'key'   => 'field_vs_hero_tab',
+					'label' => 'Hero',
+					'type'  => 'tab',
+				],
+				[
+					'key'          => 'field_vs_page_eyebrow',
+					'label'        => 'Eyebrow',
+					'name'         => 'hero_eyebrow',
+					'type'         => 'text',
+					'instructions' => 'Small label above the headline, e.g. "Cosmetic Dentistry".',
+				],
+				[
+					'key'   => 'field_vs_page_heading',
+					'label' => 'Headline',
+					'name'  => 'hero_heading',
+					'type'  => 'text',
+				],
+				[
+					'key'   => 'field_vs_page_subheading',
+					'label' => 'Sub-headline',
+					'name'  => 'hero_subheading',
+					'type'  => 'textarea',
+					'rows'  => 3,
+				],
+				[
+					'key'           => 'field_vs_page_hero_image',
+					'label'         => 'Hero image',
+					'name'          => 'hero_image',
+					'type'          => 'image',
+					// The Astro loader needs a URL plus dimensions; an ID would
+					// mean a second query per page to resolve the media item.
+					'return_format' => 'array',
+					'preview_size'  => 'medium',
+				],
+				[
+					'key'   => 'field_vs_toc_tab',
+					'label' => 'On this page',
+					'type'  => 'tab',
+				],
+				[
+					'key'          => 'field_vs_toc_links',
+					'label'        => 'Table of contents',
+					'name'         => 'toc_links',
+					'type'         => 'repeater',
+					'layout'       => 'table',
+					'button_label' => 'Add link',
+					'instructions' => 'The sticky rail down the side of the page. Each anchor must match a section id in the layout.',
+					'sub_fields'   => [
+						[
+							'key'   => 'field_vs_toc_label',
+							'label' => 'Label',
+							'name'  => 'label',
+							'type'  => 'text',
+						],
+						[
+							'key'          => 'field_vs_toc_anchor',
+							'label'        => 'Anchor',
+							'name'         => 'anchor',
+							'type'         => 'text',
+							'instructions' => 'Without the #, e.g. "process".',
+						],
+					],
+				],
+				[
+					'key'   => 'field_vs_process_tab',
+					'label' => 'Process',
+					'type'  => 'tab',
+				],
+				[
+					'key'          => 'field_vs_process_steps',
+					'label'        => 'Process steps',
+					'name'         => 'process_steps',
+					'type'         => 'repeater',
+					'layout'       => 'row',
+					'button_label' => 'Add step',
+					'sub_fields'   => [
+						[
+							'key'          => 'field_vs_step_tag',
+							'label'        => 'Tag',
+							'name'         => 'tag',
+							'type'         => 'text',
+							'instructions' => 'e.g. "Step One".',
+						],
+						[
+							'key'   => 'field_vs_step_title',
+							'label' => 'Title',
+							'name'  => 'title',
+							'type'  => 'text',
+						],
+						[
+							'key'   => 'field_vs_step_body',
+							'label' => 'Body',
+							'name'  => 'body',
+							'type'  => 'textarea',
+							'rows'  => 3,
+						],
+					],
+				],
+				[
+					'key'   => 'field_vs_faq_tab',
+					'label' => 'FAQ',
+					'type'  => 'tab',
+				],
+				[
+					'key'          => 'field_vs_faqs',
+					'label'        => 'Frequently asked questions',
+					'name'         => 'faqs',
+					'type'         => 'repeater',
+					'layout'       => 'row',
+					'button_label' => 'Add question',
+					'instructions' => 'These also generate the page\'s FAQPage structured data, so keep answers factual and self-contained.',
+					'sub_fields'   => [
+						[
+							'key'   => 'field_vs_faq_q',
+							'label' => 'Question',
+							'name'  => 'question',
+							'type'  => 'text',
+						],
+						[
+							'key'   => 'field_vs_faq_a',
+							'label' => 'Answer',
+							'name'  => 'answer',
+							'type'  => 'textarea',
+							'rows'  => 4,
+						],
+						[
+							'key'           => 'field_vs_faq_open',
+							'label'         => 'Open by default',
+							'name'          => 'open',
+							'type'          => 'true_false',
+							'ui'            => 1,
+							'default_value' => 0,
+						],
+					],
 				],
 			],
 		]

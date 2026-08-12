@@ -7,6 +7,20 @@
 
 ---
 
+> **Correction (added after this plan was written).** The plan assumes ACF Pro
+> is needed for the page content model, because Repeater and Flexible Content
+> are ACF Pro fields. That is true of ACF, but not of **Secure Custom Fields** —
+> WordPress.org's fork — which ships those field types free and GPL, works as a
+> drop-in for ACF, and resolves through WPGraphQL for ACF unchanged. Verified on
+> this install. Wherever this document says ACF Pro is required or recommends
+> budgeting for it, no purchase is needed.
+>
+> The plan also recommends the REST API over WPGraphQL, and scoping v1 to blog +
+> reviews rather than all 35 pages. This project uses WPGraphQL and the full
+> scope; see the plan's own decision-fork section for what each choice changes.
+
+
+
 ## 1. Recommended architecture
 
 Keep the Astro site exactly as it is — static output, no adapter, no SSR, deployed to Vercel — and replace only the two `glob()` content-collection loaders with a **custom Astro Content Layer loader that reads the WordPress REST API at build time**. WordPress runs on its own subdomain (`cms.vividsmilesdentistry.com`), serves no public front end, is locked behind Cloudflare Access on `/wp-admin`, and exists solely as an authoring surface. On publish, a WordPress mu-plugin POSTs to a Vercel Deploy Hook after a 90-second debounce; Vercel rebuilds the whole site, Astro downloads and re-encodes every WordPress image through sharp into hashed `/_assets/` files, and the deployed artefact is byte-for-byte the same *kind* of thing it is today: plain HTML and local images with no runtime dependency on WordPress. If WordPress is down, slow, hacked, or mid-update, the live site is unaffected — the last good deployment keeps serving. Scope for v1 is **blog + reviews only**; the 21,000 lines of hand-built service-page markup stay in Astro, because modelling ten single-use bespoke section layouts in ACF Flexible Content produces a worse CMS than no CMS.

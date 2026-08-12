@@ -92,11 +92,12 @@ content at build time, so a deployment cannot reach a `localhost` CMS.
 
 ## Known constraints
 
-**ACF Pro is required to model page content.** Repeater, Flexible Content,
-Options Pages and Gallery are Pro-only. Testimonials and posts use only free
-field types; the page-level model (hero / process steps / FAQ) needs Repeater
-and Flexible Content. $49/yr for one site, $149/yr for ten; dev and staging
-installs are not counted.
+**No paid plugins.** The page model needs repeater fields, which ACF charges
+for — so this uses Secure Custom Fields, WordPress.org's fork of ACF, which
+ships repeater, flexible content, gallery, clone and options pages free and GPL.
+It is a drop-in for ACF: same function surface, same storage format, and
+WPGraphQL for ACF resolves against it unchanged. See
+[`cms/README.md`](cms/README.md#secure-custom-fields-not-acf).
 
 **A hosted preview needs a publicly reachable WordPress.** The Astro build
 fetches content at build time, so a Vercel deployment cannot resolve a

@@ -34,9 +34,20 @@ echo "==> WordPress $(wp core version 2>/dev/null | tr -d '\r')"
 
 # Dependency order matters: wp-graphql must exist and be active before
 # wpgraphql-acf activates, and wordpress-seo before add-wpgraphql-seo.
+# secure-custom-fields, NOT advanced-custom-fields.
+#
+# SCF is WordPress.org's fork of ACF, and it ships the field types ACF charges
+# for — repeater, flexible_content, gallery, clone — plus options pages, in the
+# free plugin. The page content model needs repeaters, so ACF free cannot do it
+# and ACF Pro is $149/yr for ten sites.
+#
+# It is a drop-in: it defines ACF_VERSION and the same acf_* function surface,
+# stores values in the same post-meta format, and WPGraphQL for ACF resolves
+# against it unchanged. Verified against this install — existing testimonial and
+# post field values kept resolving with no migration.
 PLUGINS=(
   wp-graphql
-  advanced-custom-fields
+  secure-custom-fields
   wpgraphql-acf
   wordpress-seo
   add-wpgraphql-seo
@@ -46,6 +57,13 @@ for slug in "${PLUGINS[@]}"; do
   echo "==> Installing ${slug}"
   wp plugin install "${slug}" --activate --force
 done
+
+# ACF and SCF are the same plugin and will fight over the same hooks if both
+# run. Only one may be active.
+if wp plugin is-active advanced-custom-fields 2>/dev/null; then
+  echo "==> Deactivating advanced-custom-fields (superseded by secure-custom-fields)"
+  wp plugin deactivate advanced-custom-fields
+fi
 
 # WordPress ships a "Hello world!" post and a "Sample Page". The post sits in
 # the Uncategorized category, which is NOT one of the five values the Astro

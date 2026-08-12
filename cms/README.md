@@ -65,17 +65,34 @@ refuses to activate against that folder name. Slug installs produce
 | Plugin | Why |
 | --- | --- |
 | WPGraphQL | The API the Astro build reads from |
-| Advanced Custom Fields | Structured fields beyond title/body |
-| WPGraphQL for ACF | Exposes ACF fields to GraphQL |
+| Secure Custom Fields | Structured fields beyond title/body |
+| WPGraphQL for ACF | Exposes those fields to GraphQL |
 | Yoast SEO | Editor-facing SEO fields |
 | WPGraphQL Yoast SEO Addon | Exposes Yoast fields to GraphQL |
 
-> **ACF Pro is required before page content can be modelled.** Repeater,
-> Flexible Content, Options Pages and Gallery are all Pro-only. The testimonial
-> and post field groups here use only free field types; the page-level model
-> (hero / process steps / FAQ blocks) needs Repeater and Flexible Content.
-> $49/yr for one site, $149/yr for ten. Dev and staging installs do not count
-> against the activation limit.
+### Secure Custom Fields, not ACF
+
+The page content model needs **repeaters** — `toc_links`, `process_steps` and
+`faqs` are all repeating groups. Repeater is an ACF **Pro** field ($49/yr for
+one site, $149/yr for ten), and ACF free does not include it.
+
+Secure Custom Fields is WordPress.org's fork of ACF, and it ships the paid field
+types — `repeater`, `flexible_content`, `gallery`, `clone` — plus options pages,
+free and GPL from the official plugin repo. Verified on this install: SCF 6.9.5
+registers 37 field types against ACF free's 32.
+
+It is a drop-in rather than a migration:
+
+- defines `ACF_VERSION` and the same `acf_*` function surface, so
+  `acf_add_local_field_group()` and `update_field()` work unchanged,
+- stores values in the same post-meta format, so existing content needs no
+  conversion — the testimonial and post fields kept resolving through GraphQL
+  after the swap with no edits,
+- leaves **WPGraphQL for ACF** working as-is.
+
+Both must never be active at once — they are the same plugin and would fight
+over the same hooks. `bin/setup.sh` deactivates `advanced-custom-fields` if it
+finds it active.
 
 ## The content model
 
