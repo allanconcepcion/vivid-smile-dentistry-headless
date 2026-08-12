@@ -2,6 +2,7 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import yoastSitemap from './src/integrations/yoast-sitemap';
+import robotsTxt from './src/integrations/robots';
 
 // The origin every absolute URL is built from: the canonical tags, and the
 // <loc> entries yoast-sitemap.ts rewrites Yoast's XML onto. It has to match
@@ -52,6 +53,9 @@ export default defineConfig({
     // verified against the pages the build produced. @astrojs/sitemap stays in
     // the chain as the fallback for when the CMS is unreachable.
     yoastSitemap(),
+    // robots.txt for whichever host this build is served from: Disallow: / on a
+    // deployment origin, Allow: / plus the Sitemap lines on the real domain.
+    robotsTxt(),
   ],
   build: {
     assets: '_assets',
