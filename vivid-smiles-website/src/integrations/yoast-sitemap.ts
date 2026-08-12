@@ -95,10 +95,39 @@ export default function yoastSitemap(options: { endpoint?: string } = {}): Astro
         const outDir = fileURLToPath(dir);
         const origin = new URL(site).origin;
 
+        const sleep = (ms: number): Promise<void> =>
+          new Promise((resolve) => setTimeout(resolve, ms));
+
+        // Retried, because the CMS sits behind Cloudflare and a bot challenge
+        // comes back as 429 with an HTML interstitial. It is transient and
+        // clears on a slower attempt — the same reasoning as src/lib/wp.ts,
+        // which cannot be imported here: it reads import.meta.env, which an
+        // integration does not have.
         const fetchXml = async (url: string): Promise<string> => {
-          const res = await fetch(url);
-          if (!res.ok) throw new Error(`${url} responded ${res.status} ${res.statusText}`);
-          return res.text();
+          const attempts = 5;
+          let last = "";
+
+          for (let attempt = 1; attempt <= attempts; attempt += 1) {
+            const res = await fetch(url, {
+              headers: { accept: "application/xml,text/xml;q=0.9,*/*;q=0.8" },
+            });
+
+            if (res.ok) return res.text();
+
+            last = `${url} responded ${res.status} ${res.statusText}`;
+
+            const transient = res.status === 429 || res.status >= 500;
+            if (!transient || attempt === attempts) break;
+
+            const after = Number(res.headers.get("retry-after"));
+            const waitMs =
+              Number.isFinite(after) && after > 0 ? after * 1_000 : attempt * 2_000;
+
+            logger.warn(`${last}; retrying in ${Math.round(waitMs / 1_000)}s`);
+            await sleep(waitMs);
+          }
+
+          throw new Error(last);
         };
 
         const rewrite = (xml: string): string =>
@@ -126,11 +155,22 @@ export default function yoastSitemap(options: { endpoint?: string } = {}): Astro
         const written: string[] = [];
         const fetched: { name: string; xml: string }[] = [];
 
-        for (const childUrl of children) {
-          const name = childUrl.split("/").pop();
-          if (!name) continue;
+        try {
+          for (const childUrl of children) {
+            const name = childUrl.split("/").pop();
+            if (!name) continue;
 
-          fetched.push({ name, xml: await fetchXml(childUrl) });
+            fetched.push({ name, xml: await fetchXml(childUrl) });
+          }
+        } catch (error) {
+          // Same fallback as a missing index: keep the sitemap
+          // @astrojs/sitemap already wrote rather than leave the site without
+          // one, and never fail a deploy over the CMS being briefly unreachable.
+          logger.warn(
+            `Could not fetch a child sitemap (${(error as Error).message}); ` +
+              `keeping the generated one`,
+          );
+          return;
         }
 
         // Nothing is written until every entry has been checked against a page
