@@ -23,9 +23,13 @@ const { data } = post;
 
 <article class="bc" data-category={data.category}>
   <a class="bc-media" href={postUrl(post)} aria-label={`Read: ${data.title}`}>
+    {/* width/height are required because heroImage is a remote WordPress URL,
+        which carries no intrinsic dimensions for Astro to read. */}
     <Image
       src={data.heroImage}
       alt={data.heroAlt}
+      width={data.heroWidth}
+      height={data.heroHeight}
       widths={[420, 640, 840]}
       sizes="(max-width: 600px) 100vw, (max-width: 991px) 50vw, 33vw"
       loading={loading}

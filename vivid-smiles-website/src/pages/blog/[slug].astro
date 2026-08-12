@@ -4,7 +4,9 @@
  *
  * Renders one post from the `blog` content collection at /blog/<slug>/.
  * - Drafts are filtered out of getStaticPaths so they don't ship.
- * - The body is parsed by Astro's markdown pipeline, then rendered via <Content />.
+ * - The body arrives from WordPress as sanitized HTML (see src/loaders/blog.ts)
+ *   and is injected with set:html after its images are run through the asset
+ *   pipeline by optimizeBodyImages().
  * - The TOC is generated from the rendered headings (H2 + H3) and wired to
  *   the shared scroll-spy in src/scripts/toc-spy.ts (same script the service
  *   detail pages use; the spy keys off the .blog-post wrapper).
@@ -16,6 +18,7 @@
  */
 import type { GetStaticPaths } from "astro";
 import { Image, getImage } from "astro:assets";
+import { optimizeBodyImages } from "../../lib/wp-body-images";
 import { render } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import VirtualConsult from "../../components/VirtualConsult.astro";
@@ -40,7 +43,16 @@ interface Props {
 
 const { post, allPosts } = Astro.props;
 const { data, body } = post;
-const { Content, headings } = await render(post);
+const { headings } = await render(post);
+
+// The body comes from WordPress as an HTML string. Astro's <Content /> would
+// inject it verbatim, leaving in-body <img> tags pointing at the CMS host —
+// unoptimized, and a runtime dependency on WordPress being up. Rewriting them
+// here downloads each one at build time and swaps in a hashed local asset.
+//
+// Heading ids are untouched by this pass, so the sticky TOC and toc-spy.ts
+// keep resolving against the same anchors.
+const bodyHtml = await optimizeBodyImages(post.rendered?.html ?? "");
 
 // Build a TOC from H2 + H3 headings only. H1 is the post title (rendered above
 // the body), H4+ are too granular for a sticky rail.
@@ -48,7 +60,16 @@ const tocItems = headings.filter((h) => h.depth === 2 || h.depth === 3);
 
 // Absolute hero image URL for og:image + JSON-LD. getImage returns the
 // transformed src so the social preview is the optimized webp, not the raw.
-const heroOg = await getImage({ src: data.heroImage, width: 1200, format: "webp" });
+//
+// heroImage is a remote WordPress URL, so the source dimensions have to be
+// passed explicitly — a remote src carries none, and getImage needs the aspect
+// ratio to derive the height for a given width.
+const heroOg = await getImage({
+  src: data.heroImage,
+  width: 1200,
+  height: Math.round((1200 * data.heroHeight) / data.heroWidth),
+  format: "webp",
+});
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
 const heroAbs = new URL(heroOg.src, Astro.site).href;
 
@@ -93,6 +114,8 @@ const pageTitle = `${data.title} | Vivid Smiles Dentistry`;
           <Image
             src={data.heroImage}
             alt={data.heroAlt}
+            width={data.heroWidth}
+            height={data.heroHeight}
             widths={[640, 960, 1280, 1600]}
             sizes="(max-width: 991px) 100vw, 1200px"
             loading="eager"
@@ -126,7 +149,7 @@ const pageTitle = `${data.title} | Vivid Smiles Dentistry`;
             for a long article never finishes. The body should be visible from
             first paint; only block-level scenery (hero, related) gets reveals. */}
         <article class="prose">
-          <Content />
+          <Fragment set:html={bodyHtml} />
         </article>
         <div class="post-body-share" aria-label="Share this article">
           <BlogShareButtons url={canonical} title={data.title} />

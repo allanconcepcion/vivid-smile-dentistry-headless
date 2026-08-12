@@ -13,7 +13,8 @@
     "logs": "wp-env logs all",
     "cli": "wp-env run cli wp",
     "backup": "bash bin/backup.sh",
-    "restore": "bash bin/restore.sh"
+    "restore": "bash bin/restore.sh",
+    "import:blog": "node import/build-blog-payload.mjs && wp-env run cli wp eval-file wp-content/vs-import/bin/import-blog.php"
   },
   "devDependencies": {
     "@wordpress/env": "^10.30.0"

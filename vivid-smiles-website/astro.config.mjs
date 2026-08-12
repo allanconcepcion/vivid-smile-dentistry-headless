@@ -40,6 +40,21 @@ export default defineConfig({
   build: {
     assets: '_assets',
   },
+  image: {
+    // Blog hero images live in the WordPress media library and reach the build
+    // as absolute URLs. Authorizing the CMS host here is what lets Astro
+    // download each one at build time, run it through sharp, and emit a hashed
+    // file into _assets/ — so the deployed HTML references this site's own
+    // origin, never WordPress. Without this, <Image> passes the CMS URL through
+    // untouched: no webp, no srcset, and a public dependency on the CMS host.
+    //
+    // Scoped to the uploads path rather than the whole host, so a stray URL in
+    // post content cannot turn into a build-time fetch.
+    remotePatterns: [
+      { protocol: 'http', hostname: 'localhost', port: '8888', pathname: '/wp-content/uploads/**' },
+      { protocol: 'https', hostname: 'cms.vividsmilesdentistry.com', pathname: '/wp-content/uploads/**' },
+    ],
+  },
   vite: {
     build: {
       rollupOptions: {

@@ -47,6 +47,27 @@ for slug in "${PLUGINS[@]}"; do
   wp plugin install "${slug}" --activate --force
 done
 
+# WordPress ships a "Hello world!" post and a "Sample Page". The post sits in
+# the Uncategorized category, which is NOT one of the five values the Astro
+# schema accepts — so leaving it in place fails the build the moment the blog
+# collection is sourced from WordPress. Remove the stock content outright.
+echo "==> Removing WordPress sample content"
+for stock_slug in hello-world sample-page; do
+  ids=$(wp post list --post_type=post,page --name="${stock_slug}" --format=ids 2>/dev/null | tr -d '\r')
+  if [[ -n "${ids}" ]]; then
+    # shellcheck disable=SC2086
+    wp post delete ${ids} --force
+  fi
+done
+
+# Uncategorized cannot be deleted while it is the default category; seed_blog_
+# categories() in vs-content-model.php repoints the default to "Dental Tips"
+# first, so by the time this runs the term is safe to remove.
+uncat=$(wp term list category --name=Uncategorized --field=term_id 2>/dev/null | tr -d '\r')
+if [[ -n "${uncat}" ]]; then
+  wp term delete category "${uncat}" || true
+fi
+
 echo "==> Permalinks (WPGraphQL and the REST API both need pretty permalinks)"
 wp rewrite structure '/%postname%/' --hard
 wp rewrite flush --hard

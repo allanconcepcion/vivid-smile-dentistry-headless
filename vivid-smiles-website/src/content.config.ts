@@ -1,6 +1,7 @@
 import { defineCollection, z } from "astro:content";
 import { glob } from "astro/loaders";
 import { reviewsLoader } from "./loaders/reviews";
+import { blogLoader } from "./loaders/blog";
 
 /**
  * Reviews / testimonials — sourced from WordPress.
@@ -34,38 +35,29 @@ const reviews = defineCollection({
 });
 
 /**
- * Blog posts.
+ * Blog posts — sourced from WordPress.
  *
- * Add a post by creating src/content/blog/<slug>.md with frontmatter:
+ * Posts are written in wp-admin under "Posts", not in this repo. The markdown
+ * files that previously backed this collection were imported once (see
+ * cms/import/) and are no longer read.
  *
- *   ---
- *   title: "Common Myths About Dental Care Debunked"
- *   description: "A 1–2 sentence summary, <=160 chars — used for hub card + meta description."
- *   date: 2025-01-13
- *   author: "Slate"
- *   category: "Dental Tips"
- *   heroImage: "../../assets/images/blog/common-myths-about-dental-care-debunked/00-hero.webp"
- *   heroAlt: "A dental hygienist demonstrating proper brushing"
- *   draft: false
- *   ---
+ * URL: posts render at /blog/<slug>/, where the slug is the WordPress post
+ * slug. Changing a slug in WordPress changes the public URL — set up a redirect
+ * if the old one was ever shared.
  *
- *   Markdown body. Body images live alongside the hero in src/assets/images/blog/<slug>/
- *   and are referenced via the same relative-path pattern as heroImage above.
+ * Filter the hub by category via /blog/?category=<Category>.
  *
- * URL: posts render at /blog/<slug>/. Filter the hub by category via /blog?category=<Category>.
+ * Categories are a CLOSED enum, and the same five names are seeded in
+ * cms/mu-plugins/vs-content-model.php. They are also the runtime keys for the
+ * client-side hub filter and appear verbatim in shared URLs, so adding a
+ * category means editing both places; renaming one breaks existing links.
+ * A post in any other category is skipped by the loader with a warning.
  *
- * Categories are a closed enum — extend the list below if the SEO director introduces a new
- * one, then re-run a migration helper on any source files in that category.
- *
- * Drafts (draft: true) are excluded from getStaticPaths in src/pages/blog/[slug].astro, from
- * the hub listing in src/pages/blog/index.astro, and from the sitemap filter in astro.config.mjs.
- *
- * Migrating an old WordPress export: see a migration helper — that script handles
- * the WP-noise stripping, frontmatter extraction, and image webp conversion.
+ * Requires WP_GRAPHQL_ENDPOINT. For local development: cd cms && npm start
  */
 const blog = defineCollection({
-  loader: glob({ pattern: "**/*.md", base: "./src/content/blog" }),
-  schema: ({ image }) =>
+  loader: blogLoader(),
+  schema: () =>
     z.object({
       title: z.string(),
       description: z.string().max(200),
@@ -79,7 +71,17 @@ const blog = defineCollection({
         "General Dentistry",
         "Emergency Dentistry",
       ]),
-      heroImage: image(),
+      // A URL string rather than image(). The image() helper resolves paths
+      // relative to an entry's source file, and a WordPress-backed entry has
+      // none — so it cannot be used from a remote loader. Astro still optimizes
+      // these at build time and emits local hashed assets, because the CMS host
+      // is authorized in astro.config.mjs under image.remotePatterns.
+      heroImage: z.string().url(),
+      // <Image> requires explicit dimensions for a remote src. Without them it
+      // either throws or (with inferSize) downloads every image at build just
+      // to measure it. WordPress reports these from the media library.
+      heroWidth: z.number().int().positive(),
+      heroHeight: z.number().int().positive(),
       heroAlt: z.string(),
       draft: z.boolean().default(false),
     }),
