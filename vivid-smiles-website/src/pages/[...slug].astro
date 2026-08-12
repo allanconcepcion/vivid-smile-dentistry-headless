@@ -1,0 +1,151 @@
+---
+/**
+ * Every WordPress page that has no hand-built route of its own.
+ *
+ * The 35 templates under src/pages are bespoke: each one's stylesheet assumes a
+ * fixed structure, which is why page copy is edited in WordPress but page
+ * LAYOUT is not. The gap that left: a page an editor creates in wp-admin had no
+ * route, so it 404'd on the front end and was dropped from the sitemap with a
+ * warning nobody reads.
+ *
+ * This closes it. Any published page whose URL no template already owns is
+ * built here from its WordPress body, in the site's shell, with its images run
+ * through the asset pipeline. Nothing about the designed pages changes — a
+ * static route always wins over this one, and the guard below makes that
+ * explicit rather than relying on Astro's route priority.
+ *
+ * It is a floor, not a ceiling: generic prose in the right typography. A page
+ * that matters still deserves its own template.
+ */
+import type { GetStaticPaths } from "astro";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { wpQuery } from "../lib/wp";
+import { optimizeBodyImages } from "../lib/wp-body-images";
+import "../styles/pages/wp-page.css";
+
+type WpPage = {
+  title: string;
+  uri: string;
+  content: string | null;
+  isFrontPage: boolean;
+};
+
+/**
+ * No status filter: an unauthenticated WPGraphQL request already returns only
+ * published content, and query-level errors are fatal to the build, so the
+ * fewer arguments this depends on the better.
+ */
+const PAGES_QUERY = `
+  query PagesForCatchAllRoute($first: Int!) {
+    pages(first: $first) {
+      nodes {
+        title
+        uri
+        content
+        isFrontPage
+      }
+    }
+  }
+`;
+
+/** Every route already served by a hand-built template in this directory. */
+function handBuiltRoutes(): Set<string> {
+  const routes = new Set<string>();
+
+  // Enumerated from the filesystem rather than hardcoded, so a route added
+  // next month is respected without anyone remembering a list lives here.
+  for (const file of Object.keys(import.meta.glob("./**/*.astro"))) {
+    // Dynamic routes, this file included — they own no fixed path.
+    if (file.includes("[")) continue;
+
+    const path = file
+      .replace(/^\.\//, "")
+      .replace(/\.astro$/, "")
+      .replace(/(^|\/)index$/, "");
+
+    routes.add(path ? `/${path}/` : "/");
+  }
+
+  return routes;
+}
+
+export const getStaticPaths = (async () => {
+  const data = await wpQuery<{ pages: { nodes: WpPage[] } }>(
+    PAGES_QUERY,
+    { first: 200 },
+    "pages for catch-all route",
+  );
+
+  const handBuilt = handBuiltRoutes();
+
+  return data.pages.nodes.flatMap((page) => {
+    // The home page belongs to index.astro whatever WordPress thinks.
+    if (page.isFrontPage) return [];
+
+    const route = page.uri.endsWith("/") ? page.uri : `${page.uri}/`;
+
+    // A designed template always wins.
+    if (handBuilt.has(route)) return [];
+
+    const content = (page.content ?? "").trim();
+
+    // An empty body means the page exists to feed fields into a hand-built
+    // template, not to be read on its own. Publishing a blank URL would be
+    // worse than leaving it out, so it is skipped and named in the log.
+    if (!content) {
+      console.warn(`[wp-pages] ${route} has no body content — not building it.`);
+      return [];
+    }
+
+    return [{ params: { slug: route.slice(1, -1) }, props: { page, content } }];
+  });
+}) satisfies GetStaticPaths;
+
+interface Props {
+  page: WpPage;
+  content: string;
+}
+
+const { page, content } = Astro.props;
+
+// Body images are authored against the CMS host. Rewriting them here downloads
+// each at build time and swaps in a hashed local asset, exactly as the blog
+// does — otherwise a "static" page keeps a runtime dependency on WordPress.
+const bodyHtml = await optimizeBodyImages(content);
+
+// This page has no SEO fields to read: it was never wired to the field group
+// the designed pages use. A description taken from the opening copy beats the
+// site-wide default repeated on every page an editor adds.
+const description = content
+  .replace(/<[^>]+>/g, " ")
+  .replace(/\s+/g, " ")
+  .trim()
+  .slice(0, 155);
+---
+
+<BaseLayout title={`${page.title} | Vivid Smiles Dentistry`} description={description || undefined}>
+  <div class="wp-page">
+    {/* ---------- BREADCRUMB ---------- */}
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <div class="crumbs-inner">
+        <a href="/">Home</a>
+        <span class="sep">/</span>
+        <span class="here">{page.title}</span>
+      </div>
+    </nav>
+
+    <main id="main">
+      <header class="wp-page-hero" data-vs-reveal-batch>
+        <div class="wrap">
+          <h1 class="vs-h1">{page.title}</h1>
+        </div>
+      </header>
+
+      <section class="wp-page-body">
+        <div class="wrap">
+          <div class="wp-page-prose" data-vs-reveal set:html={bodyHtml} />
+        </div>
+      </section>
+    </main>
+  </div>
+</BaseLayout>
