@@ -106,9 +106,6 @@ const pages = defineCollection({
   schema: z.object({
     route: z.string(),
     title: z.string(),
-    heroEyebrow: z.string().optional(),
-    heroHeading: z.string().optional(),
-    heroSubheading: z.string().optional(),
     // Shapes match what the templates already destructure, so adopting this
     // collection is a one-line change per page rather than a rewrite.
     tocLinks: z.array(z.object({ href: z.string(), label: z.string() })).default([]),

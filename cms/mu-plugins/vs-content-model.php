@@ -72,6 +72,32 @@ function seed_blog_categories(): void {
 add_action( 'init', __NAMESPACE__ . '\\seed_blog_categories', 20 );
 
 /**
+ * Remove the content editor from Pages.
+ *
+ * Nothing renders a page's post_content — the Astro templates own the layout
+ * and prose, and these pages exist only to hold the structured fields below.
+ * Leaving the editor in place presents an empty canvas that looks like the page
+ * has lost its content, and invites an editor to type copy that will never
+ * appear on the site.
+ *
+ * Posts and testimonials keep their editors; their bodies ARE rendered.
+ */
+function remove_page_editor(): void {
+	remove_post_type_support( 'page', 'editor' );
+}
+add_action( 'init', __NAMESPACE__ . '\\remove_page_editor', 30 );
+
+/**
+ * The block editor ignores remove_post_type_support('editor') in some flows,
+ * so pages are pinned to the classic screen where the field group renders
+ * directly under the title instead of behind a collapsed meta-box panel.
+ */
+function pages_use_classic_editor( bool $use_block_editor, string $post_type ): bool {
+	return $post_type === 'page' ? false : $use_block_editor;
+}
+add_filter( 'use_block_editor_for_post_type', __NAMESPACE__ . '\\pages_use_classic_editor', 10, 2 );
+
+/**
  * Testimonials.
  *
  * Backs the `reviews` collection (src/content.config.ts L28-37), consumed by
@@ -292,6 +318,13 @@ function register_field_groups(): void {
 	 * design system is the product; giving an editor arbitrary section ordering
 	 * would let them build pages the CSS was never written for. These fields
 	 * change the words, not the design.
+	 *
+	 * There are deliberately NO hero fields here. An earlier version had them,
+	 * but nothing populated or rendered them — so an editor could type a new
+	 * headline, save, and see no change on the site. A field that silently does
+	 * nothing is worse than an absent one. Hero copy lives in the templates
+	 * along with the rest of the per-page prose; if it should become editable,
+	 * the template has to read it in the same change that adds the field.
 	 */
 	acf_add_local_field_group(
 		[
@@ -311,40 +344,19 @@ function register_field_groups(): void {
 			'map_graphql_types_from_location_rules' => true,
 			'graphql_types'                         => [ 'Page' ],
 			'fields'                                => [
+				// Explains the model up front. Without it the first impression
+				// of this screen is an empty editor canvas above an unfamiliar
+				// box, which reads as broken.
 				[
-					'key'   => 'field_vs_hero_tab',
-					'label' => 'Hero',
-					'type'  => 'tab',
-				],
-				[
-					'key'          => 'field_vs_page_eyebrow',
-					'label'        => 'Eyebrow',
-					'name'         => 'hero_eyebrow',
-					'type'         => 'text',
-					'instructions' => 'Small label above the headline, e.g. "Cosmetic Dentistry".',
-				],
-				[
-					'key'   => 'field_vs_page_heading',
-					'label' => 'Headline',
-					'name'  => 'hero_heading',
-					'type'  => 'text',
-				],
-				[
-					'key'   => 'field_vs_page_subheading',
-					'label' => 'Sub-headline',
-					'name'  => 'hero_subheading',
-					'type'  => 'textarea',
-					'rows'  => 3,
-				],
-				[
-					'key'           => 'field_vs_page_hero_image',
-					'label'         => 'Hero image',
-					'name'          => 'hero_image',
-					'type'          => 'image',
-					// The Astro loader needs a URL plus dimensions; an ID would
-					// mean a second query per page to resolve the media item.
-					'return_format' => 'array',
-					'preview_size'  => 'medium',
+					'key'     => 'field_vs_page_intro',
+					'label'   => '',
+					'name'    => '',
+					'type'    => 'message',
+					'message' => "<strong>This page's layout and body copy live in the site templates.</strong><br>\n"
+						. "What you edit here is the repeating content: the “On this page” rail, the process steps, and the FAQ.\n"
+						. "Changes go live on the next site build.",
+					'esc_html' => 0,
+					'new_lines' => 'wpautop',
 				],
 				[
 					'key'   => 'field_vs_toc_tab',

@@ -18,9 +18,6 @@ export type Faq = { q: string; a: string; open: boolean };
 
 export type PageContent = {
   title: string;
-  heroEyebrow?: string;
-  heroHeading?: string;
-  heroSubheading?: string;
   tocLinks: TocLink[];
   processSteps: ProcessStep[];
   faqs: Faq[];
@@ -51,9 +48,6 @@ export async function getPageContent(route: string): Promise<PageContent> {
 
   return {
     title: entry.data.title,
-    heroEyebrow: entry.data.heroEyebrow,
-    heroHeading: entry.data.heroHeading,
-    heroSubheading: entry.data.heroSubheading,
     tocLinks: entry.data.tocLinks,
     processSteps: entry.data.processSteps,
     faqs: entry.data.faqs,

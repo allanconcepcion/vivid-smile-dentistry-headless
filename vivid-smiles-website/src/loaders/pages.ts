@@ -31,9 +31,6 @@ const PAGES_QUERY = /* GraphQL */ `
         slug
         title
         pageFields {
-          heroEyebrow
-          heroHeading
-          heroSubheading
           tocLinks {
             label
             anchor
@@ -59,9 +56,6 @@ type PageNode = {
   slug: string;
   title: string | null;
   pageFields: {
-    heroEyebrow: string | null;
-    heroHeading: string | null;
-    heroSubheading: string | null;
     tocLinks: Array<{ label: string | null; anchor: string | null }> | null;
     processSteps: Array<{ tag: string | null; title: string | null; body: string | null }> | null;
     faqs: Array<{ question: string | null; answer: string | null; open: boolean | null }> | null;
@@ -99,9 +93,6 @@ export function pagesLoader(): Loader {
           data: {
             route: node.uri,
             title: node.title ?? "",
-            heroEyebrow: f?.heroEyebrow ?? undefined,
-            heroHeading: f?.heroHeading ?? undefined,
-            heroSubheading: f?.heroSubheading ?? undefined,
             // Normalized to the shape the templates already use, so a template
             // swaps `const faqs = [...]` for a lookup and changes nothing else.
             tocLinks: (f?.tocLinks ?? [])
