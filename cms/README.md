@@ -99,6 +99,10 @@ finds it active.
 Declared in code under `mu-plugins/`, not through wp-admin, so it is
 version-controlled. Editing these field groups in the ACF UI will not persist.
 
+- **`vs-config.php`** — per-environment constants, currently just
+  `VS_FRONTEND_URL`. Sorts first, so it loads before the files that read it.
+  Deliberately not `wp-config.php`: the managed host rewrites that file during
+  platform updates and drops hand-added lines without a warning.
 - **`vs-content-model.php`** — the `vs_testimonial` post type, the
   `vs_testimonial_tag` taxonomy, ACF field groups, and the five canonical blog
   categories.

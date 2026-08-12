@@ -25,14 +25,25 @@ Live at `https://1230613.us28.myftpupload.com` (GoDaddy Managed WordPress,
 temporary hostname). All content migrated: 14 posts, 33 pages, 20 testimonials,
 practice settings, menus, and the custom `vsRoute` / `vsSeo` fields.
 
-Two things still to do on that host:
+`cms/mu-plugins/` is deployed and current, including `vs-config.php`, which
+points the CMS at `https://vivid-smiles-headless.vercel.app`. Visitors landing
+on the CMS hostname are 302'd to the matching path on the front end.
 
-1. **Set `VS_FRONTEND_URL` in `wp-config.php`** once the site has a public URL.
-   Until then the CMS front end serves WordPress rather than redirecting — the
-   safe default. Deploy the current `cms/mu-plugins/` first: an older copy is on
-   the host that redirects visitors to `http://localhost:4321`.
-2. **Move to a permanent hostname** (`cms.vividsmilesdentistry.com`) before
-   launch, and update `WP_GRAPHQL_ENDPOINT` plus `image.remotePatterns`.
+Still to do on that host:
+
+- **Move to a permanent hostname** (`cms.vividsmilesdentistry.com`) before
+  launch, and update `WP_GRAPHQL_ENDPOINT` plus `image.remotePatterns`.
+
+### Where the front-end URL is configured
+
+**`cms/mu-plugins/vs-config.php`** — not `wp-config.php`. The managed host
+rewrites `wp-config.php` during platform updates, silently dropping anything
+added by hand. That failure is quiet: the constant disappears, the redirect
+stops, and the raw WordPress theme starts answering on the CMS hostname
+alongside the real site. `wp-content/mu-plugins/` survives those updates.
+
+Locally the constant comes from `cms/.wp-env.json` instead, which loads first;
+`vs-config.php` guards with `defined()` so the local value wins.
 
 Then:
 
@@ -44,7 +55,8 @@ bash cms/bin/restore.sh https://cms.vividsmilesdentistry.com
 - Copy `cms/uploads/` to the host's `wp-content/uploads/`.
 - Deploy `cms/mu-plugins/` to `wp-content/mu-plugins/`.
 - Run the equivalent of `cms/bin/setup.sh` to install the pinned plugins.
-- Set `VS_FRONTEND_URL` in `wp-config.php` to `https://vividsmilesdentistry.com`.
+- Change `VS_FRONTEND_URL` in `cms/mu-plugins/vs-config.php` to
+  `https://vividsmilesdentistry.com` and re-upload that one file.
 
 Confirm before moving on:
 
@@ -178,9 +190,12 @@ The site is currently unbuilt against a public CMS, so do this only after a
 production deployment renders correctly on the Vercel URL.
 
 1. Point `vividsmilesdentistry.com` at Vercel.
-2. Submit `https://vividsmilesdentistry.com/sitemap_index.xml` in Search
+2. Update `VS_FRONTEND_URL` in `cms/mu-plugins/vs-config.php` to the real domain
+   and re-upload it. Until you do, anyone landing on the CMS hostname is sent to
+   the `vercel.app` address instead of the live site.
+3. Submit `https://vividsmilesdentistry.com/sitemap_index.xml` in Search
    Console. That is the same path the old WordPress site used, so an existing
    submission keeps working.
-3. Spot-check several redirects from `public/_redirects` against the live site.
-4. Confirm `https://cms.vividsmilesdentistry.com/robots.txt` is
+4. Spot-check several redirects from `public/_redirects` against the live site.
+5. Confirm `https://cms.vividsmilesdentistry.com/robots.txt` is
    `Disallow: /` — the CMS must never be indexed alongside the real site.
