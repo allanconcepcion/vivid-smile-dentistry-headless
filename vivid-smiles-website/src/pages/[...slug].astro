@@ -32,89 +32,92 @@ type WpPage = {
 };
 
 /**
- * No status filter: an unauthenticated WPGraphQL request already returns only
- * published content, and query-level errors are fatal to the build, so the
- * fewer arguments this depends on the better.
+ * Astro lifts getStaticPaths out of this frontmatter so it can be called
+ * without rendering the component, and only the imports above come with it —
+ * a const declared out here is not in scope by the time it runs. Everything
+ * this function needs is therefore declared inside it.
  */
-const PAGES_QUERY = `
-  query PagesForCatchAllRoute($first: Int!) {
-    pages(first: $first) {
-      nodes {
-        title
-        uri
-        content
+export const getStaticPaths = (async () => {
+  // No status filter: an unauthenticated WPGraphQL request already returns only
+  // published content, and query-level errors are fatal to the build, so the
+  // fewer arguments this depends on the better.
+  const PAGES_QUERY = `
+    query PagesForCatchAllRoute($first: Int!) {
+      pages(first: $first) {
+        nodes {
+          title
+          uri
+          content
+        }
       }
     }
-  }
-`;
+  `;
 
-/**
- * Every .astro file below `dir`, as a path relative to it.
- *
- * Read from disk rather than globbed. A Vite glob for every .astro file under
- * this directory matches this file too, which hands the bundler a page that
- * imports itself and fails the build before a page is rendered. Reading the
- * directory keeps the list generated rather than hardcoded, without putting
- * pages into each other's import graph.
- */
-async function astroFilesIn(dir: string, prefix = ""): Promise<string[]> {
-  const found: string[] = [];
+  /**
+   * Every .astro file below a directory, as a path relative to it.
+   *
+   * Read from disk rather than globbed. A Vite glob for every .astro file in
+   * this directory matches this file too, which hands the bundler a page that
+   * imports itself. Reading the directory keeps the list generated rather than
+   * hardcoded, without putting pages into each other's import graph.
+   */
+  async function astroFilesIn(dir: string, prefix = ""): Promise<string[]> {
+    const found: string[] = [];
 
-  for (const entry of await readdir(dir, { withFileTypes: true })) {
-    const relative = prefix ? `${prefix}/${entry.name}` : entry.name;
+    for (const entry of await readdir(dir, { withFileTypes: true })) {
+      const relative = prefix ? `${prefix}/${entry.name}` : entry.name;
 
-    if (entry.isDirectory()) {
-      found.push(...(await astroFilesIn(join(dir, entry.name), relative)));
-    } else if (entry.name.endsWith(".astro")) {
-      found.push(relative);
+      if (entry.isDirectory()) {
+        found.push(...(await astroFilesIn(join(dir, entry.name), relative)));
+      } else if (entry.name.endsWith(".astro")) {
+        found.push(relative);
+      }
     }
+
+    return found;
   }
 
-  return found;
-}
+  /** Every route already served by a hand-built template. */
+  async function handBuiltRoutes(): Promise<Set<string>> {
+    // src/pages, whether the build runs from the site directory or the repo root.
+    const candidates = [
+      join(process.cwd(), "src", "pages"),
+      join(process.cwd(), "vivid-smiles-website", "src", "pages"),
+    ];
 
-/** src/pages, whether the build runs from the site directory or the repo root. */
-const PAGES_DIR_CANDIDATES = [
-  join(process.cwd(), "src", "pages"),
-  join(process.cwd(), "vivid-smiles-website", "src", "pages"),
-];
+    let files: string[] | null = null;
 
-/** Every route already served by a hand-built template. */
-async function handBuiltRoutes(): Promise<Set<string>> {
-  let files: string[] | null = null;
-
-  for (const dir of PAGES_DIR_CANDIDATES) {
-    try {
-      files = await astroFilesIn(dir);
-      break;
-    } catch {
-      // Not this one. Try the next.
+    for (const dir of candidates) {
+      try {
+        files = await astroFilesIn(dir);
+        break;
+      } catch {
+        // Not this one. Try the next.
+      }
     }
+
+    // Better to stop than to guess: an empty set here would let a WordPress
+    // page claim a designed page's URL and overwrite it in the output.
+    if (!files) {
+      throw new Error(
+        "[wp-pages] Could not find src/pages, so the routes that already have " +
+          "a hand-built template are unknown. Refusing to build WordPress pages.",
+      );
+    }
+
+    const routes = new Set<string>();
+
+    for (const file of files) {
+      // Dynamic routes, this file included — they own no fixed path.
+      if (file.includes("[")) continue;
+
+      const route = file.replace(/\.astro$/, "").replace(/(^|\/)index$/, "");
+      routes.add(route ? `/${route}/` : "/");
+    }
+
+    return routes;
   }
 
-  // Better to stop than to guess: an empty set here would let a WordPress page
-  // claim a designed page's URL and overwrite it in the output directory.
-  if (!files) {
-    throw new Error(
-      "[wp-pages] Could not find src/pages, so the routes that already have a " +
-        "hand-built template are unknown. Refusing to build WordPress pages.",
-    );
-  }
-
-  const routes = new Set<string>();
-
-  for (const file of files) {
-    // Dynamic routes, this file included — they own no fixed path.
-    if (file.includes("[")) continue;
-
-    const route = file.replace(/\.astro$/, "").replace(/(^|\/)index$/, "");
-    routes.add(route ? `/${route}/` : "/");
-  }
-
-  return routes;
-}
-
-export const getStaticPaths = (async () => {
   const data = await wpQuery<{ pages: { nodes: WpPage[] } | null }>(
     PAGES_QUERY,
     { first: 200 },
