@@ -62,39 +62,18 @@ import gumlineImg from "../../assets/images/procedures/finished-veneers-lip-deta
 // "Results" — real patient portrait in the office. Distinct subject from
 // the hero portrait; the alt describes the photograph, not an outcome.
 import resultsImg from "../../assets/images/people/real/woman-office-portrait.webp";
-
-const tocLinks = [
-  { href: "#what",       label: "What It Is" },
-  { href: "#laser",      label: "Laser Tech" },
-  { href: "#candidates", label: "Who Benefits" },
-  { href: "#process",    label: "The Process" },
-  { href: "#recovery",   label: "Recovery" },
-  { href: "#results",    label: "Results" },
-  { href: "#why",        label: "Why Vivid Smiles" },
-  { href: "#faq",        label: "FAQ" },
-];
-
-const processSteps = [
-  { tag: "Step One",   num: "01", title: "Consultation and digital imaging", body: "Dr. Richardson reviews your gum-to-tooth ratio and uses digital imaging tools to map the gum line and preview potential results. If gum contouring is part of a larger smile plan, that coordination begins here." },
-  { tag: "Step Two",   num: "02", title: "Treatment planning",               body: "Your ideal gum line is marked precisely. Any combination work with veneers or other cosmetic procedures is coordinated so every element of the result aligns." },
-  { tag: "Step Three", num: "03", title: "Laser procedure",                  body: "The procedure typically takes 30 to 60 minutes. Local anesthetic is applied, and the soft tissue laser removes and reshapes tissue with minimal discomfort and little to no bleeding." },
-  { tag: "Step Four",  num: "04", title: "Immediate results",                body: "Results are visible as soon as the procedure is complete. The gum line is reshaped, and the improved tooth-to-gum ratio is apparent before you leave the office." },
-  { tag: "Step Five",  num: "05", title: "Recovery",                         body: "Most patients return to normal activities the same day. Minor sensitivity for one to three days is common, and over-the-counter pain relief is typically all that is needed." },
-];
+import { getPageContent } from '../../lib/page-content';
 
 const whyCards = [
   { tag: "Digital Preview",   title: "Digital smile preview",                       body: "Before any work is scheduled, you see a preview of your projected gum line. This is a specific, patient-facing view of your planned outcome, not a generic illustration of general improvements." },
   { tag: "Laser Technology",  title: "Laser over scalpel",                          body: "Soft tissue laser technology means less discomfort, minimal bleeding, no sutures in most cases, and significantly faster healing compared to traditional gum surgery." },
 ];
 
-const faqs = [
-  { q: "Does gum contouring hurt?",                                   a: "Most patients experience mild pressure during the procedure and minor sensitivity for one to three days after. Local anesthetic is used during treatment, and over-the-counter pain relief is generally all that is needed during recovery.", open: true },
-  { q: "Is gum contouring permanent?",                                a: "Yes. Once laser reshaping removes gum tissue, it does not regrow to its original position. The result you see immediately after the procedure reflects the long-term outcome." },
-  { q: "How long does gum contouring take?",                          a: "The laser procedure itself typically takes 30 to 60 minutes, depending on how much tissue needs to be reshaped. The consultation and digital planning appointment is scheduled separately ahead of treatment." },
-  { q: "How much does gum contouring cost?",                          a: "Cost varies based on the extent of reshaping needed and whether gum contouring is part of a broader cosmetic plan. The best way to get an accurate estimate is during a free consultation, where Dr. Richardson can review your specific situation and outline a personalized treatment plan." },
-  { q: "Is gum contouring covered by insurance?",                     a: "Gum contouring is typically considered a cosmetic procedure and is not covered by dental insurance. Vivid Smiles offers financing options and an in-house dental membership plan for patients without coverage who want to move forward." },
-  { q: "What is the difference between gum contouring and gum grafting?", a: "Gum contouring removes excess tissue when the gum line sits too high or too unevenly over the teeth. Gum grafting adds tissue in the opposite situation, when gums have receded too far and the tooth root is exposed. They treat different problems and are not interchangeable." },
-];
+// tocLinks, processSteps, faqs are edited in WordPress (Pages -> Laser Gum Contouring in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname);
+
 ---
 
 <BaseLayout

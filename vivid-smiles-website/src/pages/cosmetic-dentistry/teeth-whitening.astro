@@ -63,19 +63,9 @@ import naturalImg from '../../assets/images/people/real/woman-blonde-warm-interi
 
 // Gallery pulls dynamically from the central smiles/ folder.
 import { getSmiles } from '../../lib/smiles';
+import { getPageContent } from '../../lib/page-content';
 const galleryTiles = getSmiles();
 const galleryTrack = [...galleryTiles, ...galleryTiles];
-
-const tocLinks = [
-  { href: '#why', label: 'Why Vivid Smiles' },
-  { href: '#what', label: 'What Is KöR' },
-  { href: '#process', label: 'Treatment Levels' },
-  { href: '#compare', label: 'vs. Over-the-Counter' },
-  { href: '#natural', label: 'Candidates' },
-  { href: '#lasting', label: 'Results & Pricing' },
-  { href: '#local', label: 'Parker, CO' },
-  { href: '#faq', label: 'FAQ' },
-];
 
 // 3 KöR clinical Treatment Levels rendered as process cards (Night / Power /
 // Ultra & Ultra-T). The pricing block below adds Opalescence as a fourth
@@ -120,25 +110,11 @@ const maintenanceBullets = [
 
 // 4 FAQs — verbatim from the user's copy. First Q is `open: true` to match
 // the veneers/aligners default.
-const faqs = [
-  {
-    q: 'What is the average price to have your teeth whitened?',
-    a: 'Vivid Smiles publishes four whitening tiers: Opalescence take-home trays ($99), KöR-Night custom take-home trays ($350), KöR Power in-office whitening with trays ($665), and KöR Ultra / Ultra-T for the most resistant staining ($1,541). Dr. Richardson helps you match the right tier to your staining type at a no-obligation consultation.',
-    open: true,
-  },
-  {
-    q: 'Is it worth paying for teeth whitening?',
-    a: 'Professional whitening produces results that last years rather than weeks, making it far more cost-effective over time than repeatedly buying over-the-counter products. For patients whose smile appearance affects their daily confidence, supervised KöR whitening is consistently a worthwhile investment.',
-  },
-  {
-    q: 'Why do teeth turn yellow?',
-    a: 'Yellowing comes from two sources: extrinsic staining from food, drinks, and tobacco deposited on enamel, and intrinsic discoloration from aging or certain medications. KöR addresses both types, including the intrinsic staining most other whitening systems cannot reach.',
-  },
-  {
-    q: 'What is the fastest way to whiten teeth?',
-    a: 'In-office KöR Power whitening delivers the fastest results — three 20-minute chair sessions plus take-home maintenance trays. Patients who need significant change quickly can also step up to KöR Ultra or Ultra-T for the most resistant staining, including tetracycline discoloration.',
-  },
-];
+// tocLinks, faqs are edited in WordPress (Pages -> Teeth Whitening in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
+
 ---
 
 <BaseLayout

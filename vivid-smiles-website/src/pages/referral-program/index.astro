@@ -13,6 +13,7 @@ import { phoneHref, phoneLabel } from "../../data/contact";
 import "../../styles/pages/referral-program.css";
 
 import heroPrimary from "../../assets/images/people/real/patient-at-reception-check-in.webp";
+import { getPageContent } from '../../lib/page-content';
 
 const steps = [
   {
@@ -35,28 +36,13 @@ const steps = [
   },
 ];
 
-const faqs = [
-  {
-    q: "Do I need to be an existing patient to refer someone?",
-    a: "Yes — this program is exclusively for our current patients referring new patients.",
-    open: true,
-  },
-  {
-    q: "When will I receive my referral credit?",
-    a: "Your credit will be applied once your referred friend completes their first appointment.",
-  },
-  {
-    q: "Is there a limit to how many people I can refer?",
-    a: "Yes — only one credit per household can be applied. If you refer multiple people from the same home, only one will be eligible for the $50 credit.",
-  },
-  {
-    q: "Can I cash out my credit or transfer it to someone else?",
-    a: "No — referral credits are non-cashable and non-transferable. They must be used toward future dental services.",
-  },
-];
-
 const description =
   "Refer a friend to Vivid Smiles Dentistry in Parker, CO and you both get $50 credit toward future dental care. No paperwork, no hassle — just say thank you for the trust.";
+// faqs is edited in WordPress (Pages -> Referral Program).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { faqs } = await getPageContent(Astro.url.pathname);
+
 ---
 
 <BaseLayout

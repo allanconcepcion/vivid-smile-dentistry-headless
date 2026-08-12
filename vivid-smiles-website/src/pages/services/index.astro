@@ -27,6 +27,7 @@ import imgSinusLift from '../../assets/images/facility/operating-room.webp';
 
 import imgGeneral from '../../assets/images/people/real/woman-portrait-office-lounge.webp';
 import imgEmergency from '../../assets/images/procedures/same-day-emergency-dental-care.webp';
+import { getPageContent } from '../../lib/page-content';
 
 // Cosmetic + implant cards are kicker-free; only the everyday + emergency
 // cards carry a `.svc-tag` pill where the kicker adds real signal.
@@ -134,39 +135,16 @@ const everydayServices = [
   },
 ];
 
-const faqs = [
-  {
-    q: 'How do I know which service is right for me?',
-    a: "You don't need to. The first visit is a conversation — what you want changed, what's bothering you, what you'd want a smile to do. From there we build a plan that may pull from one service or several. Many cosmetic patients also want their general care under the same roof, and that's by design.",
-    open: true,
-  },
-  {
-    q: 'What does a consultation cost?',
-    a: "An initial cosmetic or implant consultation with Dr. Richardson is complimentary. If imaging is needed for an accurate plan, we'll let you know up front. New-patient general exams are billed to your insurance where applicable, with a clear out-of-pocket estimate before the visit.",
-  },
-  {
-    q: 'Do you offer financing or a membership plan?',
-    a: 'Yes — both. We accept most major dental insurance and offer third-party financing for cosmetic and implant work. For uninsured patients we run an in-house Vivid Smiles Membership Plan that covers preventive visits and discounts treatment. A patient coordinator walks through the numbers before any plan is locked in.',
-  },
-  {
-    q: 'Do you treat patients flying in from out of state?',
-    a: 'Roughly a third of our cosmetic and full-arch caseload comes from out of state. We coordinate scans and planning ahead of arrival, schedule treatment in compressed visits, and partner with a local hotel for stays. Send a few photos through the virtual consult to start the conversation before you book travel.',
-  },
-  {
-    q: 'How long does a typical treatment take?',
-    a: `It depends on the service. <a class="vs-link" href="/cosmetic-dentistry/teeth-whitening/">Whitening</a> can be one visit. <a class="vs-link" href="/cosmetic-dentistry/porcelain-veneers/">Veneers</a> are usually two to three visits over four to six weeks. A <a class="vs-link" href="/implant-dentistry/single-tooth-dental-implants/">single-tooth implant</a> takes a few months end to end (most of which is healing, not chair time). <a class="vs-link" href="/implant-dentistry/all-on-4-single-arch/">All-on-4</a> cases place fixed teeth in a single day. We give you an honest timeline at the planning stage.`,
-  },
-  {
-    q: "What happens if I'm in pain right now?",
-    a: "Call us — we hold same-day spots every day for emergencies: toothache, swelling, a broken or lost crown, trauma. If we can't see you in the office today, we'll triage by phone and get you started on the right next step.",
-  },
-];
-
 const allServices = [...cosmeticServices, ...implantServices, ...everydayServices].map((s) => ({
   name: s.title,
   url: s.href,
   image: s.img.src,
 }));
+// faqs is edited in WordPress (Pages -> Services in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { faqs } = await getPageContent(Astro.url.pathname);
+
 ---
 
 <BaseLayout

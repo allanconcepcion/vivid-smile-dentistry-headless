@@ -18,6 +18,7 @@ import LocalTrust from '../../components/LocalTrust.astro';
 import PricingTiers from '../../components/PricingTiers.astro';
 import { phoneHref, phoneLabel, bookNowHref } from '../../data/contact';
 import { getSmiles } from '../../lib/smiles';
+import { getPageContent } from '../../lib/page-content';
 import '../../styles/pages/porcelain-veneers.css';
 
 // Hero — a patient portrait. replaced a full-face portrait here that
@@ -37,77 +38,14 @@ import naturalImg from '../../assets/images/procedures/finished-veneers-lip-deta
 
 // Auto-loaded from src/assets/images/smiles/ — every photo in the folder is a
 // real Dr. Richardson patient case and appropriate for this page.
+// Table of contents, process steps and FAQs are edited in WordPress
+// (Pages -> Porcelain Veneers). The shapes are identical to the arrays that
+// used to live here, so the markup below is unchanged.
+const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname);
+
 const galleryTiles = getSmiles();
 const galleryTrack = [...galleryTiles, ...galleryTiles];
 
-const tocLinks = [
-  { href: '#why', label: 'Why Vivid Smiles' },
-  { href: '#what', label: 'What Are Veneers' },
-  { href: '#process', label: 'The Process' },
-  { href: '#compare', label: 'Comparison' },
-  { href: '#natural', label: 'Natural Results' },
-  { href: '#lasting', label: 'Lifespan' },
-  { href: '#local', label: 'Parker, CO' },
-  { href: '#cost', label: 'Investment' },
-  { href: '#faq', label: 'FAQ' },
-];
-
-const processSteps = [
-  {
-    tag: 'Step One',
-    num: '01',
-    title: 'Digital consultation',
-    body: 'Dr. Richardson evaluates your smile with digital imaging and generates a personalized preview.',
-  },
-  {
-    tag: 'Step Two',
-    num: '02',
-    title: 'Design review',
-    body: 'You refine the preview together, adjusting shape, shade, and proportions before treatment begins.',
-  },
-  {
-    tag: 'Step Three',
-    num: '03',
-    title: 'Minimal preparation',
-    body: 'For no-prep or minimal-prep candidates, little to no enamel is removed before veneer placement.',
-  },
-  {
-    tag: 'Step Four',
-    num: '04',
-    title: 'Custom fabrication',
-    body: 'Your veneers are crafted from dental porcelain at a specialist lab, typically within one to two weeks.',
-  },
-  {
-    tag: 'Step Five',
-    num: '05',
-    title: 'Final placement',
-    body: 'Dr. Richardson bonds the finished veneers, confirms your bite, and makes any adjustments before you leave.',
-  },
-];
-
-const faqs = [
-  {
-    q: 'What are veneers made of?',
-    a: 'High-quality veneers use dental porcelain, a ceramic that replicates enamel in translucency and light reflection. Composite resin is a lower-cost alternative but stains more readily and has a shorter lifespan.',
-    open: true,
-  },
-  {
-    q: 'How much do veneers cost?',
-    a: 'Porcelain veneers are $2,250 per tooth at Vivid Smiles. Most patients treat 8–10 teeth across the smile zone; the per-tooth price stays the same regardless of case complexity. Financing is available.',
-  },
-  {
-    q: 'Does getting veneers hurt?',
-    a: 'Most patients experience minimal discomfort, particularly with no-prep and minimal-prep techniques. Temporary sensitivity after placement is normal and typically resolves within a few days.',
-  },
-  {
-    q: 'Are veneers covered by insurance?',
-    a: 'Porcelain veneers are cosmetic and are not covered by most dental insurance plans. For uninsured patients, Vivid Smiles offers an in-house dental membership plan; financing is also available.',
-  },
-  {
-    q: 'Who is a good candidate for veneers?',
-    a: 'Good candidates have healthy teeth and gums with no active decay. Patients with significant grinding habits may need a nightguard to protect their veneers.',
-  },
-];
 ---
 
 <BaseLayout

@@ -59,19 +59,9 @@ import editorialImg from '../../assets/images/procedures/berry-lip-smile-tilted.
 
 // Gallery pulls dynamically from the central smiles/ folder.
 import { getSmiles } from '../../lib/smiles';
+import { getPageContent } from '../../lib/page-content';
 const galleryTiles = getSmiles();
 const galleryTrack = [...galleryTiles, ...galleryTiles];
-
-const tocLinks = [
-  { href: '#what', label: 'What It Is' },
-  { href: '#issues', label: 'Common Issues' },
-  { href: '#process', label: 'The Process' },
-  { href: '#options', label: 'Treatment Options' },
-  { href: '#why-us', label: 'Why Vivid Smiles' },
-  { href: '#cost', label: 'Timeline & Cost' },
-  { href: '#results', label: 'Real Results' },
-  { href: '#faq', label: 'FAQ' },
-];
 
 const issuesList = [
   'Severe staining that no longer responds to whitening',
@@ -81,37 +71,11 @@ const issuesList = [
   'Disproportionate tooth-to-gum ratio (gummy smile)',
 ];
 
-const faqs = [
-  {
-    q: 'How long does a smile makeover take?',
-    a: `Timeline depends on the treatments involved in your plan. Veneer-focused makeovers can often be completed in two to three visits over three to four weeks; plans that include <a class="vs-link" href="/cosmetic-dentistry/clear-aligners/">Invisalign alignment</a> may take six to twelve months.`,
-    open: true,
-  },
-  {
-    q: 'Will my veneers look natural or fake?',
-    a: "Natural-looking results are Dr. Richardson's primary focus on every case. Veneer color, shape, and translucency are customized to complement your facial features, skin tone, and personal preferences, and digital smile design lets you preview and refine your outcome before treatment begins.",
-  },
-  {
-    q: 'Are veneers permanent?',
-    a: 'Traditional veneers involve minimal enamel preparation and are considered permanent, typically lasting 20+ years with proper care. No-prep veneers preserve natural tooth structure completely and may be reversible when the clinical situation allows.',
-  },
-  {
-    q: 'How much does a smile makeover cost?',
-    a: 'Investment varies based on the treatments included in your personalized plan. During the consultation, Dr. Richardson provides transparent pricing and discusses financing options; the practice also offers a dental membership plan that can reduce costs for uninsured patients.',
-  },
-  {
-    q: 'Can a smile makeover fix my crooked teeth?',
-    a: `Yes. Depending on severity, crooked teeth can be addressed with <a class="vs-link" href="/cosmetic-dentistry/clear-aligners/">Invisalign clear aligners</a>, <a class="vs-link" href="/cosmetic-dentistry/porcelain-veneers/">porcelain veneers</a> that create the appearance of straight teeth, or a combination of both. Dr. Richardson recommends the approach that produces the most stable, natural-looking result for your situation.`,
-  },
-  {
-    q: 'Do I need to replace all my teeth for a smile makeover?',
-    a: 'No. Smile makeovers are fully customized, and treatment is focused only on the teeth that show when you smile and speak. Some patients address only their front six to eight upper teeth; others work on both upper and lower arches.',
-  },
-  {
-    q: 'Is cosmetic dentistry covered by insurance?',
-    a: 'Most cosmetic procedures are considered elective and are not covered by dental insurance. If a treatment also addresses a functional concern, such as a cracked or broken tooth, partial coverage may apply. Vivid Smiles discusses financing and the in-house membership plan during every consultation.',
-  },
-];
+// tocLinks, faqs are edited in WordPress (Pages -> Smile Makeover in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
+
 ---
 
 <BaseLayout

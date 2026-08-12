@@ -50,15 +50,27 @@ the import scripts.
 
 ## Migration status
 
-| Content | Source | Status |
+| Content | Where it's edited | Status |
 | --- | --- | --- |
-| Reviews / testimonials (20) | WordPress | **Migrated** — verified rendering identically |
-| Blog posts (14) | `src/content/blog/*.md` | Not yet migrated |
-| Page copy (35 routes) | Astro markup | Not yet migrated |
+| Reviews / testimonials (20) | wp-admin → Testimonials | **Migrated** |
+| Blog posts (14) + 173 media | wp-admin → Posts | **Migrated** |
+| Page structured content (31 pages) | wp-admin → Pages | **Migrated** |
+| Page prose | Astro templates | Stays in code — see below |
 
-The `reviews` collection is fully WordPress-backed: edited in wp-admin under
-**Testimonials**, fetched by `src/loaders/reviews.ts`, and validated against the
-unchanged Zod schema in `src/content.config.ts`. No consuming component changed.
+338 repeater rows moved into WordPress: 166 table-of-contents links, 122 FAQ
+entries and 50 process steps across 24 pages. Verified by comparing every page's
+rendered output against a pre-migration snapshot — 24/24 identical.
+
+### What stays in the templates, and why
+
+The per-page prose is woven through bespoke layouts, and each page's CSS assumes
+a fixed structure. Lifting that copy into generic fields would either flatten
+the design or produce a field set nobody can safely edit — so WordPress changes
+the **words**, not the layout. There is no section ordering and no free-form
+block list.
+
+In practice the arrays are what actually gets edited: FAQs, the sticky
+table-of-contents rail, and process steps. Those are all in WordPress now.
 
 ## This runs entirely on your machine
 

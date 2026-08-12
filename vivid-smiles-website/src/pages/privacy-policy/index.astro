@@ -25,30 +25,15 @@ import {
   addressZip,
 } from "../../data/contact";
 import "../../styles/pages/privacy-policy.css";
+import { getPageContent } from '../../lib/page-content';
 
 const lastRevised = "July 12, 2024";
 
-const tocLinks = [
-  { href: "#intro",         label: "1. Introductory notice" },
-  { href: "#practice",      label: "2. Practice covered" },
-  { href: "#privacy-official", label: "3. Privacy official" },
-  { href: "#promise",       label: "4. Our promise" },
-  { href: "#revised",       label: "5. Last revision date" },
-  { href: "#uses",          label: "6. Uses & disclosures" },
-  { href: "#authorization", label: "7. Written authorization" },
-  { href: "#rights",        label: "8. Your rights" },
-  { href: "#special",       label: "9. Special protections" },
-  { href: "#changes",       label: "10. Changes to practices" },
-  { href: "#complaints",    label: "11. Privacy complaints" },
-  { href: "#definitions",   label: "12. Definitions" },
-  { href: "#personal-data", label: "13. Personal data" },
-  { href: "#security",      label: "14. Data security" },
-  { href: "#processing",    label: "15. Data processing" },
-  { href: "#children",      label: "16. Children's policy" },
-  { href: "#third-party",   label: "17. Links to other sites" },
-  { href: "#policy-changes", label: "18. Policy changes" },
-  { href: "#contact-us",    label: "19. Contact us" },
-];
+// tocLinks is edited in WordPress (Pages -> Privacy Policy).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks } = await getPageContent(Astro.url.pathname);
+
 ---
 
 <BaseLayout

@@ -2,6 +2,7 @@ import { defineCollection, z } from "astro:content";
 import { glob } from "astro/loaders";
 import { reviewsLoader } from "./loaders/reviews";
 import { blogLoader } from "./loaders/blog";
+import { pagesLoader } from "./loaders/pages";
 
 /**
  * Reviews / testimonials — sourced from WordPress.
@@ -87,4 +88,44 @@ const blog = defineCollection({
     }),
 });
 
-export const collections = { reviews, blog };
+/**
+ * Page content — sourced from WordPress.
+ *
+ * Does NOT generate routes. The 35 routes under src/pages remain hand-built
+ * Astro templates; this collection only supplies the content they render — the
+ * table of contents, process steps and FAQ entries that used to be arrays in
+ * each page's frontmatter.
+ *
+ * Entries are keyed by route ("/cosmetic-dentistry/porcelain-veneers/"), so a
+ * template fetches its own content with getPageContent(Astro.url.pathname).
+ *
+ * Edited in wp-admin under Pages. The page hierarchy there mirrors the site.
+ */
+const pages = defineCollection({
+  loader: pagesLoader(),
+  schema: z.object({
+    route: z.string(),
+    title: z.string(),
+    heroEyebrow: z.string().optional(),
+    heroHeading: z.string().optional(),
+    heroSubheading: z.string().optional(),
+    // Shapes match what the templates already destructure, so adopting this
+    // collection is a one-line change per page rather than a rewrite.
+    tocLinks: z.array(z.object({ href: z.string(), label: z.string() })).default([]),
+    processSteps: z
+      .array(
+        z.object({
+          tag: z.string(),
+          num: z.string(),
+          title: z.string(),
+          body: z.string(),
+        }),
+      )
+      .default([]),
+    faqs: z
+      .array(z.object({ q: z.string(), a: z.string(), open: z.boolean() }))
+      .default([]),
+  }),
+});
+
+export const collections = { reviews, blog, pages };

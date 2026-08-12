@@ -16,6 +16,7 @@ import imgCosmetic from "../../assets/images/procedures/veneer-application-brush
 import imgImplant from "../../assets/images/procedures/full-arch-model-in-hand.webp";
 import imgGeneral from "../../assets/images/people/real/woman-portrait-office-lounge.webp";
 import imgEmergency from "../../assets/images/procedures/same-day-emergency-dental-care.webp";
+import { getPageContent } from '../../lib/page-content';
 
 // Full 5-star reviews collection (newest first) drives the swipe-draggable
 // testimonials marquee — same pattern as home + about pages.
@@ -93,44 +94,13 @@ const services = [
 // 8 FAQs lifted verbatim from the live WordPress new-patients page —
 // https://vividsmilesdentistry.com/new-patients/. NOT rewritten or
 // reinterpreted; copy is canonical, do not edit without source authority.
-const faqs = [
-  {
-    q: "Do I Really Need to Floss?",
-    a: "Absolutely! Flossing removes plaque and food particles from between your teeth where a toothbrush can't reach. It's essential for preventing cavities and gum disease, ensuring a healthy smile.",
-    open: true,
-  },
-  {
-    q: "What Are Dental Implants?",
-    a: "Dental implants are a durable, natural-looking solution for missing teeth. They act as replacement tooth roots, providing a strong foundation for crowns or bridges and preserving your jawbone.",
-  },
-  {
-    q: "How Long Does It Take to Get a Crown Done?",
-    a: "At Vivid Smiles Dentistry, we use advanced technology to create your custom porcelain crown in just one visit. By taking a precise digital scan of your tooth, we design and shape your crown to ensure a perfect fit. Once the design is complete, we craft the crown on-site and bond it to your tooth, giving you a strong, natural-looking result in a single day!",
-  },
-  {
-    q: "Can Children See a General Dentist?",
-    a: "Definitely! A general dentist is equipped to care for patients of all ages, including children. From routine cleanings to keeping track of their dental development, we'll make sure your child's smile stays healthy and strong as they grow.",
-  },
-  {
-    q: "What is Teeth Whitening?",
-    a: "Teeth whitening is a safe, simple way to brighten your smile by removing stains and discoloration. At Vivid Smiles Dentistry, we offer both in-office and take-home options for stunning, quick results.",
-  },
-  {
-    q: "Does Whitening Damage My Teeth?",
-    a: "No, professional teeth whitening is safe when done correctly. At Vivid Smiles Dentistry, we use gentle yet effective whitening systems that remove stains without harming your enamel, leaving your teeth looking brighter and healthier.",
-  },
-  {
-    q: "How Can I Improve My Smile?",
-    a: "Improving your smile can be as simple as whitening your teeth, straightening them with Invisalign, or fixing imperfections with veneers. Dr. Richardson and the team at Vivid Smiles Dentistry will help you create a personalized plan to achieve the smile you've always wanted!",
-  },
-  {
-    q: "What is Periodontal Disease?",
-    a: "Periodontal disease, or gum disease, is an infection of the gums that can lead to serious issues like tooth loss if left untreated. At Vivid Smiles Dentistry, we offer advanced treatments, including scaling and root planing to deep clean below the gumline, and laser therapy to target infection and promote healing. With consistent care and good oral hygiene, gum health can be restored and maintained.",
-  },
-];
-
 const description =
   "Welcome to Vivid Smiles Dentistry in Parker, CO. An unhurried 90-minute first visit and a calm 6-step new-patient experience with Dr. Bryce Richardson. 300+ five-star reviews.";
+// faqs is edited in WordPress (Pages -> New Patients in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { faqs } = await getPageContent(Astro.url.pathname);
+
 ---
 
 <BaseLayout

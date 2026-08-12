@@ -46,6 +46,7 @@ import imgFullMouth from "../../assets/images/people/real/woman-colorado-lakesid
 import imgAllOn4 from "../../assets/images/people/real/man-bearded-natural-smile.webp";
 import imgBoneGrafting from "../../assets/images/people/real/woman-office-portrait.webp";
 import imgSinusLift from "../../assets/images/facility/operating-room.webp";
+import { getPageContent } from '../../lib/page-content';
 
 const services = [
   {
@@ -83,19 +84,6 @@ const services = [
     title: "Sinus Lift",
     desc: "Addresses limited bone height in the upper jaw by adding material to the sinus floor, supporting upper-jaw implant placement when CBCT shows insufficient volume.",
   },
-];
-
-const tocLinks = [
-  { href: "#why",        label: "Why Vivid Smiles" },
-  { href: "#what",       label: "What They Are" },
-  { href: "#solutions",  label: "Solutions" },
-  { href: "#compare",    label: "Compare Options" },
-  { href: "#process",    label: "Process" },
-  { href: "#technology", label: "Technology" },
-  { href: "#doctors",    label: "Your Dentist" },
-  { href: "#candidacy",  label: "Candidacy" },
-  { href: "#area",       label: "Parker Location" },
-  { href: "#faq",        label: "FAQ" },
 ];
 
 // Three priced solutions. All-on-4 highlighted as the centerpiece.
@@ -192,13 +180,6 @@ const compareCards = [
 ];
 
 // Four-phase process protocol from SEO copy.
-const processSteps = [
-  { n: "01", t: "Consultation & 3D Planning",  p: "CBCT imaging maps bone volume and anatomy; Dr. Richardson builds a digital placement plan with precise implant coordinates before any surgical work begins.", lbl: "Step One" },
-  { n: "02", t: "Surgical Placement",          p: "Robotic guidance executes the pre-planned position. Sedation options are available, and most patients find post-operative discomfort manageable with over-the-counter medication.", lbl: "Step Two" },
-  { n: "03", t: "Osseointegration",            p: "The implant fuses with the jawbone over 3–6 months. Temporary teeth are available for visible sites during this healing phase.", lbl: "Step Three" },
-  { n: "04", t: "Final Restoration",           p: "A custom crown, bridge, or arch prosthetic is fabricated using digital scanning and in-house milling, then secured to the implant.", lbl: "Step Four" },
-];
-
 // Six tech cards — extracted from "Dental Implant Technology and Parker Location".
 const technology = [
   { n: "01", h: "CBCT 3D imaging",            p: "Cone beam computed tomography maps bone volume, density, and anatomy — the three-dimensional view that informs every implant placement.", foot: "Imaging" },
@@ -219,33 +200,11 @@ const ledger = [
 
 // Six FAQs verbatim from SEO copy. set:html lets inline <a class="vs-link">
 // render on the answers that benefit from internal linking.
-const faqs = [
-  {
-    q: "How long do dental implants last?",
-    a: "With proper care, the titanium implant post is designed to last a lifetime; the crown needs replacement after 15 to 25 years, depending on wear. Consistent hygiene, regular professional cleanings, and protecting the implant from heavy grinding preserve long-term success.",
-    open: true,
-  },
-  {
-    q: "Do dental implants hurt?",
-    a: "Most patients find the procedure comfortable, especially with sedation options. Post-surgical soreness resolves within a few days and is manageable with over-the-counter medication.",
-  },
-  {
-    q: "Can I get dental implants in one day?",
-    a: `Qualifying full-arch cases may receive <a class="vs-link" href="/implant-dentistry/all-on-4-single-arch/">same-day temporary teeth</a> soon after surgery. Single implants require a three-to-six-month osseointegration period before the final crown is secured.`,
-  },
-  {
-    q: "What is the success rate of dental implants?",
-    a: "Implants have a documented long-term success rate of approximately 95 to 98 percent when placed in adequate bone. Dr. Richardson's robotic placement and CBCT-based planning are designed to support those outcomes.",
-  },
-  {
-    q: "How do I care for dental implants?",
-    a: "Implants are maintained like natural teeth: brush twice daily, floss around the post, and attend professional cleanings every six months. The surrounding gum tissue requires consistent care to prevent peri-implantitis (infection of the tissue and bone around the implant).",
-  },
-  {
-    q: "Will my insurance cover dental implants?",
-    a: `Coverage varies by plan; most policies cover crown restoration even when surgical placement is excluded. Our team verifies your benefits before treatment begins and assists with filing to maximize what your plan will reimburse. For uninsured clients, the in-house <a class="vs-link" href="/dental-membership-plan/">membership plan</a> is an alternative.`,
-  },
-];
+// tocLinks, processSteps, faqs are edited in WordPress (Pages -> Dental Implants in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname);
+
 ---
 
 <BaseLayout
@@ -456,10 +415,10 @@ const faqs = [
           <div class="pgrid-4">
             {processSteps.map((s) => (
               <div class="pstep">
-                <div class="pstep-num">{s.n}</div>
-                <h3>{s.t}</h3>
-                <p>{s.p}</p>
-                <span class="pstep-lbl">{s.lbl}</span>
+                <div class="pstep-num">{s.num}</div>
+                <h3>{s.title}</h3>
+                <p>{s.body}</p>
+                <span class="pstep-lbl">{s.tag}</span>
               </div>
             ))}
           </div>

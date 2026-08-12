@@ -39,6 +39,7 @@ import imgWhitening from '../../assets/images/people/real/man-bearded-natural-sm
 import imgGum from '../../assets/images/procedures/smile-macro-front-view.webp';
 import imgMakeover from '../../assets/images/people/real/woman-radiant-smile-green-dress.webp';
 import imgFullMouth from '../../assets/images/procedures/implant-prosthesis-arch-detail.webp';
+import { getPageContent } from '../../lib/page-content';
 
 // Duplicate the track for seamless CSS infinite scroll.
 const galleryTiles = getSmiles();
@@ -89,17 +90,6 @@ const services = [
   },
 ];
 
-const tocLinks = [
-  { href: '#why', label: 'Why Vivid Smiles' },
-  { href: '#services', label: 'Treatments' },
-  { href: '#technology', label: 'Technology' },
-  { href: '#doctors', label: 'Your Dentists' },
-  { href: '#process', label: 'Process' },
-  { href: '#results', label: 'Results' },
-  { href: '#candidacy', label: 'Is It For You?' },
-  { href: '#faq', label: 'FAQ' },
-];
-
 const technology = [
   {
     n: '01',
@@ -139,45 +129,6 @@ const technology = [
   },
 ];
 
-const processSteps = [
-  {
-    n: '01',
-    t: 'Consultation',
-    p: 'We discuss your goals and concerns; no commitments required.',
-    lbl: 'Step One',
-  },
-  {
-    n: '02',
-    t: 'Digital imaging & smile design',
-    p: 'We scan your teeth and build a 3D preview of the planned outcome.',
-    lbl: 'Step Two',
-  },
-  {
-    n: '03',
-    t: 'Review & approval',
-    p: 'You analyze the result, request changes, and confirm the plan before preparation begins.',
-    lbl: 'Step Three',
-  },
-  {
-    n: '04',
-    t: 'Preparation (if needed)',
-    p: 'Some treatments require minimal tooth preparation; others, like clear aligners and whitening, involve none.',
-    lbl: 'Step Four',
-  },
-  {
-    n: '05',
-    t: 'Fabrication or fitting',
-    p: 'Select restorations are milled in-house for faster turnaround, while others are crafted by our lab partners.',
-    lbl: 'Step Five',
-  },
-  {
-    n: '06',
-    t: 'Placement & follow-up',
-    p: 'Treatment is completed and adjusted for fit and comfort, with a follow-up scheduled to confirm lasting satisfaction.',
-    lbl: 'Step Six',
-  },
-];
-
 const ledger = [
   {
     n: '1',
@@ -209,41 +160,11 @@ const ledger = [
 // `a` values use HTML so set:html can render embedded <a class="vs-link"> anchors
 //. Composite bonding intentionally not enumerated in FAQ #1
 // to stay consistent with dropping its tile from the services grid above.
-const faqs = [
-  {
-    q: 'What is cosmetic dentistry?',
-    a: `Cosmetic dentistry covers a treatment focused on improving the appearance of your teeth, gums, or smile. Common services include <a class="vs-link" href="/cosmetic-dentistry/porcelain-veneers/">porcelain veneers</a>, <a class="vs-link" href="/cosmetic-dentistry/teeth-whitening/">teeth whitening</a>, <a class="vs-link" href="/cosmetic-dentistry/gum-contouring/">gum contouring</a>, <a class="vs-link" href="/cosmetic-dentistry/clear-aligners/">clear aligners</a>, and <a class="vs-link" href="/cosmetic-dentistry/smile-makeover/">smile makeovers</a>.`,
-    open: true,
-  },
-  {
-    q: 'Which cosmetic treatment is best for me?',
-    a: 'The right treatment depends on what you want to change and how significant a commitment you want to make. A consultation at Vivid Smiles walks through every option and matches the approach to your goals, timeline, and budget.',
-  },
-  {
-    q: 'Is cosmetic dentistry covered by insurance?',
-    a: 'Most cosmetic treatments are elective and are not covered. Procedures that restore damaged teeth, such as bonding or crowns, may qualify for partial coverage; we help clients understand their benefits during the consultation.',
-  },
-  {
-    q: 'Are cosmetic dental treatments permanent?',
-    a: `It depends on the treatment. <a class="vs-link" href="/cosmetic-dentistry/porcelain-veneers/">Porcelain veneers</a> and crowns are permanent; <a class="vs-link" href="/cosmetic-dentistry/clear-aligners/">clear aligners</a> and <a class="vs-link" href="/cosmetic-dentistry/teeth-whitening/">whitening</a> are not. We explain the commitment level for every option before a treatment begins.`,
-  },
-  {
-    q: 'How much does cosmetic dentistry cost?',
-    a: `Costs vary by treatment type, the number of teeth involved, and case complexity. We provide an estimate at your consultation and discuss financing options at that time — including our in-house <a class="vs-link" href="/dental-membership-plan/">membership plan</a> for patients without insurance.`,
-  },
-  {
-    q: 'Will cosmetic dental work look natural?',
-    a: 'Our approach focuses on enhancing your existing features rather than replacing them. Every patient reviews a digital preview before work begins, so the result is approved before treatment starts.',
-  },
-  {
-    q: 'How long do cosmetic results last?',
-    a: 'Longevity depends on the treatment and how well it is maintained. Porcelain restorations last 20+ years; whitening requires periodic touch-ups; aligners produce permanent movement once treatment is complete. Regular professional maintenance extends the lifespan of all cosmetic work.',
-  },
-  {
-    q: 'What is digital smile design?',
-    a: 'Digital smile design is a planning process that uses 3D scanning and design software to display a visual model of the outcome. It is available for a wide range of cosmetic treatments at Vivid Smiles, not just veneers.',
-  },
-];
+// tocLinks, processSteps, faqs are edited in WordPress (Pages -> Cosmetic Dentistry in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname);
+
 ---
 
 <BaseLayout
@@ -534,10 +455,10 @@ const faqs = [
               {
                 processSteps.map((s) => (
                   <div class="pstep">
-                    <div class="pstep-num">{s.n}</div>
-                    <h3>{s.t}</h3>
-                    <p>{s.p}</p>
-                    <span class="pstep-lbl">{s.lbl}</span>
+                    <div class="pstep-num">{s.num}</div>
+                    <h3>{s.title}</h3>
+                    <p>{s.body}</p>
+                    <span class="pstep-lbl">{s.tag}</span>
                   </div>
                 ))
               }

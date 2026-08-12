@@ -56,35 +56,7 @@ import heroImg from "../../assets/images/people/real/woman-glasses-cream-blazer.
 import whatImg from "../../assets/images/procedures/full-arch-restoration-model.webp";
 // "Design section" — finished-smile macro in profile.
 import designImg from "../../assets/images/procedures/finished-veneers-side-smile-black.webp";
-
-const tocLinks = [
-  { href: "#why",      label: "Who It's For" },
-  { href: "#what",     label: "What It Is" },
-  { href: "#options",  label: "Treatment Options" },
-  { href: "#process",  label: "The Process" },
-  { href: "#design",   label: "Smile Design" },
-  { href: "#cost",     label: "Cost" },
-  { href: "#why-us",   label: "Why Vivid Smiles" },
-  { href: "#faq",      label: "FAQ" },
-];
-
-const processSteps = [
-  {
-    tag: "Step One", num: "01",
-    title: "Comprehensive exam and imaging",
-    body: "CBCT 3D imaging and digital scanning map bone volume, gum health, and existing restorations before planning begins.",
-  },
-  {
-    tag: "Step Two", num: "02",
-    title: "Treatment planning",
-    body: "Dr. Richardson reviews findings and designs a phased plan; sedation options are discussed at this stage.",
-  },
-  {
-    tag: "Step Three", num: "03",
-    title: "Phased treatment and final restoration",
-    body: "Implant placement, healing, and final restoration are sequenced appropriately, followed by ongoing care to protect long-term results.",
-  },
-];
+import { getPageContent } from '../../lib/page-content';
 
 const whyUsCards = [
   {
@@ -109,17 +81,11 @@ const whyUsCards = [
   },
 ];
 
-const faqs = [
-  {
-    q: "What is the downside of full-mouth dental implants?",
-    a: `<a class="vs-link" href="/implant-dentistry/full-mouth-dental-implants/">Full-mouth implant</a> cases require several months to allow for healing between the surgical and restorative phases. Patients with bone loss may also need <a class="vs-link" href="/implant-dentistry/bone-grafting/">grafting</a> before placement, adding time and cost to the overall plan.`,
-    open: true,
-  },
-  {
-    q: "How painful is a full-mouth implant?",
-    a: "Implant surgery is performed under local anesthesia with sedation available; most patients report less discomfort than expected. Post-procedure soreness is typically manageable with over-the-counter medication.",
-  },
-];
+// tocLinks, processSteps, faqs are edited in WordPress (Pages -> Full-Mouth Rehabilitation in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname);
+
 ---
 
 <BaseLayout

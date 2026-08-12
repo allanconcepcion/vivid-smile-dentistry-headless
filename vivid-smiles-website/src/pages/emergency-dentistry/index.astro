@@ -86,17 +86,7 @@ import imgHero from "../../assets/images/people/real/woman-blonde-warm-interior.
 // emergency framing. Previous placeholder was a yomi-robotic shot which read
 // as routine implant work, not emergency triage.
 import imgHow from "../../assets/images/procedures/same-day-emergency-dental-care.webp";
-
-const tocLinks = [
-  { href: "#when",        label: "When to Seek" },
-  { href: "#protocol",    label: "First Aid" },
-  { href: "#how",         label: "How We Handle" },
-  { href: "#emergencies", label: "Common Cases" },
-  { href: "#why-us",      label: "Why Choose Us" },
-  { href: "#area",        label: "Parker Location" },
-  { href: "#prevent",     label: "Prevention" },
-  { href: "#faq",         label: "FAQ" },
-];
+import { getPageContent } from '../../lib/page-content';
 
 // 5 first-aid scenarios — each is a parallel "if this happens, do that" panel,
 // NOT a sequence. The first 4 are scenario-specific (knocked-out / pain /
@@ -169,6 +159,11 @@ const faqs = [
 // description.
 const heroLede =
   "Dental emergencies don't follow business hours, and knowing where to go in Parker can be the difference between saving a tooth and losing one. Vivid Smiles Dentistry offers same-day emergency appointments, 3D diagnostic imaging, and in-house surgical expertise to resolve most cases on the first visit. The following is how to recognize a dental emergency, what to do before you arrive, and why Vivid Smiles is equipped to handle it.";
+// tocLinks is edited in WordPress (Pages -> Emergency Dental Care in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks } = await getPageContent(Astro.url.pathname);
+
 ---
 
 <BaseLayout

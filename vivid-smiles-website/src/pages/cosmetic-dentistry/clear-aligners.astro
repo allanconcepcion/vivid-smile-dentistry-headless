@@ -47,50 +47,13 @@ import naturalImg from '../../assets/images/people/real/woman-blonde-warm-interi
 
 // Gallery pulls dynamically from the central smiles/ folder.
 import { getSmiles } from '../../lib/smiles';
+import { getPageContent } from '../../lib/page-content';
 const galleryTiles = getSmiles();
 const galleryTrack = [...galleryTiles, ...galleryTiles];
-
-const tocLinks = [
-  { href: '#why', label: 'Why Vivid Smiles' },
-  { href: '#what', label: 'What Are Aligners' },
-  { href: '#process', label: 'The Process' },
-  { href: '#compare', label: 'Aligners vs Braces' },
-  { href: '#natural', label: 'Candidacy' },
-  { href: '#lasting', label: 'Daily Care' },
-  { href: '#local', label: 'Parker, CO' },
-  { href: '#faq', label: 'FAQ' },
-];
 
 // 4 cards (not 5). The copy names only two stages (Consultation + Timeline);
 // 4 cards stay defensible against the verbatim source while preserving the
 // dark-band process visual.
-const processSteps = [
-  {
-    tag: 'Step One',
-    num: '01',
-    title: '3D scan & consultation',
-    body: 'Your first visit begins with a 3D digital scan and an on-screen preview of your projected smile. Dr. Richardson reviews your goals, outlines a realistic treatment timeline, and walks through cost and insurance options.',
-  },
-  {
-    tag: 'Step Two',
-    num: '02',
-    title: 'Digital smile preview',
-    body: 'Before you wear a single aligner, you see a digital projection of your finished smile built from the precise 3D model of your own teeth — not a generic template.',
-  },
-  {
-    tag: 'Step Three',
-    num: '03',
-    title: 'Custom Spark fabrication',
-    body: 'Planning software maps every stage of tooth movement before the first aligner is fabricated, resulting in an accurate fit from tray one — and a treatment timeline that stays on track.',
-  },
-  {
-    tag: 'Step Four',
-    num: '04',
-    title: 'Wear & advance',
-    body: 'Wear each set 20 to 22 hours daily, removing only for meals, drinking anything besides water, and brushing. Advance to a new set every 1–2 weeks; check-ins land every 6–8 weeks.',
-  },
-];
-
 // Daily care bullets — verbatim from the user's copy. Rendered as a <ul>
 // inside the Lasting card .lasting-body shell.
 const careBullets = [
@@ -121,41 +84,11 @@ const careBullets = [
 ];
 
 // 8 entries: 7 from the user's copy verbatim + Cost & Insurance as Q8.
-const faqs = [
-  {
-    q: 'Do clear aligners hurt?',
-    a: 'Most patients feel mild pressure for the first day or two after switching to a new tray, a normal sign the aligners are actively working. This is far less intense than the soreness from brace tightening and fades within 48 hours.',
-    open: true,
-  },
-  {
-    q: 'Will clear aligners affect the way I talk?',
-    a: 'A slight lisp is common during the first few days as your tongue adjusts to the trays. Most people adapt fully within a week and speak normally without removing aligners.',
-  },
-  {
-    q: 'How often do I need to visit the dentist during clear aligner treatment?',
-    a: 'Check-in appointments at Vivid Smiles are typically scheduled every six to eight weeks. These brief visits confirm that tooth movement is progressing as planned and allow us to release the next sets of trays.',
-  },
-  {
-    q: 'Can I eat my favorite foods with clear aligners?',
-    a: 'Yes, because the trays are removed for every meal, there are no food restrictions during clear aligner treatment. Eat normally, brush before reinserting, and continue wearing your aligners.',
-  },
-  {
-    q: 'How long does clear aligner treatment take?',
-    a: 'Most cases at Vivid Smiles are completed in 6 to 18 months, depending on the amount of correction needed. Minor spacing or crowding issues may resolve closer to the six-month end of that range.',
-  },
-  {
-    q: 'Will clear aligners work for my teeth?',
-    a: 'Spark clear aligners treat a wide range of mild to moderate alignment issues effectively, but not every case is suitable for aligner-based treatment. A 3D scan and consultation with Dr. Richardson will confirm whether aligners are the right solution for your specific goals.',
-  },
-  {
-    q: 'Are clear aligners really invisible?',
-    a: 'Spark aligners are manufactured from a highly transparent material that is extremely difficult to detect at normal conversation distance. Most patients report that friends, coworkers, and family never realize they are in orthodontic treatment.',
-  },
-  {
-    q: 'How much do clear aligners cost, and does insurance cover them?',
-    a: 'Clear aligner cost varies based on the complexity of your case, and many PPO dental plans include orthodontic benefits that apply to treatment. For patients without insurance, the Vivid Smiles in-house membership plan can help offset costs. Call (303) 841-5313 to discuss your options and get an accurate estimate for your specific situation.',
-  },
-];
+// tocLinks, processSteps, faqs are edited in WordPress (Pages -> Clear Aligners in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname);
+
 ---
 
 <BaseLayout

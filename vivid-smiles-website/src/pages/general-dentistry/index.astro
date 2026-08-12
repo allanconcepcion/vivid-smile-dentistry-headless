@@ -73,6 +73,7 @@ import imgPreventive from '../../assets/images/people/real/woman-blonde-warm-int
 import imgRestorative from '../../assets/images/procedures/dr-rich-mid-procedure.webp';
 import imgPeriodontal from '../../assets/images/procedures/smile-macro-front-view.webp';
 import imgEmergency from '../../assets/images/procedures/same-day-emergency-dental-care.webp';
+import { getPageContent } from '../../lib/page-content';
 
 // 4-up service feature cards (unlinked — general dentistry has no child
 // detail pages). Each card is an <article> with the full description always
@@ -112,47 +113,11 @@ const services = [
   },
 ];
 
-const tocLinks = [
-  { href: '#why', label: 'Why Vivid Smiles' },
-  { href: '#services', label: 'Services' },
-  { href: '#first-visit', label: 'First Visit' },
-  { href: '#gateway', label: 'Cosmetic Pathway' },
-  { href: '#trust', label: 'Why Parker Trusts Us' },
-  { href: '#doctors', label: 'Your Dentists' },
-  { href: '#payment', label: 'Payment & Plan' },
-  { href: '#area', label: 'Parker Location' },
-  { href: '#faq', label: 'FAQ' },
-];
-
 // FAQs verbatim from the SEO copy. answers carry inline <a class="vs-link">
 // anchors where the copy linked out — rendered via set:html (pattern;
 // Google permits HTML in acceptedAnswer.text).
 // FAQ #4's "325+" was normalized to "300+" per the plan and the
 // project_review_count.md memory rule.
-const faqs = [
-  {
-    q: 'What services are included in general dentistry?',
-    a: 'General dentistry covers preventive care (cleanings, exams, X-rays), restorative treatment (fillings, crowns, bridges), periodontal care, oral cancer screenings, TMJ treatment, and emergency dentistry. Vivid Smiles provides all of these services in one location, so most patients never need a referral.',
-    open: true,
-  },
-  {
-    q: 'How often should I visit the dentist for a checkup?',
-    a: 'Most clients benefit from a professional cleaning and exam every 6 months. Patients with active gum disease, elevated cavity risk, or other ongoing concerns may need more frequent visits; Dr. Annie will recommend a schedule based on your oral health.',
-  },
-  {
-    q: 'Does Vivid Smiles Dentistry accept my dental insurance?',
-    a: `Vivid Smiles works with most major dental insurance plans; call the provider to verify your coverage before the appointment. Patients without dental insurance can enroll in our in-house <a class="vs-link" href="/dental-membership-plan/">membership plan</a> as an alternative.`,
-  },
-  {
-    q: 'What makes Vivid Smiles different from other Parker dentists?',
-    a: 'Advanced technology (CBCT imaging, digital scanners, same-day crowns), a dual-doctor model, 300+ five-star Google reviews, and local ownership set Vivid Smiles apart from corporate chains and single-doctor general practices. The combination of cosmetic expertise and comprehensive general care under one roof is uncommon in the area.',
-  },
-  {
-    q: 'Can I get cosmetic dentistry and general dentistry at the same practice?',
-    a: `Vivid Smiles offers general and <a class="vs-link" href="/cosmetic-dentistry/">cosmetic dentistry</a>, including veneers, Invisalign, and smile makeovers alongside routine care. Starting with general dentistry is a natural entry point for patients who may want cosmetic work with a team they already know and trust.`,
-  },
-];
-
 // JSON-LD hasOfferCatalog payload — enumerates the 4 service areas as
 // MedicalProcedure offers. Emergency carries a url; the rest don't (no child
 // detail pages exist for general-dentistry sub-services). Descriptions are
@@ -167,6 +132,11 @@ const offerCatalog = services.map((s) => {
   if (s.href) procedure.url = new URL(s.href, Astro.site).href;
   return { '@type': 'Offer', itemOffered: procedure };
 });
+// tocLinks, faqs are edited in WordPress (Pages -> General Dentistry in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
+
 ---
 
 <BaseLayout

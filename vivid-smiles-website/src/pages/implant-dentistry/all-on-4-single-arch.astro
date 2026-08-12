@@ -25,22 +25,11 @@ import roboticsImg from '../../assets/images/procedures/dr-richardson-performing
 // foothills. Distinct from the hero portrait so no one person appears twice
 // on the page; the alt describes the photograph, never a treatment.
 import candidacyImg from '../../assets/images/people/real/woman-mountain-portrait.webp';
+import { getPageContent } from '../../lib/page-content';
 
 // Track doubled for seamless marquee loop.
 const galleryTiles = getSmiles();
 const galleryTrack = [...galleryTiles, ...galleryTiles];
-
-const tocLinks = [
-  { href: '#why', label: 'Why Vivid Smiles' },
-  { href: '#what', label: 'What They Are' },
-  { href: '#robotics', label: 'Robotic Placement' },
-  { href: '#process', label: 'Same-Day Procedure' },
-  { href: '#compare', label: 'Comparison' },
-  { href: '#candidacy', label: 'Candidacy' },
-  { href: '#living', label: 'Daily Life' },
-  { href: '#cost', label: 'Cost & Financing' },
-  { href: '#faq', label: 'FAQ' },
-];
 
 const whyCards = [
   {
@@ -62,39 +51,6 @@ const whyCards = [
     num: '04',
     title: 'Team-dentist clinical background',
     body: "Dr. Richardson's clinical background includes serving as team dentist for Indiana University basketball; an experience that reinforces his focus on function, precision, and recovery.",
-  },
-];
-
-const processSteps = [
-  {
-    tag: 'Step One',
-    num: '01',
-    title: 'Sedation',
-    body: 'IV or oral sedation is administered; you are comfortable and largely unaware throughout.',
-  },
-  {
-    tag: 'Step Two',
-    num: '02',
-    title: 'Extractions',
-    body: 'Remaining failing teeth in the arch are removed during the same appointment.',
-  },
-  {
-    tag: 'Step Three',
-    num: '03',
-    title: 'Implant placement',
-    body: 'All four implants are placed per the pre-planned robotic protocol; surgical time is two to three hours.',
-  },
-  {
-    tag: 'Step Four',
-    num: '04',
-    title: 'Temporary prosthesis',
-    body: 'A fixed bridge is attached, so you go home with functional teeth on day one.',
-  },
-  {
-    tag: 'Step Five',
-    num: '05',
-    title: 'Soft-food recovery',
-    body: 'Swelling and mild soreness resolve within days; soft foods protect the implants during osseointegration (the healing and bone-fusing period that follows).',
   },
 ];
 
@@ -160,41 +116,11 @@ const archConfigs = [
   },
 ];
 
-const faqs = [
-  {
-    q: 'What is the downside of All-on-4 dental implants?',
-    a: 'The main tradeoffs are cost, a three-to-six-month healing period before final teeth are placed, and an irreversible surgical commitment. Heavy smokers and patients with uncontrolled systemic conditions also face reduced implant success rates, which is why candidacy evaluation is thorough before a treatment begins.',
-    open: true,
-  },
-  {
-    q: 'Can you eat steak with All-on-4 implants?',
-    a: 'Once osseointegration is complete, you can eat steak and most other foods without restriction. Cutting dense proteins into smaller pieces is a sensible early habit, but there are no permanent dietary limitations beyond what applies to natural teeth.',
-  },
-  {
-    q: 'What is a full-arch on 4 implants?',
-    a: 'A full-arch on 4 implants means every tooth in one jaw, upper or lower, is replaced using four titanium implants as the foundation for a fixed bridge. Two rear implants are angled to maximize bone contact without requiring the posterior bone volume that is commonly the first to resorb.',
-  },
-  {
-    q: 'How much do All-on-4 implants cost?',
-    a: 'Single-arch All-on-4 ranges from $15,000 to $30,000 depending on materials, sedation type, and whether extractions are needed. A free consultation with imaging at Vivid Smiles provides the accurate, case-specific number.',
-  },
-  {
-    q: 'What is better than All-on-4 implants?',
-    a: 'All-on-6 offers additional foundation support when bone density makes a wider implant spread clinically advantageous. Individual implants are the appropriate choice when only a few teeth are missing.',
-  },
-  {
-    q: 'Does food get stuck under All-on-4 dental implants?',
-    a: 'Debris accumulates around the abutments and requires daily cleaning, but food does not pack under the prosthesis the way it does under removable dentures. A water flosser used daily clears the areas a standard toothbrush cannot reach.',
-  },
-  {
-    q: 'Can I get All-on-4 if I have diabetes or other health conditions?',
-    a: 'Controlled diabetes does not automatically disqualify a patient, though healing is monitored more closely. Uncontrolled diabetes, bone-affecting autoimmune conditions, and heavy smoking meaningfully reduce implant success rates, and Dr. Richardson addresses these factors directly during evaluation.',
-  },
-  {
-    q: 'How long do All-on-4 implants last?',
-    a: 'The titanium implants can last 20 or more years with proper care; the prosthesis bridge needs replacement after 10 to 15 years, depending on the material and wear. Zirconia outlasts acrylic under heavy biting forces, which is one reason material selection during treatment planning affects long-term outcomes.',
-  },
-];
+// tocLinks, processSteps, faqs are edited in WordPress (Pages -> All-on-4 Single Arch Implants in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname);
+
 ---
 
 <BaseLayout

@@ -21,6 +21,7 @@ import {
   phoneE164,
 } from "../../data/contact";
 import "../../styles/pages/terms-conditions.css";
+import { getPageContent } from '../../lib/page-content';
 
 // SMS support line in section 22 — distinct from the practice's main phone line
 // (legacy doc references a vendor / SMS HELP routing). Inlined here rather than
@@ -28,31 +29,11 @@ import "../../styles/pages/terms-conditions.css";
 const smsHelpLabel = "(303) 276-9932";
 const smsHelpHref = "tel:+13032769932";
 
-const tocLinks = [
-  { href: "#interpretation", label: "1. Interpretation & definitions" },
-  { href: "#acknowledgement", label: "2. Acknowledgement" },
-  { href: "#orders",          label: "3. Placing orders" },
-  { href: "#your-info",       label: "4. Your information" },
-  { href: "#order-cancel",    label: "5. Order cancellation" },
-  { href: "#cancel-rights",   label: "6. Cancellation rights" },
-  { href: "#prices",          label: "7. Prices policy" },
-  { href: "#payments",        label: "8. Payments" },
-  { href: "#promotions",      label: "9. Promotions" },
-  { href: "#accounts",        label: "10. User accounts" },
-  { href: "#ip",              label: "11. Intellectual property" },
-  { href: "#feedback",        label: "12. Your feedback" },
-  { href: "#third-party",     label: "13. Links to other sites" },
-  { href: "#termination",     label: "14. Termination" },
-  { href: "#liability",       label: "15. Limitation of liability" },
-  { href: "#as-is",           label: "16. “As is” disclaimer" },
-  { href: "#governing-law",   label: "17. Governing law" },
-  { href: "#disputes",        label: "18. Disputes resolution" },
-  { href: "#severability",    label: "19. Severability & waiver" },
-  { href: "#translation",     label: "20. Translation" },
-  { href: "#changes",         label: "21. Changes to terms" },
-  { href: "#sms",             label: "22. SMS messaging" },
-  { href: "#contact-us",      label: "23. Contact us" },
-];
+// tocLinks is edited in WordPress (Pages -> Terms & Conditions).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks } = await getPageContent(Astro.url.pathname);
+
 ---
 
 <BaseLayout

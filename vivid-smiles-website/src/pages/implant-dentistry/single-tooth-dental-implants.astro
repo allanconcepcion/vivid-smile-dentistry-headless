@@ -19,21 +19,11 @@ import '../../styles/pages/single-tooth-dental-implants.css';
 import heroImg from '../../assets/images/people/real/woman-blonde-warm-interior.webp';
 import whatImg from '../../assets/images/procedures/implant-prosthesis-arch-detail.webp';
 import candidacyImg from '../../assets/images/people/real/woman-pines-portrait.webp';
+import { getPageContent } from '../../lib/page-content';
 
 // Track doubled for seamless marquee loop.
 const galleryTiles = getSmiles();
 const galleryTrack = [...galleryTiles, ...galleryTiles];
-
-const tocLinks = [
-  { href: '#why', label: 'Why Vivid Smiles' },
-  { href: '#what', label: 'Why Choose Implant' },
-  { href: '#compare', label: 'Implants vs. Bridges' },
-  { href: '#process', label: 'The Process' },
-  { href: '#candidacy', label: 'Candidacy' },
-  { href: '#benefits', label: 'Benefits' },
-  { href: '#cost', label: 'Cost & Financing' },
-  { href: '#faq', label: 'FAQ' },
-];
 
 // Six "why Vivid Smiles" cards (3-col grid, 2 rows). Verbatim copy from the brief.
 const whyCards = [
@@ -65,33 +55,6 @@ const whyCards = [
 ];
 
 // Four-step process from the brief. Verbatim copy.
-const processSteps = [
-  {
-    tag: 'Step One',
-    num: '01',
-    title: 'Evaluation and CBCT Imaging',
-    body: 'Dr. Richardson uses CBCT imaging at your first consultation to map bone density, nerve locations, and sinus proximity in 3D. This data guides the exact position, depth, and angle of placement before surgery begins.',
-  },
-  {
-    tag: 'Step Two',
-    num: '02',
-    title: 'Robotic Implant Placement',
-    body: "Vivid Smiles uses robotic guidance during surgery for sub-millimeter precision and less tissue trauma. Dr. Richardson completed 600+ hours of surgical training and served at Implant Pathway, one of the country's top implant training facilities; Vivid Smiles handles this in-house.",
-  },
-  {
-    tag: 'Step Three',
-    num: '03',
-    title: 'Healing and Osseointegration',
-    body: 'After placement, the implant needs 3 to 6 months to fuse with the jawbone through osseointegration. A temporary tooth is available during the healing process. Most individuals return to normal activity within days of surgery, and the full timeline is what makes the implant stable for decades.',
-  },
-  {
-    tag: 'Step Four',
-    num: '04',
-    title: 'Custom Crown Design and Placement',
-    body: 'The final crown is designed with digital impressions, milled in-house, and custom-shaded to match surrounding teeth. The implant post is permanent; the crown needs replacement after 10 to 15 years of normal wear.',
-  },
-];
-
 // Five benefit cards (5-col grid at desktop). Verbatim copy.
 const benefitsCards = [
   {
@@ -129,41 +92,11 @@ const keyStats: [string, string][] = [
 ];
 
 // 8 FAQs verbatim from the brief.
-const faqs = [
-  {
-    q: 'Are dental implants painful?',
-    a: 'The procedure uses local anesthesia, and robotic placement minimizes tissue trauma and post-surgical soreness. Most patients can manage discomfort with over-the-counter pain relief for a few days.',
-    open: true,
-  },
-  {
-    q: 'Do dental implants look natural?',
-    a: 'Each crown is custom-shaded to match surrounding teeth using digital impressions and in-house milling; most patients cannot tell the implant apart from their natural teeth.',
-  },
-  {
-    q: 'What is the success rate of single tooth implants?',
-    a: 'Single tooth implants have a documented success rate of 95 to 98 percent when placed in adequate bone. Placement before a thorough CBCT imaging is the most important predictor of a successful long-term outcome.',
-  },
-  {
-    q: 'How long do dental implants last?',
-    a: 'The titanium post can last a lifetime with consistent oral hygiene and regular checkups. The crown placed on top needs replacement after 10 to 15 years of normal wear.',
-  },
-  {
-    q: 'Can I eat normally with a dental implant?',
-    a: 'Once integrated and the final crown is in place, there are no dietary restrictions. Single tooth implants handle the same biting and chewing forces as natural teeth.',
-  },
-  {
-    q: 'How much does a single tooth dental implant cost?',
-    a: 'Cost depends on bone volume, crown material, and whether grafting is required. A consultation at Vivid Smiles includes a personalized estimate based on your case.',
-  },
-  {
-    q: 'How long does a single tooth implant take from start to finish?',
-    a: 'From consultation to final crown, the process takes 4 to 8 months, with osseointegration taking up most of that time. The surgical appointment itself takes about one hour.',
-  },
-  {
-    q: 'Can I get an implant if I have bone loss?',
-    a: `<a class="vs-link" href="/implant-dentistry/bone-grafting/">Bone grafting</a> or a <a class="vs-link" href="/implant-dentistry/sinus-lift/">sinus lift</a> can restore needed volume, and both are performed in-house at Vivid Smiles. Your first CBCT scan confirms whether grafting is part of your plan.`,
-  },
-];
+// tocLinks, processSteps, faqs are edited in WordPress (Pages -> Single Tooth Dental Implants in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname);
+
 ---
 
 <BaseLayout

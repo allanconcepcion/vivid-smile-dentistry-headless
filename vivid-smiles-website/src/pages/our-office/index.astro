@@ -34,6 +34,7 @@ import bentoE from "../../assets/images/people/real/patient-at-reception-check-i
 
 import techPrimary from "../../assets/images/procedures/dr-richardson-performing-yomi-guided-implant-surgery.webp";
 import techInset from "../../assets/images/procedures/hygienist-polishing-teeth.webp";
+import { getPageContent } from '../../lib/page-content';
 
 // `output=embed` avoids needing a Google Maps API key.
 const mapEmbedSrc = `https://maps.google.com/maps?q=${encodeURIComponent(addressLine)}&output=embed`;
@@ -61,28 +62,13 @@ const expectTiles = [
   },
 ];
 
-const faqs = [
-  {
-    q: "Where do I park?",
-    a: "There is free, on-site parking directly in front of the building at 17167 Cedar Gulch Pkwy, Suite 102. Accessible spaces are nearest the entrance. Our suite is on the ground floor — no stairs.",
-    open: true,
-  },
-  {
-    q: "Is the office accessible?",
-    a: "Yes — our suite is on the ground floor with no stairs to navigate. Accessible parking spaces sit nearest the entrance, and our doorways and operatory hallways are wide enough to move through comfortably.",
-  },
-  {
-    q: "What does the office feel like inside?",
-    a: "Calm, modern, and unhurried — designed to feel more like a wellness studio than a dental clinic. Our lounge features a neon Vivid Smiles sign and natural light from the storefront windows.",
-  },
-  {
-    q: "What should I bring to my first visit?",
-    a: 'A photo ID, your insurance card if you have one, and a list of any medications you take. <a href="/new-patients/">Our new-patients page</a> has the full first-visit guide, including what to expect during the consultation.',
-  },
-];
-
 const description =
   "Tour our Parker, CO dental office. Free on-site parking, ground-floor entrance, a calm modern interior, and Yomi robotic-assisted implant surgery. 300+ five-star reviews.";
+// faqs is edited in WordPress (Pages -> Our Office in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { faqs } = await getPageContent(Astro.url.pathname);
+
 ---
 
 <BaseLayout

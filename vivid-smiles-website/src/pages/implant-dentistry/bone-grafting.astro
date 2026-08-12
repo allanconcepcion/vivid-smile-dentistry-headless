@@ -33,20 +33,11 @@ import whatImg from '../../assets/images/procedures/bone-graft-cross-section-dia
 import implantsImg from '../../assets/images/procedures/implant-prosthesis-arch-detail.webp';
 // Candidacy section — lifestyle patient portrait.
 import candidacyImg from '../../assets/images/people/real/woman-stone-wall-portrait.webp';
+import { getPageContent } from '../../lib/page-content';
 
 // Track doubled for seamless marquee loop.
 const galleryTiles = getSmiles();
 const galleryTrack = [...galleryTiles, ...galleryTiles];
-
-const tocLinks = [
-  { href: '#why', label: 'Why Vivid Smiles' },
-  { href: '#what', label: 'What It Is' },
-  { href: '#implants', label: 'Grafting & Implants' },
-  { href: '#process', label: 'The Procedure' },
-  { href: '#types', label: 'Types & Materials' },
-  { href: '#candidacy', label: 'Who Needs It' },
-  { href: '#faq', label: 'FAQ' },
-];
 
 const whyCards = [
   {
@@ -68,39 +59,6 @@ const whyCards = [
     num: '04',
     title: 'Parker Resident · Implant Pathway',
     body: "Dr. Richardson trained at Implant Pathway, one of the country's most selective implant training institutions, and lives and practices in Parker, CO.",
-  },
-];
-
-const processSteps = [
-  {
-    tag: 'Step One',
-    num: '01',
-    title: 'CBCT scan',
-    body: 'Dr. Richardson maps your jaw in 3D to measure bone volume and identify the exact grafting site.',
-  },
-  {
-    tag: 'Step Two',
-    num: '02',
-    title: 'Treatment planning',
-    body: 'A custom approach is designed using digital imaging data before any procedure begins.',
-  },
-  {
-    tag: 'Step Three',
-    num: '03',
-    title: 'Grafting',
-    body: 'Local anesthesia is applied; graft material is placed and secured in a single visit.',
-  },
-  {
-    tag: 'Step Four',
-    num: '04',
-    title: 'Healing',
-    body: 'The graft undergoes osseointegration (gradual fusion with existing bone) over 3 to 6 months.',
-  },
-  {
-    tag: 'Step Five',
-    num: '05',
-    title: 'Implant placement',
-    body: 'Once healing is confirmed, implants are placed with robotic-assisted positioning for precision.',
   },
 ];
 
@@ -147,29 +105,11 @@ const keyStats: [string, string][] = [
   ['5.0★ · 300+', 'Google Reviews'],
 ];
 
-const faqs = [
-  {
-    q: 'Is bone grafting painful?',
-    a: 'Bone grafting is performed under local anesthesia, so there is no pain during the procedure. Post-operative discomfort is typically mild and managed with over-the-counter medication.',
-    open: true,
-  },
-  {
-    q: 'How long does it take for a dental bone graft to heal?',
-    a: 'Most grafts require 3 to 6 months to fully integrate with natural bone. Dr. Richardson confirms healing on follow-up imaging before scheduling implant placement.',
-  },
-  {
-    q: 'How much does bone grafting cost?',
-    a: 'Cost depends on procedure type, extent of bone loss, and graft material. Contact Vivid Smiles at (303) 841-5313 for an estimate based on your specific case.',
-  },
-  {
-    q: 'Can I get a dental implant without bone grafting?',
-    a: 'Yes, some patients have sufficient natural bone and proceed directly to implants without grafting. A CBCT evaluation at Vivid Smiles determines whether grafting is part of your treatment plan.',
-  },
-  {
-    q: 'Can implants be placed the same day as a bone graft?',
-    a: 'Same-day placement is possible in select cases but is not the standard approach. Waiting for full graft integration significantly improves long-term implant stability and success.',
-  },
-];
+// tocLinks, processSteps, faqs are edited in WordPress (Pages -> Bone Grafting in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname);
+
 ---
 
 <BaseLayout

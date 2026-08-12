@@ -34,22 +34,11 @@ import whatImg from '../../assets/images/procedures/full-arch-restoration-model.
 import roboticsImg from '../../assets/images/procedures/dr-richardson-performing-yomi-guided-implant-surgery.webp';
 // Candidacy — lifestyle patient portrait.
 import candidacyImg from '../../assets/images/people/real/woman-lakeside-seated.webp';
+import { getPageContent } from '../../lib/page-content';
 
 // Track doubled for seamless marquee loop.
 const galleryTiles = getSmiles();
 const galleryTrack = [...galleryTiles, ...galleryTiles];
-
-const tocLinks = [
-  { href: '#why', label: 'Why Vivid Smiles' },
-  { href: '#what', label: 'What They Are' },
-  { href: '#robotics', label: 'Robotic Placement' },
-  { href: '#process', label: 'Recovery Timeline' },
-  { href: '#compare', label: 'Comparison' },
-  { href: '#candidacy', label: 'Candidacy' },
-  { href: '#benefits', label: 'Benefits' },
-  { href: '#cost', label: 'Cost & Financing' },
-  { href: '#faq', label: 'FAQ' },
-];
 
 const whyCards = [
   {
@@ -71,39 +60,6 @@ const whyCards = [
     num: '04',
     title: '300+ reviews · Parker roots',
     body: 'With over 300 five-star Google reviews and deep Parker roots, he brings destination-level full arch expertise to a neighborhood practice.',
-  },
-];
-
-const processSteps = [
-  {
-    tag: 'Days 1 to 3',
-    num: '01',
-    title: 'Peak swelling & comfort care',
-    body: 'Swelling and mild discomfort peak within the first 48 hours; prescribed medication and soft foods manage symptoms.',
-  },
-  {
-    tag: 'Days 4 to 14',
-    num: '02',
-    title: 'Swelling resolves',
-    body: 'Swelling resolves and the temporary prosthesis allows normal appearance and basic function during early healing.',
-  },
-  {
-    tag: 'Months 1 to 3',
-    num: '03',
-    title: 'Osseointegration begins',
-    body: 'Osseointegration progresses as bone bonds to the implant surface; follow-up appointments confirm healing is on track.',
-  },
-  {
-    tag: 'Months 3 to 6',
-    num: '04',
-    title: 'Final fabrication',
-    body: 'Osseointegration is confirmed through imaging; final impressions and in-house prosthetic fabrication begin.',
-  },
-  {
-    tag: 'Final restoration',
-    num: '05',
-    title: 'Permanent bridge placed',
-    body: 'The permanent bridge is placed and adjusted for bite and comfort, completing treatment.',
   },
 ];
 
@@ -150,33 +106,11 @@ const keyStats: [string, string][] = [
   ['20+ yrs', 'Prosthetic Bridge'],
 ];
 
-const faqs = [
-  {
-    q: 'How long do full mouth dental implants last?',
-    a: 'Titanium implant posts are designed to be a lifetime solution with consistent hygiene and routine dental care. The prosthetic bridge lasts 15 to 20+ years before evaluation is needed, depending on material and wear.',
-    open: true,
-  },
-  {
-    q: 'Are full mouth dental implants painful?',
-    a: 'Surgery is performed under local anesthesia; sedation is available for patients who prefer added comfort. Most individuals report improvement in discomfort within 48 to 72 hours after surgery.',
-  },
-  {
-    q: 'How long does the full mouth implant process take?',
-    a: 'Consultation to final restoration ranges from 4-9 months, depending on whether preparatory procedures are needed. Patients who qualify for immediate loading receive temporary teeth on the day of surgery.',
-  },
-  {
-    q: 'What are full mouth dental implants made of?',
-    a: 'Implant posts are titanium, which bonds to bone through osseointegration. The prosthetic bridge is fabricated from zirconia or acrylic; both are milled and finished in-house at Vivid Smiles.',
-  },
-  {
-    q: 'What is the difference between All-on-4 and full mouth implants?',
-    a: `<a class="vs-link" href="/implant-dentistry/all-on-4-single-arch/">All-on-4</a> is a technique using four angled implants per arch to support a full bridge, often without <a class="vs-link" href="/implant-dentistry/bone-grafting/">bone grafting</a>. All-on-X refers to the same approach using four, five, or six implants based on bone anatomy.`,
-  },
-  {
-    q: 'How do I care for full mouth dental implants?',
-    a: 'Daily brushing, flossing or water flosser use, and routine hygiene appointments maintain the gum tissue around implants, which is the primary vulnerability for long-term implant health. The prosthetic bridge itself cannot decay.',
-  },
-];
+// tocLinks, processSteps, faqs are edited in WordPress (Pages -> Full Mouth Dental Implants in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname);
+
 ---
 
 <BaseLayout

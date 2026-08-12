@@ -45,18 +45,33 @@ echo "==> WordPress $(wp core version 2>/dev/null | tr -d '\r')"
 # stores values in the same post-meta format, and WPGraphQL for ACF resolves
 # against it unchanged. Verified against this install — existing testimonial and
 # post field values kept resolving with no migration.
+# Versions are PINNED, and that matters more than usual here.
+#
+# WPGraphQL for ACF does not officially support SCF. It works because its only
+# dependency check is `class_exists('ACF')`, and SCF declares `class ACF` — the
+# compatibility is incidental, not contractual (wpgraphql-acf issue #264, open
+# since Feb 2026, no maintainer response). A release that tightens that check or
+# branches on ACF_VERSION would break the Astro build with no warning.
+#
+# So: pin, and upgrade deliberately after testing the build, rather than letting
+# an unattended update decide when the blog stops rendering.
 PLUGINS=(
-  wp-graphql
-  secure-custom-fields
-  wpgraphql-acf
-  wordpress-seo
-  add-wpgraphql-seo
+  "wp-graphql:2.19.0"
+  "secure-custom-fields:6.9.5"
+  "wpgraphql-acf:2.7.0"
+  "wordpress-seo:28.2"
+  "add-wpgraphql-seo:5.1.0"
 )
 
-for slug in "${PLUGINS[@]}"; do
-  echo "==> Installing ${slug}"
-  wp plugin install "${slug}" --activate --force
+for entry in "${PLUGINS[@]}"; do
+  slug="${entry%%:*}"
+  version="${entry##*:}"
+  echo "==> Installing ${slug} ${version}"
+  wp plugin install "${slug}" --version="${version}" --activate --force
 done
+
+# Unattended updates would defeat the pinning above.
+wp plugin auto-updates disable --all 2>/dev/null || true
 
 # ACF and SCF are the same plugin and will fight over the same hooks if both
 # run. Only one may be active.
@@ -77,6 +92,19 @@ for stock_slug in hello-world sample-page; do
     wp post delete ${ids} --force
   fi
 done
+
+# WordPress also auto-creates a draft "Privacy Policy" page and records it in
+# the wp_page_for_privacy_policy option. It is a draft, so it never appears on
+# the site — but it OWNS the privacy-policy slug, which silently pushes the real
+# imported page to privacy-policy-2 and breaks /privacy-policy/ on the Astro
+# side. Targeted by option rather than by slug so a later run cannot delete the
+# real page.
+privacy_id=$(wp option get wp_page_for_privacy_policy 2>/dev/null | tr -d '\r')
+if [[ -n "${privacy_id}" && "${privacy_id}" != "0" ]]; then
+  echo "==> Removing WordPress's stock Privacy Policy draft (id ${privacy_id})"
+  wp post delete "${privacy_id}" --force 2>/dev/null || true
+  wp option update wp_page_for_privacy_policy 0
+fi
 
 # Uncategorized cannot be deleted while it is the default category; seed_blog_
 # categories() in vs-content-model.php repoints the default to "Dental Tips"

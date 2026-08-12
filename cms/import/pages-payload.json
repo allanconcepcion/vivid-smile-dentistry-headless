@@ -1,0 +1,1965 @@
+{
+  "pages": [
+    {
+      "route": "/",
+      "slug": "home",
+      "title": "Vivid Smiles Dentistry",
+      "seoTitle": "Vivid Smiles Dentistry — Cosmetic & Implant Dentistry, Parker CO",
+      "seoDescription": "Cosmetic, implant, general, and emergency dentistry in Parker, Colorado. Calm, premium, patient-centered care.",
+      "fields": {},
+      "counts": {}
+    },
+    {
+      "route": "/about-us/",
+      "slug": "about-us",
+      "title": "About Vivid Smiles Dentistry",
+      "seoTitle": "About Vivid Smiles Dentistry — Parker, CO",
+      "seoDescription": "Meet the doctors and team behind Vivid Smiles Dentistry — Colorado's premier destination for highly esthetic cosmetic and implant dentistry.",
+      "fields": {},
+      "counts": {}
+    },
+    {
+      "route": "/contact/",
+      "slug": "contact",
+      "title": "Contact Vivid Smiles Dentistry",
+      "seoTitle": "Contact Vivid Smiles Dentistry — Parker, CO",
+      "seoDescription": "Get in touch with Vivid Smiles Dentistry in Parker, CO. Book online, call ${phoneLabel}, send a message through our contact form, or email ${emailAddress}.",
+      "fields": {},
+      "counts": {}
+    },
+    {
+      "route": "/cosmetic-dentistry-lp/",
+      "slug": "cosmetic-dentistry-lp",
+      "title": "Cosmetic Dentistry Lp",
+      "seoTitle": "",
+      "seoDescription": "",
+      "fields": {
+        "faqs": [
+          {
+            "q": "How much does it cost?",
+            "a": "Every smile is different, so your exact price depends on your goals — and that's exactly what the free consult gives you: a personalized plan and your precise cost, with no surprises and no obligation. Many cosmetic treatments can be financed.",
+            "open": true
+          },
+          {
+            "q": "Will it hurt?",
+            "a": "Comfort is a priority at every visit. Most patients are surprised how easy cosmetic treatment is, and Dr. Richardson will walk you through exactly what to expect for your specific plan before anything begins.",
+            "open": false
+          },
+          {
+            "q": "How long does it take?",
+            "a": "It depends on the treatment — some results come in as little as two visits, while a full smile makeover may span a few weeks. You'll get an exact timeline at your consultation.",
+            "open": false
+          },
+          {
+            "q": "What if I don't love my new smile?",
+            "a": "Your smile is designed <em>with</em> you before any permanent work begins, so there are no surprises — and our work is backed by a written warranty. If something isn't right, we make it right.",
+            "open": false
+          },
+          {
+            "q": "Can I finance it?",
+            "a": "Yes. Financing is available, and we also offer an in-house dental membership plan. We'll walk through the options together at your free consult.",
+            "open": false
+          },
+          {
+            "q": "Am I a candidate?",
+            "a": "Most healthy adults are. The fastest way to know for sure is a free consult — share a photo of your smile and Dr. Richardson will tell you exactly what's possible for you.",
+            "open": false
+          }
+        ]
+      },
+      "counts": {
+        "faqs": 6
+      }
+    },
+    {
+      "route": "/cosmetic-dentistry/",
+      "slug": "cosmetic-dentistry",
+      "title": "Cosmetic Dentistry in Parker, CO",
+      "seoTitle": "Cosmetic Dentistry in Parker, CO | Vivid Smiles Dentistry",
+      "seoDescription": "Cosmetic dentistry in Parker, CO with Dr. Bryce Richardson. Porcelain veneers, clear aligners, teeth whitening, smile makeovers, gum contouring, and full-mouth rehabilitation — 600+ hours of specialized training and 300+ five-star Google reviews.",
+      "fields": {
+        "toc_links": [
+          {
+            "href": "#why",
+            "label": "Why Vivid Smiles"
+          },
+          {
+            "href": "#services",
+            "label": "Treatments"
+          },
+          {
+            "href": "#technology",
+            "label": "Technology"
+          },
+          {
+            "href": "#doctors",
+            "label": "Your Dentists"
+          },
+          {
+            "href": "#process",
+            "label": "Process"
+          },
+          {
+            "href": "#results",
+            "label": "Results"
+          },
+          {
+            "href": "#candidacy",
+            "label": "Is It For You?"
+          },
+          {
+            "href": "#faq",
+            "label": "FAQ"
+          }
+        ],
+        "process_steps": [
+          {
+            "n": "01",
+            "t": "Consultation",
+            "p": "We discuss your goals and concerns; no commitments required.",
+            "lbl": "Step One"
+          },
+          {
+            "n": "02",
+            "t": "Digital imaging & smile design",
+            "p": "We scan your teeth and build a 3D preview of the planned outcome.",
+            "lbl": "Step Two"
+          },
+          {
+            "n": "03",
+            "t": "Review & approval",
+            "p": "You analyze the result, request changes, and confirm the plan before preparation begins.",
+            "lbl": "Step Three"
+          },
+          {
+            "n": "04",
+            "t": "Preparation (if needed)",
+            "p": "Some treatments require minimal tooth preparation; others, like clear aligners and whitening, involve none.",
+            "lbl": "Step Four"
+          },
+          {
+            "n": "05",
+            "t": "Fabrication or fitting",
+            "p": "Select restorations are milled in-house for faster turnaround, while others are crafted by our lab partners.",
+            "lbl": "Step Five"
+          },
+          {
+            "n": "06",
+            "t": "Placement & follow-up",
+            "p": "Treatment is completed and adjusted for fit and comfort, with a follow-up scheduled to confirm lasting satisfaction.",
+            "lbl": "Step Six"
+          }
+        ],
+        "faqs": [
+          {
+            "q": "What is cosmetic dentistry?",
+            "a": "Cosmetic dentistry covers a treatment focused on improving the appearance of your teeth, gums, or smile. Common services include <a class=\"vs-link\" href=\"/cosmetic-dentistry/porcelain-veneers/\">porcelain veneers</a>, <a class=\"vs-link\" href=\"/cosmetic-dentistry/teeth-whitening/\">teeth whitening</a>, <a class=\"vs-link\" href=\"/cosmetic-dentistry/gum-contouring/\">gum contouring</a>, <a class=\"vs-link\" href=\"/cosmetic-dentistry/clear-aligners/\">clear aligners</a>, and <a class=\"vs-link\" href=\"/cosmetic-dentistry/smile-makeover/\">smile makeovers</a>.",
+            "open": true
+          },
+          {
+            "q": "Which cosmetic treatment is best for me?",
+            "a": "The right treatment depends on what you want to change and how significant a commitment you want to make. A consultation at Vivid Smiles walks through every option and matches the approach to your goals, timeline, and budget."
+          },
+          {
+            "q": "Is cosmetic dentistry covered by insurance?",
+            "a": "Most cosmetic treatments are elective and are not covered. Procedures that restore damaged teeth, such as bonding or crowns, may qualify for partial coverage; we help clients understand their benefits during the consultation."
+          },
+          {
+            "q": "Are cosmetic dental treatments permanent?",
+            "a": "It depends on the treatment. <a class=\"vs-link\" href=\"/cosmetic-dentistry/porcelain-veneers/\">Porcelain veneers</a> and crowns are permanent; <a class=\"vs-link\" href=\"/cosmetic-dentistry/clear-aligners/\">clear aligners</a> and <a class=\"vs-link\" href=\"/cosmetic-dentistry/teeth-whitening/\">whitening</a> are not. We explain the commitment level for every option before a treatment begins."
+          },
+          {
+            "q": "How much does cosmetic dentistry cost?",
+            "a": "Costs vary by treatment type, the number of teeth involved, and case complexity. We provide an estimate at your consultation and discuss financing options at that time — including our in-house <a class=\"vs-link\" href=\"/dental-membership-plan/\">membership plan</a> for patients without insurance."
+          },
+          {
+            "q": "Will cosmetic dental work look natural?",
+            "a": "Our approach focuses on enhancing your existing features rather than replacing them. Every patient reviews a digital preview before work begins, so the result is approved before treatment starts."
+          },
+          {
+            "q": "How long do cosmetic results last?",
+            "a": "Longevity depends on the treatment and how well it is maintained. Porcelain restorations last 20+ years; whitening requires periodic touch-ups; aligners produce permanent movement once treatment is complete. Regular professional maintenance extends the lifespan of all cosmetic work."
+          },
+          {
+            "q": "What is digital smile design?",
+            "a": "Digital smile design is a planning process that uses 3D scanning and design software to display a visual model of the outcome. It is available for a wide range of cosmetic treatments at Vivid Smiles, not just veneers."
+          }
+        ]
+      },
+      "counts": {
+        "toc_links": 8,
+        "process_steps": 6,
+        "faqs": 8
+      }
+    },
+    {
+      "route": "/cosmetic-dentistry/clear-aligners/",
+      "slug": "clear-aligners",
+      "title": "Clear Aligners in Parker, CO",
+      "seoTitle": "Clear Aligners in Parker, CO | Vivid Smiles Dentistry",
+      "seoDescription": "Spark clear aligners in Parker, CO with Dr. Bryce Richardson. See your projected smile before treatment begins, with 3D scanning and digital smile planning at Vivid Smiles Dentistry.",
+      "fields": {
+        "toc_links": [
+          {
+            "href": "#why",
+            "label": "Why Vivid Smiles"
+          },
+          {
+            "href": "#what",
+            "label": "What Are Aligners"
+          },
+          {
+            "href": "#process",
+            "label": "The Process"
+          },
+          {
+            "href": "#compare",
+            "label": "Aligners vs Braces"
+          },
+          {
+            "href": "#natural",
+            "label": "Candidacy"
+          },
+          {
+            "href": "#lasting",
+            "label": "Daily Care"
+          },
+          {
+            "href": "#local",
+            "label": "Parker, CO"
+          },
+          {
+            "href": "#faq",
+            "label": "FAQ"
+          }
+        ],
+        "process_steps": [
+          {
+            "tag": "Step One",
+            "num": "01",
+            "title": "3D scan & consultation",
+            "body": "Your first visit begins with a 3D digital scan and an on-screen preview of your projected smile. Dr. Richardson reviews your goals, outlines a realistic treatment timeline, and walks through cost and insurance options."
+          },
+          {
+            "tag": "Step Two",
+            "num": "02",
+            "title": "Digital smile preview",
+            "body": "Before you wear a single aligner, you see a digital projection of your finished smile built from the precise 3D model of your own teeth — not a generic template."
+          },
+          {
+            "tag": "Step Three",
+            "num": "03",
+            "title": "Custom Spark fabrication",
+            "body": "Planning software maps every stage of tooth movement before the first aligner is fabricated, resulting in an accurate fit from tray one — and a treatment timeline that stays on track."
+          },
+          {
+            "tag": "Step Four",
+            "num": "04",
+            "title": "Wear & advance",
+            "body": "Wear each set 20 to 22 hours daily, removing only for meals, drinking anything besides water, and brushing. Advance to a new set every 1–2 weeks; check-ins land every 6–8 weeks."
+          }
+        ],
+        "faqs": [
+          {
+            "q": "Do clear aligners hurt?",
+            "a": "Most patients feel mild pressure for the first day or two after switching to a new tray, a normal sign the aligners are actively working. This is far less intense than the soreness from brace tightening and fades within 48 hours.",
+            "open": true
+          },
+          {
+            "q": "Will clear aligners affect the way I talk?",
+            "a": "A slight lisp is common during the first few days as your tongue adjusts to the trays. Most people adapt fully within a week and speak normally without removing aligners."
+          },
+          {
+            "q": "How often do I need to visit the dentist during clear aligner treatment?",
+            "a": "Check-in appointments at Vivid Smiles are typically scheduled every six to eight weeks. These brief visits confirm that tooth movement is progressing as planned and allow us to release the next sets of trays."
+          },
+          {
+            "q": "Can I eat my favorite foods with clear aligners?",
+            "a": "Yes, because the trays are removed for every meal, there are no food restrictions during clear aligner treatment. Eat normally, brush before reinserting, and continue wearing your aligners."
+          },
+          {
+            "q": "How long does clear aligner treatment take?",
+            "a": "Most cases at Vivid Smiles are completed in 6 to 18 months, depending on the amount of correction needed. Minor spacing or crowding issues may resolve closer to the six-month end of that range."
+          },
+          {
+            "q": "Will clear aligners work for my teeth?",
+            "a": "Spark clear aligners treat a wide range of mild to moderate alignment issues effectively, but not every case is suitable for aligner-based treatment. A 3D scan and consultation with Dr. Richardson will confirm whether aligners are the right solution for your specific goals."
+          },
+          {
+            "q": "Are clear aligners really invisible?",
+            "a": "Spark aligners are manufactured from a highly transparent material that is extremely difficult to detect at normal conversation distance. Most patients report that friends, coworkers, and family never realize they are in orthodontic treatment."
+          },
+          {
+            "q": "How much do clear aligners cost, and does insurance cover them?",
+            "a": "Clear aligner cost varies based on the complexity of your case, and many PPO dental plans include orthodontic benefits that apply to treatment. For patients without insurance, the Vivid Smiles in-house membership plan can help offset costs. Call (303) 841-5313 to discuss your options and get an accurate estimate for your specific situation."
+          }
+        ]
+      },
+      "counts": {
+        "toc_links": 8,
+        "process_steps": 4,
+        "faqs": 8
+      }
+    },
+    {
+      "route": "/cosmetic-dentistry/full-mouth-rehabilitation/",
+      "slug": "full-mouth-rehabilitation",
+      "title": "Full-Mouth Rehabilitation in Parker, CO",
+      "seoTitle": "Full-Mouth Rehabilitation in Parker, CO | Vivid Smiles Dentistry",
+      "seoDescription": "Full-mouth rehabilitation in Parker, CO with Dr. Bryce Richardson. Implants, crowns, bridges, veneers, and implant-supported dentures combined into one coordinated plan, with digital smile design preview.",
+      "fields": {
+        "toc_links": [
+          {
+            "href": "#why",
+            "label": "Who It's For"
+          },
+          {
+            "href": "#what",
+            "label": "What It Is"
+          },
+          {
+            "href": "#options",
+            "label": "Treatment Options"
+          },
+          {
+            "href": "#process",
+            "label": "The Process"
+          },
+          {
+            "href": "#design",
+            "label": "Smile Design"
+          },
+          {
+            "href": "#cost",
+            "label": "Cost"
+          },
+          {
+            "href": "#why-us",
+            "label": "Why Vivid Smiles"
+          },
+          {
+            "href": "#faq",
+            "label": "FAQ"
+          }
+        ],
+        "process_steps": [
+          {
+            "tag": "Step One",
+            "num": "01",
+            "title": "Comprehensive exam and imaging",
+            "body": "CBCT 3D imaging and digital scanning map bone volume, gum health, and existing restorations before planning begins."
+          },
+          {
+            "tag": "Step Two",
+            "num": "02",
+            "title": "Treatment planning",
+            "body": "Dr. Richardson reviews findings and designs a phased plan; sedation options are discussed at this stage."
+          },
+          {
+            "tag": "Step Three",
+            "num": "03",
+            "title": "Phased treatment and final restoration",
+            "body": "Implant placement, healing, and final restoration are sequenced appropriately, followed by ongoing care to protect long-term results."
+          }
+        ],
+        "faqs": [
+          {
+            "q": "What is the downside of full-mouth dental implants?",
+            "a": "<a class=\"vs-link\" href=\"/implant-dentistry/full-mouth-dental-implants/\">Full-mouth implant</a> cases require several months to allow for healing between the surgical and restorative phases. Patients with bone loss may also need <a class=\"vs-link\" href=\"/implant-dentistry/bone-grafting/\">grafting</a> before placement, adding time and cost to the overall plan.",
+            "open": true
+          },
+          {
+            "q": "How painful is a full-mouth implant?",
+            "a": "Implant surgery is performed under local anesthesia with sedation available; most patients report less discomfort than expected. Post-procedure soreness is typically manageable with over-the-counter medication."
+          }
+        ]
+      },
+      "counts": {
+        "toc_links": 8,
+        "process_steps": 3,
+        "faqs": 2
+      }
+    },
+    {
+      "route": "/cosmetic-dentistry/gum-contouring/",
+      "slug": "gum-contouring",
+      "title": "Laser Gum Contouring in Parker, CO",
+      "seoTitle": "Laser Gum Contouring in Parker, CO | Vivid Smiles Dentistry",
+      "seoDescription": "Laser gum contouring in Parker, CO with Dr. Bryce Richardson. Reshape excess or uneven gum tissue with soft-tissue laser technology — minimal recovery, immediate results, permanent change.",
+      "fields": {
+        "toc_links": [
+          {
+            "href": "#what",
+            "label": "What It Is"
+          },
+          {
+            "href": "#laser",
+            "label": "Laser Tech"
+          },
+          {
+            "href": "#candidates",
+            "label": "Who Benefits"
+          },
+          {
+            "href": "#process",
+            "label": "The Process"
+          },
+          {
+            "href": "#recovery",
+            "label": "Recovery"
+          },
+          {
+            "href": "#results",
+            "label": "Results"
+          },
+          {
+            "href": "#why",
+            "label": "Why Vivid Smiles"
+          },
+          {
+            "href": "#faq",
+            "label": "FAQ"
+          }
+        ],
+        "process_steps": [
+          {
+            "tag": "Step One",
+            "num": "01",
+            "title": "Consultation and digital imaging",
+            "body": "Dr. Richardson reviews your gum-to-tooth ratio and uses digital imaging tools to map the gum line and preview potential results. If gum contouring is part of a larger smile plan, that coordination begins here."
+          },
+          {
+            "tag": "Step Two",
+            "num": "02",
+            "title": "Treatment planning",
+            "body": "Your ideal gum line is marked precisely. Any combination work with veneers or other cosmetic procedures is coordinated so every element of the result aligns."
+          },
+          {
+            "tag": "Step Three",
+            "num": "03",
+            "title": "Laser procedure",
+            "body": "The procedure typically takes 30 to 60 minutes. Local anesthetic is applied, and the soft tissue laser removes and reshapes tissue with minimal discomfort and little to no bleeding."
+          },
+          {
+            "tag": "Step Four",
+            "num": "04",
+            "title": "Immediate results",
+            "body": "Results are visible as soon as the procedure is complete. The gum line is reshaped, and the improved tooth-to-gum ratio is apparent before you leave the office."
+          },
+          {
+            "tag": "Step Five",
+            "num": "05",
+            "title": "Recovery",
+            "body": "Most patients return to normal activities the same day. Minor sensitivity for one to three days is common, and over-the-counter pain relief is typically all that is needed."
+          }
+        ],
+        "faqs": [
+          {
+            "q": "Does gum contouring hurt?",
+            "a": "Most patients experience mild pressure during the procedure and minor sensitivity for one to three days after. Local anesthetic is used during treatment, and over-the-counter pain relief is generally all that is needed during recovery.",
+            "open": true
+          },
+          {
+            "q": "Is gum contouring permanent?",
+            "a": "Yes. Once laser reshaping removes gum tissue, it does not regrow to its original position. The result you see immediately after the procedure reflects the long-term outcome."
+          },
+          {
+            "q": "How long does gum contouring take?",
+            "a": "The laser procedure itself typically takes 30 to 60 minutes, depending on how much tissue needs to be reshaped. The consultation and digital planning appointment is scheduled separately ahead of treatment."
+          },
+          {
+            "q": "How much does gum contouring cost?",
+            "a": "Cost varies based on the extent of reshaping needed and whether gum contouring is part of a broader cosmetic plan. The best way to get an accurate estimate is during a free consultation, where Dr. Richardson can review your specific situation and outline a personalized treatment plan."
+          },
+          {
+            "q": "Is gum contouring covered by insurance?",
+            "a": "Gum contouring is typically considered a cosmetic procedure and is not covered by dental insurance. Vivid Smiles offers financing options and an in-house dental membership plan for patients without coverage who want to move forward."
+          },
+          {
+            "q": "What is the difference between gum contouring and gum grafting?",
+            "a": "Gum contouring removes excess tissue when the gum line sits too high or too unevenly over the teeth. Gum grafting adds tissue in the opposite situation, when gums have receded too far and the tooth root is exposed. They treat different problems and are not interchangeable."
+          }
+        ]
+      },
+      "counts": {
+        "toc_links": 8,
+        "process_steps": 5,
+        "faqs": 6
+      }
+    },
+    {
+      "route": "/cosmetic-dentistry/porcelain-veneers/",
+      "slug": "porcelain-veneers",
+      "title": "Porcelain Veneers in Parker, CO",
+      "seoTitle": "Porcelain Veneers in Parker, CO | Vivid Smiles Dentistry",
+      "seoDescription": "No-prep & minimal-prep porcelain veneers in Parker, CO with Dr. Bryce Richardson. Preview your smile with Digital Smile Design before any treatment begins.",
+      "fields": {
+        "toc_links": [
+          {
+            "href": "#why",
+            "label": "Why Vivid Smiles"
+          },
+          {
+            "href": "#what",
+            "label": "What Are Veneers"
+          },
+          {
+            "href": "#process",
+            "label": "The Process"
+          },
+          {
+            "href": "#compare",
+            "label": "Comparison"
+          },
+          {
+            "href": "#natural",
+            "label": "Natural Results"
+          },
+          {
+            "href": "#lasting",
+            "label": "Lifespan"
+          },
+          {
+            "href": "#local",
+            "label": "Parker, CO"
+          },
+          {
+            "href": "#cost",
+            "label": "Investment"
+          },
+          {
+            "href": "#faq",
+            "label": "FAQ"
+          }
+        ],
+        "process_steps": [
+          {
+            "tag": "Step One",
+            "num": "01",
+            "title": "Digital consultation",
+            "body": "Dr. Richardson evaluates your smile with digital imaging and generates a personalized preview."
+          },
+          {
+            "tag": "Step Two",
+            "num": "02",
+            "title": "Design review",
+            "body": "You refine the preview together, adjusting shape, shade, and proportions before treatment begins."
+          },
+          {
+            "tag": "Step Three",
+            "num": "03",
+            "title": "Minimal preparation",
+            "body": "For no-prep or minimal-prep candidates, little to no enamel is removed before veneer placement."
+          },
+          {
+            "tag": "Step Four",
+            "num": "04",
+            "title": "Custom fabrication",
+            "body": "Your veneers are crafted from dental porcelain at a specialist lab, typically within one to two weeks."
+          },
+          {
+            "tag": "Step Five",
+            "num": "05",
+            "title": "Final placement",
+            "body": "Dr. Richardson bonds the finished veneers, confirms your bite, and makes any adjustments before you leave."
+          }
+        ],
+        "faqs": [
+          {
+            "q": "What are veneers made of?",
+            "a": "High-quality veneers use dental porcelain, a ceramic that replicates enamel in translucency and light reflection. Composite resin is a lower-cost alternative but stains more readily and has a shorter lifespan.",
+            "open": true
+          },
+          {
+            "q": "How much do veneers cost?",
+            "a": "Porcelain veneers are $2,250 per tooth at Vivid Smiles. Most patients treat 8–10 teeth across the smile zone; the per-tooth price stays the same regardless of case complexity. Financing is available."
+          },
+          {
+            "q": "Does getting veneers hurt?",
+            "a": "Most patients experience minimal discomfort, particularly with no-prep and minimal-prep techniques. Temporary sensitivity after placement is normal and typically resolves within a few days."
+          },
+          {
+            "q": "Are veneers covered by insurance?",
+            "a": "Porcelain veneers are cosmetic and are not covered by most dental insurance plans. For uninsured patients, Vivid Smiles offers an in-house dental membership plan; financing is also available."
+          },
+          {
+            "q": "Who is a good candidate for veneers?",
+            "a": "Good candidates have healthy teeth and gums with no active decay. Patients with significant grinding habits may need a nightguard to protect their veneers."
+          }
+        ]
+      },
+      "counts": {
+        "toc_links": 9,
+        "process_steps": 5,
+        "faqs": 5
+      }
+    },
+    {
+      "route": "/cosmetic-dentistry/smile-makeover/",
+      "slug": "smile-makeover",
+      "title": "Smile Makeover in Parker, CO",
+      "seoTitle": "Smile Makeover in Parker, CO | Vivid Smiles Dentistry",
+      "seoDescription": "Custom smile makeovers in Parker, CO with Dr. Bryce Richardson. Combine porcelain veneers, Invisalign, and whitening with digital smile design to preview your results before any treatment begins.",
+      "fields": {
+        "toc_links": [
+          {
+            "href": "#what",
+            "label": "What It Is"
+          },
+          {
+            "href": "#issues",
+            "label": "Common Issues"
+          },
+          {
+            "href": "#process",
+            "label": "The Process"
+          },
+          {
+            "href": "#options",
+            "label": "Treatment Options"
+          },
+          {
+            "href": "#why-us",
+            "label": "Why Vivid Smiles"
+          },
+          {
+            "href": "#cost",
+            "label": "Timeline & Cost"
+          },
+          {
+            "href": "#results",
+            "label": "Real Results"
+          },
+          {
+            "href": "#faq",
+            "label": "FAQ"
+          }
+        ],
+        "faqs": [
+          {
+            "q": "How long does a smile makeover take?",
+            "a": "Timeline depends on the treatments involved in your plan. Veneer-focused makeovers can often be completed in two to three visits over three to four weeks; plans that include <a class=\"vs-link\" href=\"/cosmetic-dentistry/clear-aligners/\">Invisalign alignment</a> may take six to twelve months.",
+            "open": true
+          },
+          {
+            "q": "Will my veneers look natural or fake?",
+            "a": "Natural-looking results are Dr. Richardson's primary focus on every case. Veneer color, shape, and translucency are customized to complement your facial features, skin tone, and personal preferences, and digital smile design lets you preview and refine your outcome before treatment begins."
+          },
+          {
+            "q": "Are veneers permanent?",
+            "a": "Traditional veneers involve minimal enamel preparation and are considered permanent, typically lasting 20+ years with proper care. No-prep veneers preserve natural tooth structure completely and may be reversible when the clinical situation allows."
+          },
+          {
+            "q": "How much does a smile makeover cost?",
+            "a": "Investment varies based on the treatments included in your personalized plan. During the consultation, Dr. Richardson provides transparent pricing and discusses financing options; the practice also offers a dental membership plan that can reduce costs for uninsured patients."
+          },
+          {
+            "q": "Can a smile makeover fix my crooked teeth?",
+            "a": "Yes. Depending on severity, crooked teeth can be addressed with <a class=\"vs-link\" href=\"/cosmetic-dentistry/clear-aligners/\">Invisalign clear aligners</a>, <a class=\"vs-link\" href=\"/cosmetic-dentistry/porcelain-veneers/\">porcelain veneers</a> that create the appearance of straight teeth, or a combination of both. Dr. Richardson recommends the approach that produces the most stable, natural-looking result for your situation."
+          },
+          {
+            "q": "Do I need to replace all my teeth for a smile makeover?",
+            "a": "No. Smile makeovers are fully customized, and treatment is focused only on the teeth that show when you smile and speak. Some patients address only their front six to eight upper teeth; others work on both upper and lower arches."
+          },
+          {
+            "q": "Is cosmetic dentistry covered by insurance?",
+            "a": "Most cosmetic procedures are considered elective and are not covered by dental insurance. If a treatment also addresses a functional concern, such as a cracked or broken tooth, partial coverage may apply. Vivid Smiles discusses financing and the in-house membership plan during every consultation."
+          }
+        ]
+      },
+      "counts": {
+        "toc_links": 8,
+        "faqs": 7
+      }
+    },
+    {
+      "route": "/cosmetic-dentistry/teeth-whitening/",
+      "slug": "teeth-whitening",
+      "title": "Teeth Whitening in Parker, CO",
+      "seoTitle": "Teeth Whitening in Parker, CO | Vivid Smiles Dentistry",
+      "seoDescription": "KöR and Opalescence professional teeth whitening in Parker, CO with Dr. Bryce Richardson. Four pricing tiers from $99, including KöR Ultra-T for tetracycline staining other systems can't reach.",
+      "fields": {
+        "toc_links": [
+          {
+            "href": "#why",
+            "label": "Why Vivid Smiles"
+          },
+          {
+            "href": "#what",
+            "label": "What Is KöR"
+          },
+          {
+            "href": "#process",
+            "label": "Treatment Levels"
+          },
+          {
+            "href": "#compare",
+            "label": "vs. Over-the-Counter"
+          },
+          {
+            "href": "#natural",
+            "label": "Candidates"
+          },
+          {
+            "href": "#lasting",
+            "label": "Results & Pricing"
+          },
+          {
+            "href": "#local",
+            "label": "Parker, CO"
+          },
+          {
+            "href": "#faq",
+            "label": "FAQ"
+          }
+        ],
+        "faqs": [
+          {
+            "q": "What is the average price to have your teeth whitened?",
+            "a": "Vivid Smiles publishes four whitening tiers: Opalescence take-home trays ($99), KöR-Night custom take-home trays ($350), KöR Power in-office whitening with trays ($665), and KöR Ultra / Ultra-T for the most resistant staining ($1,541). Dr. Richardson helps you match the right tier to your staining type at a no-obligation consultation.",
+            "open": true
+          },
+          {
+            "q": "Is it worth paying for teeth whitening?",
+            "a": "Professional whitening produces results that last years rather than weeks, making it far more cost-effective over time than repeatedly buying over-the-counter products. For patients whose smile appearance affects their daily confidence, supervised KöR whitening is consistently a worthwhile investment."
+          },
+          {
+            "q": "Why do teeth turn yellow?",
+            "a": "Yellowing comes from two sources: extrinsic staining from food, drinks, and tobacco deposited on enamel, and intrinsic discoloration from aging or certain medications. KöR addresses both types, including the intrinsic staining most other whitening systems cannot reach."
+          },
+          {
+            "q": "What is the fastest way to whiten teeth?",
+            "a": "In-office KöR Power whitening delivers the fastest results — three 20-minute chair sessions plus take-home maintenance trays. Patients who need significant change quickly can also step up to KöR Ultra or Ultra-T for the most resistant staining, including tetracycline discoloration."
+          }
+        ]
+      },
+      "counts": {
+        "toc_links": 8,
+        "faqs": 4
+      }
+    },
+    {
+      "route": "/dental-membership-plan/",
+      "slug": "dental-membership-plan",
+      "title": "Dental Membership Plan in Parker, CO",
+      "seoTitle": "Dental Membership Plan in Parker, CO | Vivid Smiles Dentistry",
+      "seoDescription": "Flat $500/year. Two cleanings, exams, x-rays — and 15% off everything else. No insurance, no claims, no waiting period. Activate the same day at Vivid Smiles in Parker, CO.",
+      "fields": {},
+      "counts": {}
+    },
+    {
+      "route": "/emergency-dentistry/",
+      "slug": "emergency-dentistry",
+      "title": "Emergency Dental Care in Parker, CO",
+      "seoTitle": "Emergency Dental Care in Parker, CO | Vivid Smiles Dentistry",
+      "seoDescription": "Same-day emergency dental care in Parker, CO at Vivid Smiles Dentistry. CBCT 3D imaging, in-house milling, and surgical expertise to resolve most emergencies in a single visit. Call (303) 841-5313.",
+      "fields": {
+        "toc_links": [
+          {
+            "href": "#when",
+            "label": "When to Seek"
+          },
+          {
+            "href": "#protocol",
+            "label": "First Aid"
+          },
+          {
+            "href": "#how",
+            "label": "How We Handle"
+          },
+          {
+            "href": "#emergencies",
+            "label": "Common Cases"
+          },
+          {
+            "href": "#why-us",
+            "label": "Why Choose Us"
+          },
+          {
+            "href": "#area",
+            "label": "Parker Location"
+          },
+          {
+            "href": "#prevent",
+            "label": "Prevention"
+          },
+          {
+            "href": "#faq",
+            "label": "FAQ"
+          }
+        ]
+      },
+      "counts": {
+        "toc_links": 8
+      }
+    },
+    {
+      "route": "/general-dentistry/",
+      "slug": "general-dentistry",
+      "title": "General Dentistry in Parker, CO",
+      "seoTitle": "General Dentistry in Parker, CO | Vivid Smiles Dentistry",
+      "seoDescription": "Comprehensive general dentistry in Parker, CO at Vivid Smiles. Preventive care, same-day crowns, periodontal treatment, and emergency services — backed by a dual-doctor model with CBCT 3D imaging, in-house milling, and 300+ five-star reviews.",
+      "fields": {
+        "toc_links": [
+          {
+            "href": "#why",
+            "label": "Why Vivid Smiles"
+          },
+          {
+            "href": "#services",
+            "label": "Services"
+          },
+          {
+            "href": "#first-visit",
+            "label": "First Visit"
+          },
+          {
+            "href": "#gateway",
+            "label": "Cosmetic Pathway"
+          },
+          {
+            "href": "#trust",
+            "label": "Why Parker Trusts Us"
+          },
+          {
+            "href": "#doctors",
+            "label": "Your Dentists"
+          },
+          {
+            "href": "#payment",
+            "label": "Payment & Plan"
+          },
+          {
+            "href": "#area",
+            "label": "Parker Location"
+          },
+          {
+            "href": "#faq",
+            "label": "FAQ"
+          }
+        ],
+        "faqs": [
+          {
+            "q": "What services are included in general dentistry?",
+            "a": "General dentistry covers preventive care (cleanings, exams, X-rays), restorative treatment (fillings, crowns, bridges), periodontal care, oral cancer screenings, TMJ treatment, and emergency dentistry. Vivid Smiles provides all of these services in one location, so most patients never need a referral.",
+            "open": true
+          },
+          {
+            "q": "How often should I visit the dentist for a checkup?",
+            "a": "Most clients benefit from a professional cleaning and exam every 6 months. Patients with active gum disease, elevated cavity risk, or other ongoing concerns may need more frequent visits; Dr. Annie will recommend a schedule based on your oral health."
+          },
+          {
+            "q": "Does Vivid Smiles Dentistry accept my dental insurance?",
+            "a": "Vivid Smiles works with most major dental insurance plans; call the provider to verify your coverage before the appointment. Patients without dental insurance can enroll in our in-house <a class=\"vs-link\" href=\"/dental-membership-plan/\">membership plan</a> as an alternative."
+          },
+          {
+            "q": "What makes Vivid Smiles different from other Parker dentists?",
+            "a": "Advanced technology (CBCT imaging, digital scanners, same-day crowns), a dual-doctor model, 300+ five-star Google reviews, and local ownership set Vivid Smiles apart from corporate chains and single-doctor general practices. The combination of cosmetic expertise and comprehensive general care under one roof is uncommon in the area."
+          },
+          {
+            "q": "Can I get cosmetic dentistry and general dentistry at the same practice?",
+            "a": "Vivid Smiles offers general and <a class=\"vs-link\" href=\"/cosmetic-dentistry/\">cosmetic dentistry</a>, including veneers, Invisalign, and smile makeovers alongside routine care. Starting with general dentistry is a natural entry point for patients who may want cosmetic work with a team they already know and trust."
+          }
+        ]
+      },
+      "counts": {
+        "toc_links": 9,
+        "faqs": 5
+      }
+    },
+    {
+      "route": "/general-lp/",
+      "slug": "general-lp",
+      "title": "General Lp",
+      "seoTitle": "",
+      "seoDescription": "",
+      "fields": {
+        "faqs": [
+          {
+            "q": "What services are included in general dentistry?",
+            "a": "General dentistry covers preventive care (cleanings, exams, X-rays), restorative treatment (fillings, crowns, bridges), periodontal care, oral-cancer screenings, and emergency dentistry. Vivid Smiles provides all of these in one location, so most patients never need a referral.",
+            "open": true
+          },
+          {
+            "q": "How often should I visit the dentist for a checkup?",
+            "a": "Most patients benefit from a professional cleaning and exam every six months. If you have active gum disease, a higher cavity risk, or other ongoing concerns, we may recommend more frequent visits — Dr. Annie will tailor a schedule to your oral health.",
+            "open": false
+          },
+          {
+            "q": "Do you accept my dental insurance?",
+            "a": "We work with most major dental insurance plans; we recommend calling your provider to verify coverage before your visit. Patients without insurance can enroll in our in-house membership plan as an affordable alternative.",
+            "open": false
+          },
+          {
+            "q": "What makes Vivid Smiles different from other Parker dentists?",
+            "a": "Advanced technology (CBCT 3D imaging, digital scanners, same-day crowns), a dual-doctor model, <em>300+ five-star Google reviews</em>, and local ownership set us apart from corporate chains and single-doctor practices. Comprehensive general care and cosmetic expertise under one roof is uncommon in the area.",
+            "open": false
+          },
+          {
+            "q": "Can I get cosmetic and general dentistry at the same practice?",
+            "a": "Yes. Vivid Smiles offers general and cosmetic dentistry — including veneers, Invisalign, and smile makeovers — alongside routine care. Starting with general dentistry is a natural entry point if you may want cosmetic work later with a team you already trust.",
+            "open": false
+          }
+        ]
+      },
+      "counts": {
+        "faqs": 5
+      }
+    },
+    {
+      "route": "/implant-dentistry/",
+      "slug": "implant-dentistry",
+      "title": "Dental Implants in Parker, CO",
+      "seoTitle": "Dental Implants in Parker, CO | Vivid Smiles Dentistry",
+      "seoDescription": "Advanced dental implants in Parker, CO with Dr. Bryce Richardson. Robotic placement, CBCT planning, in-house surgery + restoration. Single tooth from $3,995, full mouth and All-on-4 from $19,995/arch. 600+ hours of surgical training, 300+ five-star reviews.",
+      "fields": {
+        "toc_links": [
+          {
+            "href": "#why",
+            "label": "Why Vivid Smiles"
+          },
+          {
+            "href": "#what",
+            "label": "What They Are"
+          },
+          {
+            "href": "#solutions",
+            "label": "Solutions"
+          },
+          {
+            "href": "#compare",
+            "label": "Compare Options"
+          },
+          {
+            "href": "#process",
+            "label": "Process"
+          },
+          {
+            "href": "#technology",
+            "label": "Technology"
+          },
+          {
+            "href": "#doctors",
+            "label": "Your Dentist"
+          },
+          {
+            "href": "#candidacy",
+            "label": "Candidacy"
+          },
+          {
+            "href": "#area",
+            "label": "Parker Location"
+          },
+          {
+            "href": "#faq",
+            "label": "FAQ"
+          }
+        ],
+        "process_steps": [
+          {
+            "n": "01",
+            "t": "Consultation & 3D Planning",
+            "p": "CBCT imaging maps bone volume and anatomy; Dr. Richardson builds a digital placement plan with precise implant coordinates before any surgical work begins.",
+            "lbl": "Step One"
+          },
+          {
+            "n": "02",
+            "t": "Surgical Placement",
+            "p": "Robotic guidance executes the pre-planned position. Sedation options are available, and most patients find post-operative discomfort manageable with over-the-counter medication.",
+            "lbl": "Step Two"
+          },
+          {
+            "n": "03",
+            "t": "Osseointegration",
+            "p": "The implant fuses with the jawbone over 3–6 months. Temporary teeth are available for visible sites during this healing phase.",
+            "lbl": "Step Three"
+          },
+          {
+            "n": "04",
+            "t": "Final Restoration",
+            "p": "A custom crown, bridge, or arch prosthetic is fabricated using digital scanning and in-house milling, then secured to the implant.",
+            "lbl": "Step Four"
+          }
+        ],
+        "faqs": [
+          {
+            "q": "How long do dental implants last?",
+            "a": "With proper care, the titanium implant post is designed to last a lifetime; the crown needs replacement after 15 to 25 years, depending on wear. Consistent hygiene, regular professional cleanings, and protecting the implant from heavy grinding preserve long-term success.",
+            "open": true
+          },
+          {
+            "q": "Do dental implants hurt?",
+            "a": "Most patients find the procedure comfortable, especially with sedation options. Post-surgical soreness resolves within a few days and is manageable with over-the-counter medication."
+          },
+          {
+            "q": "Can I get dental implants in one day?",
+            "a": "Qualifying full-arch cases may receive <a class=\"vs-link\" href=\"/implant-dentistry/all-on-4-single-arch/\">same-day temporary teeth</a> soon after surgery. Single implants require a three-to-six-month osseointegration period before the final crown is secured."
+          },
+          {
+            "q": "What is the success rate of dental implants?",
+            "a": "Implants have a documented long-term success rate of approximately 95 to 98 percent when placed in adequate bone. Dr. Richardson's robotic placement and CBCT-based planning are designed to support those outcomes."
+          },
+          {
+            "q": "How do I care for dental implants?",
+            "a": "Implants are maintained like natural teeth: brush twice daily, floss around the post, and attend professional cleanings every six months. The surrounding gum tissue requires consistent care to prevent peri-implantitis (infection of the tissue and bone around the implant)."
+          },
+          {
+            "q": "Will my insurance cover dental implants?",
+            "a": "Coverage varies by plan; most policies cover crown restoration even when surgical placement is excluded. Our team verifies your benefits before treatment begins and assists with filing to maximize what your plan will reimburse. For uninsured clients, the in-house <a class=\"vs-link\" href=\"/dental-membership-plan/\">membership plan</a> is an alternative."
+          }
+        ]
+      },
+      "counts": {
+        "toc_links": 10,
+        "process_steps": 4,
+        "faqs": 6
+      }
+    },
+    {
+      "route": "/implant-dentistry/all-on-4-single-arch/",
+      "slug": "all-on-4-single-arch",
+      "title": "All-on-4 Single Arch Implants in Parker, CO",
+      "seoTitle": "All-on-4 Single Arch Implants in Parker, CO | Vivid Smiles Dentistry",
+      "seoDescription": "All-on-4 single arch implants in Parker, CO with Dr. Bryce Richardson — robotic placement, CBCT planning, same-day function for one jaw. Free consultation.",
+      "fields": {
+        "toc_links": [
+          {
+            "href": "#why",
+            "label": "Why Vivid Smiles"
+          },
+          {
+            "href": "#what",
+            "label": "What They Are"
+          },
+          {
+            "href": "#robotics",
+            "label": "Robotic Placement"
+          },
+          {
+            "href": "#process",
+            "label": "Same-Day Procedure"
+          },
+          {
+            "href": "#compare",
+            "label": "Comparison"
+          },
+          {
+            "href": "#candidacy",
+            "label": "Candidacy"
+          },
+          {
+            "href": "#living",
+            "label": "Daily Life"
+          },
+          {
+            "href": "#cost",
+            "label": "Cost & Financing"
+          },
+          {
+            "href": "#faq",
+            "label": "FAQ"
+          }
+        ],
+        "process_steps": [
+          {
+            "tag": "Step One",
+            "num": "01",
+            "title": "Sedation",
+            "body": "IV or oral sedation is administered; you are comfortable and largely unaware throughout."
+          },
+          {
+            "tag": "Step Two",
+            "num": "02",
+            "title": "Extractions",
+            "body": "Remaining failing teeth in the arch are removed during the same appointment."
+          },
+          {
+            "tag": "Step Three",
+            "num": "03",
+            "title": "Implant placement",
+            "body": "All four implants are placed per the pre-planned robotic protocol; surgical time is two to three hours."
+          },
+          {
+            "tag": "Step Four",
+            "num": "04",
+            "title": "Temporary prosthesis",
+            "body": "A fixed bridge is attached, so you go home with functional teeth on day one."
+          },
+          {
+            "tag": "Step Five",
+            "num": "05",
+            "title": "Soft-food recovery",
+            "body": "Swelling and mild soreness resolve within days; soft foods protect the implants during osseointegration (the healing and bone-fusing period that follows)."
+          }
+        ],
+        "faqs": [
+          {
+            "q": "What is the downside of All-on-4 dental implants?",
+            "a": "The main tradeoffs are cost, a three-to-six-month healing period before final teeth are placed, and an irreversible surgical commitment. Heavy smokers and patients with uncontrolled systemic conditions also face reduced implant success rates, which is why candidacy evaluation is thorough before a treatment begins.",
+            "open": true
+          },
+          {
+            "q": "Can you eat steak with All-on-4 implants?",
+            "a": "Once osseointegration is complete, you can eat steak and most other foods without restriction. Cutting dense proteins into smaller pieces is a sensible early habit, but there are no permanent dietary limitations beyond what applies to natural teeth."
+          },
+          {
+            "q": "What is a full-arch on 4 implants?",
+            "a": "A full-arch on 4 implants means every tooth in one jaw, upper or lower, is replaced using four titanium implants as the foundation for a fixed bridge. Two rear implants are angled to maximize bone contact without requiring the posterior bone volume that is commonly the first to resorb."
+          },
+          {
+            "q": "How much do All-on-4 implants cost?",
+            "a": "Single-arch All-on-4 ranges from $15,000 to $30,000 depending on materials, sedation type, and whether extractions are needed. A free consultation with imaging at Vivid Smiles provides the accurate, case-specific number."
+          },
+          {
+            "q": "What is better than All-on-4 implants?",
+            "a": "All-on-6 offers additional foundation support when bone density makes a wider implant spread clinically advantageous. Individual implants are the appropriate choice when only a few teeth are missing."
+          },
+          {
+            "q": "Does food get stuck under All-on-4 dental implants?",
+            "a": "Debris accumulates around the abutments and requires daily cleaning, but food does not pack under the prosthesis the way it does under removable dentures. A water flosser used daily clears the areas a standard toothbrush cannot reach."
+          },
+          {
+            "q": "Can I get All-on-4 if I have diabetes or other health conditions?",
+            "a": "Controlled diabetes does not automatically disqualify a patient, though healing is monitored more closely. Uncontrolled diabetes, bone-affecting autoimmune conditions, and heavy smoking meaningfully reduce implant success rates, and Dr. Richardson addresses these factors directly during evaluation."
+          },
+          {
+            "q": "How long do All-on-4 implants last?",
+            "a": "The titanium implants can last 20 or more years with proper care; the prosthesis bridge needs replacement after 10 to 15 years, depending on the material and wear. Zirconia outlasts acrylic under heavy biting forces, which is one reason material selection during treatment planning affects long-term outcomes."
+          }
+        ]
+      },
+      "counts": {
+        "toc_links": 9,
+        "process_steps": 5,
+        "faqs": 8
+      }
+    },
+    {
+      "route": "/implant-dentistry/bone-grafting/",
+      "slug": "bone-grafting",
+      "title": "Bone Grafting in Parker, CO",
+      "seoTitle": "Bone Grafting in Parker, CO | Vivid Smiles Dentistry",
+      "seoDescription": "Bone grafting in Parker, CO with Dr. Bryce Richardson — CBCT-guided assessment, socket preservation, ridge augmentation, and sinus lifts that prepare your jaw for dental implants.",
+      "fields": {
+        "toc_links": [
+          {
+            "href": "#why",
+            "label": "Why Vivid Smiles"
+          },
+          {
+            "href": "#what",
+            "label": "What It Is"
+          },
+          {
+            "href": "#implants",
+            "label": "Grafting & Implants"
+          },
+          {
+            "href": "#process",
+            "label": "The Procedure"
+          },
+          {
+            "href": "#types",
+            "label": "Types & Materials"
+          },
+          {
+            "href": "#candidacy",
+            "label": "Who Needs It"
+          },
+          {
+            "href": "#faq",
+            "label": "FAQ"
+          }
+        ],
+        "process_steps": [
+          {
+            "tag": "Step One",
+            "num": "01",
+            "title": "CBCT scan",
+            "body": "Dr. Richardson maps your jaw in 3D to measure bone volume and identify the exact grafting site."
+          },
+          {
+            "tag": "Step Two",
+            "num": "02",
+            "title": "Treatment planning",
+            "body": "A custom approach is designed using digital imaging data before any procedure begins."
+          },
+          {
+            "tag": "Step Three",
+            "num": "03",
+            "title": "Grafting",
+            "body": "Local anesthesia is applied; graft material is placed and secured in a single visit."
+          },
+          {
+            "tag": "Step Four",
+            "num": "04",
+            "title": "Healing",
+            "body": "The graft undergoes osseointegration (gradual fusion with existing bone) over 3 to 6 months."
+          },
+          {
+            "tag": "Step Five",
+            "num": "05",
+            "title": "Implant placement",
+            "body": "Once healing is confirmed, implants are placed with robotic-assisted positioning for precision."
+          }
+        ],
+        "faqs": [
+          {
+            "q": "Is bone grafting painful?",
+            "a": "Bone grafting is performed under local anesthesia, so there is no pain during the procedure. Post-operative discomfort is typically mild and managed with over-the-counter medication.",
+            "open": true
+          },
+          {
+            "q": "How long does it take for a dental bone graft to heal?",
+            "a": "Most grafts require 3 to 6 months to fully integrate with natural bone. Dr. Richardson confirms healing on follow-up imaging before scheduling implant placement."
+          },
+          {
+            "q": "How much does bone grafting cost?",
+            "a": "Cost depends on procedure type, extent of bone loss, and graft material. Contact Vivid Smiles at (303) 841-5313 for an estimate based on your specific case."
+          },
+          {
+            "q": "Can I get a dental implant without bone grafting?",
+            "a": "Yes, some patients have sufficient natural bone and proceed directly to implants without grafting. A CBCT evaluation at Vivid Smiles determines whether grafting is part of your treatment plan."
+          },
+          {
+            "q": "Can implants be placed the same day as a bone graft?",
+            "a": "Same-day placement is possible in select cases but is not the standard approach. Waiting for full graft integration significantly improves long-term implant stability and success."
+          }
+        ]
+      },
+      "counts": {
+        "toc_links": 7,
+        "process_steps": 5,
+        "faqs": 5
+      }
+    },
+    {
+      "route": "/implant-dentistry/full-mouth-dental-implants/",
+      "slug": "full-mouth-dental-implants",
+      "title": "Full Mouth Dental Implants in Parker, CO",
+      "seoTitle": "Full Mouth Dental Implants in Parker, CO | Vivid Smiles Dentistry",
+      "seoDescription": "Full mouth dental implants in Parker, CO with Dr. Bryce Richardson — robotic placement, CBCT planning, four-to-six titanium implants per arch with a fixed bridge. Free consultation.",
+      "fields": {
+        "toc_links": [
+          {
+            "href": "#why",
+            "label": "Why Vivid Smiles"
+          },
+          {
+            "href": "#what",
+            "label": "What They Are"
+          },
+          {
+            "href": "#robotics",
+            "label": "Robotic Placement"
+          },
+          {
+            "href": "#process",
+            "label": "Recovery Timeline"
+          },
+          {
+            "href": "#compare",
+            "label": "Comparison"
+          },
+          {
+            "href": "#candidacy",
+            "label": "Candidacy"
+          },
+          {
+            "href": "#benefits",
+            "label": "Benefits"
+          },
+          {
+            "href": "#cost",
+            "label": "Cost & Financing"
+          },
+          {
+            "href": "#faq",
+            "label": "FAQ"
+          }
+        ],
+        "process_steps": [
+          {
+            "tag": "Days 1 to 3",
+            "num": "01",
+            "title": "Peak swelling & comfort care",
+            "body": "Swelling and mild discomfort peak within the first 48 hours; prescribed medication and soft foods manage symptoms."
+          },
+          {
+            "tag": "Days 4 to 14",
+            "num": "02",
+            "title": "Swelling resolves",
+            "body": "Swelling resolves and the temporary prosthesis allows normal appearance and basic function during early healing."
+          },
+          {
+            "tag": "Months 1 to 3",
+            "num": "03",
+            "title": "Osseointegration begins",
+            "body": "Osseointegration progresses as bone bonds to the implant surface; follow-up appointments confirm healing is on track."
+          },
+          {
+            "tag": "Months 3 to 6",
+            "num": "04",
+            "title": "Final fabrication",
+            "body": "Osseointegration is confirmed through imaging; final impressions and in-house prosthetic fabrication begin."
+          },
+          {
+            "tag": "Final restoration",
+            "num": "05",
+            "title": "Permanent bridge placed",
+            "body": "The permanent bridge is placed and adjusted for bite and comfort, completing treatment."
+          }
+        ],
+        "faqs": [
+          {
+            "q": "How long do full mouth dental implants last?",
+            "a": "Titanium implant posts are designed to be a lifetime solution with consistent hygiene and routine dental care. The prosthetic bridge lasts 15 to 20+ years before evaluation is needed, depending on material and wear.",
+            "open": true
+          },
+          {
+            "q": "Are full mouth dental implants painful?",
+            "a": "Surgery is performed under local anesthesia; sedation is available for patients who prefer added comfort. Most individuals report improvement in discomfort within 48 to 72 hours after surgery."
+          },
+          {
+            "q": "How long does the full mouth implant process take?",
+            "a": "Consultation to final restoration ranges from 4-9 months, depending on whether preparatory procedures are needed. Patients who qualify for immediate loading receive temporary teeth on the day of surgery."
+          },
+          {
+            "q": "What are full mouth dental implants made of?",
+            "a": "Implant posts are titanium, which bonds to bone through osseointegration. The prosthetic bridge is fabricated from zirconia or acrylic; both are milled and finished in-house at Vivid Smiles."
+          },
+          {
+            "q": "What is the difference between All-on-4 and full mouth implants?",
+            "a": "<a class=\"vs-link\" href=\"/implant-dentistry/all-on-4-single-arch/\">All-on-4</a> is a technique using four angled implants per arch to support a full bridge, often without <a class=\"vs-link\" href=\"/implant-dentistry/bone-grafting/\">bone grafting</a>. All-on-X refers to the same approach using four, five, or six implants based on bone anatomy."
+          },
+          {
+            "q": "How do I care for full mouth dental implants?",
+            "a": "Daily brushing, flossing or water flosser use, and routine hygiene appointments maintain the gum tissue around implants, which is the primary vulnerability for long-term implant health. The prosthetic bridge itself cannot decay."
+          }
+        ]
+      },
+      "counts": {
+        "toc_links": 9,
+        "process_steps": 5,
+        "faqs": 6
+      }
+    },
+    {
+      "route": "/implant-dentistry/single-tooth-dental-implants/",
+      "slug": "single-tooth-dental-implants",
+      "title": "Single Tooth Dental Implants in Parker, CO",
+      "seoTitle": "Single Tooth Dental Implants in Parker, CO | Vivid Smiles Dentistry",
+      "seoDescription": "Single tooth dental implants in Parker, CO with Dr. Bryce Richardson — robotic placement, CBCT planning, in-house crown fabrication. Free consultation.",
+      "fields": {
+        "toc_links": [
+          {
+            "href": "#why",
+            "label": "Why Vivid Smiles"
+          },
+          {
+            "href": "#what",
+            "label": "Why Choose Implant"
+          },
+          {
+            "href": "#compare",
+            "label": "Implants vs. Bridges"
+          },
+          {
+            "href": "#process",
+            "label": "The Process"
+          },
+          {
+            "href": "#candidacy",
+            "label": "Candidacy"
+          },
+          {
+            "href": "#benefits",
+            "label": "Benefits"
+          },
+          {
+            "href": "#cost",
+            "label": "Cost & Financing"
+          },
+          {
+            "href": "#faq",
+            "label": "FAQ"
+          }
+        ],
+        "process_steps": [
+          {
+            "tag": "Step One",
+            "num": "01",
+            "title": "Evaluation and CBCT Imaging",
+            "body": "Dr. Richardson uses CBCT imaging at your first consultation to map bone density, nerve locations, and sinus proximity in 3D. This data guides the exact position, depth, and angle of placement before surgery begins."
+          },
+          {
+            "tag": "Step Two",
+            "num": "02",
+            "title": "Robotic Implant Placement",
+            "body": "Vivid Smiles uses robotic guidance during surgery for sub-millimeter precision and less tissue trauma. Dr. Richardson completed 600+ hours of surgical training and served at Implant Pathway, one of the country's top implant training facilities; Vivid Smiles handles this in-house."
+          },
+          {
+            "tag": "Step Three",
+            "num": "03",
+            "title": "Healing and Osseointegration",
+            "body": "After placement, the implant needs 3 to 6 months to fuse with the jawbone through osseointegration. A temporary tooth is available during the healing process. Most individuals return to normal activity within days of surgery, and the full timeline is what makes the implant stable for decades."
+          },
+          {
+            "tag": "Step Four",
+            "num": "04",
+            "title": "Custom Crown Design and Placement",
+            "body": "The final crown is designed with digital impressions, milled in-house, and custom-shaded to match surrounding teeth. The implant post is permanent; the crown needs replacement after 10 to 15 years of normal wear."
+          }
+        ],
+        "faqs": [
+          {
+            "q": "Are dental implants painful?",
+            "a": "The procedure uses local anesthesia, and robotic placement minimizes tissue trauma and post-surgical soreness. Most patients can manage discomfort with over-the-counter pain relief for a few days.",
+            "open": true
+          },
+          {
+            "q": "Do dental implants look natural?",
+            "a": "Each crown is custom-shaded to match surrounding teeth using digital impressions and in-house milling; most patients cannot tell the implant apart from their natural teeth."
+          },
+          {
+            "q": "What is the success rate of single tooth implants?",
+            "a": "Single tooth implants have a documented success rate of 95 to 98 percent when placed in adequate bone. Placement before a thorough CBCT imaging is the most important predictor of a successful long-term outcome."
+          },
+          {
+            "q": "How long do dental implants last?",
+            "a": "The titanium post can last a lifetime with consistent oral hygiene and regular checkups. The crown placed on top needs replacement after 10 to 15 years of normal wear."
+          },
+          {
+            "q": "Can I eat normally with a dental implant?",
+            "a": "Once integrated and the final crown is in place, there are no dietary restrictions. Single tooth implants handle the same biting and chewing forces as natural teeth."
+          },
+          {
+            "q": "How much does a single tooth dental implant cost?",
+            "a": "Cost depends on bone volume, crown material, and whether grafting is required. A consultation at Vivid Smiles includes a personalized estimate based on your case."
+          },
+          {
+            "q": "How long does a single tooth implant take from start to finish?",
+            "a": "From consultation to final crown, the process takes 4 to 8 months, with osseointegration taking up most of that time. The surgical appointment itself takes about one hour."
+          },
+          {
+            "q": "Can I get an implant if I have bone loss?",
+            "a": "<a class=\"vs-link\" href=\"/implant-dentistry/bone-grafting/\">Bone grafting</a> or a <a class=\"vs-link\" href=\"/implant-dentistry/sinus-lift/\">sinus lift</a> can restore needed volume, and both are performed in-house at Vivid Smiles. Your first CBCT scan confirms whether grafting is part of your plan."
+          }
+        ]
+      },
+      "counts": {
+        "toc_links": 8,
+        "process_steps": 4,
+        "faqs": 8
+      }
+    },
+    {
+      "route": "/implant-dentistry/sinus-lift/",
+      "slug": "sinus-lift",
+      "title": "Sinus Lift Procedure in Parker, CO",
+      "seoTitle": "Sinus Lift Procedure in Parker, CO | Vivid Smiles Dentistry",
+      "seoDescription": "Sinus lift in Parker, CO with Dr. Bryce Richardson — CBCT imaging, robotic implant placement, and 600-plus hours of advanced surgical training. Schedule a free consultation.",
+      "fields": {
+        "toc_links": [
+          {
+            "href": "#why",
+            "label": "Why Vivid Smiles"
+          },
+          {
+            "href": "#what",
+            "label": "What It Is"
+          },
+          {
+            "href": "#process",
+            "label": "The Procedure"
+          },
+          {
+            "href": "#alternatives",
+            "label": "Alternatives"
+          },
+          {
+            "href": "#technology",
+            "label": "Technology"
+          },
+          {
+            "href": "#investment",
+            "label": "Cost & Insurance"
+          },
+          {
+            "href": "#faq",
+            "label": "FAQ"
+          }
+        ],
+        "process_steps": [
+          {
+            "tag": "Step One",
+            "num": "01",
+            "title": "Anesthesia",
+            "body": "Local anesthesia is standard; sedation is available for patients who prefer a relaxed experience."
+          },
+          {
+            "tag": "Step Two",
+            "num": "02",
+            "title": "Incision and access",
+            "body": "A small gum incision exposes the bone above the sinus, and the sinus membrane is gently lifted to create space beneath it."
+          },
+          {
+            "tag": "Step Three",
+            "num": "03",
+            "title": "Bone graft placement",
+            "body": "Graft material (synthetic, bovine, or the patient's own bone) is packed into the space beneath the membrane."
+          },
+          {
+            "tag": "Step Four",
+            "num": "04",
+            "title": "Closure and healing",
+            "body": "Sutures close the incision; bone integration takes 4 to 6 months before implants are placed. Simultaneous implant placement is possible when adequate existing bone is present."
+          }
+        ],
+        "faqs": [
+          {
+            "q": "How much does a sinus lift cost?",
+            "a": "Costs vary based on graft material, sedation, and whether implants are placed at the same time. Vivid Smiles provides an itemized estimate after reviewing your CBCT scan.",
+            "open": true
+          },
+          {
+            "q": "What is the downside of a sinus lift?",
+            "a": "The main downsides are the 4-to-6-month healing period before implant placement and a small risk of sinus membrane perforation. Precise 3D imaging and experienced technique reduce that risk substantially."
+          },
+          {
+            "q": "Is a sinus lift covered by insurance?",
+            "a": "Dental insurance may cover a portion when documented as medically necessary for implant success. Some medical plans also contribute when sinus pathology is present."
+          },
+          {
+            "q": "How often do sinus lifts fail?",
+            "a": "Published success rates consistently exceed 95% when performed by trained surgeons using appropriate graft material. Patient compliance is the other key variable."
+          },
+          {
+            "q": "How long does a sinus lift take to heal?",
+            "a": "Full bone integration takes 4 to 6 months. Patients with adequate existing bone may qualify for simultaneous implant placement, condensing the timeline."
+          }
+        ]
+      },
+      "counts": {
+        "toc_links": 7,
+        "process_steps": 4,
+        "faqs": 5
+      }
+    },
+    {
+      "route": "/new-patients/",
+      "slug": "new-patients",
+      "title": "New Patients in Parker, CO",
+      "seoTitle": "New Patients in Parker, CO | Vivid Smiles Dentistry",
+      "seoDescription": "",
+      "fields": {
+        "faqs": [
+          {
+            "q": "Do I Really Need to Floss?",
+            "a": "Absolutely! Flossing removes plaque and food particles from between your teeth where a toothbrush can't reach. It's essential for preventing cavities and gum disease, ensuring a healthy smile.",
+            "open": true
+          },
+          {
+            "q": "What Are Dental Implants?",
+            "a": "Dental implants are a durable, natural-looking solution for missing teeth. They act as replacement tooth roots, providing a strong foundation for crowns or bridges and preserving your jawbone."
+          },
+          {
+            "q": "How Long Does It Take to Get a Crown Done?",
+            "a": "At Vivid Smiles Dentistry, we use advanced technology to create your custom porcelain crown in just one visit. By taking a precise digital scan of your tooth, we design and shape your crown to ensure a perfect fit. Once the design is complete, we craft the crown on-site and bond it to your tooth, giving you a strong, natural-looking result in a single day!"
+          },
+          {
+            "q": "Can Children See a General Dentist?",
+            "a": "Definitely! A general dentist is equipped to care for patients of all ages, including children. From routine cleanings to keeping track of their dental development, we'll make sure your child's smile stays healthy and strong as they grow."
+          },
+          {
+            "q": "What is Teeth Whitening?",
+            "a": "Teeth whitening is a safe, simple way to brighten your smile by removing stains and discoloration. At Vivid Smiles Dentistry, we offer both in-office and take-home options for stunning, quick results."
+          },
+          {
+            "q": "Does Whitening Damage My Teeth?",
+            "a": "No, professional teeth whitening is safe when done correctly. At Vivid Smiles Dentistry, we use gentle yet effective whitening systems that remove stains without harming your enamel, leaving your teeth looking brighter and healthier."
+          },
+          {
+            "q": "How Can I Improve My Smile?",
+            "a": "Improving your smile can be as simple as whitening your teeth, straightening them with Invisalign, or fixing imperfections with veneers. Dr. Richardson and the team at Vivid Smiles Dentistry will help you create a personalized plan to achieve the smile you've always wanted!"
+          },
+          {
+            "q": "What is Periodontal Disease?",
+            "a": "Periodontal disease, or gum disease, is an infection of the gums that can lead to serious issues like tooth loss if left untreated. At Vivid Smiles Dentistry, we offer advanced treatments, including scaling and root planing to deep clean below the gumline, and laser therapy to target infection and promote healing. With consistent care and good oral hygiene, gum health can be restored and maintained."
+          }
+        ]
+      },
+      "counts": {
+        "faqs": 8
+      }
+    },
+    {
+      "route": "/our-office/",
+      "slug": "our-office",
+      "title": "Our Office in Parker, CO",
+      "seoTitle": "Our Office in Parker, CO | Vivid Smiles Dentistry",
+      "seoDescription": "",
+      "fields": {
+        "faqs": [
+          {
+            "q": "Where do I park?",
+            "a": "There is free, on-site parking directly in front of the building at 17167 Cedar Gulch Pkwy, Suite 102. Accessible spaces are nearest the entrance. Our suite is on the ground floor — no stairs.",
+            "open": true
+          },
+          {
+            "q": "Is the office accessible?",
+            "a": "Yes — our suite is on the ground floor with no stairs to navigate. Accessible parking spaces sit nearest the entrance, and our doorways and operatory hallways are wide enough to move through comfortably."
+          },
+          {
+            "q": "What does the office feel like inside?",
+            "a": "Calm, modern, and unhurried — designed to feel more like a wellness studio than a dental clinic. Our lounge features a neon Vivid Smiles sign and natural light from the storefront windows."
+          },
+          {
+            "q": "What should I bring to my first visit?",
+            "a": "A photo ID, your insurance card if you have one, and a list of any medications you take. <a href=\"/new-patients/\">Our new-patients page</a> has the full first-visit guide, including what to expect during the consultation."
+          }
+        ]
+      },
+      "counts": {
+        "faqs": 4
+      }
+    },
+    {
+      "route": "/patient-testimonials/",
+      "slug": "patient-testimonials",
+      "title": "Patient Testimonials",
+      "seoTitle": "Patient Testimonials — Vivid Smiles Dentistry · Parker, CO",
+      "seoDescription": "Real patient stories and Google reviews from Vivid Smiles Dentistry. Watch James, Chanel, and Josh share their All-On-X transformations, and read 5-star reviews from patients across Parker, CO.",
+      "fields": {},
+      "counts": {}
+    },
+    {
+      "route": "/privacy-policy/",
+      "slug": "privacy-policy",
+      "title": "Privacy Policy",
+      "seoTitle": "Privacy Policy — Vivid Smiles Dentistry",
+      "seoDescription": "Vivid Smiles Dentistry's combined HIPAA Notice of Privacy Practices and website privacy policy — how we collect, use, share, and protect your information, and the rights you have over it.",
+      "fields": {
+        "toc_links": [
+          {
+            "href": "#intro",
+            "label": "1. Introductory notice"
+          },
+          {
+            "href": "#practice",
+            "label": "2. Practice covered"
+          },
+          {
+            "href": "#privacy-official",
+            "label": "3. Privacy official"
+          },
+          {
+            "href": "#promise",
+            "label": "4. Our promise"
+          },
+          {
+            "href": "#revised",
+            "label": "5. Last revision date"
+          },
+          {
+            "href": "#uses",
+            "label": "6. Uses & disclosures"
+          },
+          {
+            "href": "#authorization",
+            "label": "7. Written authorization"
+          },
+          {
+            "href": "#rights",
+            "label": "8. Your rights"
+          },
+          {
+            "href": "#special",
+            "label": "9. Special protections"
+          },
+          {
+            "href": "#changes",
+            "label": "10. Changes to practices"
+          },
+          {
+            "href": "#complaints",
+            "label": "11. Privacy complaints"
+          },
+          {
+            "href": "#definitions",
+            "label": "12. Definitions"
+          },
+          {
+            "href": "#personal-data",
+            "label": "13. Personal data"
+          },
+          {
+            "href": "#security",
+            "label": "14. Data security"
+          },
+          {
+            "href": "#processing",
+            "label": "15. Data processing"
+          },
+          {
+            "href": "#children",
+            "label": "16. Children's policy"
+          },
+          {
+            "href": "#third-party",
+            "label": "17. Links to other sites"
+          },
+          {
+            "href": "#policy-changes",
+            "label": "18. Policy changes"
+          },
+          {
+            "href": "#contact-us",
+            "label": "19. Contact us"
+          }
+        ]
+      },
+      "counts": {
+        "toc_links": 19
+      }
+    },
+    {
+      "route": "/referral-program/",
+      "slug": "referral-program",
+      "title": "Referral Program",
+      "seoTitle": "Referral Program — Vivid Smiles Dentistry",
+      "seoDescription": "",
+      "fields": {
+        "faqs": [
+          {
+            "q": "Do I need to be an existing patient to refer someone?",
+            "a": "Yes — this program is exclusively for our current patients referring new patients.",
+            "open": true
+          },
+          {
+            "q": "When will I receive my referral credit?",
+            "a": "Your credit will be applied once your referred friend completes their first appointment."
+          },
+          {
+            "q": "Is there a limit to how many people I can refer?",
+            "a": "Yes — only one credit per household can be applied. If you refer multiple people from the same home, only one will be eligible for the $50 credit."
+          },
+          {
+            "q": "Can I cash out my credit or transfer it to someone else?",
+            "a": "No — referral credits are non-cashable and non-transferable. They must be used toward future dental services."
+          }
+        ]
+      },
+      "counts": {
+        "faqs": 4
+      }
+    },
+    {
+      "route": "/services/",
+      "slug": "services",
+      "title": "Services in Parker, CO",
+      "seoTitle": "Services in Parker, CO | Vivid Smiles Dentistry",
+      "seoDescription": "Cosmetic, implant, and family dentistry in Parker, CO with Dr. Bryce Richardson. Explore veneers, clear aligners, dental implants, full-mouth rehabilitation, and same-day emergency care.",
+      "fields": {
+        "faqs": [
+          {
+            "q": "How do I know which service is right for me?",
+            "a": "You don't need to. The first visit is a conversation — what you want changed, what's bothering you, what you'd want a smile to do. From there we build a plan that may pull from one service or several. Many cosmetic patients also want their general care under the same roof, and that's by design.",
+            "open": true
+          },
+          {
+            "q": "What does a consultation cost?",
+            "a": "An initial cosmetic or implant consultation with Dr. Richardson is complimentary. If imaging is needed for an accurate plan, we'll let you know up front. New-patient general exams are billed to your insurance where applicable, with a clear out-of-pocket estimate before the visit."
+          },
+          {
+            "q": "Do you offer financing or a membership plan?",
+            "a": "Yes — both. We accept most major dental insurance and offer third-party financing for cosmetic and implant work. For uninsured patients we run an in-house Vivid Smiles Membership Plan that covers preventive visits and discounts treatment. A patient coordinator walks through the numbers before any plan is locked in."
+          },
+          {
+            "q": "Do you treat patients flying in from out of state?",
+            "a": "Roughly a third of our cosmetic and full-arch caseload comes from out of state. We coordinate scans and planning ahead of arrival, schedule treatment in compressed visits, and partner with a local hotel for stays. Send a few photos through the virtual consult to start the conversation before you book travel."
+          },
+          {
+            "q": "How long does a typical treatment take?",
+            "a": "It depends on the service. <a class=\"vs-link\" href=\"/cosmetic-dentistry/teeth-whitening/\">Whitening</a> can be one visit. <a class=\"vs-link\" href=\"/cosmetic-dentistry/porcelain-veneers/\">Veneers</a> are usually two to three visits over four to six weeks. A <a class=\"vs-link\" href=\"/implant-dentistry/single-tooth-dental-implants/\">single-tooth implant</a> takes a few months end to end (most of which is healing, not chair time). <a class=\"vs-link\" href=\"/implant-dentistry/all-on-4-single-arch/\">All-on-4</a> cases place fixed teeth in a single day. We give you an honest timeline at the planning stage."
+          },
+          {
+            "q": "What happens if I'm in pain right now?",
+            "a": "Call us — we hold same-day spots every day for emergencies: toothache, swelling, a broken or lost crown, trauma. If we can't see you in the office today, we'll triage by phone and get you started on the right next step."
+          }
+        ]
+      },
+      "counts": {
+        "faqs": 6
+      }
+    },
+    {
+      "route": "/smile-gallery/",
+      "slug": "smile-gallery",
+      "title": "Smile Gallery",
+      "seoTitle": "Smile Gallery — Vivid Smiles Dentistry · Parker, CO",
+      "seoDescription": "Finished smiles from Dr. Bryce Richardson at Vivid Smiles Dentistry in Parker, CO. Porcelain veneers, smile makeovers and full-arch restorations, photographed up close.",
+      "fields": {},
+      "counts": {}
+    },
+    {
+      "route": "/terms-conditions/",
+      "slug": "terms-conditions",
+      "title": "Terms & Conditions",
+      "seoTitle": "Terms & Conditions — Vivid Smiles Dentistry",
+      "seoDescription": "The terms and conditions governing your use of the Vivid Smiles Dentistry website — rights, obligations, account terms, returns, SMS messaging, and contact information.",
+      "fields": {
+        "toc_links": [
+          {
+            "href": "#interpretation",
+            "label": "1. Interpretation & definitions"
+          },
+          {
+            "href": "#acknowledgement",
+            "label": "2. Acknowledgement"
+          },
+          {
+            "href": "#orders",
+            "label": "3. Placing orders"
+          },
+          {
+            "href": "#your-info",
+            "label": "4. Your information"
+          },
+          {
+            "href": "#order-cancel",
+            "label": "5. Order cancellation"
+          },
+          {
+            "href": "#cancel-rights",
+            "label": "6. Cancellation rights"
+          },
+          {
+            "href": "#prices",
+            "label": "7. Prices policy"
+          },
+          {
+            "href": "#payments",
+            "label": "8. Payments"
+          },
+          {
+            "href": "#promotions",
+            "label": "9. Promotions"
+          },
+          {
+            "href": "#accounts",
+            "label": "10. User accounts"
+          },
+          {
+            "href": "#ip",
+            "label": "11. Intellectual property"
+          },
+          {
+            "href": "#feedback",
+            "label": "12. Your feedback"
+          },
+          {
+            "href": "#third-party",
+            "label": "13. Links to other sites"
+          },
+          {
+            "href": "#termination",
+            "label": "14. Termination"
+          },
+          {
+            "href": "#liability",
+            "label": "15. Limitation of liability"
+          },
+          {
+            "href": "#as-is",
+            "label": "16. “As is” disclaimer"
+          },
+          {
+            "href": "#governing-law",
+            "label": "17. Governing law"
+          },
+          {
+            "href": "#disputes",
+            "label": "18. Disputes resolution"
+          },
+          {
+            "href": "#severability",
+            "label": "19. Severability & waiver"
+          },
+          {
+            "href": "#translation",
+            "label": "20. Translation"
+          },
+          {
+            "href": "#changes",
+            "label": "21. Changes to terms"
+          },
+          {
+            "href": "#sms",
+            "label": "22. SMS messaging"
+          },
+          {
+            "href": "#contact-us",
+            "label": "23. Contact us"
+          }
+        ]
+      },
+      "counts": {
+        "toc_links": 23
+      }
+    },
+    {
+      "route": "/thank-you/",
+      "slug": "thank-you",
+      "title": "Thank you",
+      "seoTitle": "Thank you — Vivid Smiles Dentistry",
+      "seoDescription": "We've received your request. Here's what happens next at Vivid Smiles Dentistry in Parker, CO.",
+      "fields": {},
+      "counts": {}
+    },
+    {
+      "route": "/veneers-lp/",
+      "slug": "veneers-lp",
+      "title": "Veneers Lp",
+      "seoTitle": "",
+      "seoDescription": "",
+      "fields": {
+        "faqs": [
+          {
+            "q": "How much do veneers cost?",
+            "a": "Every smile is different, so your exact price depends on how many veneers you need and your goals — and that's exactly what the free consult gives you: a personalized plan and your precise cost, with no surprises and no obligation. Veneers can be financed.",
+            "open": true
+          },
+          {
+            "q": "Will getting veneers hurt?",
+            "a": "Comfort is a priority at every visit. Most patients are surprised how easy the veneer process is, and Dr. Richardson will walk you through exactly what to expect for your specific plan before anything begins.",
+            "open": false
+          },
+          {
+            "q": "Do you have to grind my teeth down?",
+            "a": "No — Dr. Richardson uses a <em>minimal-prep</em> approach, preserving as much of your natural tooth as possible. His veneers are designed to look natural and balanced, never bulky or fake.",
+            "open": false
+          },
+          {
+            "q": "How long do veneers last?",
+            "a": "With routine checkups and good care, quality porcelain veneers can last well over a decade. And our work is backed by a written warranty — maintain your checkups and if something breaks, we'll fix it.",
+            "open": false
+          },
+          {
+            "q": "What if I don't love my new smile?",
+            "a": "Your veneers are designed <em>with</em> you before any permanent work begins, so there are no surprises — and our work is backed by a written warranty. If something isn't right, we make it right.",
+            "open": false
+          },
+          {
+            "q": "Am I a candidate for veneers?",
+            "a": "Most healthy adults are. The fastest way to know for sure is a free consult — share a photo of your smile and Dr. Richardson will tell you exactly what's possible for you.",
+            "open": false
+          }
+        ]
+      },
+      "counts": {
+        "faqs": 6
+      }
+    }
+  ]
+}

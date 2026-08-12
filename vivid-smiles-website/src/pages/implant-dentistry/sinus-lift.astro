@@ -17,54 +17,18 @@ import whatImg from '../../assets/images/procedures/sinus-lift-cross-section-dia
 // #technology — the Yomi placement, which is tech-list item 03.
 import yomiImg from '../../assets/images/procedures/dr-richardson-performing-yomi-guided-implant-surgery.webp';
 import drRichardsonImg from '../../assets/images/team/dr-bryce-richardson.webp';
+import { getPageContent } from '../../lib/page-content';
 
 // Gallery pulls dynamically from src/assets/images/smiles/ via the
 // central loader. Doubled for seamless marquee loop.
 const galleryTiles = getSmiles();
 const galleryTrack = [...galleryTiles, ...galleryTiles];
 
-const tocLinks = [
-  { href: '#why', label: 'Why Vivid Smiles' },
-  { href: '#what', label: 'What It Is' },
-  { href: '#process', label: 'The Procedure' },
-  { href: '#alternatives', label: 'Alternatives' },
-  { href: '#technology', label: 'Technology' },
-  { href: '#investment', label: 'Cost & Insurance' },
-  { href: '#faq', label: 'FAQ' },
-];
-
 const causeCards = [
   { tag: 'Most common', title: 'Upper back tooth loss' },
   { tag: 'Cause', title: 'Periodontal disease' },
   { tag: 'Cause', title: 'Long-term denture wear' },
   { tag: 'Cause', title: 'Naturally thin sinus anatomy' },
-];
-
-const processSteps = [
-  {
-    tag: 'Step One',
-    num: '01',
-    title: 'Anesthesia',
-    body: 'Local anesthesia is standard; sedation is available for patients who prefer a relaxed experience.',
-  },
-  {
-    tag: 'Step Two',
-    num: '02',
-    title: 'Incision and access',
-    body: 'A small gum incision exposes the bone above the sinus, and the sinus membrane is gently lifted to create space beneath it.',
-  },
-  {
-    tag: 'Step Three',
-    num: '03',
-    title: 'Bone graft placement',
-    body: "Graft material (synthetic, bovine, or the patient's own bone) is packed into the space beneath the membrane.",
-  },
-  {
-    tag: 'Step Four',
-    num: '04',
-    title: 'Closure and healing',
-    body: 'Sutures close the incision; bone integration takes 4 to 6 months before implants are placed. Simultaneous implant placement is possible when adequate existing bone is present.',
-  },
 ];
 
 const alternatives = [
@@ -118,29 +82,11 @@ const costBullets = [
   },
 ];
 
-const faqs = [
-  {
-    q: 'How much does a sinus lift cost?',
-    a: 'Costs vary based on graft material, sedation, and whether implants are placed at the same time. Vivid Smiles provides an itemized estimate after reviewing your CBCT scan.',
-    open: true,
-  },
-  {
-    q: 'What is the downside of a sinus lift?',
-    a: 'The main downsides are the 4-to-6-month healing period before implant placement and a small risk of sinus membrane perforation. Precise 3D imaging and experienced technique reduce that risk substantially.',
-  },
-  {
-    q: 'Is a sinus lift covered by insurance?',
-    a: 'Dental insurance may cover a portion when documented as medically necessary for implant success. Some medical plans also contribute when sinus pathology is present.',
-  },
-  {
-    q: 'How often do sinus lifts fail?',
-    a: 'Published success rates consistently exceed 95% when performed by trained surgeons using appropriate graft material. Patient compliance is the other key variable.',
-  },
-  {
-    q: 'How long does a sinus lift take to heal?',
-    a: 'Full bone integration takes 4 to 6 months. Patients with adequate existing bone may qualify for simultaneous implant placement, condensing the timeline.',
-  },
-];
+// tocLinks, processSteps, faqs are edited in WordPress (Pages -> Sinus Lift Procedure in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname);
+
 ---
 
 <BaseLayout
