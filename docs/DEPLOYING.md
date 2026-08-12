@@ -32,7 +32,7 @@ Verified live on 2026-08-13.
 | Install command | `cd vivid-smiles-website && npm install` (from `vercel.json`) |
 | Build command | `cd vivid-smiles-website && npm run build` (from `vercel.json`) |
 | Output directory | `vivid-smiles-website/dist` (from `vercel.json`) |
-| Environment variable | `WP_GRAPHQL_ENDPOINT` — Production and Preview |
+| Environment variable | `WP_GRAPHQL_ENDPOINT` — Production, Preview and Development |
 | WordPress | `https://1230613.us28.myftpupload.com` — GoDaddy Managed WordPress, temporary hostname |
 
 The local CLI link lives in `vivid-smiles-website/.vercel/project.json`
@@ -57,13 +57,17 @@ cannot drift apart unnoticed.
 
 | Name | Value | Environments |
 | --- | --- | --- |
-| `WP_GRAPHQL_ENDPOINT` | `https://1230613.us28.myftpupload.com/graphql` | Production, Preview |
+| `WP_GRAPHQL_ENDPOINT` | `https://1230613.us28.myftpupload.com/graphql` | Production, Preview, Development |
 
 This is the only variable the build needs. Without it the build fails
 immediately with a message naming the fix, rather than publishing an empty site.
 
 It is set for Preview as well as Production, so a branch or pull-request preview
 builds against the same live WordPress content.
+
+A third copy exists for Development. Production and Preview are marked Sensitive,
+so the dashboard will not display their values; only Development can be read
+back. Verified in the dashboard on 2026-08-13.
 
 Change it to `https://cms.vividsmilesdentistry.com/graphql` when the CMS moves to
 its permanent hostname, and add that hostname to `image.remotePatterns` in
@@ -78,9 +82,10 @@ not on that list fails every image in the build.
 `vivid-smiles-website/.nvmrc` says `22`. **Neither of those reaches Vercel.**
 Vercel reads `.nvmrc` from the repository root, and there is none there;
 `vercel.json` sets no `nodeVersion`. The build uses whatever the project's
-dashboard Node setting is. Builds are succeeding, so the current setting is
-compatible — but nothing in the repository enforces that, and this is the first
-thing to check if a build ever fails on a Node API rather than on content.
+dashboard Node setting is. Read back on 2026-08-13: **24.x**, which satisfies
+`engines` — but nothing in the repository enforces that, a change made in the
+dashboard would not appear in a diff, and this is the first thing to check if a
+build ever fails on a Node API rather than on content.
 
 ### How a deploy happens
 
@@ -112,6 +117,12 @@ Verified live: `https://1230613.us28.myftpupload.com/` and
 `https://1230613.us28.myftpupload.com/about-us/` both 302 to the matching path
 on `https://vivid-smiles-headless.vercel.app`, and the CMS `robots.txt` is
 `Disallow: /`.
+
+**The redirect is deliberately skipped for signed-in users.** `redirect_frontend()`
+in `vs-headless.php` returns early on `is_user_logged_in()` so an editor can
+preview a draft. A browser logged into wp-admin therefore gets the WordPress theme
+rather than a 302 — test anonymously, or in a private window, before concluding
+the redirect has broken.
 
 **`/sitemap_index.xml`, `/page-sitemap.xml` and `/post-sitemap.xml` are not
 redirected** and return 200 on the CMS hostname. That is required — the Astro
