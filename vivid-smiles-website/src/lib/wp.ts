@@ -17,8 +17,8 @@ const ENDPOINT = import.meta.env.WP_GRAPHQL_ENDPOINT;
 /** How long a single GraphQL request may take before the build gives up. */
 const TIMEOUT_MS = 20_000;
 
-/** Retries for transient failures (network reset, 502 from a sleeping host). */
-const MAX_ATTEMPTS = 3;
+/** Retries for transient failures (network reset, 502, or a CDN challenge). */
+const MAX_ATTEMPTS = 5;
 
 export class WordPressError extends Error {
   constructor(message: string, options?: { cause?: unknown }) {
@@ -68,11 +68,24 @@ export async function wpQuery<T>(
       });
 
       if (!res.ok) {
-        // 4xx is a misconfiguration (wrong URL, auth, disabled plugin) and will
-        // not fix itself — retrying only slows the build down. 5xx might.
         const body = await res.text().catch(() => "");
         const message = `WPGraphQL ${label} failed: HTTP ${res.status} ${res.statusText}. ${body.slice(0, 300)}`;
 
+        // 429 is retryable here, unlike most 4xx. The CMS sits behind
+        // Cloudflare, which answers a bot challenge with 429 and an HTML
+        // interstitial ("Just a moment..."). It is transient and clears on a
+        // slower retry — treating it as permanent failed the build on the first
+        // page render even though every earlier query had succeeded.
+        if (res.status === 429) {
+          const after = Number(res.headers.get("retry-after"));
+          throw Object.assign(new WordPressError(message), {
+            retryable: true,
+            retryAfterMs: Number.isFinite(after) && after > 0 ? after * 1000 : undefined,
+          });
+        }
+
+        // Other 4xx is a misconfiguration (wrong URL, auth, disabled plugin) and
+        // will not fix itself — retrying only slows the build down. 5xx might.
         if (res.status < 500) throw new WordPressError(message);
         throw Object.assign(new WordPressError(message), { retryable: true });
       }
@@ -106,7 +119,10 @@ export async function wpQuery<T>(
 
       if (!retryable || attempt === MAX_ATTEMPTS) break;
 
-      await sleep(attempt * 750);
+      // Honour Retry-After when the CDN sends one; otherwise back off
+      // quadratically. A challenge needs real time to clear, not 750ms.
+      const hinted = (error as { retryAfterMs?: number }).retryAfterMs;
+      await sleep(hinted ?? attempt * attempt * 1500);
     } finally {
       clearTimeout(timer);
     }

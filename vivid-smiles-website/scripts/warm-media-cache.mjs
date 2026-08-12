@@ -37,9 +37,19 @@ if (!endpoint) {
   process.exit(0);
 }
 
-/** Requests in flight. Low on purpose — the origin is the fragile part. */
-const CONCURRENCY = 4;
-const MAX_ATTEMPTS = 4;
+/**
+ * Requests in flight. Low on purpose.
+ *
+ * The constraint is not origin capacity — it is Cloudflare's bot protection,
+ * which challenges a burst from one IP with 429 and an HTML interstitial. That
+ * challenge then applies to the GraphQL requests the build makes AFTER this
+ * step, so warming too fast fails the build somewhere unrelated.
+ */
+const CONCURRENCY = 3;
+const MAX_ATTEMPTS = 5;
+
+/** Pause after warming, to let any rate-limit window roll off before Astro starts. */
+const SETTLE_MS = 3000;
 
 const MEDIA_QUERY = /* GraphQL */ `
   query Media($first: Int!, $after: String) {
@@ -101,7 +111,7 @@ async function warm(url) {
 
       if (res.status === 429 || res.status >= 500) {
         // Exponential backoff — the whole point is to stop hammering.
-        await sleep(attempt * 1500);
+        await sleep(attempt * attempt * 1500);
         continue;
       }
 
@@ -145,6 +155,8 @@ const summary = [...tally.entries()].map(([k, v]) => `${k}=${v}`).join(" ");
 const seconds = ((Date.now() - started) / 1000).toFixed(1);
 
 console.log(`[warm-media] ${urls.length} files in ${seconds}s — ${summary}`);
+
+await sleep(SETTLE_MS);
 
 const failed = tally.get("FAILED") ?? 0;
 if (failed) {
