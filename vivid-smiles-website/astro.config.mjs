@@ -3,9 +3,20 @@ import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import yoastSitemap from './src/integrations/yoast-sitemap';
 
+// The origin every absolute URL is built from: the canonical tags, and the
+// <loc> entries yoast-sitemap.ts rewrites Yoast's XML onto. It has to match
+// the host the front end is actually served from, or the sitemap advertises
+// a domain that isn't live. Derived from the deployment rather than hardcoded
+// so it follows the domain cutover without a code change: SITE_URL as an
+// explicit override, then the Vercel project's production hostname, then the
+// current front end URL as the local/dev fallback.
+const FRONT_END_URL = 'https://vivid-smiles-headless.vercel.app';
+const vercelHost = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+const site = process.env.SITE_URL ?? (vercelHost ? 'https://' + vercelHost : FRONT_END_URL);
+
 // https://astro.build/config
 export default defineConfig({
-  site: 'https://vividsmilesdentistry.com',
+  site,
   trailingSlash: 'always',
   integrations: [
     sitemap({
