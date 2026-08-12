@@ -11,6 +11,7 @@ import '../../styles/pages/smile-gallery.css';
 // into the grid below, so a hero drawn from it would put the same photograph
 // on this page twice.
 import heroImg from '../../assets/images/procedures/smile-three-quarter-glossy-lip.webp';
+import { getPageContent } from '../../lib/page-content';
 
 /*
  * Photo-only catalog of finished work. Tiles deliberately carry NO treatment
@@ -32,6 +33,9 @@ const cases = smiles.map((s, i) => ({ ...s, num: String(i + 1).padStart(2, '0') 
 const lightboxSrcs = await Promise.all(
   cases.map((c) => getImage({ src: c.src, width: 1280, format: 'webp' }).then((g) => g.src)),
 );
+// Section copy is edited in WordPress (Pages -> this page -> Section copy).
+const { section } = await getPageContent(Astro.url.pathname);
+
 ---
 
 <BaseLayout
@@ -93,12 +97,9 @@ const lightboxSrcs = await Promise.all(
       <section class="section" id="gallery">
         <div class="wrap">
           <div class="section-head" data-vs-reveal>
-            <span class="eyebrow">The Portfolio</span>
-            <h2>Every smile, built like <em>a signature piece.</em></h2>
-            <p>
-              These are the smiles we have made, up close and unhurried, the way they look when the
-              work is done. Click any photo to see it full-size.
-            </p>
+            <span class="eyebrow">{section("gallery").eyebrow}</span>
+            <h2><Fragment set:html={section("gallery").heading} /></h2>
+            <p>{section("gallery").body}</p>
           </div>
 
           <div class="gallery-meta" data-vs-reveal>

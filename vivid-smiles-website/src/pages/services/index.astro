@@ -143,7 +143,7 @@ const allServices = [...cosmeticServices, ...implantServices, ...everydayService
 // faqs is edited in WordPress (Pages -> Services in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { faqs } = await getPageContent(Astro.url.pathname);
+const { faqs, section } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -170,13 +170,9 @@ const { faqs } = await getPageContent(Astro.url.pathname);
       <section class="section alt" id="cosmetic" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Cosmetic Dentistry · Specialty</span>
-            <h2>Where artistry meets <em>esthetic dentistry.</em></h2>
-            <p>
-              Smile design is our signature work. Cases are previewed facially before treatment
-              begins — calibrated to your features, not a template — and finished at a specialist
-              lab so every margin holds up under close inspection.
-            </p>
+            <span class="eyebrow">{section("cosmetic").eyebrow}</span>
+            <h2><Fragment set:html={section("cosmetic").heading} /></h2>
+            <p>{section("cosmetic").body}</p>
             <div class="cta-row in-head">
               <div class="cta-buttons">
                 <Button variant="light" href="/cosmetic-dentistry/" hoverLabel="See All"
@@ -219,17 +215,8 @@ const { faqs } = await getPageContent(Astro.url.pathname);
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow light">Implant Dentistry · Yomi-Certified</span>
-            <h2>Replace what's missing <em>with sub-millimeter accuracy.</em></h2>
-            <p>
-              Yomi robot-assisted implant placement, planned with 3D CBCT imaging and executed
-              through smaller incisions and faster recovery. From a
-              <a class="vs-link" href="/implant-dentistry/single-tooth-dental-implants/"
-                >single tooth</a
-              >
-              to a <a class="vs-link" href="/implant-dentistry/all-on-4-single-arch/"
-                >full arch in a day</a
-              > — every case is sequenced from the finished smile backward.
-            </p>
+            <h2><Fragment set:html={section("implants").heading} /></h2>
+            <p>{section("implants").body}</p>
             <div class="cta-row in-head">
               <div class="cta-buttons">
                 <Button variant="light" href="/implant-dentistry/" hoverLabel="See All"
@@ -272,13 +259,9 @@ const { faqs } = await getPageContent(Astro.url.pathname);
       <section class="section" id="everyday" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Everyday &amp; Same-Day</span>
-            <h2>When life happens, <em>we're here.</em></h2>
-            <p>
-              Six-month cleanings keep things quiet. The rest of life — a chipped tooth on a
-              Tuesday, a crown that came loose before a flight — gets a same-day chair. We hold
-              spots open every day for it.
-            </p>
+            <span class="eyebrow">{section("everyday").eyebrow}</span>
+            <h2><Fragment set:html={section("everyday").heading} /></h2>
+            <p>{section("everyday").body}</p>
           </div>
 
           <div class="svc-grid svc-grid-2">
@@ -312,12 +295,9 @@ const { faqs } = await getPageContent(Astro.url.pathname);
       <section class="section alt" id="process" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">How it goes</span>
-            <h2>Three steps, <em>no surprises.</em></h2>
-            <p>
-              Every treatment plan moves through the same calm sequence — listen first, plan in
-              detail, then deliver. You see the finished smile on screen before we touch a tooth.
-            </p>
+            <span class="eyebrow">{section("process").eyebrow}</span>
+            <h2><Fragment set:html={section("process").heading} /></h2>
+            <p>{section("process").body}</p>
           </div>
 
           <ProcessStepGrid>
@@ -353,13 +333,9 @@ const { faqs } = await getPageContent(Astro.url.pathname);
       <section class="section" id="faq" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">FAQ</span>
-            <h2>Frequently asked questions <em>about our services.</em></h2>
-            <p>
-              Practical answers to the questions patients ask in the consultation chair. Anything
-              else, send us a few photos through the virtual consult and Dr. Richardson will record
-              a personal video reply.
-            </p>
+            <span class="eyebrow">{section("faq").eyebrow}</span>
+            <h2><Fragment set:html={section("faq").heading} /></h2>
+            <p>{section("faq").body}</p>
           </div>
 
           <div class="faq-list">

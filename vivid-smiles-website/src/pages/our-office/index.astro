@@ -67,7 +67,7 @@ const description =
 // faqs is edited in WordPress (Pages -> Our Office in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { faqs } = await getPageContent(Astro.url.pathname);
+const { faqs, section } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -126,12 +126,9 @@ const { faqs } = await getPageContent(Astro.url.pathname);
     <section class="section alt" id="tour" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head center">
-          <span class="eyebrow">A Look Inside</span>
-          <h2>Calm, modern, <em>unhurried.</em></h2>
-          <p>
-            A few moments from our Parker office — the entry, the lounge, the
-            operatories, and the front-desk team who'll greet you on arrival.
-          </p>
+          <span class="eyebrow">{section("tour").eyebrow}</span>
+          <h2><Fragment set:html={section("tour").heading} /></h2>
+          <p>{section("tour").body}</p>
         </div>
 
         <div class="bento">
@@ -185,15 +182,8 @@ const { faqs } = await getPageContent(Astro.url.pathname);
         <div class="tech-grid">
           <div class="tech-copy">
             <span class="eyebrow light">Technology in the Room</span>
-            <h2>Modern tools, <em>safer outcomes.</em></h2>
-            <p class="lede">
-              Dr. Bryce Richardson is one of the few certified Yomi robotic
-              surgeons in the country — providing safer, cutting-edge implant
-              procedures in Colorado. Every operatory is set up for digital
-              dentistry start to finish: low-radiation digital x-rays, intra-oral
-              scanning instead of goopy impressions, and chairside design tools
-              that let you preview a smile before any treatment begins.
-            </p>
+            <h2><Fragment set:html={section("technology").heading} /></h2>
+            <p class="lede">{section("technology").body}</p>
 
             <ul class="tech-list">
               <li>
@@ -232,8 +222,8 @@ const { faqs } = await getPageContent(Astro.url.pathname);
     <section class="section" id="expect" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head center">
-          <span class="eyebrow">When You Arrive</span>
-          <h2>Small things that <em>make the visit easier.</em></h2>
+          <span class="eyebrow">{section("expect").eyebrow}</span>
+          <h2><Fragment set:html={section("expect").heading} /></h2>
         </div>
 
         <div class="expect-grid">
@@ -256,12 +246,9 @@ const { faqs } = await getPageContent(Astro.url.pathname);
       <div class="wrap">
         <div class="location-grid">
           <div class="location-copy" data-vs-reveal-batch>
-            <span class="eyebrow">Visit · Hours · Directions</span>
-            <h2>How to <em>find us.</em></h2>
-            <p class="lede">
-              On Cedar Gulch Parkway in Parker, Colorado — a few minutes off Parker Road,
-              with free parking directly in front of the building.
-            </p>
+            <span class="eyebrow">{section("visit").eyebrow}</span>
+            <h2><Fragment set:html={section("visit").heading} /></h2>
+            <p class="lede">{section("visit").body}</p>
 
             <div class="location-card">
               <div class="row">
@@ -328,7 +315,7 @@ const { faqs } = await getPageContent(Astro.url.pathname);
       <div class="wrap">
         <div class="section-head center">
           <span class="eyebrow light">Office FAQ</span>
-          <h2>A few <em>quick answers.</em></h2>
+          <h2><Fragment set:html={section("faq").heading} /></h2>
         </div>
 
         <div class="faq-list">

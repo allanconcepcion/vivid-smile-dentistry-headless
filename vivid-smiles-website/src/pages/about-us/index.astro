@@ -57,6 +57,7 @@ import teamKt from '../../assets/images/team/kt.webp';
 import teamCarol from '../../assets/images/team/carol.webp';
 import teamKnox from '../../assets/images/team/knox-dog.webp';
 import teamBirdie from '../../assets/images/team/birdie-dog.webp';
+import { getPageContent } from '../../lib/page-content';
 
 const credentials = [
   {
@@ -255,6 +256,9 @@ const teamGroups = [
 // Patient Voices — full reviews collection (newest first), rendered in a
 // seamless marquee. Mirrors the home-page testimonials section.
 const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +a.data.date);
+// Section copy is edited in WordPress (Pages -> this page -> Section copy).
+const { section } = await getPageContent(Astro.url.pathname);
+
 ---
 
 <BaseLayout
@@ -336,14 +340,8 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
             </div>
             <div class="story-text" data-vs-reveal-batch>
               <Eyebrow>Founding philosophy</Eyebrow>
-              <h2 class="vs-h2">
-                Every smile, treated like <em class="vs-italic-word">a signature piece.</em>
-              </h2>
-              <p>
-                Every detail of the practice, from our clinical workflows to the quiet rhythm of an
-                appointment, is designed around one idea: the smile you imagine should feel
-                inevitable, not improvised.
-              </p>
+              <h2 class="vs-h2"><Fragment set:html={section("story").heading} /></h2>
+              <p>{section("story").body}</p>
               <p>
                 Patients travel locally and from out of state for <a
                   class="vs-link"
@@ -390,13 +388,9 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
             />
             <div class="doc-copy" data-vs-reveal-batch>
               <Eyebrow>Founder &amp; Cosmetic Lead</Eyebrow>
-              <h2 class="vs-h2">Dr. Bryce<br /><em>Richardson</em></h2>
+              <h2 class="vs-h2"><Fragment set:html={section("doctors").heading} /></h2>
               <div class="role">Cosmetic, full-arch &amp; implant dentistry</div>
-              <p class="lead">
-                Founder of Vivid Smiles Dentistry and one of the country's most sought-after
-                cosmetic dentists for smile makeovers, full-mouth rehabilitations, and minimal-prep
-                veneers.
-              </p>
+              <p class="lead">{section("doctors").body}</p>
               <p class="bio">
                 A graduate of Indiana University School of Dentistry, Dr. Richardson has completed
                 more than 600 hours of advanced postgraduate training in esthetics, veneers,
@@ -572,14 +566,8 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
             </div>
             <div class="tech-text" data-vs-reveal-batch>
               <Eyebrow>In our operatory</Eyebrow>
-              <h2 class="vs-h2">
-                The instruments <em class="vs-italic-word">behind the artistry.</em>
-              </h2>
-              <p class="lead">
-                From robotic-guided implant surgery to facially-driven digital smile design, every
-                tool in the practice is chosen for one reason: it makes the result measurably
-                better.
-              </p>
+              <h2 class="vs-h2"><Fragment set:html={section("technology").heading} /></h2>
+              <p class="lead">{section("technology").body}</p>
 
               <div class="tech-list" data-vs-reveal-batch>
                 {
@@ -633,12 +621,9 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
         <div class="wrap">
           <div class="testi-head" data-vs-reveal-batch>
             <Eyebrow center>Testimonials</Eyebrow>
-            <h2 data-vs-reveal-lines>5-Star <em>Smiles</em></h2>
+            <h2 data-vs-reveal-lines><Fragment set:html={section("voices").heading} /></h2>
             <div class="stars" aria-hidden="true">★★★★★</div>
-            <p>
-              Hear from some of our happy patients. Vivid Smiles Dentistry is the only dentist with
-              a 5-star rating in Parker, CO.
-            </p>
+            <p>{section("voices").body}</p>
           </div>
           <div class="testi-actions" data-vs-reveal>
             <Button

@@ -74,7 +74,7 @@ const issuesList = [
 // tocLinks, faqs are edited in WordPress (Pages -> Smile Makeover in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
+const { tocLinks, faqs, section } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -180,15 +180,10 @@ const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
               />
             </div>
             <div class="what-text">
-              <span class="eyebrow">Definition</span>
-              <h2>What Is a <em>Smile Makeover?</em></h2>
+              <span class="eyebrow">{section("what").eyebrow}</span>
+              <h2><Fragment set:html={section("what").heading} /></h2>
               <div class="prose">
-                <p>
-                  A smile makeover is a customized plan that combines cosmetic dental treatments to
-                  improve multiple aspects of your smile in one coordinated process. The distinction
-                  from a single procedure is the intent: rather than starting with a treatment and
-                  seeing what changes, you start with the outcome and build toward it.
-                </p>
+                <p>{section("what").body}</p>
               </div>
               <div class="cta-row left">
                 <div class="cta-buttons">
@@ -210,11 +205,8 @@ const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">Common Issues</span>
-            <h2>Common Issues a <em>Smile Makeover Can Address</em></h2>
-            <p>
-              A smile makeover is built for patients managing more than one concern at once. Common
-              issues include:
-            </p>
+            <h2><Fragment set:html={section("issues").heading} /></h2>
+            <p>{section("issues").body}</p>
           </div>
 
           <div class="issues-grid">
@@ -239,16 +231,12 @@ const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
           <div class="natural-grid">
             <div class="natural-text">
               <span class="eyebrow light">The Process</span>
-              <h2>Our Smile Makeover Process: <em>Digital Design to Final Result</em></h2>
+              <h2><Fragment set:html={section("process").heading} /></h2>
               <div class="natural-quote">
                 You should see exactly what your results will look like before any treatment begins.
               </div>
               <div class="prose">
-                <p>
-                  The Vivid Smiles process is built around one principle: you should see exactly
-                  what your results will look like before any treatment begins. That transparency
-                  runs from the first consultation through every step of the plan.
-                </p>
+                <p>{section("process").body}</p>
                 <h3 class="process-sub">Preview Your New Smile Before You Commit</h3>
                 <p>
                   Digital smile design at Vivid Smiles maps your new smile onto your actual face
@@ -295,11 +283,8 @@ const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">Treatment Options</span>
-            <h2>Treatment Options in Your <em>Custom Smile Makeover</em></h2>
-            <p>
-              Smile makeovers draw from a range of procedures combined to fit your specific goals.
-              Dr. Richardson determines the right mix during your consultation.
-            </p>
+            <h2><Fragment set:html={section("options").heading} /></h2>
+            <p>{section("options").body}</p>
           </div>
 
           <div class="compare">
@@ -380,14 +365,9 @@ const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
       <section class="section alt" id="why-us" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Why Vivid Smiles</span>
-            <h2>Why Patients Choose Vivid Smiles <em>for Smile Makeovers</em></h2>
-            <p>
-              Choosing a cosmetic dentist means trusting someone with results you'll live with every
-              day. At Vivid Smiles, Dr. Bryce Richardson personally guides every smile makeover —
-              from the first consultation through final placement — with the cosmetic training and
-              natural-results philosophy that shape every decision along the way.
-            </p>
+            <span class="eyebrow">{section("why-us").eyebrow}</span>
+            <h2><Fragment set:html={section("why-us").heading} /></h2>
+            <p>{section("why-us").body}</p>
           </div>
 
           <div class="why-grid">
@@ -426,7 +406,7 @@ const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">Investment</span>
-            <h2>What to Expect: Smile Makeover <em>Timeline and Investment</em></h2>
+            <h2><Fragment set:html={section("cost").heading} /></h2>
           </div>
 
           <div class="lasting-card">
@@ -435,13 +415,7 @@ const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
               <div class="label">Custom timeline based on your plan</div>
             </div>
             <div class="lasting-body">
-              <p>
-                Smile makeover timelines depend on which treatments are included. Veneer-focused
-                plans are typically completed in two to three visits over three to four weeks;
-                makeovers that incorporate Invisalign alignment may span six to twelve months. Dr.
-                Richardson provides a detailed, personalized timeline during the consultation based
-                on your specific goals.
-              </p>
+              <p>{section("cost").body}</p>
               <p>
                 For investment, cost reflects the scope of your plan. Vivid Smiles provides
                 transparent pricing and discusses financing options at the consultation, so there
@@ -460,15 +434,9 @@ const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
       <section class="section alt" id="results">
         <div class="wrap">
           <div class="section-head" data-vs-reveal>
-            <span class="eyebrow">Real Results</span>
-            <h2>Real Patient Results: <em>Finished Smile Makeovers</em></h2>
-            <p>
-              Vivid Smiles keeps a smile gallery of finished cases from real patients, and 300+
-              five-star Google reviews consistently describe results that look natural rather than
-              overdone. Reviewing real cases before your consultation gives you a concrete reference
-              point for discussing your own goals and helps set realistic expectations for what your
-              specific plan can achieve.
-            </p>
+            <span class="eyebrow">{section("results").eyebrow}</span>
+            <h2><Fragment set:html={section("results").heading} /></h2>
+            <p>{section("results").body}</p>
             <div class="cta-row">
               <div class="cta-buttons">
                 <Button variant="light" href="/smile-gallery/" hoverLabel="Open Gallery"
@@ -508,8 +476,8 @@ const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
       <section class="section" id="faq" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">FAQ</span>
-            <h2>Frequently Asked Questions <em>About Smile Makeovers</em></h2>
+            <span class="eyebrow">{section("faq").eyebrow}</span>
+            <h2><Fragment set:html={section("faq").heading} /></h2>
           </div>
 
           <div class="faq-list">
@@ -531,7 +499,7 @@ const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
           </div>
 
           <div class="pull">
-            <p>The goal is results that enhance your existing smile, not overwrite it.</p>
+            <p>{section("faq").body}</p>
           </div>
 
           <div class="cta-row">

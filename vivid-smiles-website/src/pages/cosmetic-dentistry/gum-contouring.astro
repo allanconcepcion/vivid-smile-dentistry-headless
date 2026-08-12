@@ -72,7 +72,7 @@ const whyCards = [
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Laser Gum Contouring in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname);
+const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -166,15 +166,10 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
             />
           </div>
           <div class="what-text">
-            <span class="eyebrow">Definition</span>
-            <h2>What Is <em>Gum Contouring?</em></h2>
+            <span class="eyebrow">{section("what").eyebrow}</span>
+            <h2><Fragment set:html={section("what").heading} /></h2>
             <div class="prose">
-              <p>
-                Gum contouring removes or reshapes excess gum tissue so that more of the natural tooth surface
-                becomes visible, improving the overall balance between gums and teeth. The procedure addresses a
-                range of cosmetic concerns, including gummy smiles, uneven gum lines, asymmetrical tissue, and
-                teeth that appear shorter than they actually are.
-              </p>
+              <p>{section("what").body}</p>
             </div>
             <div class="cta-row left">
               <div class="cta-buttons">
@@ -194,20 +189,14 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
         <div class="natural-grid">
           <div class="natural-text">
             <span class="eyebrow light">Laser Technology</span>
-            <h2>How Laser Technology Makes <em>Gum Contouring Gentle and Precise</em></h2>
+            <h2><Fragment set:html={section("laser").heading} /></h2>
             <div class="natural-quote">
               Most patients don't realize the procedure actually happened until they look in the mirror.
               The laser is that gentle.
             </div>
             <span class="natural-quote-attrib">— Dr. Bryce Richardson, DDS, Vivid Smiles Dentistry</span>
             <div class="prose">
-              <p>
-                Laser gum contouring is significantly more precise and comfortable than traditional scalpel-based
-                gingivectomy (surgical gum removal), with less bleeding, no sutures in most cases, and faster
-                healing. A soft tissue laser targets only the excess tissue, sealing as it works and leaving the
-                surrounding area untouched. Local anesthetic is all that is needed during the procedure, and most
-                patients are genuinely surprised by how uneventful the experience turns out to be.
-              </p>
+              <p>{section("laser").body}</p>
               <p>
                 The precision of laser technology also means more predictable results and less post-procedure
                 sensitivity. Dr. Richardson uses laser gum reshaping as the standard approach for all contouring
@@ -232,12 +221,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
     <section class="section" id="candidates" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
-          <span class="eyebrow">Candidacy</span>
-          <h2>Who Benefits from <em>Gum Contouring in Parker?</em></h2>
-          <p>
-            Gum contouring is a strong fit for patients whose gum tissue covers too much of the tooth surface,
-            creating a gummy or unbalanced appearance that <a class="vs-link" href="/cosmetic-dentistry/teeth-whitening/">whitening</a> or <a class="vs-link" href="/cosmetic-dentistry/clear-aligners/">alignment treatment</a> alone cannot fix.
-          </p>
+          <span class="eyebrow">{section("candidates").eyebrow}</span>
+          <h2><Fragment set:html={section("candidates").heading} /></h2>
+          <p>{section("candidates").body}</p>
         </div>
 
         <div class="why-grid">
@@ -276,8 +262,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow light">The Process</span>
-          <h2>The Gum Contouring Process <em>at Vivid Smiles Dentistry</em></h2>
-          <p>Here is what patients can expect at every stage of gum contouring at Vivid Smiles Dentistry.</p>
+          <h2><Fragment set:html={section("process").heading} /></h2>
+          <p>{section("process").body}</p>
         </div>
 
         <div class="process-grid">
@@ -306,8 +292,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow">Recovery</span>
-          <h2>What to Expect <em>During Recovery</em></h2>
-          <p>Recovery from laser gum contouring is noticeably lighter than traditional surgical gum procedures, and most patients return to their regular schedule the same day.</p>
+          <h2><Fragment set:html={section("recovery").heading} /></h2>
+          <p>{section("recovery").body}</p>
         </div>
 
         <div class="lasting-card">
@@ -346,14 +332,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
           </div>
           <div class="natural-text">
             <span class="eyebrow">Results</span>
-            <h2>Gum Contouring Results: <em>What to Expect</em></h2>
+            <h2><Fragment set:html={section("results").heading} /></h2>
             <div class="prose">
-              <p>
-                Gum contouring produces immediate, visible changes to the gum-to-tooth ratio and overall smile
-                proportions. Teeth that previously appeared short or partially covered become fuller and more
-                prominent in the smile. The gum line takes on a more even, symmetrical arc, which can transform
-                the way the entire smile reads, even before any other cosmetic work is added.
-              </p>
+              <p>{section("results").body}</p>
               <p>
                 Results are permanent: reshaped gum tissue does not regenerate back to its original position.
                 Dr. Richardson's approach to reshaping is grounded in natural proportions rather than maximizing
@@ -373,13 +354,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
     <section class="section" id="why" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
-          <span class="eyebrow">Why Vivid Smiles</span>
-          <h2>Why Choose Vivid Smiles Dentistry <em>for Gum Contouring in Parker?</em></h2>
-          <p>
-            Vivid Smiles Dentistry combines advanced laser technology, digital preview tools, and Dr. Richardson's
-            specialized cosmetic training to deliver gum reshaping results that are precise, gentle, and designed
-            to last.
-          </p>
+          <span class="eyebrow">{section("why").eyebrow}</span>
+          <h2><Fragment set:html={section("why").heading} /></h2>
+          <p>{section("why").body}</p>
         </div>
 
         <div class="why-3up">
@@ -406,8 +383,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
     <section class="section" id="faq" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
-          <span class="eyebrow">FAQ</span>
-          <h2>Frequently Asked Questions <em>About Gum Contouring</em></h2>
+          <span class="eyebrow">{section("faq").eyebrow}</span>
+          <h2><Fragment set:html={section("faq").heading} /></h2>
         </div>
 
         <div class="faq-list">
@@ -420,10 +397,7 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
         </div>
 
         <div class="pull">
-          <p>
-            Gum contouring is one of the most efficient cosmetic procedures available: immediate results,
-            minimal recovery, and a lasting change to the way your smile looks.
-          </p>
+          <p>{section("faq").body}</p>
         </div>
 
         <div class="cta-row">

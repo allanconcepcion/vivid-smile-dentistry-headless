@@ -163,7 +163,7 @@ const ledger = [
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Cosmetic Dentistry in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname);
+const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -237,17 +237,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <section class="section alt" id="why" data-vs-reveal-batch>
         <div class="why-grid">
           <div class="why-copy">
-            <span class="eyebrow">Why Parker chooses us</span>
-            <h2>Credentials that <em>are verifiable.</em></h2>
-            <p>
-              Vivid Smiles has become Parker's cosmetic dentistry preference because every
-              credential is verifiable. Dr. Richardson graduated at the top of his class from
-              Indiana University School of Dentistry, completed 600+ hours of specialized esthetic
-              and surgical training, and was part of the staff at Implant Pathway, one of the
-              country's most respected training programs. He also served as team dentist for Indiana
-              University's men's and women's basketball programs and lives in Parker as an active
-              community member.
-            </p>
+            <span class="eyebrow">{section("why").eyebrow}</span>
+            <h2><Fragment set:html={section("why").heading} /></h2>
+            <p>{section("why").body}</p>
             <p>
               The practice holds a 5-star rating with over 300 Google reviews, and consistent
               feedback on three issues: a welcoming environment, advanced technology, and natural
@@ -291,13 +283,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <section class="section" id="services" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Treatments</span>
-            <h2>Cosmetic dentistry services <em>at Vivid Smiles.</em></h2>
-            <p>
-              Vivid Smiles offers a full suite of cosmetic treatments, and the ideal one depends on
-              what you want to change and how significant a commitment you want to make. Here is
-              what we provide.
-            </p>
+            <span class="eyebrow">{section("services").eyebrow}</span>
+            <h2><Fragment set:html={section("services").heading} /></h2>
+            <p>{section("services").body}</p>
           </div>
 
           <div class="svc-grid">
@@ -336,11 +324,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow light">Advanced technology · Parker</span>
-            <h2>Better outcomes, <em>fewer appointments.</em></h2>
-            <p>
-              The technology at Vivid Smiles enables better outcomes and fewer appointments. Each
-              tool serves a specific clinical purpose.
-            </p>
+            <h2><Fragment set:html={section("technology").heading} /></h2>
+            <p>{section("technology").body}</p>
           </div>
 
           <div class="tech-grid">
@@ -385,8 +370,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <section class="section" id="doctors" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Your dentist</span>
-            <h2>Meet Dr. Bryce Richardson — <em>education, training &amp; expertise.</em></h2>
+            <span class="eyebrow">{section("doctors").eyebrow}</span>
+            <h2><Fragment set:html={section("doctors").heading} /></h2>
           </div>
 
           <article class="doctor doctor--feature">
@@ -404,14 +389,7 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
               <div class="doctor-bio doctor-bio--lead">
                 <span class="eyebrow">Dr. Bryce Richardson, DDS</span>
                 <h3>Top of his class — <em>and his hometown.</em></h3>
-                <p>
-                  Dr. Bryce Richardson earned his Doctor of Dental Surgery from Indiana University
-                  School of Dentistry, graduating at the top of his class clinically. He completed
-                  600+ hours of specialized esthetic and surgical training and served on staff at
-                  Implant Pathway, a nationally recognized program. He is also a Parker resident and
-                  former team dentist for Indiana University's men's and women's basketball
-                  programs.
-                </p>
+                <p>{section("doctors").body}</p>
               </div>
 
               <div class="doctor-rule" aria-hidden="true"></div>
@@ -445,9 +423,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <section class="section alt" id="process" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">What to expect</span>
-            <h2>The cosmetic dentistry process <em>at Vivid Smiles.</em></h2>
-            <p>The process at Vivid Smiles is patient-led from the first visit forward.</p>
+            <span class="eyebrow">{section("process").eyebrow}</span>
+            <h2><Fragment set:html={section("process").heading} /></h2>
+            <p>{section("process").body}</p>
           </div>
 
           <div class="pgrid-card" data-vs-reveal>
@@ -476,13 +454,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
         <div class="wrap">
           <div class="results-grid">
             <div class="results-copy">
-              <span class="eyebrow">Genuine results</span>
-              <h2>Why Parker clients <em>love their new smiles.</em></h2>
-              <p>
-                Vivid Smiles holds a 5-star rating across over 300 Google reviews, and the feedback
-                is consistent: everyone feels welcome, the technology builds confidence throughout
-                the process, and the results look like their teeth at their best.
-              </p>
+              <span class="eyebrow">{section("results").eyebrow}</span>
+              <h2><Fragment set:html={section("results").heading} /></h2>
+              <p>{section("results").body}</p>
               <p>
                 The ability to preview the outcome before committing is a detail that moves
                 undecided patients forward. Our reviews reflect a practice built around one
@@ -538,12 +512,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow light">Is it for you?</span>
-            <h2>Does cosmetic dentistry <em>suit you?</em></h2>
-            <p>
-              Cosmetic dentistry fits anyone who has adjusted to a smile they aren't confident in:
-              covering their mouth in photos, holding back in professional settings, or postponing a
-              change.
-            </p>
+            <h2><Fragment set:html={section("candidacy").heading} /></h2>
+            <p>{section("candidacy").body}</p>
           </div>
 
           <div class="cand-grid">
@@ -600,8 +570,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
         <div class="wrap">
           <div class="area">
             <div class="area-copy">
-              <span class="eyebrow">Service area</span>
-              <h2>Serving Parker, Stonegate, <em>The Pinery &amp; Douglas County.</em></h2>
+              <span class="eyebrow">{section("area").eyebrow}</span>
+              <h2><Fragment set:html={section("area").heading} /></h2>
               <p>
                 Vivid Smiles Dentistry is located at {addressStreet}, in Parker, and serves patients
                 throughout Douglas County and the Denver metro.
@@ -638,13 +608,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <section class="section alt" id="faq" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">FAQ</span>
-            <h2>Frequently asked questions about <em>cosmetic dentistry in Parker.</em></h2>
-            <p>
-              Practical answers patients ask in the consultation chair. Anything else, send a few
-              photos through the <a class="vs-link" href="#consult">virtual consult</a> and Dr. Richardson
-              will record a personal video reply.
-            </p>
+            <span class="eyebrow">{section("faq").eyebrow}</span>
+            <h2><Fragment set:html={section("faq").heading} /></h2>
+            <p>{section("faq").body}</p>
           </div>
 
           <div class="faq-list">

@@ -162,7 +162,7 @@ const heroLede =
 // tocLinks is edited in WordPress (Pages -> Emergency Dental Care in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks } = await getPageContent(Astro.url.pathname);
+const { tocLinks, section } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -228,12 +228,9 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
     <section class="section alt" id="when" data-vs-reveal-batch>
       <div class="why-grid">
         <div class="why-copy">
-          <span class="eyebrow">When to seek care</span>
-          <h2>When to seek <em>emergency dental care.</em></h2>
-          <p>
-            Dental emergencies and urgent dental issues need same-day attention; knowing the difference helps you act
-            quickly and calmly. Vivid Smiles prioritizes same-day appointments for both categories.
-          </p>
+          <span class="eyebrow">{section("when").eyebrow}</span>
+          <h2><Fragment set:html={section("when").heading} /></h2>
+          <p>{section("when").body}</p>
           <h3>Dental Emergencies</h3>
           <p>
             True dental emergencies involve conditions where timing affects the outcome. A knocked-out permanent tooth
@@ -273,9 +270,9 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
     <section class="section" id="protocol" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
-          <span class="eyebrow">First aid</span>
-          <h2>What to do <em>before you reach our office.</em></h2>
-          <p>The right first-aid response depends on what happened. Find your scenario below and follow the steps for that situation — these are independent, not sequential.</p>
+          <span class="eyebrow">{section("protocol").eyebrow}</span>
+          <h2><Fragment set:html={section("protocol").heading} /></h2>
+          <p>{section("protocol").body}</p>
         </div>
 
         <div class="scenario-grid">
@@ -300,14 +297,9 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
       <div class="wrap">
         <div class="what-grid">
           <div class="what-text">
-            <span class="eyebrow">How we handle it</span>
-            <h2>How Vivid Smiles handles <em>emergency dental cases.</em></h2>
-            <p>
-              Same-day emergency appointments are a priority at Vivid Smiles, with advanced technology and surgical
-              expertise to resolve most cases on the first visit. Dr. Bryce Richardson's 600+ hours of advanced surgical
-              training and Dr. Annelise Westermeier's advanced residency training in medically compromised patient care
-              mean our practice is prepared for both complex trauma and sensitive medical situations.
-            </p>
+            <span class="eyebrow">{section("how").eyebrow}</span>
+            <h2><Fragment set:html={section("how").heading} /></h2>
+            <p>{section("how").body}</p>
             <h3>Advanced Diagnostic Technology</h3>
             <p>
               CBCT imaging provides a full 3D view of tooth structure, surrounding bone, and tissue, allowing
@@ -338,9 +330,9 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
     <section class="section" id="emergencies" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
-          <span class="eyebrow">Common cases</span>
-          <h2>Common <em>dental emergencies.</em></h2>
-          <p>Vivid Smiles treats the full range of dental emergencies, resolving most cases the same day.</p>
+          <span class="eyebrow">{section("emergencies").eyebrow}</span>
+          <h2><Fragment set:html={section("emergencies").heading} /></h2>
+          <p>{section("emergencies").body}</p>
         </div>
 
         <ul class="emerg-callout-list">
@@ -355,13 +347,8 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
       <div class="wrap">
         <div class="trust-quote">
           <span class="eyebrow light">Why choose Vivid Smiles</span>
-          <h2>Why choose Vivid Smiles <em>for emergency dental care.</em></h2>
-          <p class="trust-body">
-            Vivid Smiles offers emergency care that goes beyond availability. Dr. Richardson graduated at the top of
-            his class from Indiana University School of Dentistry, completed 600+ hours of advanced surgical training,
-            and served as team dentist for the Indiana University basketball team. Dr. Westermeier's advanced
-            residency adds capability for patients managing complex health conditions.
-          </p>
+          <h2><Fragment set:html={section("why-us").heading} /></h2>
+          <p class="trust-body">{section("why-us").body}</p>
           <p class="trust-body">
             With over 300 five-star reviews highlighting a calm, welcoming environment, patients who arrive anxious
             leave <em>relieved.</em>
@@ -378,8 +365,8 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
       <div class="wrap">
         <div class="area">
           <div class="area-copy">
-            <span class="eyebrow">Visit the office</span>
-            <h2>Same-day emergencies <em>in Parker.</em></h2>
+            <span class="eyebrow">{section("area").eyebrow}</span>
+            <h2><Fragment set:html={section("area").heading} /></h2>
             <p>
               Vivid Smiles Dentistry is located at {addressStreet}, in {addressCity}. Same-day emergency appointments
               are accepted; call ahead so we can prep the operatory and get you seen as quickly as possible.
@@ -412,17 +399,12 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
     <section class="section" id="prevent" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
-          <span class="eyebrow">Prevention</span>
-          <h2>Preventing <em>dental emergencies.</em></h2>
+          <span class="eyebrow">{section("prevent").eyebrow}</span>
+          <h2><Fragment set:html={section("prevent").heading} /></h2>
         </div>
 
         <div class="prevent-prose">
-          <p>
-            Most dental emergencies are preventable. Regular checkups catch cracked fillings, early decay, and gum
-            disease before they become urgent. Custom mouthguards, a natural extension of Dr. Richardson's team
-            dentist background, protect teeth during contact sports; a nightguard addresses grinding that erodes
-            enamel. Avoiding ice, hard candy, and using teeth as tools eliminates common fracture causes.
-          </p>
+          <p>{section("prevent").body}</p>
           <p set:html={`Consistent <a class="vs-link" href="/general-dentistry/">general dentistry care</a> is the best prevention strategy.`}></p>
           <div class="prevent-actions">
             <Button variant="ghost" href="/general-dentistry/" hoverLabel="See Care">Explore General Dentistry</Button>
@@ -435,8 +417,8 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow">FAQ</span>
-          <h2>Dental emergency <em>FAQs.</em></h2>
-          <p>Practical answers to the questions patients ask first. Anything else, send a message through the <a class="vs-link" href="#contact-form">contact form</a> and a member of our team will write back within one business day.</p>
+          <h2><Fragment set:html={section("faq").heading} /></h2>
+          <p>{section("faq").body}</p>
         </div>
 
         <div class="faq-list">
@@ -479,7 +461,7 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
         <div class="contact-grid">
           <div class="contact-copy">
             <span class="eyebrow">Send a message</span>
-            <h2>Not sure if it's an <em>emergency? Send a message.</em></h2>
+            <h2><Fragment set:html={section("contact-form").heading} /></h2>
             <p>
               Describe what happened and we'll write back within one business day. For anything urgent, call
               <a class="vs-link" href={phoneHref}>{phoneLabel}</a> — that's the fastest channel during business hours.

@@ -585,6 +585,38 @@ add_action( 'acf/include_fields', __NAMESPACE__ . '\\register_field_groups' );
  * every trivial save — including a typo fix that shouldn't reset the "freshness"
  * signal. This surfaces the editor's explicit intent instead.
  */
+/**
+ * Expose each page's canonical Astro route to GraphQL.
+ *
+ * The Astro loader keys pages by route, and WordPress's own `uri` is the wrong
+ * source for it: the home page is stored with the slug "home", so its uri is
+ * "/home/" while the route it serves is "/". Slug edits and parent changes move
+ * `uri` too, which would silently detach a page's content from its template.
+ *
+ * The importer writes _vs_route and nothing else changes it, so it stays
+ * authoritative.
+ */
+function register_route_field(): void {
+	if ( ! function_exists( 'register_graphql_field' ) ) {
+		return;
+	}
+
+	register_graphql_field(
+		'Page',
+		'vsRoute',
+		[
+			'type'        => 'String',
+			'description' => 'The Astro route this page supplies content for, e.g. "/cosmetic-dentistry/porcelain-veneers/".',
+			'resolve'     => static function ( $post ) {
+				$route = get_post_meta( $post->databaseId, '_vs_route', true );
+
+				return $route ? (string) $route : null;
+			},
+		]
+	);
+}
+add_action( 'graphql_register_types', __NAMESPACE__ . '\\register_route_field' );
+
 function register_updated_field(): void {
 	if ( ! function_exists( 'register_graphql_field' ) ) {
 		return;

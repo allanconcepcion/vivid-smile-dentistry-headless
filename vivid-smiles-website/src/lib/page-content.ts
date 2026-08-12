@@ -15,12 +15,41 @@ import { getEntry } from "astro:content";
 export type TocLink = { href: string; label: string };
 export type ProcessStep = { tag: string; num: string; title: string; body: string };
 export type Faq = { q: string; a: string; open: boolean };
+export type Section = {
+  section_id: string;
+  eyebrow: string;
+  heading: string;
+  body: string;
+  cta_label: string;
+  cta_href: string;
+};
+export type Card = { group: string; title: string; body: string; meta: string; href: string };
+
+const EMPTY_SECTION: Section = {
+  section_id: "",
+  eyebrow: "",
+  heading: "",
+  body: "",
+  cta_label: "",
+  cta_href: "",
+};
 
 export type PageContent = {
   title: string;
   tocLinks: TocLink[];
   processSteps: ProcessStep[];
   faqs: Faq[];
+  sections: Section[];
+  /** Card rows grouped by their source array name, e.g. cards.whyCards. */
+  cards: Record<string, Card[]>;
+  /**
+   * Copy for one band of the page, by its section id.
+   *
+   * Returns empty strings rather than throwing when a section is absent. A
+   * missing FAQ row is a content gap the editor can see and fix; a hard failure
+   * here would take the whole site's build down over one blank heading.
+   */
+  section: (id: string) => Section;
 };
 
 /**
@@ -46,10 +75,21 @@ export async function getPageContent(route: string): Promise<PageContent> {
     );
   }
 
+  const sections = entry.data.sections;
+
+  const cards: Record<string, Card[]> = {};
+  for (const card of entry.data.cards) {
+    (cards[card.group] ??= []).push(card);
+  }
+
   return {
     title: entry.data.title,
     tocLinks: entry.data.tocLinks,
     processSteps: entry.data.processSteps,
     faqs: entry.data.faqs,
+    sections,
+    cards,
+    section: (sectionId: string) =>
+      sections.find((s) => s.section_id === sectionId) ?? EMPTY_SECTION,
   };
 }

@@ -122,6 +122,29 @@ const pages = defineCollection({
     faqs: z
       .array(z.object({ q: z.string(), a: z.string(), open: z.boolean() }))
       .default([]),
+    sections: z
+      .array(
+        z.object({
+          section_id: z.string(),
+          eyebrow: z.string(),
+          heading: z.string(),
+          body: z.string(),
+          cta_label: z.string(),
+          cta_href: z.string(),
+        }),
+      )
+      .default([]),
+    cards: z
+      .array(
+        z.object({
+          group: z.string(),
+          title: z.string(),
+          body: z.string(),
+          meta: z.string(),
+          href: z.string(),
+        }),
+      )
+      .default([]),
   }),
 });
 

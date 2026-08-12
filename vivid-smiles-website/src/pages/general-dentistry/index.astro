@@ -135,7 +135,7 @@ const offerCatalog = services.map((s) => {
 // tocLinks, faqs are edited in WordPress (Pages -> General Dentistry in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
+const { tocLinks, faqs, section } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -208,14 +208,9 @@ const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
       <section class="section alt" id="why" data-vs-reveal-batch>
         <div class="why-grid">
           <div class="why-copy">
-            <span class="eyebrow">Why Parker chooses us</span>
-            <h2>Technology-forward, <em>family-focused care.</em></h2>
-            <p>
-              Vivid Smiles Dentistry is a technology-forward, family-focused practice that offers
-              general and specialty care from a single trusted team. With over 300 five-star Google
-              reviews and <a class="vs-link" href="/services/">our full range of dental services</a
-              >, patients seldom need referrals.
-            </p>
+            <span class="eyebrow">{section("why").eyebrow}</span>
+            <h2><Fragment set:html={section("why").heading} /></h2>
+            <p>{section("why").body}</p>
             <h3>Advanced technology for accurate, comfortable care</h3>
             <p>
               Vivid Smiles uses CBCT 3D imaging, digital scanners, in-house milling units, and 3D
@@ -262,14 +257,9 @@ const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
       <section class="section" id="services" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Services</span>
-            <h2>General dentistry services <em>at Vivid Smiles.</em></h2>
-            <p>
-              Vivid Smiles covers the full spectrum of general dental care, from routine cleanings
-              to advanced periodontal therapy and same-day emergency treatment. Every service is
-              backed by advanced diagnostics and delivered in the same welcoming, judgment-free
-              environment.
-            </p>
+            <span class="eyebrow">{section("services").eyebrow}</span>
+            <h2><Fragment set:html={section("services").heading} /></h2>
+            <p>{section("services").body}</p>
           </div>
 
           <div class="svc-grid-4">
@@ -307,13 +297,9 @@ const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
               />
             </div>
             <div class="what-text">
-              <span class="eyebrow">First visit</span>
-              <h2>What to expect during your <em>first general dentistry visit.</em></h2>
-              <p>
-                During your first appointment, new patients receive a thorough exam, digital X-rays
-                or CBCT imaging if needed, an oral cancer screening, a gum health assessment, and a
-                conversation about findings and next steps.
-              </p>
+              <span class="eyebrow">{section("first-visit").eyebrow}</span>
+              <h2><Fragment set:html={section("first-visit").heading} /></h2>
+              <p>{section("first-visit").body}</p>
               <p>
                 Dr. Annie's approach ensures clients feel informed rather than overwhelmed, whether
                 they are returning to dental care after years away or managing an ongoing concern.
@@ -329,15 +315,9 @@ const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
         <div class="wrap">
           <div class="what-grid what-grid--flip">
             <div class="what-text">
-              <span class="eyebrow">Pathway forward</span>
-              <h2>General dentistry as a <em>gateway to cosmetic care.</em></h2>
-              <p>
-                Many clients arrive for a cleaning or a filling and leave thinking about what their
-                smile could be. Vivid Smiles offers general and <a
-                  class="vs-link"
-                  href="/cosmetic-dentistry/">cosmetic dentistry</a
-                > from the same team, using the same advanced technology.
-              </p>
+              <span class="eyebrow">{section("gateway").eyebrow}</span>
+              <h2><Fragment set:html={section("gateway").heading} /></h2>
+              <p>{section("gateway").body}</p>
               <p>
                 Dr. Richardson's expertise in porcelain veneers, including no-prep and minimal-prep
                 options that preserve natural tooth structure, means the path from routine care to a
@@ -369,13 +349,8 @@ const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
         <div class="wrap">
           <div class="trust-quote">
             <span class="eyebrow light">Why Parker trusts us</span>
-            <h2>Why Parker residents <em>trust Vivid Smiles Dentistry.</em></h2>
-            <p class="trust-body">
-              Vivid Smiles has earned over 300 five-star Google reviews built on consistent themes:
-              welcoming environment, advanced technology, clear explanations, and care that feels
-              personal. Dr. Richardson is a Parker resident who is invested in the community
-              long-term.
-            </p>
+            <h2><Fragment set:html={section("trust").heading} /></h2>
+            <p class="trust-body">{section("trust").body}</p>
             <p class="trust-body">
               Patients describe treatment as <em>comfortable, unhurried, and honest</em> — straightforward
               care recommendations from a practice that treats neighbors, not just patients.
@@ -391,8 +366,8 @@ const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
       <section class="section" id="doctors" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Your dentists</span>
-            <h2>Meet Dr. Richardson <em>and Dr. Annie.</em></h2>
+            <span class="eyebrow">{section("doctors").eyebrow}</span>
+            <h2><Fragment set:html={section("doctors").heading} /></h2>
           </div>
 
           <article class="doctor doctor--feature">
@@ -410,12 +385,7 @@ const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
               <div class="doctor-bio">
                 <span class="eyebrow">Dr. Bryce Richardson, DDS</span>
                 <h3>Indiana University trained. <em>Parker resident.</em></h3>
-                <p>
-                  Dr. Bryce Richardson, DDS, graduated from Indiana University School of Dentistry
-                  and completed 600+ hours of advanced esthetic and surgical training. A Parker
-                  resident and former team dentist for Indiana University basketball, he brings
-                  clinical precision and genuine local investment to every patient.
-                </p>
+                <p>{section("doctors").body}</p>
               </div>
 
               <div class="doctor-rule" aria-hidden="true"></div>
@@ -439,16 +409,9 @@ const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
         <div class="wrap">
           <div class="pay-grid">
             <div class="pay-copy">
-              <span class="eyebrow">Payment &amp; plans</span>
-              <h2>Flexible payment options <em>and dental membership plan.</em></h2>
-              <p>
-                Vivid Smiles works with most major dental insurance plans to help patients make the
-                most of their benefits. Patients without insurance can take advantage of our <a
-                  class="vs-link"
-                  href="/dental-membership-plan/">in-house dental membership plan</a
-                >, which covers preventive care and discounts on additional treatment for an annual
-                fee.
-              </p>
+              <span class="eyebrow">{section("payment").eyebrow}</span>
+              <h2><Fragment set:html={section("payment").heading} /></h2>
+              <p>{section("payment").body}</p>
               <p>
                 Financing is also available for larger restorative or cosmetic cases. Our team will
                 clarify every option before treatment begins.
@@ -487,8 +450,8 @@ const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
         <div class="wrap">
           <div class="area">
             <div class="area-copy">
-              <span class="eyebrow">Service area</span>
-              <h2>Serving Parker &amp; <em>Douglas County.</em></h2>
+              <span class="eyebrow">{section("area").eyebrow}</span>
+              <h2><Fragment set:html={section("area").heading} /></h2>
               <p>
                 Vivid Smiles Dentistry is located at {addressStreet}, in {addressCity}. Our practice
                 is accepting new patients for cleanings, exams, and same-day emergency appointments.
@@ -524,13 +487,9 @@ const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
       <section class="section alt" id="faq" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">FAQ</span>
-            <h2>Frequently asked questions about <em>general dentistry in Parker, CO.</em></h2>
-            <p>
-              Practical answers patients ask in the consultation chair. Anything else, send a few
-              photos through the <a class="vs-link" href="#consult">virtual consult</a> and Dr. Richardson
-              will record a personal video reply.
-            </p>
+            <span class="eyebrow">{section("faq").eyebrow}</span>
+            <h2><Fragment set:html={section("faq").heading} /></h2>
+            <p>{section("faq").body}</p>
           </div>
 
           <div class="faq-list">

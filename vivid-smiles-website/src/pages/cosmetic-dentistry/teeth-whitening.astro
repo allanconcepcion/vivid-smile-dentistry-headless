@@ -113,7 +113,7 @@ const maintenanceBullets = [
 // tocLinks, faqs are edited in WordPress (Pages -> Teeth Whitening in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
+const { tocLinks, faqs, section } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -210,13 +210,9 @@ const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
       <section class="section" id="why" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Why Vivid Smiles</span>
-            <h2>Why Choose Vivid Smiles <em>for Teeth Whitening in Parker</em></h2>
-            <p>
-              Two clinical advantages set whitening at Vivid Smiles apart from neighboring
-              practices: the system we use, and what every patient sees on screen before treatment
-              ever begins.
-            </p>
+            <span class="eyebrow">{section("why").eyebrow}</span>
+            <h2><Fragment set:html={section("why").heading} /></h2>
+            <p>{section("why").body}</p>
           </div>
 
           <div class="why-grid">
@@ -270,16 +266,10 @@ const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
               />
             </div>
             <div class="what-text">
-              <span class="eyebrow">Definition</span>
-              <h2>What Is <em>KöR Teeth Whitening?</em></h2>
+              <span class="eyebrow">{section("what").eyebrow}</span>
+              <h2><Fragment set:html={section("what").heading} /></h2>
               <div class="prose">
-                <p>
-                  KöR whitening is a clinically advanced professional system that delivers lasting
-                  shade improvement through refrigerated gel technology and extended tooth contact.
-                  It outperforms standard whitening for routine staining and for difficult cases,
-                  including tetracycline discoloration that most whitening protocols cannot
-                  meaningfully address.
-                </p>
+                <p>{section("what").body}</p>
                 <p>
                   KöR whitening uses a proprietary gel kept refrigerated until treatment, which
                   preserves potency and maximizes effectiveness. Custom trays seal the gel against
@@ -315,11 +305,8 @@ const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow light">Your KöR Treatment</span>
-            <h2>KöR Treatment Levels <em>at Vivid Smiles</em></h2>
-            <p>
-              Vivid Smiles offers three KöR clinical treatment levels matched to different staining
-              types and patient goals.
-            </p>
+            <h2><Fragment set:html={section("process").heading} /></h2>
+            <p>{section("process").body}</p>
           </div>
 
           <div class="process-pre">
@@ -384,12 +371,9 @@ const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
       <section class="section" id="compare" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Pro vs Over-the-Counter</span>
-            <h2>Why Professional Whitening <em>Beats Over-the-Counter Products</em></h2>
-            <p>
-              Professional KOR whitening outperforms over-the-counter products on every key measure:
-              gel concentration, custom fit, and lasting results.
-            </p>
+            <span class="eyebrow">{section("compare").eyebrow}</span>
+            <h2><Fragment set:html={section("compare").heading} /></h2>
+            <p>{section("compare").body}</p>
           </div>
 
           <div class="compare">
@@ -460,16 +444,13 @@ const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
         <div class="wrap">
           <div class="natural-grid">
             <div class="natural-text">
-              <span class="eyebrow">Candidacy</span>
-              <h2>Who Is a Good Candidate <em>for Professional Teeth Whitening?</em></h2>
+              <span class="eyebrow">{section("natural").eyebrow}</span>
+              <h2><Fragment set:html={section("natural").heading} /></h2>
               <div class="natural-quote">
                 Yellow teeth can become white again with the right protocol.
               </div>
               <div class="prose">
-                <p>
-                  Professional whitening works best for patients with extrinsic staining from
-                  coffee, wine, tea, and tobacco, plus the gradual yellowing that comes with age.
-                </p>
+                <p>{section("natural").body}</p>
                 <p>
                   Most adults with healthy teeth and gums qualify, and KOR's treatment levels handle
                   difficult cases other systems cannot. Yellow teeth can become white again with the
@@ -525,13 +506,9 @@ const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
       <section class="section" id="lasting" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Results &amp; Maintenance</span>
-            <h2>Teeth Whitening Results and <em>How Long They Last</em></h2>
-            <p>
-              KöR whitening improves shade by several levels on the Vita scale, with results that
-              hold for years when maintained. For tetracycline staining, KöR Ultra and Ultra-T
-              achieve visible brightening that standard whitening systems cannot replicate.
-            </p>
+            <span class="eyebrow">{section("lasting").eyebrow}</span>
+            <h2><Fragment set:html={section("lasting").heading} /></h2>
+            <p>{section("lasting").body}</p>
           </div>
 
           <div class="lasting-card">
@@ -642,11 +619,8 @@ const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
         <div class="wrap">
           <div class="section-head" data-vs-reveal>
             <span class="eyebrow light">Smile Gallery</span>
-            <h2>Finished smiles <em>in Parker.</em></h2>
-            <p>
-              A selection of finished cosmetic and restorative cases from across the practice. These
-              are not whitening results.
-            </p>
+            <h2><Fragment set:html={section("gallery").heading} /></h2>
+            <p>{section("gallery").body}</p>
           </div>
         </div>
 
@@ -674,8 +648,8 @@ const { tocLinks, faqs } = await getPageContent(Astro.url.pathname);
       <section class="section" id="faq" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">FAQ</span>
-            <h2>Frequently Asked Questions About <em>Teeth Whitening in Parker</em></h2>
+            <span class="eyebrow">{section("faq").eyebrow}</span>
+            <h2><Fragment set:html={section("faq").heading} /></h2>
           </div>
 
           <div class="faq-list">

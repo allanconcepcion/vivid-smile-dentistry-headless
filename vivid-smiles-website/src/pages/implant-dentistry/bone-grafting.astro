@@ -108,7 +108,7 @@ const keyStats: [string, string][] = [
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Bone Grafting in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname);
+const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -200,8 +200,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <section class="section" id="why" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Why Vivid Smiles</span>
-            <h2>Why Choose Vivid Smiles Dentistry <em>for Bone Grafting</em></h2>
+            <span class="eyebrow">{section("why").eyebrow}</span>
+            <h2><Fragment set:html={section("why").heading} /></h2>
           </div>
 
           <div class="why-grid">
@@ -231,16 +231,10 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
               />
             </div>
             <div class="what-text">
-              <span class="eyebrow">Definition</span>
-              <h2>What Is <em>Bone Grafting?</em></h2>
+              <span class="eyebrow">{section("what").eyebrow}</span>
+              <h2><Fragment set:html={section("what").heading} /></h2>
               <div class="prose">
-                <p>
-                  Bone grafting adds material to the jaw to restore volume and density lost after
-                  tooth removal or long-term tooth absence. Once a tooth is gone, the surrounding
-                  bone breaks down without the stimulation it needs. Dr. Richardson uses CBCT
-                  imaging to measure exactly how much bone remains before recommending a grafting
-                  approach.
-                </p>
+                <p>{section("what").body}</p>
               </div>
 
               {
@@ -287,14 +281,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <section class="section" id="implants" data-vs-reveal-batch>
         <div class="wrap">
           <div class="implants-intro">
-            <span class="eyebrow">Grafting & Implants</span>
-            <h2>Bone Grafting and <em>Dental Implants</em></h2>
-            <p>
-              Bone grafting is the prerequisite that makes implant placement possible when natural
-              bone volume is insufficient. Implants require a dense, stable base to anchor and
-              function long-term. At Vivid Smiles, robotic implant placement follows grafting, and
-              the quality of that graft determines the precision the technology can deliver.
-            </p>
+            <span class="eyebrow">{section("implants").eyebrow}</span>
+            <h2><Fragment set:html={section("implants").heading} /></h2>
+            <p>{section("implants").body}</p>
           </div>
 
           <div class="implants-band">
@@ -330,8 +319,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow light">The Procedure</span>
-            <h2>The Bone Grafting Procedure <em>at Vivid Smiles</em></h2>
-            <p>Bone grafting at Vivid Smiles follows a precise, imaging-guided process.</p>
+            <h2><Fragment set:html={section("process").heading} /></h2>
+            <p>{section("process").body}</p>
           </div>
 
           <div class="process-grid">
@@ -376,13 +365,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <section class="section" id="types" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Types & Materials</span>
-            <h2>Types of <em>Bone Grafting We Perform</em></h2>
-            <p>
-              We offer three main grafting procedures, each suited to a specific clinical situation.
-              The right approach depends on where the implant will go and how much rebuilding your
-              jaw requires.
-            </p>
+            <span class="eyebrow">{section("types").eyebrow}</span>
+            <h2><Fragment set:html={section("types").heading} /></h2>
+            <p>{section("types").body}</p>
           </div>
 
           <div class="alternatives-grid">
@@ -439,8 +424,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
         <div class="wrap">
           <div class="natural-grid">
             <div class="natural-text">
-              <span class="eyebrow">Candidacy</span>
-              <h2>Who Needs <em>Bone Grafting?</em></h2>
+              <span class="eyebrow">{section("candidacy").eyebrow}</span>
+              <h2><Fragment set:html={section("candidacy").heading} /></h2>
               <div class="natural-quote">
                 Bone grafting is needed when bone loss is significant enough to prevent stable
                 implant placement.
@@ -490,12 +475,7 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
           <div class="candidacy-sub">
             <span class="label">The bottom line</span>
             <h3>An imaging-guided foundation for implants</h3>
-            <p>
-              Bone grafting makes implant placement possible for patients who have experienced
-              significant jawbone loss, and Dr. Richardson's imaging-guided approach ensures every
-              decision is based on your actual anatomy. Understanding the timeline and your
-              candidacy removes the uncertainty that often delays treatment.
-            </p>
+            <p>{section("candidacy").body}</p>
           </div>
         </div>
       </section>
@@ -505,11 +485,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
         <div class="wrap">
           <div class="section-head" data-vs-reveal>
             <span class="eyebrow light">Smile Gallery</span>
-            <h2>Finished smiles from <em>our chair.</em></h2>
-            <p>
-              A selection of finished cosmetic and restorative work from across the practice, not
-              bone grafting cases specifically.
-            </p>
+            <h2><Fragment set:html={section("gallery").heading} /></h2>
+            <p>{section("gallery").body}</p>
           </div>
         </div>
 
@@ -537,8 +514,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <section class="section" id="faq" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">FAQ</span>
-            <h2>Frequently Asked Questions <em>About Bone Grafting</em></h2>
+            <span class="eyebrow">{section("faq").eyebrow}</span>
+            <h2><Fragment set:html={section("faq").heading} /></h2>
           </div>
 
           <div class="faq-list">

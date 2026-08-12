@@ -27,6 +27,7 @@ const PAGES_QUERY = /* GraphQL */ `
         endCursor
       }
       nodes {
+        vsRoute
         uri
         slug
         title
@@ -45,6 +46,21 @@ const PAGES_QUERY = /* GraphQL */ `
             answer
             open
           }
+          sections {
+            sectionId
+            eyebrow
+            heading
+            body
+            ctaLabel
+            ctaHref
+          }
+          cards {
+            group
+            title
+            body
+            meta
+            href
+          }
         }
       }
     }
@@ -52,6 +68,8 @@ const PAGES_QUERY = /* GraphQL */ `
 `;
 
 type PageNode = {
+  /** Canonical Astro route from the importer — see vs-content-model.php. */
+  vsRoute: string | null;
   uri: string | null;
   slug: string;
   title: string | null;
@@ -59,6 +77,21 @@ type PageNode = {
     tocLinks: Array<{ label: string | null; anchor: string | null }> | null;
     processSteps: Array<{ tag: string | null; title: string | null; body: string | null }> | null;
     faqs: Array<{ question: string | null; answer: string | null; open: boolean | null }> | null;
+    sections: Array<{
+      sectionId: string | null;
+      eyebrow: string | null;
+      heading: string | null;
+      body: string | null;
+      ctaLabel: string | null;
+      ctaHref: string | null;
+    }> | null;
+    cards: Array<{
+      group: string | null;
+      title: string | null;
+      body: string | null;
+      meta: string | null;
+      href: string | null;
+    }> | null;
   } | null;
 };
 
@@ -81,17 +114,22 @@ export function pagesLoader(): Loader {
       store.clear();
 
       for (const node of nodes) {
-        if (!node.uri) {
-          logger.warn(`Skipping page "${node.slug}": no uri`);
+        // Prefer the route the importer recorded. WordPress's own uri is wrong
+        // for the home page ("/home/" vs "/"), and it moves whenever a slug or
+        // parent changes — which would quietly detach content from its page.
+        const route = node.vsRoute ?? node.uri;
+
+        if (!route) {
+          logger.warn(`Skipping page "${node.slug}": no route or uri`);
           continue;
         }
 
         const f = node.pageFields;
 
         const data = await parseData({
-          id: node.uri,
+          id: route,
           data: {
-            route: node.uri,
+            route,
             title: node.title ?? "",
             // Normalized to the shape the templates already use, so a template
             // swaps `const faqs = [...]` for a lookup and changes nothing else.
@@ -116,10 +154,29 @@ export function pagesLoader(): Loader {
                 a: q.answer ?? "",
                 open: Boolean(q.open),
               })),
+            sections: (f?.sections ?? [])
+              .filter((s) => s.sectionId)
+              .map((s) => ({
+                section_id: s.sectionId!,
+                eyebrow: s.eyebrow ?? "",
+                heading: s.heading ?? "",
+                body: s.body ?? "",
+                cta_label: s.ctaLabel ?? "",
+                cta_href: s.ctaHref ?? "",
+              })),
+            cards: (f?.cards ?? [])
+              .filter((c) => c.group)
+              .map((c) => ({
+                group: c.group!,
+                title: c.title ?? "",
+                body: c.body ?? "",
+                meta: c.meta ?? "",
+                href: c.href ?? "",
+              })),
           },
         });
 
-        store.set({ id: node.uri, data });
+        store.set({ id: route, data });
       }
 
       if (store.keys().length === 0) {

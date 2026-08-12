@@ -50,27 +50,40 @@ the import scripts.
 
 ## Migration status
 
-| Content | Where it's edited | Status |
-| --- | --- | --- |
-| Reviews / testimonials (20) | wp-admin → Testimonials | **Migrated** |
-| Blog posts (14) + 173 media | wp-admin → Posts | **Migrated** |
-| Page structured content (31 pages) | wp-admin → Pages | **Migrated** |
-| Page prose | Astro templates | Stays in code — see below |
+| Content | Where it's edited |
+| --- | --- |
+| Reviews / testimonials (20) | wp-admin → Testimonials |
+| Blog posts (14) + 173 media | wp-admin → Posts |
+| Page copy — 738 rows across 31 pages | wp-admin → Pages |
+| Phone, email, address, hours, booking URL | wp-admin → Practice Settings |
 
-338 repeater rows moved into WordPress: 166 table-of-contents links, 122 FAQ
-entries and 50 process steps across 24 pages. Verified by comparing every page's
-rendered output against a pre-migration snapshot — 24/24 identical.
+**738 editable rows** moved into WordPress: 213 section headings and intros,
+187 cards and list items, 166 table-of-contents links, 122 FAQ entries and 50
+process steps — plus every practice detail that appears in the nav, footer,
+CTAs and structured data.
 
-### What stays in the templates, and why
+Verified by comparing the rendered visible text of every route against a
+pre-migration snapshot: **47/47 identical**, 0 references to the CMS host, and
+an edit made in wp-admin confirmed appearing on the built page.
 
-The per-page prose is woven through bespoke layouts, and each page's CSS assumes
-a fixed structure. Lifting that copy into generic fields would either flatten
-the design or produce a field set nobody can safely edit — so WordPress changes
-the **words**, not the layout. There is no section ordering and no free-form
-block list.
+### What is still in code, and why
 
-In practice the arrays are what actually gets edited: FAQs, the sticky
-table-of-contents rail, and process steps. Those are all in WordPress now.
+- **Layout and structure.** WordPress changes the words, not the design. There
+  is no section ordering and no free-form block list — each page's CSS assumes a
+  fixed structure, and a page builder would let an editor produce pages the
+  stylesheet was never written for.
+- **26 image-bearing arrays** (team photos, service icons, trust-bar logos,
+  before/after cases). Their rows reference imported image assets, so the copy
+  and the asset are one unit; splitting them would leave an editor able to
+  change a caption but not the picture it describes.
+- **16 duplicated eyebrow labels.** The same short label appears twice inside
+  one section, so the migration could not tell which to replace and skipped both
+  rather than guess. Listed in the output of `rewire-sections.mjs`.
+- **Fine-grained inline copy** — button labels, captions and short spans woven
+  into bespoke markup.
+
+Everything above is reported by the import scripts rather than silently
+omitted.
 
 ## This runs entirely on your machine
 

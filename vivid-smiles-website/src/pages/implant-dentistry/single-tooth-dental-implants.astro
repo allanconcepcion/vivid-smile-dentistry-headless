@@ -95,7 +95,7 @@ const keyStats: [string, string][] = [
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Single Tooth Dental Implants in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname);
+const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -191,12 +191,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <section class="section" id="why" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Why Vivid Smiles</span>
-            <h2>Why Choose Vivid Smiles <em>for Your Single Tooth Implant</em></h2>
-            <p>
-              Several Parker practices place implants; fewer offer the technology, training, and
-              in-house capabilities that make outcomes more predictable.
-            </p>
+            <span class="eyebrow">{section("why").eyebrow}</span>
+            <h2><Fragment set:html={section("why").heading} /></h2>
+            <p>{section("why").body}</p>
           </div>
 
           <div class="why-grid">
@@ -227,14 +224,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
             </div>
             <div class="what-text">
               <span class="eyebrow">Why Choose</span>
-              <h2>Why Choose a <em>Single Tooth Implant?</em></h2>
+              <h2><Fragment set:html={section("what").heading} /></h2>
               <div class="prose">
-                <p>
-                  A single tooth implant is the only replacement that leaves adjacent teeth
-                  untouched and stimulates the jawbone where the root once was. For most adults,
-                  missing one tooth, it is the best long-term choice for preserving adjacent teeth,
-                  jawbone, and bite stability.
-                </p>
+                <p>{section("what").body}</p>
               </div>
               <div class="robotics-callout">
                 <span class="label">Bone & Face Structure</span>
@@ -265,13 +257,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <section class="section" id="compare" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Comparison</span>
-            <h2>Implants vs. <em>Dental Bridges</em></h2>
-            <p>
-              Dental bridges require shaving both adjacent teeth; a single tooth implant leaves them
-              untouched, can last a lifetime versus a bridge's 10 to 15 years, and prevents the bone
-              loss that continues beneath a bridge with no root to stimulate the jaw.
-            </p>
+            <span class="eyebrow">{section("compare").eyebrow}</span>
+            <h2><Fragment set:html={section("compare").heading} /></h2>
+            <p>{section("compare").body}</p>
           </div>
 
           <div class="compare">
@@ -334,11 +322,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow light">The Process</span>
-            <h2>The Single Tooth Implant Process <em>at Vivid Smiles Dentistry</em></h2>
-            <p>
-              The process at Vivid Smiles unfolds in four planned stages. Robotic guidance and
-              in-house imaging mean fewer appointments and a more predictable result.
-            </p>
+            <h2><Fragment set:html={section("process").heading} /></h2>
+            <p>{section("process").body}</p>
           </div>
 
           <div class="process-grid">
@@ -376,17 +361,14 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
         <div class="wrap">
           <div class="natural-grid">
             <div class="natural-text">
-              <span class="eyebrow">Candidacy</span>
-              <h2>Who Is a Candidate <em>for Single Tooth Implants?</em></h2>
+              <span class="eyebrow">{section("candidacy").eyebrow}</span>
+              <h2><Fragment set:html={section("candidacy").heading} /></h2>
               <div class="natural-quote">
                 Most healthy adults with a single missing tooth, adequate bone, and healthy gums
                 qualify for an implant.
               </div>
               <div class="prose">
-                <p>
-                  Active gum disease or uncontrolled diabetes must be resolved first; a CBCT scan at
-                  your first appointment establishes candidacy.
-                </p>
+                <p>{section("candidacy").body}</p>
               </div>
             </div>
             <div class="natural-img" data-vs-parallax data-parallax="-25">
@@ -416,11 +398,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">Benefits</span>
-            <h2>Benefits of <em>Single Tooth Dental Implants</em></h2>
-            <p>
-              Single-tooth implants offer functional and aesthetic advantages that no other
-              replacement option replicates.
-            </p>
+            <h2><Fragment set:html={section("benefits").heading} /></h2>
+            <p>{section("benefits").body}</p>
           </div>
 
           <div class="benefits-grid">
@@ -441,14 +420,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <section class="section alt" id="cost" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Cost &amp; Financing</span>
-            <h2>Single Tooth Implant Cost <em>in Parker, CO</em></h2>
-            <p>
-              A single tooth implant costs more upfront than a bridge or denture, but the long-term
-              economics usually favor it. Bridges require altering adjacent teeth, need replacement
-              every 10 to 15 years, and allow ongoing bone loss; a single tooth implant avoids all
-              three.
-            </p>
+            <span class="eyebrow">{section("cost").eyebrow}</span>
+            <h2><Fragment set:html={section("cost").heading} /></h2>
+            <p>{section("cost").body}</p>
           </div>
 
           <PricingTiers
@@ -479,11 +453,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
         <div class="wrap">
           <div class="section-head" data-vs-reveal>
             <span class="eyebrow light">Smile Gallery</span>
-            <h2>Finished smiles from <em>our chair.</em></h2>
-            <p>
-              A selection of finished cosmetic and restorative work from across the practice, not
-              single-tooth implant cases specifically.
-            </p>
+            <h2><Fragment set:html={section("gallery").heading} /></h2>
+            <p>{section("gallery").body}</p>
           </div>
         </div>
 
@@ -515,8 +486,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <section class="section" id="faq" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">FAQ</span>
-            <h2>Frequently Asked Questions <em>About Single Tooth Implants</em></h2>
+            <span class="eyebrow">{section("faq").eyebrow}</span>
+            <h2><Fragment set:html={section("faq").heading} /></h2>
           </div>
 
           <div class="faq-list">
@@ -538,12 +509,7 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
           </div>
 
           <div class="pull">
-            <p>
-              A single tooth implant addresses the visible gap and the bone loss beneath it, and
-              Vivid Smiles builds every case around natural-looking, predictable results. Robotic
-              placement and in-house crown fabrication give Dr. Richardson control at every stage of
-              treatment.
-            </p>
+            <p>{section("faq").body}</p>
           </div>
 
           <div class="cta-row">

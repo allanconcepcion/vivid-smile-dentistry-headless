@@ -119,7 +119,7 @@ const archConfigs = [
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> All-on-4 Single Arch Implants in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname);
+const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -217,8 +217,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <section class="section" id="why" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Why Vivid Smiles</span>
-            <h2>Why Choose Vivid Smiles <em>for All-on-4 in Parker, CO</em></h2>
+            <span class="eyebrow">{section("why").eyebrow}</span>
+            <h2><Fragment set:html={section("why").heading} /></h2>
           </div>
 
           <div class="why-grid">
@@ -248,17 +248,10 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
               />
             </div>
             <div class="what-text">
-              <span class="eyebrow">Definition</span>
-              <h2>What Are <em>All-on-4 Single Arch Implants?</em></h2>
+              <span class="eyebrow">{section("what").eyebrow}</span>
+              <h2><Fragment set:html={section("what").heading} /></h2>
               <div class="prose">
-                <p>
-                  All-on-4 single arch implants are a full-arch restoration that replaces all teeth
-                  in one jaw using four implants as the foundation for a fixed, non-removable
-                  prosthesis. Two implants are placed at the front; two are angled posteriorly at 30
-                  to 45 degrees. That angulation maximizes bone contact while clearing the sinus
-                  cavities and nerve structures, which is why grafting is not required in most
-                  cases. The result is a stable bridge of 10 to 12 replacement teeth.
-                </p>
+                <p>{section("what").body}</p>
               </div>
               <div class="cta-row left">
                 <div class="cta-buttons">
@@ -319,18 +312,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
               />
             </div>
             <div class="robotics-text">
-              <span class="eyebrow">The Technology</span>
-              <h2>How Robotic All-on-4 Placement Works <em>at Vivid Smiles</em></h2>
-              <p class="robotics-prose">
-                Vivid Smiles uses robotic implant placement technology, a clinical differentiator
-                that no competitor offers. A CBCT scan captures a three-dimensional image of the
-                bone structure, including density, nerve location, and sinus proximity. Dr.
-                Richardson's planning software then maps the position, depth, and angle of each
-                implant before surgery begins, and the robotic system executes that plan with
-                submillimeter precision. Dr. Bryce Richardson trained at Implant Pathway, one of the
-                country's most selective implant training facilities. It defines the clinical
-                standards applied to every case.
-              </p>
+              <span class="eyebrow">{section("robotics").eyebrow}</span>
+              <h2><Fragment set:html={section("robotics").heading} /></h2>
+              <p class="robotics-prose">{section("robotics").body}</p>
               <div class="robotics-callout">
                 <span class="label">Why four implants are enough</span>
                 <h4>Engineering, not shortcuts</h4>
@@ -354,8 +338,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow light">Same-Day Procedure</span>
-            <h2>Same-Day Teeth: <em>What to Expect</em></h2>
-            <p>This sequence follows from the moment you arrive.</p>
+            <h2><Fragment set:html={section("process").heading} /></h2>
+            <p>{section("process").body}</p>
           </div>
 
           <div class="process-grid">
@@ -395,12 +379,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <section class="section" id="compare" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Comparison</span>
-            <h2>Single Arch vs. <em>Full Mouth Treatment</em></h2>
-            <p>
-              Single-arch All-on-4 treats one jaw; full-mouth treats both. Patients with healthy
-              teeth in one arch start with single-arch treatment.
-            </p>
+            <span class="eyebrow">{section("compare").eyebrow}</span>
+            <h2><Fragment set:html={section("compare").heading} /></h2>
+            <p>{section("compare").body}</p>
           </div>
 
           <div class="compare">
@@ -478,8 +459,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
         <div class="wrap">
           <div class="natural-grid">
             <div class="natural-text">
-              <span class="eyebrow">Candidacy</span>
-              <h2>Who Is a Good Candidate <em>for Single Arch All-on-4?</em></h2>
+              <span class="eyebrow">{section("candidacy").eyebrow}</span>
+              <h2><Fragment set:html={section("candidacy").heading} /></h2>
               <div class="natural-quote">
                 Ideal candidates have lost most or all teeth in one arch, retain sufficient bone
                 density, and are in good systemic health.
@@ -526,15 +507,7 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
           <div class="candidacy-sub">
             <span class="label">If you don't qualify yet</span>
             <h3>What If You Don't Have Sufficient Bone?</h3>
-            <p>
-              Severe bone loss changes the treatment path. Options include <a
-                class="vs-link"
-                href="/implant-dentistry/bone-grafting/">bone grafting</a
-              > (adding material and waiting three to six months before implant placement), All-on-6 for
-              patients with moderate loss who benefit from additional implant support, or zygomatic implants
-              for the upper jaw, which anchor in the cheekbone. Dr. Richardson evaluates each case using
-              CBCT imaging and outlines every option before treatment begins.
-            </p>
+            <p>{section("candidacy").body}</p>
           </div>
         </div>
       </section>
@@ -544,8 +517,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">Daily Life</span>
-            <h2>Living with All-on-4: <em>Eating, Cleaning, and Daily Life</em></h2>
-            <p>After osseointegration, life with All-on-4 is closer to natural teeth.</p>
+            <h2><Fragment set:html={section("living").heading} /></h2>
+            <p>{section("living").body}</p>
           </div>
 
           <div class="benefits-grid">
@@ -580,14 +553,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <section class="section alt" id="cost" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Cost & Financing</span>
-            <h2>All-on-4 Single Arch <em>Cost and Financing</em></h2>
-            <p>
-              Evaluating All-on-4 cost-per-tooth, rather than total investment, changes the frame:
-              you are replacing an entire arch with a permanent, fixed solution rather than paying
-              per individual implant. The long-term value includes restored function, preserved
-              bone, and the avoided cost of ongoing failing-tooth treatment.
-            </p>
+            <span class="eyebrow">{section("cost").eyebrow}</span>
+            <h2><Fragment set:html={section("cost").heading} /></h2>
+            <p>{section("cost").body}</p>
           </div>
 
           <PricingTiers
@@ -631,11 +599,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
         <div class="wrap">
           <div class="section-head" data-vs-reveal>
             <span class="eyebrow light">Smile Gallery</span>
-            <h2>Finished smiles from <em>our chair.</em></h2>
-            <p>
-              A selection of finished cosmetic and restorative work from across the practice, not
-              All-on-4 cases specifically.
-            </p>
+            <h2><Fragment set:html={section("gallery").heading} /></h2>
+            <p>{section("gallery").body}</p>
           </div>
         </div>
 
@@ -663,8 +628,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <section class="section" id="faq" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">FAQ</span>
-            <h2>Frequently Asked Questions About <em>All-on-4 Single Arch Implants</em></h2>
+            <span class="eyebrow">{section("faq").eyebrow}</span>
+            <h2><Fragment set:html={section("faq").heading} /></h2>
           </div>
 
           <div class="faq-list">
@@ -686,14 +651,7 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
           </div>
 
           <div class="pull">
-            <p>
-              All-on-4 single arch implants offer a same-day, fixed solution for patients who have
-              lost most or all teeth in one jaw, without the <a
-                class="vs-link"
-                href="/implant-dentistry/bone-grafting/">bone grafting</a
-              > requirements that traditional implants demand. Robotic placement, zirconia material options,
-              and honest candidacy evaluation are what separate predictable long-term outcomes.
-            </p>
+            <p>{section("faq").body}</p>
           </div>
 
           <div class="cta-row">

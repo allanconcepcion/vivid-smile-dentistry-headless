@@ -54,6 +54,10 @@ import featuredImg from "../../assets/images/procedures/full-arch-restoration-mo
 
 // Hero image — Vivid Smiles team in the Parker studio.
 import heroImg from "../../assets/images/team/vivid-smiles-team-candid.webp";
+import { getPageContent } from '../../lib/page-content';
+// Section copy is edited in WordPress (Pages -> this page -> Section copy).
+const { section } = await getPageContent(Astro.url.pathname);
+
 ---
 
 <BaseLayout
@@ -112,12 +116,9 @@ import heroImg from "../../assets/images/team/vivid-smiles-team-candid.webp";
     <section class="veneer-stories section dark" id="veneer-stories">
       <div class="wrap">
         <div class="veneer-stories-head" data-vs-reveal-batch>
-          <span class="eyebrow">Cosmetic veneers</span>
-          <h2>Cosmetic <em>transformations</em>.</h2>
-          <p>
-            From dramatic redesigns to subtle refinements — see how porcelain veneers can change a
-            smile, a confidence level, and the way someone shows up day to day.
-          </p>
+          <span class="eyebrow">{section("veneer-stories").eyebrow}</span>
+          <h2><Fragment set:html={section("veneer-stories").heading} /></h2>
+          <p>{section("veneer-stories").body}</p>
         </div>
 
         <div class="veneer-stories-grid" data-vs-reveal-batch>
@@ -226,12 +227,9 @@ import heroImg from "../../assets/images/team/vivid-smiles-team-candid.webp";
     <section class="stories" id="stories">
       <div class="wrap">
         <div class="stories-head" data-vs-reveal-batch>
-          <span class="eyebrow">Some happy smiles</span>
-          <h2>Patient success <em>stories</em></h2>
-          <p>
-            From full-mouth dental implant makeovers to life-changing reconstructive work, our patients
-            share their experiences in their own words.
-          </p>
+          <span class="eyebrow">{section("stories").eyebrow}</span>
+          <h2><Fragment set:html={section("stories").heading} /></h2>
+          <p>{section("stories").body}</p>
         </div>
 
         <div class="stories-grid" data-vs-reveal-batch>
@@ -368,12 +366,9 @@ import heroImg from "../../assets/images/team/vivid-smiles-team-candid.webp";
             <span class="featured-runtime" aria-hidden="true">Watch Wayne's story</span>
           </button>
           <div class="featured-copy" data-vs-reveal-batch>
-            <span class="eyebrow">Featured story</span>
-            <h2 id="featured-heading">Wayne's remarkable <em>transformation.</em></h2>
-            <p class="featured-quote">
-              "Hear how Wayne's journey to a healthier, more confident smile with
-              an All-On-X upper arch has already changed his life."
-            </p>
+            <span class="eyebrow">{section("featured-story").eyebrow}</span>
+            <h2 id="featured-heading"><Fragment set:html={section("featured-story").heading} /></h2>
+            <p class="featured-quote">{section("featured-story").body}</p>
             <p>
               Press play to hear Wayne's story in his own words — what life looked like before
               his All-On-X upper arch, and what changed after. Then explore the protocol Dr.
@@ -402,10 +397,10 @@ import heroImg from "../../assets/images/team/vivid-smiles-team-candid.webp";
     <section class="testi" id="reviews">
       <div class="wrap">
         <div class="testi-head" data-vs-reveal-batch>
-          <span class="eyebrow">Testimonials</span>
-          <h2>5-Star <em>Smiles</em></h2>
+          <span class="eyebrow">{section("reviews").eyebrow}</span>
+          <h2><Fragment set:html={section("reviews").heading} /></h2>
           <div class="stars">★★★★★</div>
-          <p>Hear from some of our happy patients. Vivid Smiles Dentistry is the only dentist with a 5-star rating in Parker, CO.</p>
+          <p>{section("reviews").body}</p>
         </div>
         <div class="testi-actions" data-vs-reveal>
           <Button variant="sage" href="https://share.google/CletN4Tfk51TpK4It" hoverLabel="See Reviews">Read More on Google</Button>

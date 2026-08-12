@@ -84,7 +84,7 @@ const whyUsCards = [
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Full-Mouth Rehabilitation in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname);
+const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -168,9 +168,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
     <section class="section" id="why" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
-          <span class="eyebrow">Candidates</span>
-          <h2>Who Needs <em>Full-Mouth Rehabilitation?</em></h2>
-          <p>Full-mouth rehab is for patients facing a significant breakdown across multiple teeth.</p>
+          <span class="eyebrow">{section("why").eyebrow}</span>
+          <h2><Fragment set:html={section("why").heading} /></h2>
+          <p>{section("why").body}</p>
         </div>
 
         <div class="why-grid">
@@ -203,13 +203,10 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
             />
           </div>
           <div class="what-text">
-            <span class="eyebrow">Definition</span>
-            <h2>What is <em>Full-Mouth Rehabilitation?</em></h2>
+            <span class="eyebrow">{section("what").eyebrow}</span>
+            <h2><Fragment set:html={section("what").heading} /></h2>
             <div class="prose">
-              <p>
-                Full-mouth rehabilitation treats widespread damage, disease, or deterioration across the entire
-                mouth rather than individual teeth.
-              </p>
+              <p>{section("what").body}</p>
               <p>
                 The procedures vary by case; a plan might include implants, crowns, bridges, veneers, or
                 implant-supported dentures based on bone health and tooth structure.
@@ -231,12 +228,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow">Treatment Options</span>
-          <h2>Full-Mouth Rehab <em>Treatment Options</em></h2>
-          <p>
-            Full-mouth rehab uses several treatment pathways; the right combination depends on how many teeth are
-            missing, available bone, and which natural teeth can be preserved. Dr. Richardson evaluates each case
-            individually and selects from implant-based, cosmetic, or hybrid approaches based on the patient's goals.
-          </p>
+          <h2><Fragment set:html={section("options").heading} /></h2>
+          <p>{section("options").body}</p>
         </div>
 
         <div class="compare">
@@ -277,8 +270,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow light">The Process</span>
-          <h2>The Full-Mouth Rehab Process <em>at Vivid Smiles</em></h2>
-          <p>Most full-mouth rehab cases take three to six months, with treatment sequenced to allow adequate healing between phases.</p>
+          <h2><Fragment set:html={section("process").heading} /></h2>
+          <p>{section("process").body}</p>
         </div>
 
         <div class="process-grid">
@@ -308,16 +301,12 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
         <div class="natural-grid">
           <div class="natural-text">
             <span class="eyebrow">Treatment Planning</span>
-            <h2>Digital Smile Design <em>and Treatment Planning</em></h2>
+            <h2><Fragment set:html={section("design").heading} /></h2>
             <div class="natural-quote">
               Patients can review and refine before any permanent changes are made.
             </div>
             <div class="prose">
-              <p>
-                Digital smile design lets patients see their projected result before any irreversible work begins.
-                Using 3D imaging and design software, Dr. Richardson creates a preview that patients can review
-                and refine before any permanent changes are made.
-              </p>
+              <p>{section("design").body}</p>
             </div>
           </div>
           <div class="natural-img" data-vs-parallax data-parallax="-25">
@@ -336,9 +325,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
     <section class="section" id="cost" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
-          <span class="eyebrow">Investment</span>
-          <h2>Cost of Full-Mouth Rehabilitation <em>in Parker</em></h2>
-          <p>Full-mouth rehab costs vary based on case complexity; the number of implants, restoration type, and need for <a class="vs-link" href="/implant-dentistry/bone-grafting/">bone grafting</a> all affect the total investment.</p>
+          <span class="eyebrow">{section("cost").eyebrow}</span>
+          <h2><Fragment set:html={section("cost").heading} /></h2>
+          <p>{section("cost").body}</p>
         </div>
 
         <div class="cost-card">
@@ -376,9 +365,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
     <section class="section alt" id="why-us" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
-          <span class="eyebrow">Why Vivid Smiles</span>
-          <h2>Why Choose Vivid Smiles <em>for Full-Mouth Rehab?</em></h2>
-          <p>Vivid Smiles brings specialized training, advanced technology, and two-doctor coordination to every full-mouth case in Parker.</p>
+          <span class="eyebrow">{section("why-us").eyebrow}</span>
+          <h2><Fragment set:html={section("why-us").heading} /></h2>
+          <p>{section("why-us").body}</p>
         </div>
 
         <div class="why-4up">
@@ -397,8 +386,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
     <section class="section" id="faq" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
-          <span class="eyebrow">FAQ</span>
-          <h2>Frequently Asked Questions About <em>Full-Mouth Rehab in Parker</em></h2>
+          <span class="eyebrow">{section("faq").eyebrow}</span>
+          <h2><Fragment set:html={section("faq").heading} /></h2>
         </div>
 
         <div class="faq-list">
@@ -411,10 +400,7 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
         </div>
 
         <div class="pull">
-          <p>
-            Full-mouth rehabilitation is a major investment in long-term health, function, and confidence. The
-            right team and technology make the difference between a result that lasts and one that doesn't.
-          </p>
+          <p>{section("faq").body}</p>
         </div>
 
         <div class="cta-row">

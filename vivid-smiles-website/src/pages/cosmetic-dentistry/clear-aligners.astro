@@ -87,7 +87,7 @@ const careBullets = [
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Clear Aligners in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname);
+const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -180,14 +180,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <section class="section" id="why" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Why Vivid Smiles</span>
-            <h2>Why Choose Clear Aligners <em>at Vivid Smiles Dentistry</em></h2>
-            <p>
-              Vivid Smiles Dentistry combines modern digital technology with genuine Parker
-              community roots for a clear aligner experience that is transparent from the first
-              visit. Two advantages set our approach apart: a digital smile preview before treatment
-              starts, and 3D scanning that replaces the messy impressions most practices still use.
-            </p>
+            <span class="eyebrow">{section("why").eyebrow}</span>
+            <h2><Fragment set:html={section("why").heading} /></h2>
+            <p>{section("why").body}</p>
           </div>
 
           <div class="why-grid">
@@ -237,18 +232,10 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
               />
             </div>
             <div class="what-text">
-              <span class="eyebrow">Definition</span>
-              <h2>What Are <em>Clear Aligners?</em></h2>
+              <span class="eyebrow">{section("what").eyebrow}</span>
+              <h2><Fragment set:html={section("what").heading} /></h2>
               <div class="prose">
-                <p>
-                  Clear aligners are smooth, custom-fabricated plastic trays that move your teeth
-                  gradually into position using gentle, controlled pressure. Each tray shifts your
-                  teeth incrementally, and you advance through the series until treatment is
-                  complete. At Vivid Smiles Dentistry, we use Spark clear aligners, a precision
-                  brand known for exceptional optical clarity and accurate fit. There are no
-                  brackets, no wires, and no food restrictions. You wear each set for approximately
-                  one to two weeks, then move on to the next.
-                </p>
+                <p>{section("what").body}</p>
               </div>
               <div class="cta-row left">
                 <div class="cta-buttons">
@@ -270,12 +257,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow light">Your Treatment Process</span>
-            <h2>How Clear Aligners Work <em>at Vivid Smiles</em></h2>
-            <p>
-              Clear aligner treatment follows a predictable sequence from your first scan to your
-              final retainer. Understanding the path ahead makes the commitment easier to plan
-              around.
-            </p>
+            <h2><Fragment set:html={section("process").heading} /></h2>
+            <p>{section("process").body}</p>
           </div>
 
           <div class="process-grid">
@@ -310,12 +293,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <section class="section" id="compare" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Aligners vs Braces</span>
-            <h2>Benefits of Clear Aligners <em>vs Traditional Braces</em></h2>
-            <p>
-              Clear aligners offer several practical advantages over traditional braces that adult
-              patients value most.
-            </p>
+            <span class="eyebrow">{section("compare").eyebrow}</span>
+            <h2><Fragment set:html={section("compare").heading} /></h2>
+            <p>{section("compare").body}</p>
           </div>
 
           <div class="compare">
@@ -364,24 +344,10 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
           <div class="natural-grid">
             <div class="natural-text">
               <span class="eyebrow">Candidacy</span>
-              <h2>Who Is a Good Candidate <em>for Clear Aligners?</em></h2>
+              <h2><Fragment set:html={section("natural").heading} /></h2>
               <div class="natural-quote">Both teens and adults qualify in most cases.</div>
               <div class="prose">
-                <p>
-                  Clear aligners work well for mild to moderate crowding, gaps between teeth,
-                  spacing irregularities, and minor bite issues such as a slight overbite or
-                  underbite. They are also effective for patients who had orthodontic work in the
-                  past and have seen some gradual shifting since. Severe crowding, significant bite
-                  discrepancies, or complex jaw alignment concerns may require a different approach.
-                  Aligners are also a common preparatory step inside a broader <a
-                    class="vs-link"
-                    href="/cosmetic-dentistry/smile-makeover/">smile makeover</a
-                  >, positioning teeth before <a
-                    class="vs-link"
-                    href="/cosmetic-dentistry/porcelain-veneers/">porcelain veneers</a
-                  > or whitening for a more stable final result. Candidacy is confirmed at your consultation
-                  with a 3D scan and clinical review of your specific tooth positions.
-                </p>
+                <p>{section("natural").body}</p>
               </div>
             </div>
             <div class="natural-img" data-vs-parallax data-parallax="-25">
@@ -405,11 +371,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <section class="section" id="lasting" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Daily Care</span>
-            <h2>Caring for Your <em>Clear Aligners</em></h2>
-            <p>
-              Consistent care keeps your trays clear and your teeth healthy throughout treatment.
-            </p>
+            <span class="eyebrow">{section("lasting").eyebrow}</span>
+            <h2><Fragment set:html={section("lasting").heading} /></h2>
+            <p>{section("lasting").body}</p>
           </div>
 
           <div class="lasting-card">
@@ -456,11 +420,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
         <div class="wrap">
           <div class="section-head" data-vs-reveal>
             <span class="eyebrow light">Smile Gallery</span>
-            <h2>Finished smiles <em>in Parker.</em></h2>
-            <p>
-              A selection of finished cosmetic and restorative cases from across the practice. These
-              are not aligner results.
-            </p>
+            <h2><Fragment set:html={section("gallery").heading} /></h2>
+            <p>{section("gallery").body}</p>
           </div>
         </div>
 
@@ -488,8 +449,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <section class="section" id="faq" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">FAQ</span>
-            <h2>Frequently Asked Questions <em>About Clear Aligners</em></h2>
+            <span class="eyebrow">{section("faq").eyebrow}</span>
+            <h2><Fragment set:html={section("faq").heading} /></h2>
           </div>
 
           <div class="faq-list">
@@ -511,10 +472,7 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
           </div>
 
           <div class="pull">
-            <p>
-              Spark clear aligners treat a wide range of mild to moderate alignment issues — and at
-              Vivid Smiles, you see your projected results before committing to a single tray.
-            </p>
+            <p>{section("faq").body}</p>
           </div>
 
           <div class="cta-row">

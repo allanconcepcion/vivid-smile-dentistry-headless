@@ -23,6 +23,7 @@ import heroImg from "../../assets/images/team/vivid-smiles-team-candid.webp";
 import step1Img from "../../assets/images/people/real/patient-at-reception-check-in.webp";
 import step2Img from "../../assets/images/procedures/hygienist-polishing-teeth.webp";
 import step3Img from "../../assets/images/facility/waiting-room-lounge-with-neon-smile.webp";
+import { getPageContent } from '../../lib/page-content';
 
 const storyBullets = [
   "2 cleanings & exams per year",
@@ -111,6 +112,9 @@ const faqs = [
     a: "<b>Fully covered (no additional charge):</b> two cleanings and exams a year, two fluoride treatments, unlimited digital x-rays as clinically needed, oral cancer screenings, and complimentary consultations. <b>Discounted at 15%:</b> Invisalign and clear aligners, additional cleanings, fillings, crowns, veneers, whitening, implants, full-arch work, and emergency visits. The plan covers one adult; family pricing is available on request.",
   },
 ];
+// Section copy is edited in WordPress (Pages -> this page -> Section copy).
+const { section } = await getPageContent(Astro.url.pathname);
+
 ---
 
 <BaseLayout
@@ -168,8 +172,8 @@ const faqs = [
       <div class="wrap story-grid">
         <div class="story-copy">
           <span class="vs-eyebrow">— Why we built it</span>
-          <h2 class="vs-h2">For the patients <em class="vs-italic-word">who'd rather skip the middleman.</em></h2>
-          <p>Most dental insurance was designed for an era that no longer exists. Annual maximums haven't moved in forty years. Cosmetic work — the reason a lot of our patients come to us — isn't covered at all. And the paperwork costs everyone time that could be spent on care.</p>
+          <h2 class="vs-h2"><Fragment set:html={section("story").heading} /></h2>
+          <p>{section("story").body}</p>
           <p>The Vivid Smiles Membership Plan is the simplest answer we could come up with: a flat annual fee, your preventive care covered in full, and a meaningful discount on everything else. We see what's coming in the door — no pre-approvals to chase, no claim denials, no waiting period. You come in. We get to work.</p>
           <p>It isn't insurance, and it isn't trying to be. It's a direct agreement between a patient and a practice, written in plain language and renewed once a year.</p>
         </div>
@@ -197,8 +201,8 @@ const faqs = [
       <div class="wrap">
         <div class="intro-triad">
           <span class="vs-eyebrow">— How it works</span>
-          <h2 class="vs-h2">Three steps, <em class="vs-italic-word">activated same day.</em></h2>
-          <p class="vs-lede">Sign up online, by phone, or in the office. There's no waiting period, no underwriting, no pre-approval. The benefits are usable the same day you enroll.</p>
+          <h2 class="vs-h2"><Fragment set:html={section("how-it-works").heading} /></h2>
+          <p class="vs-lede">{section("how-it-works").body}</p>
         </div>
 
         <div class="pcard" data-vs-reveal>
@@ -227,8 +231,8 @@ const faqs = [
       <div class="wrap">
         <div class="intro-triad intro-triad--center">
           <span class="vs-eyebrow vs-center">The plan</span>
-          <h2 class="vs-h2">One tier. <em class="vs-italic-word">No surprises.</em></h2>
-          <p class="vs-lede">We deliberately didn't build a four-tier menu. One plan, one number, written in plain English — so you can decide in two minutes whether it makes sense for you.</p>
+          <h2 class="vs-h2"><Fragment set:html={section("whats-included").heading} /></h2>
+          <p class="vs-lede">{section("whats-included").body}</p>
         </div>
 
         <div class="plan" id="enroll">
@@ -316,7 +320,7 @@ const faqs = [
       <div class="wrap">
         <div class="section-head section-head--center">
           <span class="vs-eyebrow vs-center">FAQ</span>
-          <h2 class="vs-h2">Questions we get <em class="vs-italic-word">most often.</em></h2>
+          <h2 class="vs-h2"><Fragment set:html={section("faq").heading} /></h2>
           <p class="vs-lede">
             Practical answers about how the membership works in real life. Anything else, call us at <a class="vs-link" href={phoneHref}>{phoneLabel}</a> — we'll walk you through the numbers before you commit.
           </p>

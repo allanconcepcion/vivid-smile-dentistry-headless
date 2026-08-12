@@ -68,6 +68,7 @@ import storyVeneersLength from "../assets/images/video-stories/veneers-story-len
 // Notable patients — Denver Broncos cheerleaders (real patient portraits)
 import notableAnnMarie from "../assets/images/people/real/ann-marie-muscarello-veneer-makeover.webp";
 import notableBrittany from "../assets/images/people/real/brittany-fanning-smile-makeover.webp";
+import { getPageContent } from '../lib/page-content';
 
 const galleryTiles = getSmiles();
 
@@ -85,6 +86,9 @@ const trustBar = [
 
 // Duplicate trust bar so the marquee animation has seamless loop content
 const trustTrack = [...trustBar, ...trustBar];
+// Section copy is edited in WordPress (Pages -> this page -> Section copy).
+const { section } = await getPageContent(Astro.url.pathname);
+
 ---
 
 <BaseLayout
@@ -175,15 +179,11 @@ const trustTrack = [...trustBar, ...trustBar];
       <div class="wrap">
         <div class="services-head" data-vs-reveal-batch>
           <div class="left">
-            <span class="eyebrow">What we offer</span>
-            <h2>Signature care,<br>at <em class="vs-italic-word">every level of detail.</em></h2>
+            <span class="eyebrow">{section("services").eyebrow}</span>
+            <h2><Fragment set:html={section("services").heading} /></h2>
           </div>
           <div class="right">
-            <p>
-              From a quiet six-month cleaning to a full-arch rehabilitation, every appointment at Vivid Smiles
-              is designed around the same discipline: careful listening, modern technology, and craftsmanship
-              that holds up under close inspection.
-            </p>
+            <p>{section("services").body}</p>
             <Button variant="ghost" href="/services/" hoverLabel="Browse All">View All Services</Button>
           </div>
         </div>
@@ -261,12 +261,9 @@ const trustTrack = [...trustBar, ...trustBar];
     <section class="stories" id="stories">
       <div class="wrap">
         <div class="stories-head" data-vs-reveal-batch>
-          <span class="eyebrow">Some happy smiles</span>
-          <h2>Patient success <em>stories</em></h2>
-          <p>
-            Three porcelain veneer transformations from our Parker studio. Real patients, real results —
-            and a glimpse at what changes when the smile finally fits the person.
-          </p>
+          <span class="eyebrow">{section("stories").eyebrow}</span>
+          <h2><Fragment set:html={section("stories").heading} /></h2>
+          <p>{section("stories").body}</p>
         </div>
 
         <div class="stories-grid" data-vs-reveal-batch>
@@ -373,13 +370,9 @@ const trustTrack = [...trustBar, ...trustBar];
     <section class="notable" id="notable" aria-labelledby="notable-heading">
       <div class="wrap">
         <div class="notable-head" data-vs-reveal-batch>
-          <span class="eyebrow">Trusted by the spotlight</span>
-          <h2 id="notable-heading">A few <em class="vs-italic-word">familiar</em> smiles<span class="period">.</span></h2>
-          <p>
-            From sideline cameras to gameday close-ups, the Denver Broncos cheerleaders trust Dr. Richardson
-            with the smiles their careers depend on. A small look at the high-visibility patients who choose
-            Vivid Smiles for cosmetic work that has to hold up under the brightest lights.
-          </p>
+          <span class="eyebrow">{section("notable").eyebrow}</span>
+          <h2 id="notable-heading"><Fragment set:html={section("notable").heading} /></h2>
+          <p>{section("notable").body}</p>
         </div>
 
         <div class="notable-grid" data-vs-reveal-batch>
@@ -424,12 +417,9 @@ const trustTrack = [...trustBar, ...trustBar];
             </div>
           </div>
           <div class="doc-copy" data-vs-reveal-batch>
-            <span class="eyebrow">Meet the Doctor</span>
-            <h2>Dr. Bryce<br><em>Richardson</em><span class="period">.</span></h2>
-            <p class="lead">
-              Founder of Vivid Smiles Dentistry and one of the country's most sought-after cosmetic dentists
-              for smile makeovers, full-mouth rehabilitations, and minimal-prep veneers.
-            </p>
+            <span class="eyebrow">{section("doctor").eyebrow}</span>
+            <h2><Fragment set:html={section("doctor").heading} /></h2>
+            <p class="lead">{section("doctor").body}</p>
             <p class="bio">
               A distinguished graduate of Indiana University School of Dentistry, Dr. Richardson has completed
               more than 600 hours of advanced postgraduate training in esthetics, veneers, full-mouth rehab,
@@ -456,11 +446,8 @@ const trustTrack = [...trustBar, ...trustBar];
       <div class="wrap">
         <div class="gallery-head" data-vs-reveal-batch>
           <span class="eyebrow light">Smile Gallery</span>
-          <h2>Real patients.<br><em>Life-changing results.</em></h2>
-          <p>
-            A look at finished smiles from Dr. Richardson's chair, from single-tooth restorations
-            to full-mouth rehabilitations.
-          </p>
+          <h2><Fragment set:html={section("gallery").heading} /></h2>
+          <p>{section("gallery").body}</p>
           <div class="actions">
             <Button variant="sage" href={bookNowHref} hoverLabel="Book Yours">Book Online</Button>
             <Button variant="ghost-light" href="/smile-gallery/" hoverLabel="See Cases">View the Gallery</Button>
@@ -492,13 +479,9 @@ const trustTrack = [...trustBar, ...trustBar];
             <div class="ph-b" data-vs-parallax data-parallax="30"><Image src={techVeneerShells} alt="Porcelain veneer shells seated on a dental model, lit against white" widths={[400, 800]} sizes="30vw" /></div>
           </div>
           <div class="tech-copy" data-vs-reveal-batch>
-            <span class="eyebrow">Advanced Care</span>
-            <h2>World-class smiles, <em>through innovation.</em></h2>
-            <p class="lead">
-              A welcoming, family-owned atmosphere paired with the most advanced clinical technology
-              available, from the exclusive Vivid Smile Cosmetic Process to Yomi-Robot assisted
-              precision for dental implants.
-            </p>
+            <span class="eyebrow">{section("technology").eyebrow}</span>
+            <h2><Fragment set:html={section("technology").heading} /></h2>
+            <p class="lead">{section("technology").body}</p>
 
             <div class="tech-list" data-vs-reveal-batch>
               <div class="tech-item">

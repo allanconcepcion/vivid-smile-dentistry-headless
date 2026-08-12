@@ -203,7 +203,7 @@ const ledger = [
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Dental Implants in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname);
+const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -275,14 +275,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
     <section class="section alt" id="why" data-vs-reveal-batch>
       <div class="why-grid">
         <div class="why-copy">
-          <span class="eyebrow">Why Parker chooses us</span>
-          <h2>Why choose Vivid Smiles <em>for dental implants in Parker.</em></h2>
-          <p>
-            Most practices offering implants refer patients to outside oral surgeons for the surgical phase,
-            splitting care across two providers. At Vivid Smiles Dentistry, Dr. Bryce Richardson places and
-            restores implants entirely in-house, combining elite surgical credentials with robotic guidance and
-            full digital fabrication capability.
-          </p>
+          <span class="eyebrow">{section("why").eyebrow}</span>
+          <h2><Fragment set:html={section("why").heading} /></h2>
+          <p>{section("why").body}</p>
           <h3>Robotic-precision implant placement</h3>
           <p>
             Robotic-guided implant placement delivers submillimeter precision that freehand technique cannot
@@ -325,14 +320,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
             />
           </div>
           <div class="what-text">
-            <span class="eyebrow">What they are</span>
-            <h2>What are <em>dental implants?</em></h2>
-            <p>
-              Dental implants are small titanium posts placed into the jawbone to replace missing tooth roots.
-              The post undergoes osseointegration — bone fuses with the titanium, creating a stable root-level
-              anchor — over several months of healing. A custom crown, bridge, or prosthetic attaches on top to
-              restore the visible tooth.
-            </p>
+            <span class="eyebrow">{section("what").eyebrow}</span>
+            <h2><Fragment set:html={section("what").heading} /></h2>
+            <p>{section("what").body}</p>
             <p>
               Because implants work at the root level, they stimulate bone activity and prevent the jawbone
               deterioration that follows tooth loss. Bridges and dentures cannot accomplish this.
@@ -345,9 +335,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
     <section class="section alt" id="solutions" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
-          <span class="eyebrow">Solutions &amp; pricing</span>
-          <h2>Dental implant <em>solutions and pricing.</em></h2>
-          <p>Vivid Smiles publishes all-inclusive pricing for every implant solution, so you know what to budget before your consultation.</p>
+          <span class="eyebrow">{section("solutions").eyebrow}</span>
+          <h2><Fragment set:html={section("solutions").heading} /></h2>
+          <p>{section("solutions").body}</p>
         </div>
 
         <PricingTiers tiers={pricingTiers} financingNote={pricingFinancingNote} />
@@ -384,8 +374,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow light">Vs other options</span>
-          <h2>Dental implants vs <em>other tooth replacement options.</em></h2>
-          <p>Dental implants outperform bridges and dentures across all long-term outcome measures: bone preservation, stability, function, and lifespan.</p>
+          <h2><Fragment set:html={section("compare").heading} /></h2>
+          <p>{section("compare").body}</p>
         </div>
 
         <div class="compare-grid">
@@ -406,9 +396,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
     <section class="section" id="process" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
-          <span class="eyebrow">What to expect</span>
-          <h2>The dental implant process <em>at Vivid Smiles.</em></h2>
-          <p>Every implant case at Vivid Smiles follows a structured four-phase protocol.</p>
+          <span class="eyebrow">{section("process").eyebrow}</span>
+          <h2><Fragment set:html={section("process").heading} /></h2>
+          <p>{section("process").body}</p>
         </div>
 
         <div class="pgrid-card" data-vs-reveal>
@@ -429,9 +419,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
     <section class="section alt" id="technology" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
-          <span class="eyebrow">Advanced technology · Parker</span>
-          <h2>Dental implant technology <em>and Parker location.</em></h2>
-          <p>Vivid Smiles Dentistry operates a complete implant technology environment in the Parker area. Every case includes CBCT 3D imaging, robotic surgical guidance, digital scanning, in-house milling, and 3D-printed surgical guides for complex placements.</p>
+          <span class="eyebrow">{section("technology").eyebrow}</span>
+          <h2><Fragment set:html={section("technology").heading} /></h2>
+          <p>{section("technology").body}</p>
         </div>
 
         <div class="tech-grid">
@@ -450,8 +440,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
     <section class="section" id="doctors" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
-          <span class="eyebrow">Your dentist</span>
-          <h2>Dr. Richardson's implant <em>training and experience.</em></h2>
+          <span class="eyebrow">{section("doctors").eyebrow}</span>
+          <h2><Fragment set:html={section("doctors").heading} /></h2>
         </div>
 
         <article class="doctor doctor--feature">
@@ -469,12 +459,7 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
             <div class="doctor-bio doctor-bio--lead">
               <span class="eyebrow">Dr. Bryce Richardson, DDS</span>
               <h3>600-plus hours of training. <em>Implant Pathway</em> credentials.</h3>
-              <p>
-                Dr. Bryce Richardson holds 600-plus hours of specialized surgical training and has served on
-                staff at Implant Pathway, one of the country's most respected implant education programs. He
-                handles both surgical placement and the final restoration in-house, eliminating the referral
-                handoff that most local practices require for implant cases.
-              </p>
+              <p>{section("doctors").body}</p>
               <p>
                 Dr. Richardson earned his Doctor of Dental Surgery from Indiana University School of Dentistry,
                 graduating at the top of his class clinically. He is a Parker resident serving patients from
@@ -490,8 +475,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow light">Am I a candidate?</span>
-          <h2>Am I a candidate <em>for dental implants?</em></h2>
-          <p>Most healthy adults qualify for dental implants. Candidacy is determined by bone density, gum health, and systemic health rather than age.</p>
+          <h2><Fragment set:html={section("candidacy").heading} /></h2>
+          <p>{section("candidacy").body}</p>
         </div>
 
         <div class="cand-grid">
@@ -538,8 +523,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <div class="wrap">
         <div class="area">
           <div class="area-copy">
-            <span class="eyebrow">Service area</span>
-            <h2>Serving Parker, <em>Castle Rock &amp; Douglas County.</em></h2>
+            <span class="eyebrow">{section("area").eyebrow}</span>
+            <h2><Fragment set:html={section("area").heading} /></h2>
             <p>
               Vivid Smiles Dentistry is located at {addressStreet}, in {addressCity}, with consultation, surgical
               placement, and final restoration all happening under one roof with one provider.
@@ -573,9 +558,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
     <section class="section alt" id="faq" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
-          <span class="eyebrow">FAQ</span>
-          <h2>Frequently asked questions <em>about dental implants.</em></h2>
-          <p>Practical answers patients ask in the consultation chair. Anything else, send a few photos through the <a class="vs-link" href="#consult">virtual consult</a> and Dr. Richardson will record a personal video reply.</p>
+          <span class="eyebrow">{section("faq").eyebrow}</span>
+          <h2><Fragment set:html={section("faq").heading} /></h2>
+          <p>{section("faq").body}</p>
         </div>
 
         <div class="faq-list">

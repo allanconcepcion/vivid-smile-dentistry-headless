@@ -109,7 +109,7 @@ const keyStats: [string, string][] = [
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Full Mouth Dental Implants in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname);
+const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -206,8 +206,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <section class="section" id="why" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Why Vivid Smiles</span>
-            <h2>Why Choose Dr. Bryce Richardson <em>for Full Mouth Implants</em></h2>
+            <span class="eyebrow">{section("why").eyebrow}</span>
+            <h2><Fragment set:html={section("why").heading} /></h2>
           </div>
 
           <div class="why-grid">
@@ -239,16 +239,10 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
               />
             </div>
             <div class="what-text">
-              <span class="eyebrow">Definition</span>
-              <h2>What Are <em>Full Mouth Dental Implants?</em></h2>
+              <span class="eyebrow">{section("what").eyebrow}</span>
+              <h2><Fragment set:html={section("what").heading} /></h2>
               <div class="prose">
-                <p>
-                  Full mouth dental implants use four to six titanium roots per arch to support a
-                  fixed, non-removable bridge that replaces every tooth in that arch. This differs
-                  from <a class="vs-link" href="/implant-dentistry/single-tooth-dental-implants/"
-                    >single-tooth implants</a
-                  > or removable overdentures.
-                </p>
+                <p>{section("what").body}</p>
               </div>
               <div class="cta-row left">
                 <div class="cta-buttons">
@@ -278,18 +272,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
               />
             </div>
             <div class="robotics-text">
-              <span class="eyebrow">The Vivid Smile Approach</span>
-              <h2>Robotic Implant Placement: <em>Precision Technology</em></h2>
-              <p class="robotics-prose">
-                The Vivid Smile full-arch approach at Vivid Smiles Dentistry combines detailed 3D
-                imaging through the final restoration with robotic-guided surgery and in-house
-                prosthetic fabrication. Each phase is predictable and communicated before it begins.
-                Robotic-assisted surgery improves placement accuracy to within fractions of a
-                millimeter, which matters most in full arch cases where four to six implants must
-                support a bridge and placement errors compound across the arch. Dr. Richardson
-                completed staff-level training at Implant Pathway, one of the country's most
-                selective implant programs.
-              </p>
+              <span class="eyebrow">{section("robotics").eyebrow}</span>
+              <h2><Fragment set:html={section("robotics").heading} /></h2>
+              <p class="robotics-prose">{section("robotics").body}</p>
               <div class="robotics-callout">
                 <span class="label">Same-day teeth</span>
                 <h4>Can You Get Teeth the Same Day?</h4>
@@ -313,8 +298,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow light">Recovery Timeline</span>
-            <h2>What to Expect <em>During Recovery</em></h2>
-            <p>Full arch recovery follows a predictable timeline.</p>
+            <h2><Fragment set:html={section("process").heading} /></h2>
+            <p>{section("process").body}</p>
           </div>
 
           <div class="process-grid">
@@ -353,12 +338,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <section class="section" id="compare" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Comparison</span>
-            <h2>Full Mouth Implants <em>vs Other Tooth Replacement Options</em></h2>
-            <p>
-              Full-arch implants are a comprehensive solution for extensive tooth loss; the
-              following is how they compare to the alternatives.
-            </p>
+            <span class="eyebrow">{section("compare").eyebrow}</span>
+            <h2><Fragment set:html={section("compare").heading} /></h2>
+            <p>{section("compare").body}</p>
           </div>
 
           <div class="compare">
@@ -449,7 +431,7 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
           <div class="natural-grid">
             <div class="natural-text">
               <span class="eyebrow">Candidacy</span>
-              <h2>Who Is a Candidate <em>for Full Mouth Implants?</em></h2>
+              <h2><Fragment set:html={section("candidacy").heading} /></h2>
               <div class="natural-quote">
                 Full arch implants are for individuals missing most or all teeth in one or both
                 arches, including those with severe decay, advanced gum disease, or long-term
@@ -499,13 +481,7 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
           <div class="candidacy-sub">
             <span class="label">If you have reduced bone</span>
             <h3>What If You Have Bone Loss?</h3>
-            <p>
-              Bone loss changes the surgical approach, not the outcome. Moderate deficiency is
-              addressed with grafting before implant placement; patients with severely diminished
-              volume may qualify for zygomatic implants, which anchor in the cheekbone and bypass
-              grafting. Candidacy is determined through CBCT imaging, so every treatment plan is
-              built on actual bone anatomy.
-            </p>
+            <p>{section("candidacy").body}</p>
           </div>
         </div>
       </section>
@@ -517,13 +493,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <section class="section" id="benefits" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Benefits</span>
-            <h2>How Full Mouth Implants Differ <em>from Traditional Dentures</em></h2>
-            <p>
-              Dentures stay on top of the gums and allow the jawbone beneath them to shrink;
-              implants stop that process by functioning as replacement roots. The practical
-              differences are significant.
-            </p>
+            <span class="eyebrow">{section("benefits").eyebrow}</span>
+            <h2><Fragment set:html={section("benefits").heading} /></h2>
+            <p>{section("benefits").body}</p>
           </div>
 
           <div class="benefits-grid">
@@ -544,13 +516,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <section class="section alt" id="cost" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Cost &amp; Financing</span>
-            <h2>Full Mouth Dental Implant Cost <em>in Parker, CO</em></h2>
-            <p>
-              Full-arch implant pricing depends on case complexity, prosthetic material, and any
-              preparatory procedures. The long-term value comes from eliminating decades of denture
-              expenses and replacement cycles.
-            </p>
+            <span class="eyebrow">{section("cost").eyebrow}</span>
+            <h2><Fragment set:html={section("cost").heading} /></h2>
+            <p>{section("cost").body}</p>
           </div>
 
           <PricingTiers
@@ -582,11 +550,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
         <div class="wrap">
           <div class="section-head" data-vs-reveal>
             <span class="eyebrow light">Smile Gallery</span>
-            <h2>Finished smiles from <em>our chair.</em></h2>
-            <p>
-              A selection of finished cosmetic and restorative work from across the practice, not
-              full-mouth implant cases specifically.
-            </p>
+            <h2><Fragment set:html={section("gallery").heading} /></h2>
+            <p>{section("gallery").body}</p>
           </div>
         </div>
 
@@ -614,8 +579,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <section class="section" id="faq" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">FAQ</span>
-            <h2>Frequently Asked Questions <em>About Full Mouth Implants</em></h2>
+            <span class="eyebrow">{section("faq").eyebrow}</span>
+            <h2><Fragment set:html={section("faq").heading} /></h2>
           </div>
 
           <div class="faq-list">
@@ -637,10 +602,7 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
           </div>
 
           <div class="pull">
-            <p>
-              Full arch implant outcomes depend on surgical precision, planning depth, and
-              prosthetic quality; Vivid Smiles Dentistry is built to deliver on all three.
-            </p>
+            <p>{section("faq").body}</p>
           </div>
 
           <div class="cta-row">

@@ -85,7 +85,7 @@ const costBullets = [
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Sinus Lift Procedure in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname);
+const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -188,16 +188,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
               />
             </div>
             <div class="why-text">
-              <span class="eyebrow">Why Vivid Smiles</span>
-              <h2>Why Choose Vivid Smiles for Your <em>Sinus Lift in Parker, CO</em></h2>
-              <p class="why-lede">
-                Dr. Bryce Richardson holds <strong
-                  >600-plus hours of advanced surgical training</strong
-                >, including a staff role at <strong>Implant Pathway</strong>, one of the country's
-                most respected implant programs. With <strong>300+ five-star Google reviews</strong
-                >, CBCT imaging, digital planning, and robotic implant placement all in one Parker
-                practice, Vivid Smiles delivers national-level training close to home.
-              </p>
+              <span class="eyebrow">{section("why").eyebrow}</span>
+              <h2><Fragment set:html={section("why").heading} /></h2>
+              <p class="why-lede">{section("why").body}</p>
               <div class="why-creds">
                 <div class="cred">
                   <div class="cred-stat">600+ hrs</div>
@@ -232,17 +225,10 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
               />
             </div>
             <div class="what-text">
-              <span class="eyebrow">Definition</span>
-              <h2>What Is a <em>Sinus Lift?</em></h2>
+              <span class="eyebrow">{section("what").eyebrow}</span>
+              <h2><Fragment set:html={section("what").heading} /></h2>
               <div class="prose">
-                <p>
-                  A sinus lift builds bone between the upper jaw and the maxillary sinuses (air
-                  cavities above your upper back teeth) to create the height dental implants
-                  require. When teeth are lost, the jawbone shrinks and the sinus floor drops,
-                  narrowing the space where an implant needs solid support. It is a specialized form
-                  of <a class="vs-link" href="/implant-dentistry/bone-grafting/">bone grafting</a>,
-                  focused on the upper molar region.
-                </p>
+                <p>{section("what").body}</p>
               </div>
               <div class="cta-row left">
                 <div class="cta-buttons">
@@ -289,11 +275,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow light">The Procedure</span>
-            <h2>The Sinus Lift Procedure: <em>What to Expect</em></h2>
-            <p>
-              Dr. Richardson reviews each patient's CBCT scan and customizes the surgical plan
-              before the procedure begins.
-            </p>
+            <h2><Fragment set:html={section("process").heading} /></h2>
+            <p>{section("process").body}</p>
           </div>
 
           <div class="process-grid">
@@ -331,8 +314,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">Alternatives</span>
-            <h2>Alternatives to <em>Sinus Lifts</em></h2>
-            <p>Each alternative involves trade-offs in stability or longevity.</p>
+            <h2><Fragment set:html={section("alternatives").heading} /></h2>
+            <p>{section("alternatives").body}</p>
           </div>
 
           <div class="alt-grid">
@@ -365,7 +348,7 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
           <div class="natural-grid">
             <div class="natural-text">
               <span class="eyebrow">Technology</span>
-              <h2>Advanced Technology <em>for Predictable Outcomes</em></h2>
+              <h2><Fragment set:html={section("technology").heading} /></h2>
               <div class="natural-quote">
                 Precision before any incision — CBCT imaging, digital planning, and robotic
                 placement eliminate guesswork from the plan.
@@ -399,12 +382,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <section class="section invest" id="investment" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Investment &amp; Insurance</span>
-            <h2>Sinus Lift <em>Cost and Insurance Coverage</em></h2>
-            <p>
-              Sinus lift costs vary by case; Vivid Smiles provides an itemized breakdown after
-              reviewing CBCT imaging at the consultation.
-            </p>
+            <span class="eyebrow">{section("investment").eyebrow}</span>
+            <h2><Fragment set:html={section("investment").heading} /></h2>
+            <p>{section("investment").body}</p>
           </div>
 
           <div class="invest-grid">
@@ -458,11 +438,8 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
         <div class="wrap">
           <div class="section-head" data-vs-reveal>
             <span class="eyebrow light">Smile Gallery</span>
-            <h2>Finished smiles from <em>our chair.</em></h2>
-            <p>
-              A selection of finished cosmetic and restorative work from across the practice, not
-              sinus lift cases specifically.
-            </p>
+            <h2><Fragment set:html={section("gallery").heading} /></h2>
+            <p>{section("gallery").body}</p>
           </div>
         </div>
 
@@ -490,12 +467,9 @@ const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname
       <section class="section" id="faq" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">FAQ</span>
-            <h2>Frequently Asked Questions <em>About Sinus Lifts</em></h2>
-            <p>
-              These answers address what patients most often ask before scheduling a sinus lift
-              consultation.
-            </p>
+            <span class="eyebrow">{section("faq").eyebrow}</span>
+            <h2><Fragment set:html={section("faq").heading} /></h2>
+            <p>{section("faq").body}</p>
           </div>
 
           <div class="faq-list">

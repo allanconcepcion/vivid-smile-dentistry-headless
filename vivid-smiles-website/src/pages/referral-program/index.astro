@@ -41,7 +41,7 @@ const description =
 // faqs is edited in WordPress (Pages -> Referral Program).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { faqs } = await getPageContent(Astro.url.pathname);
+const { faqs, section } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -110,15 +110,8 @@ const { faqs } = await getPageContent(Astro.url.pathname);
 
         <div class="story-copy">
           <span class="eyebrow eyebrow-lined">— Our Patient Referral Program</span>
-          <h2>The best compliment <em>is a referral.</em></h2>
-          <p>
-            At Vivid Smiles Dentistry, we believe that the best compliment you can
-            give us is referring a friend or family member. Your trust means
-            everything, and when you share your positive experience with others,
-            you're not just helping our practice grow — you're also ensuring that
-            your loved ones receive the same high-quality care you've come to
-            expect.
-          </p>
+          <h2><Fragment set:html={section("program").heading} /></h2>
+          <p>{section("program").body}</p>
           <p>
             Our referral program is a simple, rewarding way to say thank you for
             spreading the word. When your friend comes in for their first
@@ -173,11 +166,8 @@ const { faqs } = await getPageContent(Astro.url.pathname);
       <div class="wrap">
         <div class="section-head center">
           <span class="eyebrow light">How It Works</span>
-          <h2>Three easy steps, <em>no paperwork.</em></h2>
-          <p>
-            Sharing a smile has never been easier. Here's exactly what happens
-            from the moment your friend books to the credit landing on your account.
-          </p>
+          <h2><Fragment set:html={section("how-it-works").heading} /></h2>
+          <p>{section("how-it-works").body}</p>
         </div>
 
         <div class="process-grid">
@@ -203,8 +193,8 @@ const { faqs } = await getPageContent(Astro.url.pathname);
     <section class="section" id="faq" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head center">
-          <span class="eyebrow">Referral FAQs</span>
-          <h2>Quick answers <em>before you refer.</em></h2>
+          <span class="eyebrow">{section("faq").eyebrow}</span>
+          <h2><Fragment set:html={section("faq").heading} /></h2>
         </div>
 
         <div class="faq-list">

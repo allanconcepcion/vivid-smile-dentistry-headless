@@ -32,7 +32,7 @@ const smsHelpHref = "tel:+13032769932";
 // tocLinks is edited in WordPress (Pages -> Terms & Conditions).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks } = await getPageContent(Astro.url.pathname);
+const { tocLinks, section } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -82,14 +82,10 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
             <div class="terms-prose">
 
               <section id="interpretation" data-vs-reveal>
-                <h2 class="vs-h3">1. Interpretation and definitions</h2>
+                <h2 class="vs-h3"><Fragment set:html={section("interpretation").heading} /></h2>
 
                 <h3 class="terms-sub">A. Interpretation</h3>
-                <p>
-                  The words of which the initial letter is capitalized have meanings defined under the following
-                  conditions. The following definitions shall have the same meaning regardless of whether they appear
-                  in singular or in plural.
-                </p>
+                <p>{section("interpretation").body}</p>
 
                 <h3 class="terms-sub">B. Definitions</h3>
                 <p>For the purposes of these Terms and Conditions:</p>
@@ -136,12 +132,8 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
               </section>
 
               <section id="acknowledgement" data-vs-reveal>
-                <h2 class="vs-h3">2. Acknowledgement</h2>
-                <p>
-                  These are the Terms and Conditions governing the use of this Service and the agreement that operates
-                  between you and the Company. These Terms and Conditions set out the rights and obligations of all
-                  users regarding the use of the Service.
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("acknowledgement").heading} /></h2>
+                <p>{section("acknowledgement").body}</p>
                 <p>
                   Your access to and use of the Service is conditioned on your acceptance of and compliance with these
                   Terms and Conditions. These Terms and Conditions apply to all visitors, users and others who access
@@ -165,21 +157,13 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
               </section>
 
               <section id="orders" data-vs-reveal>
-                <h2 class="vs-h3">3. Placing orders for Goods</h2>
-                <p>
-                  By placing an Order for Goods through the Service, you warrant that you are legally capable of
-                  entering into binding contracts.
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("orders").heading} /></h2>
+                <p>{section("orders").body}</p>
               </section>
 
               <section id="your-info" data-vs-reveal>
-                <h2 class="vs-h3">4. Your information</h2>
-                <p>
-                  If you wish to place an Order for Goods available on the Service, you may be asked to supply certain
-                  information relevant to your Order including, without limitation, your name, your email, your phone
-                  number, your credit card number, the expiration date of your credit card, your billing address, and
-                  your shipping information.
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("your-info").heading} /></h2>
+                <p>{section("your-info").body}</p>
                 <p>You represent and warrant that:</p>
                 <ul class="terms-defs">
                   <li>(i) You have the legal right to use any credit or debit card(s) or other payment method(s) in connection with any Order; and</li>
@@ -192,11 +176,8 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
               </section>
 
               <section id="order-cancel" data-vs-reveal>
-                <h2 class="vs-h3">5. Order cancellation</h2>
-                <p>
-                  We reserve the right to refuse or cancel your Order at any time for certain reasons including but
-                  not limited to:
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("order-cancel").heading} /></h2>
+                <p>{section("order-cancel").body}</p>
                 <ul class="terms-defs">
                   <li>Goods availability</li>
                   <li>Errors in the description or prices for Goods</li>
@@ -209,11 +190,8 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
               </section>
 
               <section id="cancel-rights" data-vs-reveal>
-                <h2 class="vs-h3">6. Your Order cancellation rights</h2>
-                <p>
-                  Any Goods you purchase can only be returned in accordance with these Terms and Conditions and our
-                  Returns Policy.
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("cancel-rights").heading} /></h2>
+                <p>{section("cancel-rights").body}</p>
                 <p>
                   Our Returns Policy forms a part of these Terms and Conditions. Please read our Returns Policy to
                   learn more about your right to cancel your Order.
@@ -241,8 +219,8 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
               </section>
 
               <section id="prices" data-vs-reveal>
-                <h2 class="vs-h3">7. Prices policy</h2>
-                <p>The Company reserves the right to revise its prices at any time prior to accepting an Order.</p>
+                <h2 class="vs-h3"><Fragment set:html={section("prices").heading} /></h2>
+                <p>{section("prices").body}</p>
                 <p>
                   The prices quoted may be revised by the Company subsequent to accepting an Order in the event of any
                   occurrence affecting delivery caused by government action, variation in customs duties, increased
@@ -252,12 +230,8 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
               </section>
 
               <section id="payments" data-vs-reveal>
-                <h2 class="vs-h3">8. Payments</h2>
-                <p>
-                  All Goods purchased are subject to a one-time payment. Payment can be made through various payment
-                  methods we have available, such as Visa, Mastercard, Affinity Card, American Express or online
-                  payment methods (PayPal, for example).
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("payments").heading} /></h2>
+                <p>{section("payments").body}</p>
                 <p>
                   Payment cards (credit cards or debit cards) are subject to validation checks and authorization by
                   your card issuer. If we do not receive the required authorization, we will not be liable for any
@@ -266,11 +240,8 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
               </section>
 
               <section id="promotions" data-vs-reveal>
-                <h2 class="vs-h3">9. Promotions</h2>
-                <p>
-                  Any Promotions made available through the Service may be governed by rules that are separate from
-                  these Terms.
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("promotions").heading} /></h2>
+                <p>{section("promotions").body}</p>
                 <p>
                   If you participate in any Promotions, please review the applicable rules as well as our
                   <a class="vs-link" href="/privacy-policy/">Privacy Policy</a>. If the rules for a Promotion conflict
@@ -279,12 +250,8 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
               </section>
 
               <section id="accounts" data-vs-reveal>
-                <h2 class="vs-h3">10. User accounts</h2>
-                <p>
-                  When you create an account with us, you must provide information that is accurate, complete, and
-                  current at all times. Failure to do so constitutes a breach of these Terms, which may result in
-                  immediate termination of your account on our Service.
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("accounts").heading} /></h2>
+                <p>{section("accounts").body}</p>
                 <p>
                   You are responsible for safeguarding the password that you use to access the Service and for any
                   activities or actions under your password, whether your password is with our Service or a
@@ -302,11 +269,8 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
               </section>
 
               <section id="ip" data-vs-reveal>
-                <h2 class="vs-h3">11. Intellectual property</h2>
-                <p>
-                  The Service and its original content (excluding content provided by you or other users), features
-                  and functionality are, and will remain, the exclusive property of the Company and its licensors.
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("ip").heading} /></h2>
+                <p>{section("ip").body}</p>
                 <p>
                   The Service is protected by copyright, trademark, and other laws of both the Country and foreign
                   countries.
@@ -318,21 +282,13 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
               </section>
 
               <section id="feedback" data-vs-reveal>
-                <h2 class="vs-h3">12. Your feedback to us</h2>
-                <p>
-                  You assign all rights, title and interest in any Feedback you provide to the Company. If for any
-                  reason such assignment is ineffective, you agree to grant the Company a non-exclusive, perpetual,
-                  irrevocable, royalty-free, worldwide right and license to use, reproduce, disclose, sub-license,
-                  distribute, modify and exploit such Feedback without restriction.
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("feedback").heading} /></h2>
+                <p>{section("feedback").body}</p>
               </section>
 
               <section id="third-party" data-vs-reveal>
-                <h2 class="vs-h3">13. Links to other websites</h2>
-                <p>
-                  Our Service may contain links to third-party websites or services that are not owned or controlled
-                  by the Company.
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("third-party").heading} /></h2>
+                <p>{section("third-party").body}</p>
                 <p>
                   The Company has no control over, and assumes no responsibility for, the content, privacy policies,
                   or practices of any third-party websites or services. You acknowledge and agree that the Company
@@ -347,11 +303,8 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
               </section>
 
               <section id="termination" data-vs-reveal>
-                <h2 class="vs-h3">14. Termination</h2>
-                <p>
-                  We may terminate or suspend your account immediately, without prior notice or liability, for any
-                  reason whatsoever, including without limitation if you breach these Terms and Conditions.
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("termination").heading} /></h2>
+                <p>{section("termination").body}</p>
                 <p>
                   Upon termination, your right to use the Service will cease immediately. If you wish to terminate
                   your account, you may simply discontinue using the Service.
@@ -359,13 +312,8 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
               </section>
 
               <section id="liability" data-vs-reveal>
-                <h2 class="vs-h3">15. Limitation of liability</h2>
-                <p>
-                  Notwithstanding any damages that you might incur, the entire liability of the Company and any of its
-                  suppliers under any provision of these Terms and your exclusive remedy for all of the foregoing
-                  shall be limited to the amount actually paid by you through the Service or 100 USD if you haven't
-                  purchased anything through the Service.
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("liability").heading} /></h2>
+                <p>{section("liability").body}</p>
                 <p>
                   To the maximum extent permitted by applicable law, in no event shall the Company or its suppliers be
                   liable for any special, incidental, indirect, or consequential damages whatsoever (including, but
@@ -384,20 +332,8 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
               </section>
 
               <section id="as-is" data-vs-reveal>
-                <h2 class="vs-h3">16. "As is" and "as available" disclaimer</h2>
-                <p>
-                  The Service is provided to you "AS IS" and "AS AVAILABLE" and with all faults and defects without
-                  warranty of any kind. To the maximum extent permitted under applicable law, the Company, on its own
-                  behalf and on behalf of its Partners and their respective licensors and service providers, expressly
-                  disclaims all warranties, whether express, implied, statutory or otherwise, with respect to the
-                  Service, including all implied warranties of merchantability, fitness for a particular purpose,
-                  title, and non-infringement, and warranties that may arise out of course of dealing, course of
-                  performance, usage or trade practice. Without limitation, the Company provides no warranty or
-                  undertaking, and makes no representation of any kind that the Service will meet your requirements,
-                  achieve any intended results, be compatible or work with any other software, applications, systems
-                  or services, operate without interruption, meet any performance or reliability standards, or be
-                  error free or that any errors or defects can or will be corrected.
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("as-is").heading} /></h2>
+                <p>{section("as-is").body}</p>
                 <p>
                   Without limiting the foregoing, neither the Company nor any of the Company's providers makes any
                   representation or warranty of any kind, express or implied: (i) as to the operation or availability
@@ -416,20 +352,13 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
               </section>
 
               <section id="governing-law" data-vs-reveal>
-                <h2 class="vs-h3">17. Governing law</h2>
-                <p>
-                  The laws of the Country, excluding its conflicts of law rules, shall govern these Terms and your use
-                  of the Service. Your use of the application may also be subject to other local, state, national, or
-                  international laws.
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("governing-law").heading} /></h2>
+                <p>{section("governing-law").body}</p>
               </section>
 
               <section id="disputes" data-vs-reveal>
-                <h2 class="vs-h3">18. Disputes resolution</h2>
-                <p>
-                  If you have any concern or dispute about the Service, you agree to first try to resolve the dispute
-                  informally by contacting the Company.
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("disputes").heading} /></h2>
+                <p>{section("disputes").body}</p>
 
                 <h3 class="terms-sub">A. For European Union (EU) users</h3>
                 <p>
@@ -446,14 +375,10 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
               </section>
 
               <section id="severability" data-vs-reveal>
-                <h2 class="vs-h3">19. Severability and waiver</h2>
+                <h2 class="vs-h3"><Fragment set:html={section("severability").heading} /></h2>
 
                 <h3 class="terms-sub">A. Severability</h3>
-                <p>
-                  If any provision of these Terms is held to be unenforceable or invalid, such provision will be
-                  changed and interpreted to accomplish the objectives of such provision to the greatest extent
-                  possible under applicable law, and the remaining provisions will continue in full force and effect.
-                </p>
+                <p>{section("severability").body}</p>
 
                 <h3 class="terms-sub">B. Waiver</h3>
                 <p>
@@ -465,21 +390,13 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
               </section>
 
               <section id="translation" data-vs-reveal>
-                <h2 class="vs-h3">20. Translation interpretation</h2>
-                <p>
-                  These Terms and Conditions may have been translated if we have made them available to you on our
-                  Service. You agree that the original English text shall prevail in the case of a dispute.
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("translation").heading} /></h2>
+                <p>{section("translation").body}</p>
               </section>
 
               <section id="changes" data-vs-reveal>
-                <h2 class="vs-h3">21. Changes to these Terms and Conditions</h2>
-                <p>
-                  We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a
-                  revision is material, we will make reasonable efforts to provide at least 30 days' notice prior to
-                  any new terms taking effect. What constitutes a material change will be determined at our sole
-                  discretion.
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("changes").heading} /></h2>
+                <p>{section("changes").body}</p>
                 <p>
                   By continuing to access or use our Service after those revisions become effective, you agree to be
                   bound by the revised terms. If you do not agree to the new terms, in whole or in part, please stop
@@ -488,11 +405,8 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
               </section>
 
               <section id="sms" data-vs-reveal>
-                <h2 class="vs-h3">22. SMS messaging — dental implants</h2>
-                <p>
-                  Upon opting in, you will receive messaging regarding promotions and information regarding dental
-                  implants.
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("sms").heading} /></h2>
+                <p>{section("sms").body}</p>
                 <p>
                   You can cancel the SMS service at any time. Simply text "STOP" to the shortcode. Upon sending "STOP,"
                   we will confirm your unsubscribe status via SMS. Following this confirmation, you will no longer
@@ -516,7 +430,7 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
               </section>
 
               <section id="contact-us" class="terms-contact" data-vs-reveal>
-                <h2 class="vs-h3">23. Contact us</h2>
+                <h2 class="vs-h3"><Fragment set:html={section("contact-us").heading} /></h2>
                 <p>
                   If you have any questions about these Terms and Conditions, you can contact us by email:
                   {" "}<a class="vs-link" href={emailHref}>{emailAddress}</a>.

@@ -41,7 +41,7 @@ import naturalImg from '../../assets/images/procedures/finished-veneers-lip-deta
 // Table of contents, process steps and FAQs are edited in WordPress
 // (Pages -> Porcelain Veneers). The shapes are identical to the arrays that
 // used to live here, so the markup below is unchanged.
-const { tocLinks, processSteps, faqs } = await getPageContent(Astro.url.pathname);
+const { tocLinks, processSteps, faqs, section } = await getPageContent(Astro.url.pathname);
 
 const galleryTiles = getSmiles();
 const galleryTrack = [...galleryTiles, ...galleryTiles];
@@ -139,13 +139,9 @@ const galleryTrack = [...galleryTiles, ...galleryTiles];
       <section class="section" id="why" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Why Vivid Smiles</span>
-            <h2>Why Choose Vivid Smiles <em>for Veneers in Parker</em></h2>
-            <p>
-              Vivid Smiles Dentistry pairs Dr. Richardson's 600+ hours of esthetic training with
-              in-office digital smile design technology. Patients see their finished smile on screen
-              before treatment begins, and every result is calibrated to their face, not a template.
-            </p>
+            <span class="eyebrow">{section("why").eyebrow}</span>
+            <h2><Fragment set:html={section("why").heading} /></h2>
+            <p>{section("why").body}</p>
           </div>
 
           <div class="why-grid">
@@ -200,16 +196,10 @@ const galleryTrack = [...galleryTiles, ...galleryTiles];
               />
             </div>
             <div class="what-text">
-              <span class="eyebrow">Definition</span>
-              <h2>What Are <em>Porcelain Veneers?</em></h2>
+              <span class="eyebrow">{section("what").eyebrow}</span>
+              <h2><Fragment set:html={section("what").heading} /></h2>
               <div class="prose">
-                <p>
-                  Porcelain veneers are ultra-thin custom shells bonded to the front surface of your
-                  teeth to correct discoloration, chips, gaps, misalignment, and worn enamel. Dental
-                  porcelain closely mirrors the light-reflecting properties of natural enamel,
-                  making well-crafted veneers difficult to distinguish from real teeth. Shade,
-                  shape, and texture are each customized to match the surrounding dentition.
-                </p>
+                <p>{section("what").body}</p>
               </div>
               <div class="cta-row left">
                 <div class="cta-buttons">
@@ -231,11 +221,8 @@ const galleryTrack = [...galleryTiles, ...galleryTiles];
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow light">The Process</span>
-            <h2>The No-Prep Veneer Process <em>at Vivid Smiles</em></h2>
-            <p>
-              The veneer process at Vivid Smiles follows a digital workflow from consultation to
-              placement.
-            </p>
+            <h2><Fragment set:html={section("process").heading} /></h2>
+            <p>{section("process").body}</p>
           </div>
 
           <div class="process-grid">
@@ -270,18 +257,9 @@ const galleryTrack = [...galleryTiles, ...galleryTiles];
       <section class="section" id="compare" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Comparison</span>
-            <h2>Veneers vs. <em>Other Cosmetic Options</em></h2>
-            <p>
-              Veneers are one of several cosmetic options; the right choice depends on the extent of
-              correction needed. <a class="vs-link" href="/cosmetic-dentistry/teeth-whitening/"
-                >Professional whitening</a
-              > handles color-only concerns, and a <a
-                class="vs-link"
-                href="/cosmetic-dentistry/smile-makeover/">smile makeover</a
-              > sequences veneers with alignment or whitening when the goal calls for more than shells
-              alone.
-            </p>
+            <span class="eyebrow">{section("compare").eyebrow}</span>
+            <h2><Fragment set:html={section("compare").heading} /></h2>
+            <p>{section("compare").body}</p>
           </div>
 
           <div class="compare">
@@ -329,18 +307,13 @@ const galleryTrack = [...galleryTiles, ...galleryTiles];
         <div class="wrap">
           <div class="natural-grid">
             <div class="natural-text">
-              <span class="eyebrow">Design Philosophy</span>
-              <h2>Achieving <em>Natural-Looking Results</em></h2>
+              <span class="eyebrow">{section("natural").eyebrow}</span>
+              <h2><Fragment set:html={section("natural").heading} /></h2>
               <div class="natural-quote">
                 Veneers that look artificial are a failure of the planning process.
               </div>
               <div class="prose">
-                <p>
-                  Dr. Richardson's design philosophy is direct. Shade selection accounts for skin
-                  tone, eye color, and age; each veneer is customized for translucency and texture
-                  because natural teeth vary. The digital preview means you approve the result
-                  before fabrication.
-                </p>
+                <p>{section("natural").body}</p>
               </div>
             </div>
             <div class="natural-img" data-vs-parallax data-parallax="-25">
@@ -359,12 +332,9 @@ const galleryTrack = [...galleryTiles, ...galleryTiles];
       <section class="section" id="lasting" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Lifespan</span>
-            <h2>How Long Do <em>Veneers Last?</em></h2>
-            <p>
-              Porcelain veneers typically last 20+ years with consistent oral hygiene and routine
-              dental care.
-            </p>
+            <span class="eyebrow">{section("lasting").eyebrow}</span>
+            <h2><Fragment set:html={section("lasting").heading} /></h2>
+            <p>{section("lasting").body}</p>
           </div>
 
           <div class="lasting-card">
@@ -402,13 +372,9 @@ const galleryTrack = [...galleryTiles, ...galleryTiles];
       <section class="section" id="cost" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">Investment</span>
-            <h2>Porcelain Veneer Cost <em>in Parker, CO</em></h2>
-            <p>
-              Vivid Smiles publishes a flat per-tooth price for porcelain veneers — no variable
-              pricing based on case complexity. Most patients treat 8–10 teeth across the smile zone
-              for a complete transformation.
-            </p>
+            <span class="eyebrow">{section("cost").eyebrow}</span>
+            <h2><Fragment set:html={section("cost").heading} /></h2>
+            <p>{section("cost").body}</p>
           </div>
 
           <PricingTiers
@@ -438,10 +404,8 @@ const galleryTrack = [...galleryTiles, ...galleryTiles];
         <div class="wrap">
           <div class="section-head" data-vs-reveal>
             <span class="eyebrow light">Smile Gallery</span>
-            <h2>Finished smiles from <em>our chair.</em></h2>
-            <p>
-              A selection of finished cosmetic and restorative cases from Dr. Richardson's chair.
-            </p>
+            <h2><Fragment set:html={section("gallery").heading} /></h2>
+            <p>{section("gallery").body}</p>
           </div>
         </div>
 
@@ -469,8 +433,8 @@ const galleryTrack = [...galleryTiles, ...galleryTiles];
       <section class="section" id="faq" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
-            <span class="eyebrow">FAQ</span>
-            <h2>Frequently Asked Questions <em>About Veneers</em></h2>
+            <span class="eyebrow">{section("faq").eyebrow}</span>
+            <h2><Fragment set:html={section("faq").heading} /></h2>
           </div>
 
           <div class="faq-list">
@@ -492,11 +456,7 @@ const galleryTrack = [...galleryTiles, ...galleryTiles];
           </div>
 
           <div class="pull">
-            <p>
-              Porcelain veneers done well look natural and last for years with proper care.
-              Understanding the difference between no-prep, minimal-prep, and traditional approaches
-              puts you in control before any appointment begins.
-            </p>
+            <p>{section("faq").body}</p>
           </div>
 
           <div class="cta-row">

@@ -32,7 +32,7 @@ const lastRevised = "July 12, 2024";
 // tocLinks is edited in WordPress (Pages -> Privacy Policy).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks } = await getPageContent(Astro.url.pathname);
+const { tocLinks, section } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -83,11 +83,8 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
             <div class="priv-prose">
 
               <section id="intro" data-vs-reveal>
-                <h2 class="vs-h3">1. Introductory notice</h2>
-                <p>
-                  This notice describes how medical information about you may be used and disclosed and how you can get
-                  access to this information. <strong>Please review it carefully.</strong>
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("intro").heading} /></h2>
+                <p>{section("intro").body}</p>
                 <p>
                   This privacy policy describes our policies and procedures on the collection, use, and disclosure of
                   your information when you use the service, and tells you about your privacy rights and how the law
@@ -100,15 +97,12 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
               </section>
 
               <section id="practice" data-vs-reveal>
-                <h2 class="vs-h3">2. Dental practice covered by this notice</h2>
-                <p>
-                  This notice describes the privacy practices of Vivid Smiles ("Dental Practice"). "We" and "our" mean
-                  the Dental Practice. "You" and "your" mean our patient.
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("practice").heading} /></h2>
+                <p>{section("practice").body}</p>
               </section>
 
               <section id="privacy-official" data-vs-reveal>
-                <h2 class="vs-h3">3. How to contact us / our privacy official</h2>
+                <h2 class="vs-h3"><Fragment set:html={section("privacy-official").heading} /></h2>
                 <p>
                   If you have any questions or would like further information about this notice, you can contact the
                   Vivid Smiles privacy official at <a class="vs-link" href={emailHref}>{emailAddress}</a>.
@@ -116,14 +110,8 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
               </section>
 
               <section id="promise" class="priv-callout" data-vs-reveal>
-                <h2 class="vs-h3">4. Our promise to you and our legal obligations</h2>
-                <p>
-                  The privacy of your health information is important to us. We understand that your health information
-                  is personal, and we are committed to protecting it. This notice describes how we may use and disclose
-                  your protected health information to carry out treatment, payment, or health care operations, and for
-                  other purposes permitted or required by law. It also describes your rights to access and control your
-                  protected health information.
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("promise").heading} /></h2>
+                <p>{section("promise").body}</p>
                 <p class="priv-callout-lead">We are required by law to:</p>
                 <ul class="priv-callout-list">
                   <li>Maintain the privacy of your protected health information;</li>
@@ -133,16 +121,13 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
               </section>
 
               <section id="revised" data-vs-reveal>
-                <h2 class="vs-h3">5. Last revision date</h2>
+                <h2 class="vs-h3"><Fragment set:html={section("revised").heading} /></h2>
                 <p>This notice was last revised on {lastRevised}.</p>
               </section>
 
               <section id="uses" data-vs-reveal>
-                <h2 class="vs-h3">6. How we may use or disclose your health information</h2>
-                <p>
-                  The following examples describe different ways we may use or disclose your health information. These
-                  examples are not exhaustive.
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("uses").heading} /></h2>
+                <p>{section("uses").body}</p>
 
                 <h3 class="priv-sub">A. Common uses and disclosures</h3>
                 <ul class="priv-defs">
@@ -173,21 +158,13 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
               </section>
 
               <section id="authorization" data-vs-reveal>
-                <h2 class="vs-h3">7. Your written authorization for any other use or disclosure</h2>
-                <p>
-                  Any use or disclosure of your protected health information not described above (including marketing or
-                  the release of psychotherapy notes) will be made only with your written authorization, unless otherwise
-                  permitted or required by law. You may revoke this authorization at any time, in writing, except to the
-                  extent that action has already been taken.
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("authorization").heading} /></h2>
+                <p>{section("authorization").body}</p>
               </section>
 
               <section id="rights" data-vs-reveal>
-                <h2 class="vs-h3">8. Your rights with respect to your health information</h2>
-                <p>
-                  You have the following rights regarding your health information (as defined by HIPAA). To exercise
-                  these rights, you must submit a written request to our privacy official.
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("rights").heading} /></h2>
+                <p>{section("rights").body}</p>
 
                 <h3 class="priv-sub">A. Right to access and review</h3>
                 <p>You may request a copy of your health information. If your request is denied, you will receive a written notice explaining the denial. If possible, information will be provided in your requested format.</p>
@@ -212,41 +189,25 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
               </section>
 
               <section id="special" data-vs-reveal>
-                <h2 class="vs-h3">9. Special protections</h2>
-                <p>
-                  Special federal and state laws may require additional privacy protections for information regarding
-                  HIV, alcohol and substance abuse, mental health, and genetic information. If your treatment involves
-                  such information, please contact our office for more details.
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("special").heading} /></h2>
+                <p>{section("special").body}</p>
               </section>
 
               <section id="changes" data-vs-reveal>
-                <h2 class="vs-h3">10. Our right to change our privacy practices and this notice</h2>
-                <p>
-                  We reserve the right to change this notice at any time. Any material changes will be posted on our
-                  website and in our office, and you may request a copy of the new notice. The effective date of this
-                  notice is the date of posting or distribution.
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("changes").heading} /></h2>
+                <p>{section("changes").body}</p>
               </section>
 
               <section id="complaints" data-vs-reveal>
-                <h2 class="vs-h3">11. How to make privacy complaints</h2>
-                <p>
-                  If you have any complaints about your privacy rights or how your information has been used or
-                  disclosed, you may file a complaint with us by contacting our privacy official. You may also file a
-                  written complaint with the Secretary of the U.S. Department of Health and Human Services, Office for
-                  Civil Rights. We will not retaliate against you for making a complaint.
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("complaints").heading} /></h2>
+                <p>{section("complaints").body}</p>
               </section>
 
               <section id="definitions" class="priv-callout" data-vs-reveal>
-                <h2 class="vs-h3">12. Interpretation &amp; definitions</h2>
+                <h2 class="vs-h3"><Fragment set:html={section("definitions").heading} /></h2>
 
                 <h3 class="priv-sub">A. Interpretation</h3>
-                <p>
-                  The words with initial capital letters have the definitions set out below, which apply regardless of
-                  whether they appear in singular or plural.
-                </p>
+                <p>{section("definitions").body}</p>
 
                 <h3 class="priv-sub">B. Definitions</h3>
                 <dl class="priv-dl">
@@ -292,7 +253,7 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
               </section>
 
               <section id="personal-data" data-vs-reveal>
-                <h2 class="vs-h3">13. Collecting and using your personal data</h2>
+                <h2 class="vs-h3"><Fragment set:html={section("personal-data").heading} /></h2>
 
                 <h3 class="priv-sub">A. Types of data collected</h3>
                 <ul class="priv-defs">
@@ -301,7 +262,7 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
                 </ul>
 
                 <h3 class="priv-sub">B. Information from third-party social media services</h3>
-                <p>You may register or log in via third-party services (e.g., Google, Facebook). Information from these accounts may be collected.</p>
+                <p>{section("personal-data").body}</p>
 
                 <h3 class="priv-sub">C. Tracking technologies and cookies</h3>
                 <p>We use cookies, web beacons, and other tracking technologies to collect data and improve our Service. This includes necessary, functional, and performance cookies.</p>
@@ -341,24 +302,15 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
               </section>
 
               <section id="security" data-vs-reveal>
-                <h2 class="vs-h3">14. Security of your personal data</h2>
-                <p>
-                  While we strive to protect your data using commercially reasonable means, no method of transmission
-                  or electronic storage is 100% secure.
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("security").heading} /></h2>
+                <p>{section("security").body}</p>
               </section>
 
               <section id="processing" data-vs-reveal>
-                <h2 class="vs-h3">15. Detailed information on data processing</h2>
+                <h2 class="vs-h3"><Fragment set:html={section("processing").heading} /></h2>
 
                 <h3 class="priv-sub">A. Analytics and tracking technologies</h3>
-                <p>
-                  We use third-party analytics and call-tracking services to understand how visitors
-                  find and use our website and to measure the effectiveness of our marketing. These
-                  services may set cookies or use similar technologies and may collect information
-                  such as your IP address, device and browser type, pages viewed, on-page
-                  interactions, and the marketing source that referred you.
-                </p>
+                <p>{section("processing").body}</p>
                 <ul class="priv-defs">
                   <li><strong>Google Tag Manager:</strong> Manages and loads the tags listed below. It does not itself collect personal data, but it controls which of these services run on the site.</li>
                   <li><strong>Google Analytics:</strong> Reports aggregate website traffic and usage. You may opt out using the Google Analytics opt-out browser add-on.</li>
@@ -378,7 +330,7 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
               </section>
 
               <section id="children" data-vs-reveal>
-                <h2 class="vs-h3">16. Children's policy</h2>
+                <h2 class="vs-h3"><Fragment set:html={section("children").heading} /></h2>
                 <p>
                   Our Service does not target individuals under the age of 13. We do not knowingly collect data from
                   children under 13. If you are a parent or guardian and believe your child has provided us with data,
@@ -387,24 +339,17 @@ const { tocLinks } = await getPageContent(Astro.url.pathname);
               </section>
 
               <section id="third-party" data-vs-reveal>
-                <h2 class="vs-h3">17. Links to other websites</h2>
-                <p>
-                  Our Service may contain links to third-party websites or services. We have no control over these
-                  sites, and we are not responsible for their content or privacy practices. Please review their
-                  policies when you visit them.
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("third-party").heading} /></h2>
+                <p>{section("third-party").body}</p>
               </section>
 
               <section id="policy-changes" data-vs-reveal>
-                <h2 class="vs-h3">18. Changes to this privacy policy</h2>
-                <p>
-                  We may update this privacy policy from time to time. Any changes will be posted on our website and,
-                  where appropriate, notified to you. Please review the policy periodically for updates.
-                </p>
+                <h2 class="vs-h3"><Fragment set:html={section("policy-changes").heading} /></h2>
+                <p>{section("policy-changes").body}</p>
               </section>
 
               <section id="contact-us" class="priv-contact" data-vs-reveal>
-                <h2 class="vs-h3">19. Contact us</h2>
+                <h2 class="vs-h3"><Fragment set:html={section("contact-us").heading} /></h2>
                 <p>
                   Questions about this notice? Email our privacy official at
                   {" "}<a class="vs-link" href={emailHref}>{emailAddress}</a>.

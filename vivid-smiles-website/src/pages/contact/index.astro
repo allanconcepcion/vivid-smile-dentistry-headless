@@ -22,6 +22,7 @@ import {
 } from "../../data/contact";
 import { officeHours, openingHoursSpecification, hoursCopyShort } from "../../data/hours";
 import "../../styles/pages/contact.css";
+import { getPageContent } from '../../lib/page-content';
 
 // Google Maps embed — `output=embed` avoids needing an API key.
 const mapEmbedSrc = `https://maps.google.com/maps?q=${encodeURIComponent(addressLine)}&output=embed`;
@@ -85,6 +86,9 @@ const contactOptions = [
     href: emailHref,
   },
 ];
+// Section copy is edited in WordPress (Pages -> this page -> Section copy).
+const { section } = await getPageContent(Astro.url.pathname);
+
 ---
 
 <BaseLayout
@@ -148,12 +152,9 @@ const contactOptions = [
     <section class="section dark" id="reach" aria-label="Ways to reach us" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
-          <span class="eyebrow">Four ways to reach us</span>
-          <h2>However you'd <em>rather get in touch.</em></h2>
-          <p>
-            Pick whichever feels most natural — every one of them lands on the same front desk,
-            and we'll take it from there.
-          </p>
+          <span class="eyebrow">{section("reach").eyebrow}</span>
+          <h2><Fragment set:html={section("reach").heading} /></h2>
+          <p>{section("reach").body}</p>
         </div>
 
         <div class="contact-grid">
@@ -183,12 +184,8 @@ const contactOptions = [
         <div class="location-grid">
           <div class="location-copy" data-vs-reveal-batch>
             <span class="eyebrow light">Visit our practice</span>
-            <h2>Right here <em>in Parker.</em></h2>
-            <p class="lede">
-              Our office is on Cedar Gulch Parkway in Parker, with easy parking directly in
-              front and a calm, modern interior designed to feel more like a wellness studio
-              than a dental clinic.
-            </p>
+            <h2><Fragment set:html={section("visit").heading} /></h2>
+            <p class="lede">{section("visit").body}</p>
 
             <div class="location-card">
               <div class="row">
@@ -257,9 +254,9 @@ const contactOptions = [
     <section class="section" id="faq" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
-          <span class="eyebrow">Common questions</span>
-          <h2>Before you <em>reach out.</em></h2>
-          <p>The quick answers most people need before scheduling — insurance, parking, what to bring, what counts as urgent.</p>
+          <span class="eyebrow">{section("faq").eyebrow}</span>
+          <h2><Fragment set:html={section("faq").heading} /></h2>
+          <p>{section("faq").body}</p>
         </div>
 
         <div class="faq-list">

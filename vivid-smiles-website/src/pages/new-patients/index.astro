@@ -99,7 +99,7 @@ const description =
 // faqs is edited in WordPress (Pages -> New Patients in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { faqs } = await getPageContent(Astro.url.pathname);
+const { faqs, section } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -161,12 +161,8 @@ const { faqs } = await getPageContent(Astro.url.pathname);
       <div class="wrap">
         <div class="section-head center">
           <span class="eyebrow light">What to Expect</span>
-          <h2>Your first visit, <em class="vs-italic-word">step by step.</em></h2>
-          <p>
-            New-patient appointments at Vivid Smiles run about 90 minutes — long
-            enough to get a complete picture, short enough to respect your time.
-            Here's the rhythm.
-          </p>
+          <h2><Fragment set:html={section("first-visit").heading} /></h2>
+          <p>{section("first-visit").body}</p>
         </div>
 
         <div class="process-grid">
@@ -186,12 +182,9 @@ const { faqs } = await getPageContent(Astro.url.pathname);
     <section class="section alt" id="services" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
-          <span class="eyebrow">What we do</span>
-          <h2>Care that fits every <em class="vs-italic-word">chapter of your smile.</em></h2>
-          <p>
-            From a quiet cleaning to a full-arch implant restoration, our team practices
-            the whole spectrum of modern dentistry — under one calm Parker roof.
-          </p>
+          <span class="eyebrow">{section("services").eyebrow}</span>
+          <h2><Fragment set:html={section("services").heading} /></h2>
+          <p>{section("services").body}</p>
         </div>
 
         <div class="svc-grid svc-grid-4">
@@ -224,12 +217,9 @@ const { faqs } = await getPageContent(Astro.url.pathname);
     <section class="section" id="reviews" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head center">
-          <span class="eyebrow">Patient Stories · 300+ Five-Star Reviews</span>
-          <h2>Why Parker keeps <em>coming back</em>.</h2>
-          <p>
-            We don't push five-star reviews — they happen on their own. Drag
-            through a few, in our patients' own words.
-          </p>
+          <span class="eyebrow">{section("reviews").eyebrow}</span>
+          <h2><Fragment set:html={section("reviews").heading} /></h2>
+          <p>{section("reviews").body}</p>
         </div>
       </div>
 
@@ -246,8 +236,8 @@ const { faqs } = await getPageContent(Astro.url.pathname);
     <section class="section alt" id="faq" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head center">
-          <span class="eyebrow">FAQ</span>
-          <h2>Frequently asked <em>questions</em>.</h2>
+          <span class="eyebrow">{section("faq").eyebrow}</span>
+          <h2><Fragment set:html={section("faq").heading} /></h2>
         </div>
 
         <div class="faq-list">
@@ -266,13 +256,9 @@ const { faqs } = await getPageContent(Astro.url.pathname);
       <div class="wrap">
         <div class="np-mship">
           <div class="copy">
-            <span class="eyebrow">No Insurance?</span>
+            <span class="eyebrow">{section("membership").eyebrow}</span>
             <h3>You still have great options.</h3>
-            <p>
-              Our in-house membership plan covers your routine care for a flat annual
-              fee and quietly discounts almost everything else. No claims, no surprises,
-              no waiting periods.
-            </p>
+            <p>{section("membership").body}</p>
           </div>
           <Button variant="sage" href="/dental-membership-plan/" hoverLabel="Learn More">See the Membership Plan</Button>
         </div>
