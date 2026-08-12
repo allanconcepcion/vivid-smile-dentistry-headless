@@ -34,6 +34,22 @@ const SETTINGS_QUERY = /* GraphQL */ `
           opens
           closes
         }
+        smileGallery {
+          nodes {
+            sourceUrl
+            altText
+            mediaDetails {
+              width
+              height
+            }
+          }
+        }
+        logoLightBg {
+          node { sourceUrl altText mediaDetails { width height } }
+        }
+        logoDarkBg {
+          node { sourceUrl altText mediaDetails { width height } }
+        }
       }
     }
   }
@@ -45,6 +61,12 @@ export type WpHoursRow = {
   closed: boolean | null;
   opens: string | null;
   closes: string | null;
+};
+
+export type WpMedia = {
+  sourceUrl: string | null;
+  altText: string | null;
+  mediaDetails: { width: number | null; height: number | null } | null;
 };
 
 export type PracticeSettings = {
@@ -59,6 +81,9 @@ export type PracticeSettings = {
   directionsHref: string;
   contactTypeformId: string;
   officeHours: WpHoursRow[];
+  smileGallery: { nodes: WpMedia[] } | null;
+  logoLightBg: { node: WpMedia | null } | null;
+  logoDarkBg: { node: WpMedia | null } | null;
 };
 
 /** Fields without which the site would ship visibly broken contact details. */
@@ -134,4 +159,37 @@ export function formatShort(hm: string): string {
   const period = h < 12 ? "a" : "p";
   const h12 = h % 12 || 12;
   return m === 0 ? `${h12}${period}` : `${h12}:${String(m).padStart(2, "0")}${period}`;
+}
+
+export type BrandLogo = { src: string; width: number; height: number; alt: string };
+
+/**
+ * A brand logo from Practice Settings.
+ *
+ * `variant` names the BACKGROUND it sits on, not the logo's own colour — the
+ * dark-background logo is the light-coloured one, and naming it by its own
+ * colour is how the wrong file ends up in the footer.
+ *
+ * Throws rather than returning null: the logo is in the header and footer of
+ * every page, so a missing one is a site-wide visual break that should stop the
+ * build, not render as a gap.
+ */
+export async function getLogo(variant: "lightBg" | "darkBg"): Promise<BrandLogo> {
+  const settings = await getSettings();
+  const node = variant === "lightBg" ? settings.logoLightBg?.node : settings.logoDarkBg?.node;
+
+  if (!node?.sourceUrl || !node.mediaDetails?.width || !node.mediaDetails?.height) {
+    throw new WordPressError(
+      `No "${variant}" logo in Practice Settings, or it has no dimensions.\n` +
+        `Set it at wp-admin -> Practice Settings -> Logos, or re-run:\n` +
+        `  cd cms && npm run import:gallery`,
+    );
+  }
+
+  return {
+    src: node.sourceUrl,
+    width: node.mediaDetails.width,
+    height: node.mediaDetails.height,
+    alt: node.altText?.trim() || "Vivid Smiles Dentistry",
+  };
 }

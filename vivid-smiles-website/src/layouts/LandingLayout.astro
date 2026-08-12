@@ -38,7 +38,8 @@ import "../styles/global.css";
 import "../styles/animations.css";
 import "../styles/components/marquee.css";
 import { Image } from "astro:assets";
-import vsLogo from "../assets/images/brand/vivid-logo-green.webp";
+import { getLogo } from "../lib/settings";
+const vsLogo = await getLogo("lightBg");
 import {
   phoneLabel,
   phoneHref,
@@ -135,7 +136,7 @@ const ogImageAbsolute = ogImage
         {/* Logo anchors to the top of the page, not the homepage — paid-traffic
             visitors get no escape route off the LP. */}
         <a class="vs-lp-logo" href="#top" aria-label="Vivid Smiles Dentistry — back to top">
-          <Image src={vsLogo} alt="Vivid Smiles Dentistry" widths={[180, 240]} sizes="180px" />
+          <Image src={vsLogo.src} width={vsLogo.width} height={vsLogo.height} alt={vsLogo.alt} widths={[180, 240]} sizes="180px" />
         </a>
         <div class="vs-lp-header-actions">
           <a class="vs-lp-phone" href={phoneHref} aria-label={`Call ${phoneLabel}`}>
@@ -160,7 +161,7 @@ const ogImageAbsolute = ogImage
       <div class="vs-lp-footer-wrap">
         <div class="vs-lp-footer-brand">
           <a href="#top" aria-label="Vivid Smiles Dentistry — back to top" class="vs-lp-footer-logo">
-            <Image src={vsLogo} alt="Vivid Smiles Dentistry" widths={[180]} sizes="180px" />
+            <Image src={vsLogo.src} width={vsLogo.width} height={vsLogo.height} alt={vsLogo.alt} widths={[180]} sizes="180px" />
           </a>
           <p class="vs-lp-footer-tag">Cosmetic & implant dentistry in Parker, Colorado.</p>
         </div>

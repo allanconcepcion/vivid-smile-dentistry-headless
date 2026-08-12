@@ -234,6 +234,51 @@ function register_fields(): void {
 					],
 				],
 				[
+					'key'   => 'field_vs_gallery_tab',
+					'label' => 'Smile gallery',
+					'type'  => 'tab',
+				],
+				[
+					'key'          => 'field_vs_smile_gallery',
+					'label'        => 'Smile gallery photos',
+					'name'         => 'smile_gallery',
+					'type'         => 'gallery',
+					'instructions' => 'Finished-smile photos. These appear on the gallery page and in the '
+						. 'rotating strip on the home page and every service page — add one here and it '
+						. 'shows up everywhere. Drag to reorder.'
+						. '<br><br><strong>Alt text matters here.</strong> These are real, identifiable '
+						. 'patients, so describe only what the PHOTO shows. Never state or imply what '
+						. 'treatment produced it — the surrounding page copy does that job, and a '
+						. 'treatment claim attached to a real person is a claims problem.',
+					'return_format' => 'array',
+					'preview_size'   => 'thumbnail',
+					'library'        => 'all',
+					'mime_types'     => 'webp,jpg,jpeg,png',
+				],
+				[
+					'key'   => 'field_vs_brand_tab',
+					'label' => 'Logos',
+					'type'  => 'tab',
+				],
+				[
+					'key'           => 'field_vs_logo_dark',
+					'label'         => 'Logo — light background',
+					'name'          => 'logo_light_bg',
+					'type'          => 'image',
+					'return_format' => 'array',
+					'preview_size'  => 'thumbnail',
+					'instructions'  => 'Used in the header on light pages.',
+				],
+				[
+					'key'           => 'field_vs_logo_light',
+					'label'         => 'Logo — dark background',
+					'name'          => 'logo_dark_bg',
+					'type'          => 'image',
+					'return_format' => 'array',
+					'preview_size'  => 'thumbnail',
+					'instructions'  => 'Used in the footer and on dark sections.',
+				],
+				[
 					'key'   => 'field_vs_forms_tab',
 					'label' => 'Forms',
 					'type'  => 'tab',

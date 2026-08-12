@@ -345,7 +345,7 @@ const pageDescription =
             galleryTrack.map((tile) => (
               <div class="cdlp-marquee-tile">
                 <Image
-                  src={tile.src}
+                  src={tile.src} width={tile.width} height={tile.height}
                   alt={tile.alt}
                   widths={[400, 600, 800]}
                   sizes="(max-width: 768px) 70vw, 360px"

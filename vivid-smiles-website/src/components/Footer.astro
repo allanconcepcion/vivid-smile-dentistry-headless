@@ -2,7 +2,8 @@
 // Global dark statement footer — mounted by BaseLayout.
 import { Image } from "astro:assets";
 import Button from "./Button.astro";
-import vsLogo from "../assets/images/brand/vivid-smiles.webp";
+import { getLogo } from "../lib/settings";
+const vsLogo = await getLogo("darkBg");
 import {
   bookNowHref,
   emailAddress,
@@ -35,7 +36,7 @@ import { officeHours, openSchedule } from "../data/hours";
     <div class="footer-cols">
       <div class="footer-brand">
         <a href="/" class="logo" aria-label="Vivid Smiles">
-          <Image src={vsLogo} alt="Vivid Smiles" />
+          <Image src={vsLogo.src} width={vsLogo.width} height={vsLogo.height} alt={vsLogo.alt} />
         </a>
         <p>Cosmetic, implant, and family dentistry crafted in Parker, Colorado — where artistry meets precision.</p>
         <div class="badges">

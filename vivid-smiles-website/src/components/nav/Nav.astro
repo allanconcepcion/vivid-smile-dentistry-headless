@@ -19,7 +19,8 @@
  *   <Nav currentPath={Astro.url.pathname} />
  */
 import { Image } from "astro:assets";
-import vsLogoNav from "../../assets/images/brand/vivid-logo-green.webp";
+import { getLogo } from "../../lib/settings";
+const vsLogoNav = await getLogo("lightBg");
 import Button from "../Button.astro";
 import MegaAbout from "./MegaAbout.astro";
 import MegaServices from "./MegaServices.astro";
@@ -87,7 +88,7 @@ const items: Array<{ id: ActiveLink; label: string; href: string; mega?: "about"
   <nav class="nav" aria-label="Primary">
     <div class="nav-inner">
       <a class="logo" href="/" aria-label="Vivid Smiles — home">
-        <Image src={vsLogoNav} alt="Vivid Smiles" loading="eager" />
+        <Image src={vsLogoNav.src} width={vsLogoNav.width} height={vsLogoNav.height} alt={vsLogoNav.alt} loading="eager" />
       </a>
 
       <ul class="nav-links" role="menubar">

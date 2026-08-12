@@ -33,7 +33,16 @@ const cases = smiles.map((s, i) => ({ ...s, num: String(i + 1).padStart(2, '0') 
 // 420/640/840-wide variants; opening the lightbox without this would refetch
 // the unoptimized original (~2-3 MB per click).
 const lightboxSrcs = await Promise.all(
-  cases.map((c) => getImage({ src: c.src, width: 1280, format: 'webp' }).then((g) => g.src)),
+  cases.map((c) =>
+    getImage({
+      src: c.src,
+      width: 1280,
+      // Both dimensions are mandatory for a remote source — Astro refuses to
+      // guess an aspect ratio it cannot read from a local file.
+      height: Math.round((1280 * c.height) / c.width),
+      format: 'webp',
+    }).then((g) => g.src),
+  ),
 );
 
 ---
@@ -125,6 +134,8 @@ const lightboxSrcs = await Promise.all(
                   <div class="case-pic">
                     <Image
                       src={c.src}
+                      width={c.width}
+                      height={c.height}
                       alt={c.alt}
                       widths={[420, 640, 840]}
                       sizes="(max-width: 780px) 100vw, (max-width: 1100px) 50vw, 33vw"
@@ -298,9 +309,12 @@ const lightboxSrcs = await Promise.all(
         description:
           'Finished smiles from Dr. Bryce Richardson at Vivid Smiles Dentistry in Parker, CO.',
         url: new URL('/smile-gallery/', Astro.site).href,
-        image: cases.map((c) => ({
+        image: cases.map((c, i) => ({
           '@type': 'ImageObject',
-          contentUrl: new URL(c.src.src, Astro.site).href,
+          // lightboxSrcs holds the optimized, same-origin derivative. c.src is
+          // the WordPress media URL, and putting that in schema would name the
+          // noindexed CMS host as the canonical location of the image.
+          contentUrl: new URL(lightboxSrcs[i], Astro.site).href,
           caption: c.alt,
           creditText: 'Dr. Bryce Richardson, Vivid Smiles Dentistry',
         })),

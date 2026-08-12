@@ -17,9 +17,10 @@
     "import:blog": "node import/build-blog-payload.mjs && wp-env run cli wp eval-file wp-content/vs-import/bin/import-blog.php",
     "import:pages": "node import/build-pages-payload.mjs && wp-env run cli wp eval-file wp-content/vs-import/bin/import-pages.php",
     "import:settings": "wp-env run cli wp eval-file wp-content/vs-import/bin/import-settings.php",
-    "import:all": "npm run import:settings && npm run import:reviews && npm run import:blog && npm run import:pages && npm run import:sections && npm run import:images",
+    "import:all": "npm run import:settings && npm run import:gallery && npm run import:reviews && npm run import:blog && npm run import:pages && npm run import:sections && npm run import:images",
     "import:sections": "wp-env run cli wp eval-file wp-content/vs-import/bin/import-sections.php",
-    "import:images": "wp-env run cli wp eval-file wp-content/vs-import/bin/import-images.php"
+    "import:images": "wp-env run cli wp eval-file wp-content/vs-import/bin/import-images.php",
+    "import:gallery": "wp-env run cli wp eval-file wp-content/vs-import/bin/import-gallery.php"
   },
   "devDependencies": {
     "@wordpress/env": "^10.30.0"

@@ -445,7 +445,7 @@ const trustTrack = [...trustBar, ...trustBar];
             const isClone = i >= galleryTiles.length;
             return (
               <div class="smile-tile" aria-hidden={isClone || undefined} inert={isClone || undefined}>
-                <Image src={tile.src} alt={tile.alt} widths={[420, 840]} sizes="420px" />
+                <Image src={tile.src} width={tile.width} height={tile.height} alt={tile.alt} widths={[420, 840]} sizes="420px" />
               </div>
             );
           })}
