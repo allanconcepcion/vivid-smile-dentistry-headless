@@ -1,7 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
-import wordpressSitemapAlias from './src/integrations/wordpress-sitemap-alias';
+import yoastSitemap from './src/integrations/yoast-sitemap';
 
 // https://astro.build/config
 export default defineConfig({
@@ -37,9 +37,10 @@ export default defineConfig({
         return !excludeExact.includes(path);
       },
     }),
-    // Also serves the sitemap at sitemap_index.xml — the URL WordPress used and
-    // that Search Console already has on file for this domain.
-    wordpressSitemapAlias(),
+    // Replaces the generated sitemap with Yoast's, rewritten to this origin and
+    // verified against the pages the build produced. @astrojs/sitemap stays in
+    // the chain as the fallback for when the CMS is unreachable.
+    yoastSitemap(),
   ],
   build: {
     assets: '_assets',

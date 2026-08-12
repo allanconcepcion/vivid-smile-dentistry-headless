@@ -185,6 +185,19 @@ foreach ( $pages as $page ) {
 	}
 }
 
+// Make the "/" page WordPress's actual front page.
+//
+// Without this its permalink is /home/, which is what Yoast puts in the sitemap
+// — a URL the Astro site has no route for. Setting it here also makes
+// WordPress's own idea of the site structure match the front end's.
+$home_id = $by_route['/'] ?? 0;
+
+if ( $home_id ) {
+	update_option( 'show_on_front', 'page' );
+	update_option( 'page_on_front', $home_id );
+	WP_CLI::log( sprintf( 'Front page set to "%s" (id %d)', get_the_title( $home_id ), $home_id ) );
+}
+
 WP_CLI::log( '' );
 WP_CLI::log( sprintf( 'Repeater rows written: %d', $fields_written ) );
 

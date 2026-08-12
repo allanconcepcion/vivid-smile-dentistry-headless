@@ -114,18 +114,24 @@ if [[ -n "${uncat}" ]]; then
   wp term delete category "${uncat}" || true
 fi
 
-echo "==> Permalinks (WPGraphQL and the REST API both need pretty permalinks)"
-wp rewrite structure '/%postname%/' --hard
+# Permalinks must MIRROR the Astro routes, not just be "pretty". Posts render at
+# /blog/<slug>/ on the site; with a bare /%postname%/ structure Yoast's sitemap
+# advertises them at the root, and every one of those URLs 404s.
+echo "==> Permalinks (mirroring the Astro routes)"
+wp rewrite structure '/blog/%postname%/' --hard
 wp rewrite flush --hard
 
 echo "==> Discouraging search engines on the CMS host"
 wp option update blog_public 0
 
-# The Astro site owns the real sitemap (astro.config.mjs). Yoast's sitemap here
-# would only list CMS-host URLs. The wpseo_enable_xml_sitemap filter alone does
-# not suppress it — Yoast reads this stored option.
-echo "==> Disabling Yoast XML sitemaps on the CMS host"
-wp option patch update wpseo enable_xml_sitemap false || true
+# Yoast GENERATES the sitemap; the Astro build fetches it, rewrites the URLs to
+# the public origin and serves it from there (src/integrations/yoast-sitemap.ts).
+# It is never crawled on this host — robots.txt here is Disallow: / — but it has
+# to be generated for the build to read it.
+#
+# vs-sitemap.php narrows it to post types that have a real front-end route.
+echo "==> Enabling Yoast XML sitemaps (consumed by the Astro build)"
+wp option patch update wpseo enable_xml_sitemap true || true
 
 echo "==> Plugin status"
 wp plugin list --format=table
