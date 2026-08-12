@@ -19,14 +19,14 @@ The DNS detail in section 6 exists only here.
 | Item | Value |
 | --- | --- |
 | Repo | `allanconcepcion/vivid-smile-dentistry-headless` |
-| Branch | `main` (HEAD `9a7a8cf` at the time of writing) |
+| Branch | `main`, the only branch |
 | Vercel team | `allans-projects-cc55d7b7` — "Allan's projects", Hobby plan |
 | Vercel project | `vivid-smiles-headless` |
 | Root directory | `.` (the repository root) |
 | Install command | `cd vivid-smiles-website && npm install` (from `vercel.json`) |
 | Build command | `cd vivid-smiles-website && npm run build` (from `vercel.json`) |
 | Output directory | `vivid-smiles-website/dist` (from `vercel.json`) |
-| Environment variables | `WP_GRAPHQL_ENDPOINT` — Production and Preview |
+| Environment variables | `WP_GRAPHQL_ENDPOINT` — Production, Preview and Development |
 | Git integration | Connected. Pushes to `main` auto-deploy to Production. |
 
 **The Root Directory is `.`, and that is load-bearing.** This is a monorepo: the Astro app lives in
@@ -43,14 +43,18 @@ reads only the repo-root file. This was found the hard way — see section 8.
 `https://1230613.us28.myftpupload.com/graphql`, the temporary GoDaddy Managed WordPress hostname.
 Without it the build fails at the first content loader rather than degrading quietly: `src/lib/wp.ts`
 throws, so a missing variable can never publish a site with an empty blog and a gutted sitemap.
-See [.env.example](.env.example) for the three known values.
+See [.env.example](.env.example) for the three known values. It is defined in **three**
+environments, not two: Production, Preview and Development. Production and Preview are marked
+Sensitive, so the dashboard will not display their values; only Development can be read back.
+Verified in the dashboard on 2026-08-13.
 
 **Node version is not pinned for Vercel.** `package.json` sets `engines.node` to `>=22.12.0` and
 `.nvmrc` says `22`, but `.nvmrc` lives in `vivid-smiles-website/`, and Vercel reads `.nvmrc` from the
 repository root only. There is no root `.nvmrc` and `vercel.json` sets no `nodeVersion`, so the build
-takes whatever the project dashboard's Node setting is. Builds are succeeding, so the dashboard value
-currently satisfies `engines`; the exact value has not been read back and is unverified here. To
-close the gap, either add a root `.nvmrc` or set `nodeVersion` in `vercel.json`.
+takes whatever the project dashboard's Node setting is. Read back from the dashboard on 2026-08-13:
+**24.x**, which satisfies `engines`. Nothing in the repository enforces that, and a change to the
+dashboard setting would not appear in a diff. To close the gap, either add a root `.nvmrc` or set
+`nodeVersion` in `vercel.json`.
 
 ## 2. Live URLs
 
@@ -186,8 +190,8 @@ to **(720) 617-0331**.
 
 | File | Line | What it says |
 | --- | --- | --- |
-| `src/layouts/BaseLayout.astro` | 90 | "WhatConverts dynamic number insertion (profile 162233). Sitewide call tracking" |
-| `src/layouts/LandingLayout.astro` | 113 | "WhatConverts dynamic number insertion (matches BaseLayout). Paid-traffic landing pages depend on this for ad-source call attribution." |
+| `src/layouts/BaseLayout.astro` | 90, 106 | "WhatConverts dynamic number insertion (profile 162233). Sitewide call tracking" |
+| `src/layouts/LandingLayout.astro` | 128 | "WhatConverts dynamic number insertion (matches BaseLayout). Paid-traffic landing pages depend on this for ad-source call attribution." |
 | `src/pages/privacy-policy/index.astro` | 320 | Discloses WhatConverts by name as call tracking that may display a dynamic phone number |
 
 **What is still open is the question for the practice, and it is worth asking plainly:** nobody has
