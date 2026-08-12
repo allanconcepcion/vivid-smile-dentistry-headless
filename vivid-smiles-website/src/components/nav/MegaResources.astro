@@ -1,0 +1,260 @@
+---
+/**
+ * MegaResources — Patient Resources mega-menu panel.
+ *
+ * 2-column grid:
+ *   - .resource-feature: large feature card with team photo background, links
+ *     to the Membership Plan page (the most-converting resource).
+ *   - .resource-directory: vertical row list with FA icon + title + body + arrow.
+ *
+ * Used by Nav.astro inside the .mega-wrap when "Patient Resources" is open.
+ *
+ * Parity: the feature card href + `rows` array below must mirror the
+ * "resources" section in MobileMenu.astro (the feature card's destination
+ * surfaces there as a flat row, e.g. "Membership Plan"). No shared data
+ * source — change links here AND there in the same edit.
+ */
+
+import { Image } from "astro:assets";
+import featureBg from "../../assets/images/team/vivid-smiles-team-candid.webp";
+
+const rows = [
+  {
+    href: "/new-patients/",
+    title: "New Patients",
+    body: "Your first visit, the paperwork, what to expect, and how to prepare.",
+    icon: "fa-clipboard-check",
+  },
+  {
+    href: "/blog/",
+    title: "Blog",
+    body: "Plain-language writing on cosmetic dentistry, implants, and everyday oral health.",
+    icon: "fa-book-open",
+  },
+  {
+    href: "/referral-program/",
+    title: "Referral Program",
+    body: "Send a friend, and we'll thank you both with a credit toward your next visit.",
+    icon: "fa-user-plus",
+  },
+  {
+    href: "/patient-testimonials/",
+    title: "Patient Testimonials",
+    body: "Stories from real patients in their own words, plus our 5-star Google reviews.",
+    icon: "fa-comment-dots",
+  },
+];
+---
+
+<div class="mega mega-resources-panel" role="region" aria-label="Patient Resources menu">
+  <div class="mega-head">Care for our patients</div>
+  <div class="mega-resources">
+    <a class="resource-feature" href="/dental-membership-plan/">
+      <div class="feature-img" aria-hidden="true">
+        <Image src={featureBg} alt="The Vivid Smiles Dentistry team" widths={[480, 720, 960]} sizes="(max-width: 1100px) 100vw, 40vw" />
+      </div>
+      <div class="feature-body">
+        <div class="feature-eyebrow">Vivid Member</div>
+        <h4 class="feature-title">Save up to 30% on the care you'd already book.</h4>
+        <p class="feature-cta">Explore the membership plan <span aria-hidden="true">→</span></p>
+      </div>
+    </a>
+    <div class="resource-directory">
+      {rows.map((r) => (
+        <a class="resource-row" href={r.href}>
+          <span class="rr-icon">
+            <i class={`fa-solid ${r.icon}`} aria-hidden="true"></i>
+          </span>
+          <div class="rr-body">
+            <div class="rr-title">{r.title}</div>
+            <div class="rr-sub">{r.body}</div>
+          </div>
+          <span class="rr-arrow" aria-hidden="true">→</span>
+        </a>
+      ))}
+    </div>
+  </div>
+</div>
+
+<style is:global>
+  .mega-resources-panel .mega-resources {
+    display: grid;
+    grid-template-columns: 1fr 1.25fr;
+    gap: 32px;
+    align-items: stretch;
+  }
+
+  .mega-resources-panel .resource-feature {
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+    min-height: 340px;
+    background: var(--vs-cream);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 26px;
+    text-decoration: none;
+    color: var(--vs-paper);
+    isolation: isolate;
+    transition: transform 0.3s ease;
+  }
+  .mega-resources-panel .resource-feature:hover { transform: translateY(-2px); }
+
+  .mega-resources-panel .resource-feature .feature-img {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    overflow: hidden;
+  }
+  .mega-resources-panel .resource-feature .feature-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+  }
+  .mega-resources-panel .resource-feature:hover .feature-img img {
+    transform: scale(1.04);
+  }
+  .mega-resources-panel .resource-feature::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background:
+      linear-gradient(
+        180deg,
+        rgba(20, 28, 16, 0.15) 0%,
+        rgba(20, 28, 16, 0.45) 55%,
+        rgba(20, 28, 16, 0.92) 100%
+      ),
+      linear-gradient(
+        160deg,
+        rgba(107, 122, 84, 0.25) 0%,
+        rgba(58, 68, 49, 0) 60%
+      );
+    pointer-events: none;
+  }
+  .mega-resources-panel .resource-feature .feature-body {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .mega-resources-panel .feature-eyebrow {
+    font-family: var(--vs-font-body);
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-eyebrow-on-sage);
+    font-weight: 500;
+  }
+  .mega-resources-panel .feature-title {
+    font-family: var(--vs-font-display);
+    font-size: 24px;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    color: var(--vs-paper);
+    margin: 0;
+    max-width: 18ch;
+  }
+  .mega-resources-panel .feature-cta {
+    font-family: var(--vs-font-body);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    color: var(--vs-paper);
+    margin: 0;
+    margin-top: 4px;
+    opacity: 0.92;
+  }
+  .mega-resources-panel .resource-feature:hover .feature-cta {
+    opacity: 1;
+  }
+
+  .mega-resources-panel .resource-directory {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 4px 0;
+  }
+
+  .mega-resources-panel .resource-row {
+    display: grid;
+    grid-template-columns: 38px 1fr 28px;
+    gap: 18px;
+    align-items: center;
+    padding: 14px 12px;
+    border-bottom: 1px solid var(--vs-line);
+    text-decoration: none;
+    color: inherit;
+    position: relative;
+  }
+  .mega-resources-panel .resource-row:last-child { border-bottom: none; }
+  .mega-resources-panel .resource-row::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(107, 122, 84, 0.05);
+    border-radius: 10px;
+    opacity: 0;
+    transition: opacity 0.25s ease;
+    z-index: 0;
+  }
+  .mega-resources-panel .resource-row:hover::before { opacity: 1; }
+  .mega-resources-panel .resource-row > * {
+    position: relative;
+    z-index: 1;
+  }
+  .mega-resources-panel .rr-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(107, 122, 84, 0.08);
+    color: var(--vs-sage);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.25s ease, color 0.25s ease;
+  }
+  .mega-resources-panel .rr-icon svg { width: 18px; height: 18px; }
+  .mega-resources-panel .rr-icon i { font-size: 15px; line-height: 1; }
+  .mega-resources-panel .resource-row:hover .rr-icon {
+    background: var(--vs-sage);
+    color: var(--vs-paper);
+  }
+  .mega-resources-panel .rr-title {
+    font-family: var(--vs-font-display);
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--vs-ink);
+  }
+  .mega-resources-panel .rr-sub {
+    font-size: 12.5px;
+    color: var(--vs-ink-soft);
+    margin-top: 2px;
+    line-height: 1.45;
+  }
+  .mega-resources-panel .rr-arrow {
+    font-family: var(--vs-font-display);
+    font-size: 16px;
+    color: var(--vs-sage);
+    opacity: 0;
+    transform: translateX(-4px);
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
+  .mega-resources-panel .resource-row:hover .rr-arrow {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  @media (max-width: 1100px) {
+    .mega-resources-panel .mega-resources {
+      grid-template-columns: 1fr;
+    }
+    .mega-resources-panel .resource-feature { min-height: 220px; }
+  }
+</style>

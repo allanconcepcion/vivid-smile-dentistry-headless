@@ -1,0 +1,271 @@
+---
+/**
+ * Copy + program policies are ported verbatim from the live WordPress page
+ * at https://vividsmilesdentistry.com/referral-program/. Do not edit the
+ * reward amount, eligibility rules, household cap, or FAQ answers without
+ * front-desk authority — they describe a real practice promise.
+ */
+import { Image } from "astro:assets";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Button from "../../components/Button.astro";
+import FinalBand from "../../components/FinalBand.astro";
+import { phoneHref, phoneLabel } from "../../data/contact";
+import "../../styles/pages/referral-program.css";
+
+import heroPrimary from "../../assets/images/people/real/patient-at-reception-check-in.webp";
+
+const steps = [
+  {
+    tag: "Step One",
+    num: "01",
+    title: "Your friend mentions your name",
+    body: "When your friend or family member books their first visit, they just need to mention your name at check-in — or hand the front desk a referral card.",
+  },
+  {
+    tag: "Step Two",
+    num: "02",
+    title: "We credit both of your accounts",
+    body: "After their first appointment is complete, we'll add a $50 credit to both of your accounts. No paperwork, no claim forms, no hassle.",
+  },
+  {
+    tag: "Step Three",
+    num: "03",
+    title: "Use it on a future visit",
+    body: "Referral cards are available at the front desk if you'd like one, but they're not required to participate. Use your credit toward any future dental service with us.",
+  },
+];
+
+const faqs = [
+  {
+    q: "Do I need to be an existing patient to refer someone?",
+    a: "Yes — this program is exclusively for our current patients referring new patients.",
+    open: true,
+  },
+  {
+    q: "When will I receive my referral credit?",
+    a: "Your credit will be applied once your referred friend completes their first appointment.",
+  },
+  {
+    q: "Is there a limit to how many people I can refer?",
+    a: "Yes — only one credit per household can be applied. If you refer multiple people from the same home, only one will be eligible for the $50 credit.",
+  },
+  {
+    q: "Can I cash out my credit or transfer it to someone else?",
+    a: "No — referral credits are non-cashable and non-transferable. They must be used toward future dental services.",
+  },
+];
+
+const description =
+  "Refer a friend to Vivid Smiles Dentistry in Parker, CO and you both get $50 credit toward future dental care. No paperwork, no hassle — just say thank you for the trust.";
+---
+
+<BaseLayout
+  title="Referral Program — Vivid Smiles Dentistry"
+  description={description}
+>
+  <div class="rp">
+
+    {/* ---------- BREADCRUMB ---------- */}
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <div class="crumbs-inner">
+        <a href="/">Home</a>
+        <span class="sep">/</span>
+        <a href="/new-patients/">Patient Resources</a>
+        <span class="sep">/</span>
+        <span class="here">Referral Program</span>
+      </div>
+    </nav>
+
+    <main id="main">
+
+    {/* ---------- HERO (paper) ---------- */}
+    <header class="hero" data-vs-reveal-batch>
+      <div class="wrap hero-inner">
+
+        <div class="hero-copy">
+          <span class="eyebrow">Referral Program · Vivid Smiles</span>
+          <h1 data-vs-reveal-lines>
+            Refer a friend, <em>share a smile.</em>
+          </h1>
+          <p class="hero-sub">
+            The best compliment you can give us is a referral. When you share your
+            positive experience at Vivid Smiles Dentistry, you're helping your
+            friends and family receive the same exceptional care — and as a thank
+            you, both you and your referral will earn a <b>$50 credit</b> toward
+            your next dental visit.
+          </p>
+          <div class="hero-actions">
+            <Button variant="sage" href="#how-it-works" hoverLabel="See How">How It Works</Button>
+            <Button variant="ghost" href={phoneHref} hoverLabel="Tap to Dial">Call {phoneLabel}</Button>
+            <div class="ratings">
+              <span class="stars" aria-hidden="true">★★★★★</span>
+              <span>5.0 · 300+ reviews</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-frame" data-vs-reveal>
+          <Image
+            src={heroPrimary}
+            alt="A patient checking in at the Vivid Smiles Dentistry front desk in Parker, CO"
+            widths={[480, 720, 1080]}
+            sizes="(max-width: 991px) 90vw, 540px"
+            loading="eager"
+            fetchpriority="high"
+          />
+        </div>
+
+      </div>
+    </header>
+
+    {/* ---------- WHY (cream) — story + sticky $50 + $50 reward card ---------- */}
+    <section class="section alt" id="program" data-vs-reveal-batch>
+      <div class="wrap story-grid">
+
+        <div class="story-copy">
+          <span class="eyebrow eyebrow-lined">— Our Patient Referral Program</span>
+          <h2>The best compliment <em>is a referral.</em></h2>
+          <p>
+            At Vivid Smiles Dentistry, we believe that the best compliment you can
+            give us is referring a friend or family member. Your trust means
+            everything, and when you share your positive experience with others,
+            you're not just helping our practice grow — you're also ensuring that
+            your loved ones receive the same high-quality care you've come to
+            expect.
+          </p>
+          <p>
+            Our referral program is a simple, rewarding way to say thank you for
+            spreading the word. When your friend comes in for their first
+            appointment, both of you receive a $50 credit toward future dental
+            services — applied automatically, no paperwork required.
+          </p>
+        </div>
+
+        <aside class="reward-card" aria-label="Referral reward at a glance">
+          <span class="reward-card__label">— At a glance</span>
+          <h3>Refer &amp; <em>both win</em></h3>
+
+          <div class="reward-stack">
+            <div class="reward-row">
+              <div class="reward-row__price">
+                <span class="dollar">$</span>50
+              </div>
+              <div class="reward-row__who">
+                <span class="reward-row__lead">You</span>
+                <span class="reward-row__note">credit for sharing</span>
+              </div>
+            </div>
+            <div class="reward-plus" aria-hidden="true">+</div>
+            <div class="reward-row">
+              <div class="reward-row__price">
+                <span class="dollar">$</span>50
+              </div>
+              <div class="reward-row__who">
+                <span class="reward-row__lead">Your friend</span>
+                <span class="reward-row__note">credit on their first visit</span>
+              </div>
+            </div>
+          </div>
+
+          <ul class="reward-meta">
+            <li>Applied after their first appointment</li>
+            <li>One credit per household</li>
+            <li>Use toward future dental services</li>
+          </ul>
+
+          <a class="reward-jump" href="#how-it-works">
+            <span>See how it works</span>
+            <span class="arrow-mini" aria-hidden="true">→</span>
+          </a>
+        </aside>
+
+      </div>
+    </section>
+
+    {/* ---------- HOW IT WORKS — sage (dark) — 3 .process-card ---------- */}
+    <section class="section dark" id="how-it-works" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head center">
+          <span class="eyebrow light">How It Works</span>
+          <h2>Three easy steps, <em>no paperwork.</em></h2>
+          <p>
+            Sharing a smile has never been easier. Here's exactly what happens
+            from the moment your friend books to the credit landing on your account.
+          </p>
+        </div>
+
+        <div class="process-grid">
+          {steps.map((s) => (
+            <div class="process-card">
+              <span class="step-tag">{s.tag}</span>
+              <div class="num">{s.num}</div>
+              <h3>{s.title}</h3>
+              <p>{s.body}</p>
+            </div>
+          ))}
+        </div>
+
+        <p class="process-foot">
+          Referral cards are available at the front desk — call us at
+          <a class="vs-link" href={phoneHref}>{phoneLabel}</a> to grab a few on
+          your next visit.
+        </p>
+      </div>
+    </section>
+
+    {/* ---------- FAQ (paper) ---------- */}
+    <section class="section" id="faq" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head center">
+          <span class="eyebrow">Referral FAQs</span>
+          <h2>Quick answers <em>before you refer.</em></h2>
+        </div>
+
+        <div class="faq-list">
+          {faqs.map((f) => (
+            <details class="faq" open={f.open}>
+              <summary>
+                <h3>{f.q}</h3>
+                <span class="icon" aria-hidden="true">+</span>
+              </summary>
+              <div class="answer"><p>{f.a}</p></div>
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- FINAL BAND ---------- */}
+    <FinalBand eyebrow="Ready to refer?" background="cream-warm">
+      <p>
+        Sharing a smile has never been easier. If you'd like to refer a friend or
+        have a question about the program, give us a call at
+        <a class="vs-link" href={phoneHref}>{phoneLabel}</a> — we'll take it from there.
+      </p>
+    </FinalBand>
+
+    </main>
+
+    {/* ---------- JSON-LD ---------- */}
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home",              "item": new URL("/", Astro.site).href },
+        { "@type": "ListItem", "position": 2, "name": "Patient Resources", "item": new URL("/new-patients/", Astro.site).href },
+        { "@type": "ListItem", "position": 3, "name": "Referral Program",  "item": new URL("/referral-program/", Astro.site).href },
+      ],
+    })} />
+
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": faqs.map((f) => ({
+        "@type": "Question",
+        "name": f.q,
+        "acceptedAnswer": { "@type": "Answer", "text": f.a },
+      })),
+    })} />
+
+  </div>
+</BaseLayout>

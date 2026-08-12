@@ -1,0 +1,344 @@
+---
+// section primitives lifted from the service-page template family
+// (clear-aligners et al). Bespoke pattern on this page only:
+//   .np-mship — compact membership cross-link to /dental-membership-plan/
+import { Image } from "astro:assets";
+import { getCollection } from "astro:content";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Button from "../../components/Button.astro";
+import VirtualConsult from "../../components/VirtualConsult.astro";
+import ReviewMarquee from "../../components/ReviewMarquee.astro";
+import { phoneHref, phoneLabel, bookNowHref } from "../../data/contact";
+import "../../styles/pages/new-patients.css";
+
+import heroImg from "../../assets/images/team/vivid-smiles-team-candid.webp";
+import imgCosmetic from "../../assets/images/procedures/veneer-application-brush-front-closeup.webp";
+import imgImplant from "../../assets/images/procedures/full-arch-model-in-hand.webp";
+import imgGeneral from "../../assets/images/people/real/woman-portrait-office-lounge.webp";
+import imgEmergency from "../../assets/images/procedures/same-day-emergency-dental-care.webp";
+
+// Full 5-star reviews collection (newest first) drives the swipe-draggable
+// testimonials marquee — same pattern as home + about pages.
+const reviews = (await getCollection("reviews"))
+  .sort((a, b) => +b.data.date - +a.data.date);
+
+// 6-step first-visit flow. Numbered .process-card cards on the sage band —
+// same component pattern that powers the treatment-process bands on every
+// service detail page (e.g. clear-aligners.astro).
+const firstVisit = [
+  {
+    tag: "Step One",   num: "01",
+    title: "Check in",
+    body: "A quiet welcome, a warm beverage, and time to settle in. Forms are short — and you can complete them ahead of time online.",
+  },
+  {
+    tag: "Step Two",   num: "02",
+    title: "Meet your hygienist and dentist",
+    body: "We start with a real conversation — your goals, your history, the smile you want — before we open your mouth.",
+  },
+  {
+    tag: "Step Three", num: "03",
+    title: "Detailed digital x-rays",
+    body: "Low-radiation, high-resolution imaging so we can plan care accurately. We walk through every image with you, not at you.",
+  },
+  {
+    tag: "Step Four",  num: "04",
+    title: "Review results with the doctor",
+    body: "Dr. Richardson reviews what we see on-screen together with you. No jargon, no rushed verdicts — just an honest read.",
+  },
+  {
+    tag: "Step Five",  num: "05",
+    title: "Your questions, answered",
+    body: "Whitening curiosity, old-crown concerns, anxiety, treatment timelines — this is where it all gets air. Bring the list.",
+  },
+  {
+    tag: "Step Six",   num: "06",
+    title: "Professional cleaning",
+    body: "A thorough, gentle clean to finish the visit, plus a clear written plan for whatever comes next — on your timeline.",
+  },
+];
+
+const services = [
+  {
+    href: "/cosmetic-dentistry/",
+    title: "Cosmetic Dentistry",
+    desc: "Porcelain veneers, whitening, bonding, and smile makeovers designed in millimeters.",
+    img: imgCosmetic,
+    alt: "Close-up of a porcelain veneer being placed",
+  },
+  {
+    href: "/implant-dentistry/",
+    title: "Implant Dentistry",
+    desc: "Single-tooth implants, All-on-4, and full-arch restorations planned digitally end to end.",
+    img: imgImplant,
+    alt: "Full-arch restoration model held in a gloved hand",
+  },
+  {
+    href: "/general-dentistry/",
+    title: "General Dentistry",
+    desc: "Cleanings, exams, fillings, and crowns — the quiet, consistent care your smile needs to last.",
+    img: imgGeneral,
+    alt: "Smiling woman seated in the Vivid Smiles Dentistry office lounge in Parker, CO",
+    objPos: "center 25%",
+  },
+  {
+    href: "/emergency-dentistry/",
+    title: "Emergency Dentistry",
+    desc: "Pain, breaks, swelling — call us first. Same-day appointments are the norm, not the exception.",
+    img: imgEmergency,
+    alt: "Same-day emergency dental care in Parker, CO",
+  },
+];
+
+// 8 FAQs lifted verbatim from the live WordPress new-patients page —
+// https://vividsmilesdentistry.com/new-patients/. NOT rewritten or
+// reinterpreted; copy is canonical, do not edit without source authority.
+const faqs = [
+  {
+    q: "Do I Really Need to Floss?",
+    a: "Absolutely! Flossing removes plaque and food particles from between your teeth where a toothbrush can't reach. It's essential for preventing cavities and gum disease, ensuring a healthy smile.",
+    open: true,
+  },
+  {
+    q: "What Are Dental Implants?",
+    a: "Dental implants are a durable, natural-looking solution for missing teeth. They act as replacement tooth roots, providing a strong foundation for crowns or bridges and preserving your jawbone.",
+  },
+  {
+    q: "How Long Does It Take to Get a Crown Done?",
+    a: "At Vivid Smiles Dentistry, we use advanced technology to create your custom porcelain crown in just one visit. By taking a precise digital scan of your tooth, we design and shape your crown to ensure a perfect fit. Once the design is complete, we craft the crown on-site and bond it to your tooth, giving you a strong, natural-looking result in a single day!",
+  },
+  {
+    q: "Can Children See a General Dentist?",
+    a: "Definitely! A general dentist is equipped to care for patients of all ages, including children. From routine cleanings to keeping track of their dental development, we'll make sure your child's smile stays healthy and strong as they grow.",
+  },
+  {
+    q: "What is Teeth Whitening?",
+    a: "Teeth whitening is a safe, simple way to brighten your smile by removing stains and discoloration. At Vivid Smiles Dentistry, we offer both in-office and take-home options for stunning, quick results.",
+  },
+  {
+    q: "Does Whitening Damage My Teeth?",
+    a: "No, professional teeth whitening is safe when done correctly. At Vivid Smiles Dentistry, we use gentle yet effective whitening systems that remove stains without harming your enamel, leaving your teeth looking brighter and healthier.",
+  },
+  {
+    q: "How Can I Improve My Smile?",
+    a: "Improving your smile can be as simple as whitening your teeth, straightening them with Invisalign, or fixing imperfections with veneers. Dr. Richardson and the team at Vivid Smiles Dentistry will help you create a personalized plan to achieve the smile you've always wanted!",
+  },
+  {
+    q: "What is Periodontal Disease?",
+    a: "Periodontal disease, or gum disease, is an infection of the gums that can lead to serious issues like tooth loss if left untreated. At Vivid Smiles Dentistry, we offer advanced treatments, including scaling and root planing to deep clean below the gumline, and laser therapy to target infection and promote healing. With consistent care and good oral hygiene, gum health can be restored and maintained.",
+  },
+];
+
+const description =
+  "Welcome to Vivid Smiles Dentistry in Parker, CO. An unhurried 90-minute first visit and a calm 6-step new-patient experience with Dr. Bryce Richardson. 300+ five-star reviews.";
+---
+
+<BaseLayout
+  title="New Patients in Parker, CO | Vivid Smiles Dentistry"
+  description={description}
+>
+  <div class="np">
+
+    {/* ---------- BREADCRUMB ---------- */}
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <div class="crumbs-inner">
+        <a href="/">Home</a>
+        <span class="sep">/</span>
+        <span class="here">New Patients</span>
+      </div>
+    </nav>
+
+    <main id="main">
+
+    {/* ---------- HERO — paper — team candid anchors the right column ---------- */}
+    <header class="hero" data-vs-reveal-batch>
+      <div class="wrap hero-inner">
+
+        <div class="hero-copy">
+          <span class="eyebrow">New Patients · Welcome to Vivid Smiles</span>
+          <h1 data-vs-reveal-lines>
+            Your first visit, <em class="vs-italic-word">thoughtfully planned.</em>
+          </h1>
+          <p class="hero-sub">
+            We take new patients seriously — and unhurriedly. Plan on a thorough,
+            conversation-first appointment at our Parker, CO office, tailored to where
+            your smile is today and where you'd like it to go.
+          </p>
+          <div class="hero-actions">
+            <Button variant="sage" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button>
+            <Button variant="ghost" href={phoneHref} hoverLabel="Tap to Dial">Call {phoneLabel}</Button>
+            <div class="ratings">
+              <span class="stars" aria-hidden="true">★★★★★</span>
+              <span>5.0 · 300+ reviews</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="hero-img" data-vs-parallax data-parallax="-30">
+          <Image
+            src={heroImg}
+            alt="The Vivid Smiles team walking outside the Parker, CO office"
+            widths={[600, 900, 1400]}
+            sizes="(max-width: 991px) 100vw, 50vw"
+          />
+        </div>
+
+      </div>
+    </header>
+
+    {/* ---------- WHAT TO EXPECT — sage (dark) — .process-card grid ---------- */}
+    <section class="section dark" id="first-visit" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head center">
+          <span class="eyebrow light">What to Expect</span>
+          <h2>Your first visit, <em class="vs-italic-word">step by step.</em></h2>
+          <p>
+            New-patient appointments at Vivid Smiles run about 90 minutes — long
+            enough to get a complete picture, short enough to respect your time.
+            Here's the rhythm.
+          </p>
+        </div>
+
+        <div class="process-grid">
+          {firstVisit.map((s) => (
+            <div class="process-card">
+              <span class="step-tag">{s.tag}</span>
+              <div class="num">{s.num}</div>
+              <h3>{s.title}</h3>
+              <p>{s.body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- SERVICES — cream — .svc-card.compact grid ---------- */}
+    <section class="section alt" id="services" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">What we do</span>
+          <h2>Care that fits every <em class="vs-italic-word">chapter of your smile.</em></h2>
+          <p>
+            From a quiet cleaning to a full-arch implant restoration, our team practices
+            the whole spectrum of modern dentistry — under one calm Parker roof.
+          </p>
+        </div>
+
+        <div class="svc-grid svc-grid-4">
+          {services.map((s) => (
+            <a class="svc-card compact" href={s.href} data-vs-arrow>
+              <div class="svc-img">
+                <Image
+                  src={s.img}
+                  alt={s.alt}
+                  widths={[320, 520, 720, 960]}
+                  sizes="(max-width: 479px) 100vw, (max-width: 991px) 50vw, 25vw"
+                  style={s.objPos ? `object-position: ${s.objPos}` : undefined}
+                />
+              </div>
+              <div class="svc-body">
+                <h3>{s.title}</h3>
+                <p class="svc-desc">{s.desc}</p>
+                <div class="svc-row-bot">
+                  <span></span>
+                </div>
+              </div>
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- TESTIMONIALS — paper — <ReviewMarquee> from collection ----------
+         Same shared component that powers the testimonial bands on home + about. */}
+    <section class="section" id="reviews" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head center">
+          <span class="eyebrow">Patient Stories · 300+ Five-Star Reviews</span>
+          <h2>Why Parker keeps <em>coming back</em>.</h2>
+          <p>
+            We don't push five-star reviews — they happen on their own. Drag
+            through a few, in our patients' own words.
+          </p>
+        </div>
+      </div>
+
+      <ReviewMarquee reviews={reviews} ariaLabel="Patient reviews" class="np-reviews" />
+
+      <div class="wrap">
+        <div class="reviews-foot">
+          <Button variant="ghost" href="/patient-testimonials/" hoverLabel="See All">Read all reviews</Button>
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- FAQ — cream — established .faq-list native details/summary ---------- */}
+    <section class="section alt" id="faq" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head center">
+          <span class="eyebrow">FAQ</span>
+          <h2>Frequently asked <em>questions</em>.</h2>
+        </div>
+
+        <div class="faq-list">
+          {faqs.map((f) => (
+            <details class="faq" open={f.open}>
+              <summary><h3>{f.q}</h3><span class="icon" aria-hidden="true">+</span></summary>
+              <div class="answer" set:html={f.a} />
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- MEMBERSHIP CROSS-LINK — paper — bespoke compact card ---------- */}
+    <section class="section" id="membership" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="np-mship">
+          <div class="copy">
+            <span class="eyebrow">No Insurance?</span>
+            <h3>You still have great options.</h3>
+            <p>
+              Our in-house membership plan covers your routine care for a flat annual
+              fee and quietly discounts almost everything else. No claims, no surprises,
+              no waiting periods.
+            </p>
+          </div>
+          <Button variant="sage" href="/dental-membership-plan/" hoverLabel="Learn More">See the Membership Plan</Button>
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- CLOSING CTA — uses <VirtualConsult>, same as service pages ---------- */}
+    <VirtualConsult id="consult" eyebrow="Ready when you are">
+      <Fragment slot="headline">Let's get you <em>scheduled.</em></Fragment>
+      <Fragment slot="body">
+        Book online, give us a call, or send a quick virtual consult with a photo or
+        two — whatever's easiest. We'll take it from there.
+      </Fragment>
+    </VirtualConsult>
+
+    </main>
+
+    {/* JSON-LD — BreadcrumbList + FAQPage to match the service-page pattern. */}
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home",         "item": new URL("/", Astro.site).href },
+        { "@type": "ListItem", "position": 2, "name": "New Patients", "item": new URL("/new-patients/", Astro.site).href },
+      ],
+    })} />
+
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": faqs.map((f) => ({
+        "@type": "Question",
+        "name": f.q,
+        "acceptedAnswer": { "@type": "Answer", "text": f.a.replace(/<[^>]+>/g, "") },
+      })),
+    })} />
+
+  </div>
+</BaseLayout>

@@ -1,0 +1,245 @@
+---
+/**
+ * VirtualConsult — on-page virtual consultation section.
+ *
+ * Two-column grid: copy + 4-step explainer on the left, Typeform embed on the
+ * right. Used on the home page (#virtualConsult) and on service detail pages
+ * (#consult). The 4 steps are static — the consultation mechanic doesn't
+ * change by service. Headline + body slot in per-page so service pages can
+ * frame the form around their treatment.
+ *
+ * Anchor id is configurable so the home page keeps `#virtualConsult` (footer
+ * + nav references depend on it) while service pages use `#consult` (matches
+ * the in-page CTA buttons that already point there).
+ *
+ * Background defaults to paper. Pass background="cream" to opt
+ * into a contrasting cream closer when the section above is paper and the
+ * rhythm needs a visible band change.
+ *
+ * Usage:
+ *   <VirtualConsult />                                                ← home default
+ *   <VirtualConsult id="consult" eyebrow="Free veneers consultation">
+ *     <Fragment slot="headline">Free veneers <em>consultation.</em></Fragment>
+ *     <Fragment slot="body">Custom veneer-specific intro copy…</Fragment>
+ *   </VirtualConsult>
+ */
+
+interface Props {
+  id?: string;
+  eyebrow?: string;
+  typeformId?: string;
+  background?: "cream" | "paper";
+}
+
+const {
+  id = "virtualConsult",
+  eyebrow = "Free virtual consultation",
+  typeformId = "01KPCQ9D4Z4000Y0Z4A3VGGTHD",
+  background = "paper",
+} = Astro.props;
+---
+
+<section class:list={["vs-vc", `vs-vc--${background}`]} id={id}>
+  <div class="vs-vc-wrap">
+    <div class="vs-vc-grid">
+      <div class="vs-vc-copy" data-vs-reveal-batch>
+        <span class="vs-vc-eyebrow">{eyebrow}</span>
+        <h2 class="vs-vc-h2">
+          <slot name="headline">Free virtual <em>consultation.</em></slot>
+        </h2>
+        <p class="vs-vc-body">
+          <slot name="body">
+            Taking the first step toward your dream smile has never been easier. Nothing to schedule —
+            Dr. Richardson personally records a custom video response for every consultation request.
+          </slot>
+        </p>
+        {/* Optional trust row — sits between the intro copy and the steps.
+            Only renders when a caller passes the `reassure` slot (e.g. the
+            cosmetic LP). No-op everywhere else. */}
+        <slot name="reassure" />
+        <div class="vs-vc-steps">
+          <div class="vs-vc-step">
+            <span class="vs-vc-num">1</span>
+            <div>
+              <h4>Fill Out Our Form</h4>
+              <p>Complete and submit the virtual consultation form on this page.</p>
+            </div>
+          </div>
+          <div class="vs-vc-step">
+            <span class="vs-vc-num">2</span>
+            <div>
+              <h4>We'll Reach Out To Confirm</h4>
+              <p>After sending your request, we'll reach out to confirm it's been received.</p>
+            </div>
+          </div>
+          <div class="vs-vc-step">
+            <span class="vs-vc-num">3</span>
+            <div>
+              <h4>Receive Your Custom Video</h4>
+              <p>Dr. Richardson will review your information and record a personalized video reviewing your smile, answering your questions, and discussing treatment options.</p>
+            </div>
+          </div>
+          <div class="vs-vc-step">
+            <span class="vs-vc-num">4</span>
+            <div>
+              <h4>We Discuss Next Steps</h4>
+              <p>If you choose to move forward, our team will work with you to take the next steps toward your dream smile.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="vs-vc-form" data-vs-reveal data-vs-lenis-passthrough>
+        {/* data-tf-lazy: Typeform holds the ~490KB form renderer until the user
+            scrolls to it. This form sits at the bottom of the page, so eager
+            loading just stole bandwidth from the hero on mobile (Lighthouse:
+            LCP 15s → fixed). Popup CTAs are unaffected — they only load the
+            renderer on click. */}
+        <div data-tf-live={typeformId} data-tf-lazy></div>
+        <script is:inline defer src="https://embed.typeform.com/next/embed.js"></script>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .vs-vc { padding: 130px 0; background: var(--vs-cream); }
+  .vs-vc--paper { background: var(--vs-paper); }
+
+  .vs-vc-wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  .vs-vc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 60px;
+    align-items: stretch;
+  }
+
+  /* ---------- COPY (left) ---------- */
+  .vs-vc-copy { padding: 30px 0; }
+
+  .vs-vc-eyebrow {
+    font-family: var(--vs-font-body);
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+  .vs-vc-eyebrow::before {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+
+  .vs-vc-h2 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    color: var(--vs-ink);
+    font-size: clamp(34px, 4.6vw, 60px);
+    letter-spacing: -0.022em;
+    line-height: 1.08;
+    margin: 0 0 22px;
+    max-width: 14ch;
+  }
+  .vs-vc-h2 :global(em) {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+
+  .vs-vc-body {
+    font-size: 16px;
+    max-width: 46ch;
+    line-height: 1.7;
+    color: var(--vs-ink-soft);
+    margin: 0;
+  }
+
+  /* ---------- STEPS ---------- */
+  .vs-vc-steps {
+    margin-top: 36px;
+    display: grid;
+    gap: 0;
+  }
+  .vs-vc-step {
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 18px;
+    padding: 18px 0;
+    border-top: 1px solid var(--vs-line);
+    align-items: start;
+  }
+  .vs-vc-step:last-child { border-bottom: 1px solid var(--vs-line); }
+
+  .vs-vc-num {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--vs-sage);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: 13px;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .vs-vc-step h4 {
+    margin: 0 0 4px;
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: 16px;
+    color: var(--vs-ink);
+    letter-spacing: 0.005em;
+  }
+  .vs-vc-step p {
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: var(--vs-ink-soft);
+    margin: 0;
+  }
+
+  /* ---------- FORM (right) ---------- */
+  .vs-vc-form {
+    border-radius: var(--vs-r-xl);
+    overflow: hidden;
+    box-shadow: var(--vs-shadow-lg);
+    min-height: 640px;
+    background: #fff;
+    position: relative;
+  }
+  .vs-vc-form > div[data-tf-live] {
+    position: absolute;
+    inset: 0;
+  }
+
+  /* ---------- RESPONSIVE ---------- */
+  @media (max-width: 991px) {
+    .vs-vc { padding: 80px 0; }
+    .vs-vc-grid {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+    .vs-vc-form {
+      min-height: clamp(640px, 92vh, 820px);
+      border-radius: var(--vs-r-lg);
+    }
+  }
+
+  @media (max-width: 600px) {
+    .vs-vc-wrap { padding: 0 22px; }
+  }
+</style>

@@ -1,0 +1,152 @@
+---
+/**
+ * StandaloneCard — single-row card used in the Services mega menu and
+ * elsewhere. Two variants:
+ *   - default: light frosted card with sage hover (ghost-line ArrowBadge)
+ *   - emergency: dark gradient card with white hover (ghost-emergency ArrowBadge)
+ *
+ * Hover wired via [data-vs-arrow] in src/scripts/animations.js.
+ *
+ * Usage:
+ *   <StandaloneCard kicker="Everyday care" title="General Dentistry" href="/services/general">
+ *     Cleanings, fillings, crowns &amp; preventive care.
+ *     <slot name="icon">
+ *       <svg ...></svg>
+ *     </slot>
+ *   </StandaloneCard>
+ */
+import ArrowBadge from "../ArrowBadge.astro";
+
+interface Props {
+  title: string;
+  kicker?: string;
+  href?: string;
+  emergency?: boolean;
+  class?: string;
+}
+const { title, kicker, href = "#", emergency = false, class: extra } = Astro.props;
+const cls = ["svc-standalone", emergency && "emergency", extra].filter(Boolean).join(" ");
+const arrowVariant = emergency ? "ghost-emergency" : "ghost-line";
+---
+
+<a class={cls} href={href} data-vs-arrow>
+  <span class="sa-icon">
+    <slot name="icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.4">
+        <path d="M12 3L20 7V13C20 17 16.5 20 12 21C7.5 20 4 17 4 13V7Z"></path>
+      </svg>
+    </slot>
+  </span>
+  <div class="sa-body">
+    {
+      emergency && kicker ? (
+        <div class="live-dot">{kicker}</div>
+      ) : (
+        kicker && <div class="sa-kicker">{kicker}</div>
+      )
+    }
+    <h4>{title}</h4>
+    <p><slot /></p>
+  </div>
+  <ArrowBadge size="md" variant={arrowVariant} />
+</a>
+
+<style is:global>
+  .svc-standalone {
+    position: relative;
+    display: grid;
+    grid-template-columns: 44px 1fr auto;
+    gap: 16px;
+    align-items: center;
+    padding: 18px 20px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(231, 228, 221, 0.7);
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.2s ease, border-color 0.2s ease, transform 0.25s ease;
+    overflow: hidden;
+  }
+  .svc-standalone:hover {
+    background: #fff;
+    border-color: var(--vs-sage-soft);
+    transform: translateY(-2px);
+  }
+  .svc-standalone .sa-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: rgba(107, 122, 84, 0.12);
+    color: var(--vs-sage);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .svc-standalone .sa-icon svg {
+    width: 22px;
+    height: 22px;
+  }
+  .svc-standalone .sa-icon i {
+    font-size: 18px;
+    line-height: 1;
+  }
+  .svc-standalone .sa-kicker {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--vs-muted);
+    margin-bottom: 4px;
+  }
+  .svc-standalone h4 {
+    font-family: var(--vs-font-display);
+    font-size: 19px;
+    font-weight: 500;
+    color: var(--vs-ink);
+    margin: 0 0 4px;
+    letter-spacing: -0.005em;
+    line-height: 1.15;
+  }
+  .svc-standalone p {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--vs-ink-soft);
+    margin: 0;
+  }
+  /* Emergency variant */
+  .svc-standalone.emergency {
+    background: linear-gradient(160deg, var(--vs-emergency-from) 0%, var(--vs-emergency-to) 100%);
+    border-color: rgba(255, 255, 255, 0.12);
+    color: #fff;
+  }
+  .svc-standalone.emergency .sa-icon {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+  }
+  .svc-standalone.emergency h4 {
+    color: #fff;
+  }
+  .svc-standalone.emergency p {
+    color: rgba(255, 255, 255, 0.75);
+  }
+  .svc-standalone .live-dot {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: #fff;
+    margin-bottom: 6px;
+  }
+  .svc-standalone .live-dot::before {
+    content: "";
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--vs-pulse-amber);
+    --vs-pulse-halo-rgb: var(--vs-pulse-amber-rgb);
+    box-shadow: 0 0 0 4px rgba(var(--vs-pulse-amber-rgb), 0.22);
+    animation: vs-pulse 2s ease-in-out infinite;
+  }
+</style>

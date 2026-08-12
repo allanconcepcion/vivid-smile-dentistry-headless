@@ -1,0 +1,606 @@
+---
+/**
+ * General & Family Dentistry — paid-traffic landing page.
+ *
+ * Lives at /general-lp/, the dedicated general-dentistry funnel. A near-1:1
+ * clone of the veneers LP, re-namespaced .vlp-* → .glp-* with
+ * general/family-dentistry content drawn from the legacy WordPress /general-lp
+ * page + the /general-dentistry/ hub. Uses LandingLayout (stripped header +
+ * slim footer, no main nav). noindex by default. Single CTA throughout:
+ * "Request an appointment" → #consult (VirtualConsult Typeform) or the
+ * header/sticky popup. Copy deliberately avoids "book"/"consultation" framing —
+ * this funnel is a form request, not live online booking.
+ *
+ * Two structural swaps from the veneers frame:
+ *   • The NFL-cheerleader "featured transformations" band → a 6-card SERVICES
+ *     grid (.glp-svc) from the legacy WP service blocks.
+ *   • The veneers video-story band is dropped (no general-dentistry shorts).
+ *
+ * ── Typeform IDs (dedicated general-LP forms) ───────────────────────────────
+ *   1. Header / sticky-CTA + every in-page Button popup → "LXMYT7LO"
+ *      (typeformPopupId prop + each data-tf-popup attribute below)
+ *   2. Final embedded form → <VirtualConsult typeformId="01KT2PZPEVZAKF10VN5NGY9C4T">
+ *      (rendered as data-tf-live by VirtualConsult)
+ *
+ * Section order: Hero → Credentials → Smile gallery → Services grid → Offer →
+ * How it works → Meet Dr. Richardson → Reviews → Warranty → FAQ → Final form.
+ */
+import { Image } from "astro:assets";
+import { getCollection } from "astro:content";
+import LandingLayout from "../layouts/LandingLayout.astro";
+import Button from "../components/Button.astro";
+import VirtualConsult from "../components/VirtualConsult.astro";
+import StickyMobileCTA from "../components/StickyMobileCTA.astro";
+import ReviewCard from "../components/cards/ReviewCard.astro";
+import ProcessStep from "../components/ProcessStep.astro";
+import ProcessStepGrid from "../components/ProcessStepGrid.astro";
+import { getSmiles } from "../lib/smiles";
+import { phoneHref, phoneLabel } from "../data/contact";
+
+// Doctor portrait (hero attribution chip + philosophy section)
+import imgRichardson from "../assets/images/team/dr-bryce-richardson.webp";
+
+// Hero proof trio shown above the fold — a warm doctor+patient consult shot on
+// top (also the single mobile hero), then the welcoming lounge and a gentle
+// cleaning. Distinct from the auto-loaded smile gallery marquee below.
+import imgConsult from "../assets/images/people/real/woman-glasses-cream-blazer.webp";
+import imgLounge from "../assets/images/facility/waiting-room-lounge-with-neon-smile.webp";
+import imgHygienist from "../assets/images/procedures/hygienist-polishing-teeth.webp";
+
+// Closing band — Dr. Richardson at the neon smile wall.
+import imgDrPortrait from "../assets/images/team/dr-bryce-richardson-neon-portrait.webp";
+
+// Accredited-by marquee logos — match the veneers/cosmetic LP composition.
+import logoAACD from "../assets/images/credentials/american-academy-of-cosmetic-dentistry.webp";
+import logoAAID from "../assets/images/credentials/american-academy-of-implant-dentistry.webp";
+import logoFAM from "../assets/images/credentials/full-arch-masters.webp";
+import logoYomi from "../assets/images/facility/yomi-robotics.webp";
+import logoADA from "../assets/images/credentials/american-dental-association.webp";
+import logoGoogle from "../assets/images/credentials/google-reviews.png";
+
+// ── Smile gallery — auto-loaded from src/assets/images/smiles/.
+const galleryTiles = getSmiles();
+const galleryTrack = [...galleryTiles, ...galleryTiles];
+
+// Hero proof trio (curated, above the fold). Featured top card is the
+// doctor+patient consult shot — flagged mobileHero so it is the single image
+// shown on ≤991px (above the copy); the other two are hidden there.
+const heroCases = [
+  { src: imgConsult, alt: "Smiling woman photographed at Vivid Smiles Dentistry in Parker, CO", label: "Comfortable, honest care", mobileHero: true },
+  { src: imgLounge, alt: "The welcoming Vivid Smiles waiting lounge in Parker, Colorado", label: "Modern, welcoming office" },
+  { src: imgHygienist, alt: "A Vivid Smiles hygienist performing a gentle dental cleaning", label: "Gentle cleanings & exams" },
+];
+
+// ── Reviews — surface general/family-leaning reviews for the marquee, then top
+// up from newest so we always have 6 cards (same pattern as veneers-lp). The
+// regex avoids the bare word "smile" (it matches the practice name in nearly
+// every review).
+const allReviews = (await getCollection("reviews")).sort(
+  (a, b) => +b.data.date - +a.data.date
+);
+const generalRe = /clean|hygien|family|exam|checkup|gentle|comfortable|emergenc|crown|filling|anxiet|thorough|kind|first visit/i;
+const generalReviews = allReviews.filter(
+  (r) => generalRe.test((r.data.tags || []).join(" ")) || generalRe.test(r.body ?? "")
+);
+const pickedReviews = [
+  ...generalReviews,
+  ...allReviews.filter((r) => !generalReviews.includes(r)),
+].slice(0, 6);
+// Duplicated set for the seamless swipe-draggable review marquee.
+const reviewTrack = [...pickedReviews, ...pickedReviews];
+
+// ── Services — from the legacy WP /general-lp service blocks, trimmed.
+const services = [
+  {
+    icon: "fa-tooth",
+    title: "Cleanings & Oral Exams",
+    body: "Professional cleanings and comprehensive exams that catch cavities, gum disease, and other concerns early — with digital X-rays and fluoride to keep your smile healthy.",
+  },
+  {
+    icon: "fa-heart-pulse",
+    title: "Periodontal & Gum Health",
+    body: "Deep cleanings (scaling & root planing) target bacteria below the gumline, followed by a personalized maintenance plan to keep your gums strong.",
+  },
+  {
+    icon: "fa-fill-drip",
+    title: "Tooth‑Colored Fillings",
+    body: "Composite fillings that bond directly to your tooth and blend in seamlessly — strong, natural-looking protection with no telltale metal.",
+  },
+  {
+    icon: "fa-crown",
+    title: "Same‑Day Crowns",
+    body: "Custom ceramic crowns designed, milled, and placed in a single visit with CEREC technology — no temporaries, no second appointment.",
+  },
+  {
+    icon: "fa-shield-halved",
+    title: "Root Canal Therapy",
+    body: "Advanced, comfortable treatment that clears infection, relieves pain, and saves your natural tooth — most patients are back to normal fast.",
+  },
+  {
+    icon: "fa-hand-holding-heart",
+    title: "Gentle Tooth Extractions",
+    body: "When a tooth can't be saved, simple and surgical extractions are handled gently — with sedation options and clear aftercare so you heal with ease.",
+  },
+];
+
+const offerItems = [
+  "A relaxed, 1-on-1 visit with the Vivid Smiles team — never rushed",
+  "A full review of your dental health and what matters to you",
+  "A clear, honest plan — only the care you actually need",
+  "Your options and exact costs, explained upfront",
+  "Zero pressure, zero obligation",
+];
+
+const howSteps = [
+  { num: "01", tagline: "Two minutes.", title: "Request your visit", label: "Step One", body: "Fill out the quick form or tap to call. New patients and same-day emergencies are both welcome — tell us a time that works for you." },
+  { num: "02", tagline: "Meet the team.", title: "Exam & gentle cleaning", label: "Step Two", body: "A thorough exam with digital X-rays or CBCT imaging as needed, an oral-cancer screening, and a gum-health check — all in a calm, unhurried visit." },
+  { num: "03", tagline: "Everything, upfront.", title: "Get your plan & price", label: "Step Three", body: "Walk away with a clear, honest plan and your exact costs — including insurance and membership options. Then decide on your own timeline." },
+];
+
+const trustBar = [
+  { logo: logoAACD, alt: "American Academy of Cosmetic Dentistry", title: "AACD", sub: "Member Dentist" },
+  { logo: logoAAID, alt: "American Academy of Implant Dentistry", title: "AAID", sub: "Implant Trained" },
+  { logo: logoFAM,  alt: "Full Arch Masters", title: "Full Arch Masters", sub: "Clinical Mentor" },
+  { logo: logoYomi, alt: "Yomi Robotics", title: "Yomi Robotics", sub: "Certified Surgeon" },
+  { logo: logoADA,  alt: "American Dental Association", title: "ADA", sub: "American Dental Association" },
+  { logo: logoGoogle, alt: "Google Reviews", title: "5.0 · 300+ Reviews", sub: "Google Verified" },
+];
+const trustTrack = [...trustBar, ...trustBar];
+
+// FAQs from the /general-dentistry/ hub (links stripped — the LP keeps no
+// escape routes off the funnel). Verbatim copy, internal anchors removed.
+const faqs = [
+  {
+    q: "What services are included in general dentistry?",
+    a: "General dentistry covers preventive care (cleanings, exams, X-rays), restorative treatment (fillings, crowns, bridges), periodontal care, oral-cancer screenings, and emergency dentistry. Vivid Smiles provides all of these in one location, so most patients never need a referral.",
+    open: true,
+  },
+  {
+    q: "How often should I visit the dentist for a checkup?",
+    a: "Most patients benefit from a professional cleaning and exam every six months. If you have active gum disease, a higher cavity risk, or other ongoing concerns, we may recommend more frequent visits — Dr. Annie will tailor a schedule to your oral health.",
+    open: false,
+  },
+  {
+    q: "Do you accept my dental insurance?",
+    a: "We work with most major dental insurance plans; we recommend calling your provider to verify coverage before your visit. Patients without insurance can enroll in our in-house membership plan as an affordable alternative.",
+    open: false,
+  },
+  {
+    q: "What makes Vivid Smiles different from other Parker dentists?",
+    a: "Advanced technology (CBCT 3D imaging, digital scanners, same-day crowns), a dual-doctor model, <em>300+ five-star Google reviews</em>, and local ownership set us apart from corporate chains and single-doctor practices. Comprehensive general care and cosmetic expertise under one roof is uncommon in the area.",
+    open: false,
+  },
+  {
+    q: "Can I get cosmetic and general dentistry at the same practice?",
+    a: "Yes. Vivid Smiles offers general and cosmetic dentistry — including veneers, Invisalign, and smile makeovers — alongside routine care. Starting with general dentistry is a natural entry point if you may want cosmetic work later with a team you already trust.",
+    open: false,
+  },
+];
+
+const reinforcer =
+  "Dr. Richardson and the Vivid Smiles team review your health, your goals, and give you an honest plan and exact cost — no obligation, completely free.";
+
+const pageTitle = "General & Family Dentistry in Parker, CO — Vivid Smiles Dentistry";
+const pageDescription =
+  "Comprehensive general and family dentistry in Parker, CO — cleanings, same-day crowns, periodontal care, and emergencies, led by Dr. Bryce Richardson. 300+ five-star reviews. Request a new-patient appointment.";
+---
+
+<LandingLayout
+  title={pageTitle}
+  description={pageDescription}
+  typeformPopupId="LXMYT7LO"
+>
+  <div class="glp-page">
+  <!-- ─────────────── S1. Hero (outcome-led) ─────────────── -->
+  <section class="glp-hero">
+    <div class="glp-hero-wrap">
+      <div class="glp-hero-copy" data-vs-reveal-batch>
+        <span class="glp-eyebrow">
+          <span class="glp-eyebrow-rule"></span>
+          General & Family Dentistry · Parker, Colorado
+        </span>
+        <h1 class="glp-h1">Comprehensive dentistry for the whole family.</h1>
+        <p class="glp-display">
+          Award‑winning care from Parker's <em>most‑trusted</em> dental team.
+        </p>
+        <p class="glp-hero-byline">
+          <span class="glp-hero-byline-photo">
+            <Image
+              src={imgRichardson}
+              alt="Dr. Bryce Richardson, DDS, of Vivid Smiles Dentistry in Parker, Colorado"
+              widths={[96, 144]}
+              sizes="72px"
+            />
+          </span>
+          <span class="glp-hero-byline-text">
+            In the hands of <strong>Dr. Bryce Richardson, DDS</strong>
+          </span>
+        </p>
+        <p class="glp-lede">
+          A graduate of Indiana University with 600+ hours of advanced training, Dr. Richardson
+          and the Vivid Smiles team provide comfortable, detail-focused care for the whole family —
+          from routine cleanings and exams to same-day crowns and emergencies. Request an appointment
+          and meet the team.
+        </p>
+        <div class="glp-hero-cta">
+          <Button
+            variant="gold"
+            href="#consult"
+            hoverLabel="Let's begin"
+            data-tf-popup="LXMYT7LO"
+            data-tf-transitive-search-params="utm_source,utm_medium,utm_campaign,utm_term,utm_content,utm_ad,utm_adset,gclid,fbclid"
+          >Request an appointment</Button>
+          <a class="glp-hero-tel" href={phoneHref}>
+            <i class="fa-solid fa-phone" aria-hidden="true"></i>
+            <span>or call {phoneLabel}</span>
+          </a>
+        </div>
+        <p class="glp-hero-microcopy">Free · New patients & same-day emergencies welcome</p>
+        <ul class="glp-hero-trust">
+          <li><strong>5.0 ★</strong><span>300+ Google reviews</span></li>
+          <li><strong>Same‑Day</strong><span>Crowns in one visit</span></li>
+          <li><strong>CBCT</strong><span>3D imaging on site</span></li>
+        </ul>
+      </div>
+      <div class="glp-hero-art" data-vs-reveal-batch>
+        <div class="glp-hero-cases">
+          {heroCases.map((c, i) => (
+            <figure class:list={["glp-hero-case", { "is-mobile-hero": c.mobileHero }]}>
+              <Image
+                src={c.src}
+                alt={c.alt}
+                widths={[600, 900, 1200, 1800]}
+                sizes="(max-width: 991px) 80vw, 460px"
+                quality={86}
+                loading={i === 0 || c.mobileHero ? "eager" : "lazy"}
+                fetchpriority={i === 0 || c.mobileHero ? "high" : undefined}
+              />
+              <figcaption class="glp-hero-case-label">{c.label}</figcaption>
+            </figure>
+          ))}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── Credential trust marquee ─────────────── -->
+  <section class="glp-trust" aria-label="Credentials and memberships">
+    <div class="glp-trust-card" data-vs-reveal>
+      <div class="glp-trust-label">Accredited by</div>
+      <div class="glp-trust-track">
+        <div class="glp-trust-strip">
+          {trustTrack.map((t, i) => {
+            const isClone = i >= trustBar.length;
+            return (
+              <div class="glp-trust-item" aria-hidden={isClone || undefined} inert={isClone || undefined}>
+                <span class="glp-trust-logo"><Image src={t.logo} alt={t.alt} /></span>
+                <span class="glp-trust-text"><b>{t.title}</b><small>{t.sub}</small></span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── S2. Smile gallery (swipe-draggable) ─────────────── -->
+  <section class="glp-work">
+    <div class="glp-section-wrap">
+      <div class="glp-section-intro glp-work-intro" data-vs-reveal-batch>
+        <span class="glp-eyebrow"><span class="glp-eyebrow-rule"></span>Real patients, real smiles</span>
+        <h2 class="glp-h2">A few of Dr. Richardson's <em>recent smiles.</em></h2>
+        <p class="glp-body">
+          From routine care to full restorations, every result is the work of a team that treats Parker
+          like family. Drag to explore real smiles from our patients.
+        </p>
+      </div>
+    </div>
+    <div
+      class="glp-marquee"
+      data-vs-marquee
+      aria-label="Smile gallery — drag to explore"
+    >
+      <div class="glp-marquee-track" data-vs-marquee-track>
+        {galleryTrack.map((tile) => (
+          <div class="glp-marquee-tile">
+            <Image
+              src={tile.src}
+              alt={tile.alt}
+              widths={[400, 600, 800]}
+              sizes="(max-width: 768px) 70vw, 360px"
+              draggable={false}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+    <div class="glp-section-wrap glp-work-cta">
+      <p class="glp-work-note">Every smile above belongs to an actual patient of Dr. Richardson.</p>
+      <Button
+        variant="gold"
+        href="#consult"
+        hoverLabel="Let's begin"
+        data-tf-popup="LXMYT7LO"
+        data-tf-transitive-search-params="utm_source,utm_medium,utm_campaign,utm_term,utm_content,utm_ad,utm_adset,gclid,fbclid"
+      >Request an appointment</Button>
+    </div>
+  </section>
+
+  <!-- ─────────────── S3. Services grid ─────────────── -->
+  <section class="glp-svc">
+    <div class="glp-section-wrap">
+      <div class="glp-section-intro glp-intro-center" data-vs-reveal-batch>
+        <span class="glp-eyebrow"><span class="glp-eyebrow-rule"></span>What we do</span>
+        <h2 class="glp-h2">Comprehensive care for <em>the whole family.</em></h2>
+        <p class="glp-body">
+          From your six-month cleaning to same-day crowns and urgent care, Vivid Smiles covers the full
+          spectrum of general dentistry — all under one roof, backed by CBCT 3D imaging and in-house milling.
+        </p>
+      </div>
+      <div class="glp-svc-grid" data-vs-reveal-batch>
+        {services.map((s) => (
+          <article class="glp-svc-card">
+            <span class="glp-svc-icon"><i class={`fa-solid ${s.icon}`} aria-hidden="true"></i></span>
+            <h3>{s.title}</h3>
+            <p>{s.body}</p>
+          </article>
+        ))}
+      </div>
+      <div class="glp-svc-cta">
+        <Button
+          variant="gold"
+          href="#consult"
+          hoverLabel="Let's begin"
+          data-tf-popup="LXMYT7LO"
+          data-tf-transitive-search-params="utm_source,utm_medium,utm_campaign,utm_term,utm_content,utm_ad,utm_adset,gclid,fbclid"
+        >Request an appointment</Button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── S4. The offer (free new-patient visit) ─────────────── -->
+  <section class="glp-offer">
+    <div class="glp-section-wrap">
+      <div class="glp-offer-card" data-vs-reveal-batch>
+        <div class="glp-offer-copy">
+          <span class="glp-eyebrow"><span class="glp-eyebrow-rule"></span>Your free new‑patient visit</span>
+          <h2 class="glp-h2">What you get on your <em>first visit.</em></h2>
+          <span class="glp-offer-value">Free · <strong>No obligation</strong></span>
+        </div>
+        <div class="glp-offer-stack">
+          <ul class="glp-offer-list">
+            {offerItems.map((item) => (
+              <li>
+                <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                <span>{item}</span>
+              </li>
+            ))}
+          </ul>
+          <Button
+            variant="gold"
+            href="#consult"
+            hoverLabel="Let's begin"
+            data-tf-popup="LXMYT7LO"
+            data-tf-transitive-search-params="utm_source,utm_medium,utm_campaign,utm_term,utm_content,utm_ad,utm_adset,gclid,fbclid"
+          >Request an appointment</Button>
+          <p class="glp-cta-reinforcer">{reinforcer}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── S5. How it works ─────────────── -->
+  <section class="glp-how">
+    <div class="glp-section-wrap">
+      <div class="glp-section-intro glp-intro-center glp-how-intro" data-vs-reveal-batch>
+        <span class="glp-eyebrow"><span class="glp-eyebrow-rule"></span>How it works</span>
+        <h2 class="glp-h2">Your first visit, <em>made simple.</em></h2>
+        <p class="glp-body">No mystery, no pressure. Here's exactly what happens from the moment you reach out.</p>
+      </div>
+      <ProcessStepGrid class="glp-how-grid">
+        {howSteps.map((s) => (
+          <ProcessStep num={s.num} tagline={s.tagline} title={s.title} label={s.label}>
+            {s.body}
+          </ProcessStep>
+        ))}
+      </ProcessStepGrid>
+      <div class="glp-how-cta">
+        <Button
+          variant="gold"
+          href="#consult"
+          hoverLabel="Let's begin"
+          data-tf-popup="LXMYT7LO"
+          data-tf-transitive-search-params="utm_source,utm_medium,utm_campaign,utm_term,utm_content,utm_ad,utm_adset,gclid,fbclid"
+        >Request an appointment</Button>
+        <p class="glp-cta-reinforcer">{reinforcer}</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── S6. Meet Dr. Richardson ─────────────── -->
+  <section class="glp-philo">
+    <div class="glp-philo-wrap">
+      <div class="glp-philo-portrait" data-vs-reveal>
+        <Image
+          src={imgRichardson}
+          alt="Dr. Bryce Richardson, DDS, founder of Vivid Smiles Dentistry"
+          widths={[420, 640, 900]}
+          sizes="(max-width: 991px) 100vw, 480px"
+        />
+        <div class="glp-philo-sig">
+          <span class="glp-philo-sig-line">Bryce Richardson, DDS</span>
+          <span class="glp-philo-sig-sub">Founder · Vivid Smiles Dentistry</span>
+        </div>
+      </div>
+      <div class="glp-philo-copy" data-vs-reveal-batch>
+        <span class="glp-eyebrow glp-eyebrow--light"><span class="glp-eyebrow-rule"></span>Meet your dentist</span>
+        <h2 class="glp-philo-h">Comprehensive care, <em>delivered with a gentle touch.</em></h2>
+        <p class="glp-philo-body">
+          Dr. Bryce Richardson, DDS, is a graduate of the Indiana University School of Dentistry with
+          <strong> 600+ hours</strong> of advanced post-doctoral training. Alongside Dr. Annie and the
+          Vivid Smiles team, he delivers detail-focused, technology-forward care — CBCT 3D imaging,
+          digital scanners, and same-day crowns — for the whole family. The goal is simple: care that
+          feels <strong>comfortable, unhurried, and honest.</strong>
+        </p>
+        <div class="glp-philo-stats">
+          <div>
+            <strong>600+</strong>
+            <span>Hours of advanced post-doctoral training</span>
+          </div>
+          <div>
+            <strong>300+</strong>
+            <span>Five-star Google reviews</span>
+          </div>
+          <div>
+            <strong>Same‑Day</strong>
+            <span>Crowns milled & placed in one visit</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── S7. Reviews (swipe-draggable marquee) ─────────────── -->
+  <section class="glp-reviews">
+    <div class="glp-section-wrap">
+      <div class="glp-reviews-head" data-vs-reveal-batch>
+        <span class="glp-eyebrow"><span class="glp-eyebrow-rule"></span>Patient reviews</span>
+        <div class="glp-reviews-rating">
+          <span class="glp-reviews-score">5.0</span>
+          <span class="glp-reviews-stars">★★★★★</span>
+          <span class="glp-reviews-count">
+            <Image src={logoGoogle} alt="Google" class="glp-reviews-google" widths={[120]} sizes="80px" />
+            300+ five-star reviews
+          </span>
+        </div>
+      </div>
+    </div>
+    <div
+      class="glp-marquee glp-marquee--reviews"
+      data-vs-marquee
+      aria-label="Patient reviews — drag to explore"
+    >
+      <div class="glp-marquee-track" data-vs-marquee-track>
+        {reviewTrack.map((r) => (
+          <ReviewCard
+            reviewer={r.data.reviewer}
+            rating={r.data.rating}
+            source={r.data.source}
+            date={r.data.date}
+            tags={r.data.tags}
+          >
+            {r.body}
+          </ReviewCard>
+        ))}
+      </div>
+    </div>
+    <div class="glp-section-wrap glp-reviews-cta">
+      <Button
+        variant="gold"
+        href="#consult"
+        hoverLabel="Let's begin"
+        data-tf-popup="LXMYT7LO"
+        data-tf-transitive-search-params="utm_source,utm_medium,utm_campaign,utm_term,utm_content,utm_ad,utm_adset,gclid,fbclid"
+      >Request an appointment</Button>
+    </div>
+  </section>
+
+  <!-- ─────────────── S8. Warranty / risk reversal ─────────────── -->
+  <section class="glp-close">
+    <div class="glp-close-wrap">
+      <div class="glp-close-photo" data-vs-reveal>
+        <Image
+          src={imgDrPortrait}
+          alt="Dr. Bryce Richardson at the Vivid Smiles neon smile wall in Parker, CO"
+          widths={[400, 600, 800]}
+          sizes="(max-width: 880px) 100vw, 440px"
+        />
+      </div>
+      <div class="glp-close-copy" data-vs-reveal-batch>
+        <span class="glp-eyebrow glp-eyebrow--light"><span class="glp-eyebrow-rule"></span>Backed by our warranty</span>
+        <h2 class="glp-close-h">Expect the highest quality care — <em>and a warranty on our work.</em></h2>
+        <p class="glp-close-p">
+          Maintain your routine checkups and if something breaks, we'll fix it. That's the Vivid Smiles
+          guarantee — quality care you can count on, in writing.
+        </p>
+        <ul class="glp-close-guarantees">
+          <li>
+            <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+            <div><strong>Written warranty</strong><span>We stand behind our work.</span></div>
+          </li>
+          <li>
+            <i class="fa-solid fa-gift" aria-hidden="true"></i>
+            <div><strong>Free visit</strong><span>Meet the team at no cost.</span></div>
+          </li>
+          <li>
+            <i class="fa-solid fa-bolt" aria-hidden="true"></i>
+            <div><strong>Same‑day emergencies</strong><span>Urgent care when you need it.</span></div>
+          </li>
+          <li>
+            <i class="fa-solid fa-user-group" aria-hidden="true"></i>
+            <div><strong>Dual‑doctor team</strong><span>Comprehensive care, one roof.</span></div>
+          </li>
+        </ul>
+        <Button
+          variant="gold"
+          href="#consult"
+          hoverLabel="Let's begin"
+          data-tf-popup="LXMYT7LO"
+          data-tf-transitive-search-params="utm_source,utm_medium,utm_campaign,utm_term,utm_content,utm_ad,utm_adset,gclid,fbclid"
+        >Request an appointment</Button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── S9. FAQ ─────────────── -->
+  <section class="glp-faq">
+    <div class="glp-section-wrap">
+      <div class="glp-section-intro glp-intro-center glp-faq-intro" data-vs-reveal-batch>
+        <span class="glp-eyebrow"><span class="glp-eyebrow-rule"></span>Common questions</span>
+        <h2 class="glp-h2">Answers before <em>you ask.</em></h2>
+      </div>
+      <div class="glp-faq-list" data-vs-reveal-batch>
+        {faqs.map((f) => (
+          <details class="glp-faq-item" open={f.open}>
+            <summary>
+              <h3>{f.q}</h3>
+              <span class="glp-faq-icon" aria-hidden="true">+</span>
+            </summary>
+            <div class="glp-faq-answer" set:html={f.a} />
+          </details>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ─────────────── S10. Final form ─────────────── -->
+  <VirtualConsult
+    id="consult"
+    eyebrow="New patients welcome"
+    background="cream"
+    typeformId="01KT2PZPEVZAKF10VN5NGY9C4T"
+  >
+    <Fragment slot="headline">
+      Request your <em>appointment.</em>
+    </Fragment>
+    <Fragment slot="body">
+      New to the practice or returning after years away? Fill out the form below — choose virtual or
+      in-office — and the Vivid Smiles team will be in touch. New patients and same-day emergencies are
+      always welcome.
+    </Fragment>
+    <Fragment slot="reassure">
+      <ul class="glp-vc-reassure">
+        <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span>Free</span></li>
+        <li><i class="fa-solid fa-handshake-angle" aria-hidden="true"></i><span>No obligation</span></li>
+        <li><i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span>Backed by our written warranty</span></li>
+      </ul>
+    </Fragment>
+  </VirtualConsult>
+  </div>
+
+  <StickyMobileCTA slot="stickyCTA" label="Request an appointment" typeformPopupId="LXMYT7LO" />
+</LandingLayout>
+
+<style is:global>
+  @import "../styles/pages/general-lp.css";
+</style>

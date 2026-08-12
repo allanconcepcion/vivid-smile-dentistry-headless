@@ -1,0 +1,165 @@
+---
+/**
+ * Blog hub — /blog/
+ *
+ * Lists every published post with a chip-based category filter. The filter
+ * is URL-driven: visiting /blog?category=Dental%20Tips lands you on the hub
+ * with that category pre-applied. Clicking the category badge on any post
+ * page navigates here with the right param.
+ *
+ * Pattern mirrors /smile-gallery/ — chip rail, card grid, .is-hidden
+ * class toggle, in-page count. No server rendering of per-category routes;
+ * a single canonical URL per post keeps SEO clean.
+ */
+
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import VirtualConsult from "../../components/VirtualConsult.astro";
+import BlogCard from "../../components/cards/BlogCard.astro";
+import { getAllPosts, getCategories } from "../../lib/blog";
+import "../../styles/pages/blog.css";
+
+const posts = await getAllPosts();
+const categories = getCategories(posts);
+
+// "All" + per-category chips with live counts.
+const filters: Array<{ value: string; label: string }> = [
+  { value: "all", label: "All Articles" },
+  ...categories.map((c) => ({ value: c, label: c })),
+];
+
+const filterCounts: Record<string, number> = filters.reduce((acc, f) => {
+  acc[f.value] = f.value === "all"
+    ? posts.length
+    : posts.filter((p) => p.data.category === f.value).length;
+  return acc;
+}, {} as Record<string, number>);
+
+const pageTitle = "Blog | Vivid Smiles Dentistry · Parker, CO";
+const pageDescription =
+  "Articles from the Vivid Smiles team on cosmetic dentistry, dental implants, and everyday oral health — written for people who want to make better decisions about their smile.";
+---
+
+<BaseLayout title={pageTitle} description={pageDescription}>
+  <div class="blog-hub">
+
+    {/* ---------- BREADCRUMB ---------- */}
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <div class="crumbs-inner">
+        <a href="/">Home</a>
+        <span class="sep">/</span>
+        <span class="here">Blog</span>
+      </div>
+    </nav>
+
+    <main id="main">
+
+    {/* ---------- HERO ---------- */}
+    <header class="hero" data-vs-reveal-batch>
+      <div class="wrap">
+        <span class="eyebrow">Insights · From the Chair</span>
+        <h1 data-vs-reveal-lines>Articles for <em>thoughtful patients.</em></h1>
+        <p class="hero-sub">
+          A working library of cosmetic, restorative, and everyday oral-health writing from the team
+          at Vivid Smiles. Plain language, real cases, no fluff — written for people deciding what to
+          do next about their smile.
+        </p>
+      </div>
+    </header>
+
+    {/* ---------- FILTER BAR (sticky) ---------- */}
+    <nav class="filterbar" id="filterbar" aria-label="Filter articles by category">
+      <div class="filterbar-inner">
+        <span class="filterbar-label">Filter by</span>
+        <div class="filterbar-scroll">
+          <div class="filter-list" id="filterList" role="tablist">
+            {filters.map((f) => (
+              <button
+                class:list={["chip", { active: f.value === "all" }]}
+                data-filter={f.value}
+                role="tab"
+                aria-selected={f.value === "all"}
+                type="button"
+              >
+                {f.label}
+                <span class="count">{filterCounts[f.value]}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    {/* ---------- GRID ---------- */}
+    <section class="section" id="grid">
+      <div class="wrap">
+        <div class="grid-meta" data-vs-reveal>
+          <div class="count">
+            <b id="visibleCount">{posts.length}</b>
+            <small>Articles</small>
+          </div>
+          <div class="legend">
+            <span class="dot">Newest first</span>
+          </div>
+        </div>
+
+        <div class="card-grid" id="cardGrid" data-vs-reveal-batch>
+          {posts.map((post, i) => (
+            <BlogCard post={post} loading={i < 3 ? "eager" : "lazy"} />
+          ))}
+        </div>
+
+        <div class="grid-empty" id="gridEmpty" role="status" aria-live="polite">
+          <h3>No articles in that category yet.</h3>
+          <p>Try a different filter, or browse all articles. New writing lands here regularly.</p>
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- VIRTUAL CONSULT — closing CTA ---------- */}
+    <VirtualConsult id="consult" eyebrow="Ready When You Are">
+      <Fragment slot="headline">Reading is one step. <em>Talking is the next.</em></Fragment>
+      <Fragment slot="body">
+        If something you read here applies to your smile, submit a few photos and Dr. Richardson
+        will record a personalized video reply — no office visit required to get started.
+      </Fragment>
+    </VirtualConsult>
+
+    </main>
+
+    {/* ---------- FILTER SCRIPT (URL-driven) ---------- */}
+    <script>
+      import "../../scripts/blog-filter";
+    </script>
+
+    {/* ---------- JSON-LD: BreadcrumbList ---------- */}
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home", "item": new URL("/", Astro.site).href },
+        { "@type": "ListItem", "position": 2, "name": "Blog", "item": new URL("/blog/", Astro.site).href },
+      ],
+    })} />
+
+    {/* ---------- JSON-LD: Blog (collection) ---------- */}
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Blog",
+      "name": "Vivid Smiles Dentistry — Blog",
+      "description": pageDescription,
+      "url": new URL("/blog/", Astro.site).href,
+      "publisher": {
+        "@type": "Dentist",
+        "name": "Vivid Smiles Dentistry",
+      },
+      "blogPost": posts.slice(0, 20).map((p) => ({
+        "@type": "BlogPosting",
+        "headline": p.data.title,
+        "datePublished": p.data.date.toISOString(),
+        "url": new URL(`/blog/${p.id}/`, Astro.site).href,
+        "articleSection": p.data.category,
+      })),
+    })} />
+
+  </div>
+</BaseLayout>

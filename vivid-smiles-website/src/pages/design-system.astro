@@ -1,0 +1,1052 @@
+---
+/**
+ * /design-system — Storybook-lite live render of every component in the
+ * Vivid Smiles design system. Mirrors the design system reference.
+ *
+ * Use this route during development to verify visual + motion fidelity
+ * before building real pages.
+ */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+
+import Eyebrow from '../components/Eyebrow.astro';
+import Button from '../components/Button.astro';
+import ArrowBadge from '../components/ArrowBadge.astro';
+import SectionIntro from '../components/SectionIntro.astro';
+import ImageFrame from '../components/ImageFrame.astro';
+import ServiceCard from '../components/cards/ServiceCard.astro';
+import AwardCard from '../components/cards/AwardCard.astro';
+import CredentialList from '../components/cards/CredentialList.astro';
+import CredentialRow from '../components/cards/CredentialRow.astro';
+import CredentialBadge from '../components/cards/CredentialBadge.astro';
+import ReviewCard from '../components/cards/ReviewCard.astro';
+
+import aacdLogo from '../assets/images/credentials/american-academy-of-cosmetic-dentistry.webp';
+import aaidLogo from '../assets/images/credentials/american-academy-of-implant-dentistry.webp';
+import iuLogo from '../assets/images/credentials/indiana-university-school-of-dentistry.webp';
+import yomiLogo from '../assets/images/facility/yomi-robotics.webp';
+import StandaloneCard from '../components/cards/StandaloneCard.astro';
+import ProcessStepGrid from '../components/ProcessStepGrid.astro';
+import ProcessStep from '../components/ProcessStep.astro';
+import VirtualConsult from '../components/VirtualConsult.astro';
+import LocalTrust from '../components/LocalTrust.astro';
+
+// Pull a few real reviews to render in the system
+const reviewsRaw = await getCollection('reviews');
+const reviews = reviewsRaw.slice(0, 3);
+
+const swatches = [
+  { name: '--vs-sage', hex: '#6b7a54', use: 'Primary accent. Headings, CTAs, sage band bg.' },
+  { name: '--vs-sage-deep', hex: '#5a6847', use: 'Hover on sage buttons. Never used as text.' },
+  {
+    name: '--vs-sage-soft',
+    hex: '#8b9875',
+    use: 'Italic emphasis word in H1/H2. One per heading.',
+  },
+  { name: '--vs-cream', hex: '#fbf9f5', use: 'Alternating band background.' },
+  { name: '--vs-paper', hex: '#ffffff', use: 'Default page/card bg. Text on sage band.' },
+  { name: '--vs-ink', hex: '#2a2a28', use: 'Body text default. Ghost button fill.' },
+  { name: '--vs-ink-soft', hex: '#4a4a47', use: 'Paragraph copy. Default <p> color.' },
+  { name: '--vs-muted', hex: '#7d7d78', use: 'Eyebrow labels, captions, metadata.' },
+  { name: '--vs-line', hex: '#e7e4dd', use: '1px hairlines, borders, grid dividers.' },
+];
+---
+
+<BaseLayout title="Design System — Vivid Smiles" noindex>
+  <header class="ds-header vs-band-paper">
+    <div class="vs-container">
+      <Eyebrow>Vivid Smiles Dentistry · Parker, CO</Eyebrow>
+      <h1 class="vs-h1" style="margin-top:14px;">
+        Design System <em class="vs-italic-word">Reference</em>
+      </h1>
+      <p class="vs-lede" style="margin-top:14px; max-width:60ch;">
+        Live-rendered pattern library. Tokens map 1:1 to <code>--vs-*</code> CSS custom properties defined
+        in <code>src/styles/tokens.css</code>.
+      </p>
+    </div>
+  </header>
+
+  <!-- 01 COLOR -->
+  <section class="vs-band-paper">
+    <div class="vs-container">
+      <div class="ds-section-head">
+        <span class="ds-num">01</span><span class="ds-title">Color Tokens</span>
+      </div>
+      <div class="ds-swatch-grid">
+        {
+          swatches.map((sw) => (
+            <div class="ds-swatch">
+              <div
+                class="ds-swatch-color"
+                style={`background:${sw.hex}; ${sw.hex === '#fbf9f5' || sw.hex === '#ffffff' || sw.hex === '#e7e4dd' ? 'border:1px solid #d6d2c8;' : ''}`}
+              />
+              <div class="ds-swatch-name">{sw.name}</div>
+              <div class="ds-swatch-hex">{sw.hex}</div>
+              <div class="ds-swatch-use">{sw.use}</div>
+            </div>
+          ))
+        }
+      </div>
+      <div class="ds-shadows">
+        <div>
+          <div class="ds-shadow-specimen" style="box-shadow: var(--vs-shadow);">--vs-shadow</div>
+        </div>
+        <div>
+          <div class="ds-shadow-specimen" style="box-shadow: var(--vs-shadow-lg);">
+            --vs-shadow-lg
+          </div>
+        </div>
+        <div>
+          <div class="ds-shadow-specimen" style="box-shadow: var(--vs-mega-shadow);">
+            --vs-mega-shadow
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 02 TYPOGRAPHY -->
+  <section class="vs-band-cream">
+    <div class="vs-container">
+      <div class="ds-section-head">
+        <span class="ds-num">02</span><span class="ds-title">Typography Scale</span>
+      </div>
+      <div class="ds-type-grid">
+        <div class="ds-type-row">
+          <span class="ds-label">.vs-h1</span>
+          <p class="vs-h1">Smile boldly. <em class="vs-italic-word">Live vividly.</em></p>
+          <span class="ds-meta">Urbanist 300 · clamp(48–92px) · lh 1.05 · color --vs-sage</span>
+        </div>
+        <div class="ds-type-row">
+          <span class="ds-label">.vs-h2</span>
+          <h2 class="vs-h2">
+            Where artistry meets <em class="vs-italic-word">esthetic dentistry.</em>
+          </h2>
+          <span class="ds-meta">Urbanist 400 · clamp(34–58px) · lh 1.1</span>
+        </div>
+        <div class="ds-type-row">
+          <span class="ds-label">.vs-h3</span>
+          <h3 class="vs-h3">Porcelain Veneers</h3>
+          <span class="ds-meta">Urbanist 500 · clamp(20–26px)</span>
+        </div>
+        <div class="ds-type-row">
+          <span class="ds-label">.vs-display-num</span>
+          <div style="display:flex; gap:60px; align-items:baseline;">
+            <span class="vs-display-num">15+</span>
+            <span class="vs-display-num">300</span>
+            <span class="vs-display-num">01</span>
+          </div>
+          <span class="ds-meta">Urbanist 300 · clamp(44–72px)</span>
+        </div>
+        <div class="ds-type-row">
+          <span class="ds-label">.vs-lede</span>
+          <p class="vs-lede">
+            Parker's highest-rated cosmetic and implant practice. From routine cleanings to no-prep
+            veneers — now accepting new patients.
+          </p>
+          <span class="ds-meta">Public Sans 400 · 18px · lh 1.55</span>
+        </div>
+        <div class="ds-type-row">
+          <span class="ds-label">.vs-body</span>
+          <p class="vs-body-text">
+            We believe every patient deserves a smile they love. Our approach combines clinical
+            precision with an artistic eye.
+          </p>
+          <span class="ds-meta">Public Sans 400 · 16px · lh 1.65</span>
+        </div>
+        <div class="ds-type-row">
+          <span class="ds-label">.vs-eyebrow</span>
+          <div style="display:flex; flex-direction:column; gap:18px;">
+            <Eyebrow>A practice built on trust</Eyebrow>
+            <Eyebrow center>Your smile journey</Eyebrow>
+          </div>
+          <span class="ds-meta">Public Sans 500 · 12px · ls .28em · uppercase</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 RHYTHM -->
+  <section class="vs-band-paper">
+    <div class="vs-container">
+      <div class="ds-section-head">
+        <span class="ds-num">03</span><span class="ds-title">Section Rhythm</span>
+      </div>
+      <div class="ds-rhythm-stack">
+        <div class="ds-rhythm-band vs-band-paper">
+          <h3 class="vs-h3">Paper band</h3>
+          <p class="vs-body-text">Default. Hero, Services, Technology, Testimonials, Doctor.</p>
+        </div>
+        <div class="ds-rhythm-band vs-band-cream">
+          <h3 class="vs-h3">Cream band</h3>
+          <p class="vs-body-text">Alternating. Process, Stories, CTA.</p>
+        </div>
+        <div class="ds-rhythm-band vs-band-sage">
+          <h3 class="vs-h3">Sage band</h3>
+          <p class="vs-lede">Gallery, closing CTA. All text flips to paper.</p>
+        </div>
+        <div class="ds-rhythm-band vs-band-paper">
+          <h3 class="vs-h3">Paper resumes</h3>
+          <p class="vs-body-text">Three colors. Never two identical adjacent.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 SECTION INTRO PATTERN -->
+  <section class="vs-band-cream">
+    <div class="vs-container">
+      <div class="ds-section-head">
+        <span class="ds-num">04</span><span class="ds-title">Section Intro Pattern</span>
+      </div>
+
+      <div class="ds-intro-demo vs-band-paper">
+        <SectionIntro
+          eyebrow="A practice built on care"
+          heading="Artistry that"
+          headingItalic="transforms lives."
+          lede="From subtle refinements to complete smile makeovers, every treatment starts with careful listening."
+          buttonLabel="Explore Services"
+          buttonHref="/services"
+        />
+      </div>
+
+      <div class="ds-intro-demo vs-band-cream">
+        <SectionIntro
+          eyebrow="Your journey begins here"
+          heading="A four-step path to your"
+          headingItalic="signature smile."
+          lede="We've refined our consultation process over fifteen years so every patient arrives with confidence."
+          buttonLabel="Book a Consultation"
+          buttonHref="/contact"
+        />
+      </div>
+
+      <div class="ds-intro-demo vs-band-sage">
+        <SectionIntro
+          eyebrow="Smile gallery"
+          heading="Real results from"
+          headingItalic="real patients."
+          lede="Every smile in our gallery belongs to a patient who walked in with a concern and walked out with confidence."
+          buttonLabel="View Gallery"
+          buttonHref="/smile-gallery/"
+          buttonVariant="light"
+        />
+      </div>
+    </div>
+  </section>
+
+  <!-- 05 BUTTONS -->
+  <section class="vs-band-paper">
+    <div class="vs-container">
+      <div class="ds-section-head">
+        <span class="ds-num">05</span><span class="ds-title">Buttons</span>
+      </div>
+
+      <div class="ds-button-row">
+        <span class="ds-label">.vs-btn-sage</span>
+        <Button variant="sage">Book a Consultation</Button>
+      </div>
+      <div class="ds-button-row">
+        <span class="ds-label">.vs-btn-ghost</span>
+        <Button variant="ghost">See Our Work</Button>
+      </div>
+      <div class="ds-button-row sage-bg">
+        <span class="ds-label">.vs-btn-light</span>
+        <Button variant="light">View Gallery</Button>
+      </div>
+      <div class="ds-button-row sage-bg">
+        <span class="ds-label">.vs-btn-outline-light</span>
+        <Button variant="outline-light">Meet the Doctor</Button>
+      </div>
+
+      <div class="ds-arrowbadge-block">
+        <h3 class="vs-h3" style="font-size:24px;margin-top:36px;margin-bottom:6px;">ArrowBadge</h3>
+        <p style="margin:0 0 18px;color:var(--vs-ink-soft);font-size:14px;max-width:60ch;">
+          Single source of truth for every circled arrow on the site. Hover any host carrying <code
+            >data-vs-arrow</code
+          > for the canonical knock-up + swap. Buttons add the <code>magnetic</code> + <code
+            >ripple</code
+          > flags; cards use neither.
+        </p>
+        <div class="ds-arrowbadge-grid">
+          <a class="ds-arrowbadge-cell" href="#" data-vs-arrow>
+            <span class="ds-label">size=sm · ghost-sage</span>
+            <ArrowBadge size="sm" variant="ghost-sage" />
+          </a>
+          <a class="ds-arrowbadge-cell" href="#" data-vs-arrow>
+            <span class="ds-label">size=md · ghost-line (default)</span>
+            <ArrowBadge size="md" variant="ghost-line" />
+          </a>
+          <a class="ds-arrowbadge-cell" href="#" data-vs-arrow>
+            <span class="ds-label">size=md · ghost-dark</span>
+            <ArrowBadge size="md" variant="ghost-dark" />
+          </a>
+          <a class="ds-arrowbadge-cell dark" href="#" data-vs-arrow>
+            <span class="ds-label">size=lg · ghost-light</span>
+            <ArrowBadge size="lg" variant="ghost-light" />
+          </a>
+          <a class="ds-arrowbadge-cell dark" href="#" data-vs-arrow>
+            <span class="ds-label">size=xl · ghost-light</span>
+            <ArrowBadge size="xl" variant="ghost-light" />
+          </a>
+          <a class="ds-arrowbadge-cell dark" href="#" data-vs-arrow>
+            <span class="ds-label">size=md · ghost-emergency</span>
+            <ArrowBadge size="md" variant="ghost-emergency" />
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 06 IMAGE FRAMES -->
+  <section class="vs-band-cream">
+    <div class="vs-container">
+      <div class="ds-section-head">
+        <span class="ds-num">06</span><span class="ds-title">Image Frames</span>
+      </div>
+      <div class="ds-frame-demo">
+        <div style="width:300px;">
+          <ImageFrame
+            primary={{ alt: 'primary 4×5 (.vs-ph-a)' }}
+            inset={{ alt: 'inset (.vs-ph-b)' }}
+          />
+        </div>
+        <div class="ds-frame-specs">
+          <p><strong>.vs-ph-a</strong> — top 0, left 0, 80% × 90%, --vs-r-xl, --vs-shadow.</p>
+          <p><strong>.vs-ph-b</strong> — bottom 0, right 0, 55% × 60%, --vs-r-lg, --vs-shadow.</p>
+          <p>
+            <strong>Parallax</strong> — inset drifts on scroll (desktop only). Opt out with <code
+              >noParallax</code
+            > prop.
+          </p>
+          <p><strong>Hover</strong> — primary scales 1.02 over 400ms.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 07 CARDS -->
+  <section class="vs-band-paper">
+    <div class="vs-container">
+      <div class="ds-section-head">
+        <span class="ds-num">07</span><span class="ds-title">Cards</span>
+      </div>
+
+      <h4 class="ds-label-block">Service cards</h4>
+      <div class="vs-grid-2" data-vs-reveal-batch>
+        <ServiceCard
+          title="Cosmetic & Veneers"
+          description="No-prep and minimal-prep veneers designed with our proprietary Vivid Smile Cosmetic Process — previewed, refined, and delivered."
+          tag="Our Signature Work"
+          featured
+          index="01"
+          total="04"
+          href="/services/cosmetic"
+        />
+        <ServiceCard
+          title="Implants"
+          description="Single-tooth to full-arch implants, placed with Yomi robotic precision."
+          tag="Yomi Robotic"
+          index="02"
+          total="04"
+          href="/services/implant"
+        />
+      </div>
+
+      <h4 class="ds-label-block" style="margin-top:48px;">Standalone cards (mega menu pattern)</h4>
+      <div class="vs-grid-2" style="gap:14px;">
+        <StandaloneCard kicker="Everyday care" title="General Dentistry" href="/services/general">
+          Cleanings, fillings, crowns &amp; preventive care.
+        </StandaloneCard>
+        <StandaloneCard
+          kicker="Same-day care"
+          title="Emergency Dentistry"
+          emergency
+          href="/services/emergency"
+        >
+          Toothaches, breaks — seen today.
+        </StandaloneCard>
+      </div>
+
+      <h4 class="ds-label-block" style="margin-top:48px;">Award cards</h4>
+      <div class="vs-grid-4" data-vs-reveal-batch>
+        <AwardCard year="2024" title="Top Dentist Colorado"
+          >Voted by peers and patients via 5280 Magazine's annual survey.</AwardCard
+        >
+        <AwardCard year="2023" title="AACD Accredited Member"
+          >American Academy of Cosmetic Dentistry full accreditation.</AwardCard
+        >
+        <AwardCard year="2023" title="Best of Parker"
+          >Community choice award for dental excellence.</AwardCard
+        >
+        <AwardCard year="2022" title="Invisalign Diamond Provider"
+          >Top 1% nationally by case volume.</AwardCard
+        >
+      </div>
+
+      <h4 class="ds-label-block" style="margin-top:48px;">
+        Credential badges (logo + title + meta pill)
+      </h4>
+      <p class="vs-body-text" style="max-width:64ch; margin-bottom:18px;">
+        Logo-driven counterpart to <code>CredentialRow</code>. Use for institutional affiliations
+        (AACD, AAID, ADA, alma maters, certifications) where the organization mark carries the
+        recognition. Props: <code>logoSrc</code>, <code>logoAlt</code>, <code>title</code>,
+        <code>body</code>, <code>yearTag</code> (optional, top-right pill), <code>metaTag</code>
+        (bottom hairline label).
+      </p>
+      <div class="vs-grid-4" data-vs-reveal-batch>
+        <CredentialBadge
+          logoSrc={aacdLogo}
+          logoAlt="American Academy of Cosmetic Dentistry"
+          title="AACD"
+          body="American Academy of Cosmetic Dentistry."
+          yearTag="Member"
+          metaTag="Cosmetic Dentistry"
+        />
+        <CredentialBadge
+          logoSrc={aaidLogo}
+          logoAlt="American Academy of Implant Dentistry"
+          title="AAID"
+          body="American Academy of Implant Dentistry."
+          yearTag="Member"
+          metaTag="Implant Dentistry"
+        />
+        <CredentialBadge
+          logoSrc={iuLogo}
+          logoAlt="Indiana University School of Dentistry"
+          title="Indiana University"
+          body="School of Dentistry — Dr. Richardson's alma mater."
+          yearTag="Alumni"
+          metaTag="Doctorate"
+        />
+        <CredentialBadge
+          logoSrc={yomiLogo}
+          logoAlt="Yomi Robotics"
+          title="Yomi Robotics"
+          body="FDA-cleared robotic-guided implant surgery certification."
+          yearTag="Certified"
+          metaTag="Certified Surgeon"
+        />
+      </div>
+
+      <h4 class="ds-label-block" style="margin-top:48px;">Credential rows (count-up on enter)</h4>
+      <CredentialList>
+        <CredentialRow num="15+" label="Years in practice" title="Fifteen years of expertise" count>
+          Dr. Richardson has been transforming smiles in Parker since 2010, with advanced training
+          in cosmetic and implant dentistry.
+        </CredentialRow>
+        <CredentialRow
+          num="300+"
+          label="Five-star reviews"
+          title="Parker's highest-rated practice"
+          count
+        >
+          Consistent 5.0 rating across Google.
+        </CredentialRow>
+        <CredentialRow
+          num="98%"
+          label="Patient satisfaction"
+          title="Patients who refer friends"
+          count
+        />
+      </CredentialList>
+
+      <h4 class="ds-label-block" style="margin-top:48px;">Review cards</h4>
+      <div class="vs-grid-3" data-vs-reveal-batch>
+        {
+          reviews.map((r) => (
+            <ReviewCard
+              reviewer={r.data.reviewer}
+              rating={r.data.rating}
+              source={r.data.source}
+              date={r.data.date}
+              tags={r.data.tags}
+            >
+              {r.body}
+            </ReviewCard>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- 08 PROCESS STEPS -->
+  <section class="vs-band-cream">
+    <div class="vs-container">
+      <div class="ds-section-head">
+        <span class="ds-num">08</span><span class="ds-title">Process Steps</span>
+      </div>
+
+      <div style="text-align:center; margin-bottom:40px;">
+        <Eyebrow center>The Vivid Smile Cosmetic Process</Eyebrow>
+        <h2 class="vs-h2" style="margin-top:20px;">
+          A smile you imagine should feel <em class="vs-italic-word">inevitable.</em>
+        </h2>
+      </div>
+
+      <ProcessStepGrid>
+        <ProcessStep num="01" tagline="Listen & envision." title="Discovery" label="Step One">
+          A relaxed, unhurried conversation about what you'd change — and what you'd keep. We study
+          your face, your bite, and the way you smile.
+        </ProcessStep>
+        <ProcessStep num="02" tagline="Preview before we prep." title="Design" label="Step Two">
+          Using Digital Smile Design and hand-sculpted mock-ups, we render your exact result before
+          a tooth is ever touched.
+        </ProcessStep>
+        <ProcessStep num="03" tagline="Crafted, then delivered." title="Deliver" label="Step Three">
+          Minimal- or no-prep veneers shaped to the approved design and bonded with heirloom-grade
+          precision.
+        </ProcessStep>
+      </ProcessStepGrid>
+    </div>
+  </section>
+
+  <!-- 09 VIRTUAL CONSULT SECTION -->
+  <section class="vs-band-paper">
+    <div class="vs-container">
+      <div class="ds-section-head">
+        <span class="ds-num">09</span><span class="ds-title">Virtual Consult Section</span>
+      </div>
+      <p class="vs-body-text" style="max-width:64ch; margin-bottom:24px;">
+        On-page conversion section — copy + 4-step explainer on the left, Typeform embed on the
+        right. Used on the home page (id <code>virtualConsult</code>) and on every service detail
+        page (id <code>consult</code>). Headline + body slot per page so service pages can frame the
+        form around their treatment; the four steps are static. Background defaults to cream — sits
+        correctly after a paper FAQ or testimonials band.
+      </p>
+      <p class="vs-body-text" style="max-width:64ch; margin-bottom:18px;">
+        <strong>Props:</strong>
+        <code>id</code> (default <code>virtualConsult</code>), <code>eyebrow</code> (default "Free virtual
+        consultation"), <code>typeformId</code> (default the live form), <code>background</code> (<code
+          >cream</code
+        > | <code>paper</code>).
+        <strong>Slots:</strong>
+        <code>headline</code> (h2 content, supports <code>&lt;em&gt;</code> for the italic word), <code
+          >body</code
+        > (lede paragraph).
+      </p>
+    </div>
+    <VirtualConsult id="vc-design-system-demo" />
+  </section>
+
+  <!-- 10 NAV — globally mounted by BaseLayout -->
+  <section class="vs-band-cream">
+    <div class="vs-container">
+      <div class="ds-section-head">
+        <span class="ds-num">10</span><span class="ds-title">Navigation</span>
+      </div>
+      <p class="vs-body-text" style="max-width:64ch;">
+        Mounted globally on every route by <code>BaseLayout.astro</code>. Frosted-glass sticky bar
+        gains a more-opaque <code>.scrolled</code> state past 80px and hides on scroll-down past 220px
+        (restored on scroll-up). All behavior in <code>src/scripts/nav.js</code>; reduced-motion
+        honored.
+      </p>
+
+      <table class="ds-motion-table" style="margin-top:18px;">
+        <thead>
+          <tr><th>Component</th><th>Where</th><th>Notes</th></tr>
+        </thead>
+        <tbody>
+          <tr
+            ><td><code>Nav.astro</code></td><td>Mounted by BaseLayout</td><td
+              >Logo + 5 links + phone + CTA pill + burger. Active id derived from <code
+                >currentPath</code
+              > automatically.</td
+            ></tr
+          >
+          <tr
+            ><td><code>MegaAbout.astro</code></td><td>Inside Nav <code>.mega-wrap</code></td><td
+              >4-card grid → About Us / Meet the Team / Our Office / Smile Gallery.</td
+            ></tr
+          >
+          <tr
+            ><td><code>MegaServices.astro</code></td><td>Inside Nav <code>.mega-wrap</code></td><td
+              >2 breakout columns (Cosmetic, Implant) + 2 standalones (General, Emergency w/ pulse)
+              + 3-col footer.</td
+            ></tr
+          >
+          <tr
+            ><td><code>MegaResources.astro</code></td><td>Inside Nav <code>.mega-wrap</code></td><td
+              >Feature card (Membership) + directory rows (New Patients, Referral, Testimonials,
+              Membership, Contact).</td
+            ></tr
+          >
+          <tr
+            ><td><code>MobileMenu.astro</code></td><td>Slides in at ≤991px</td><td
+              >Fullscreen drawer, accordion submenus, sage CTA footer with pulsing phone dot. Body
+              scroll locks via <code>.vs-nav-locked</code>.</td
+            ></tr
+          >
+        </tbody>
+      </table>
+
+      <p class="vs-body-text" style="max-width:64ch; margin-top:18px;">
+        <strong>Props (Nav):</strong>
+        <code>currentPath</code> (auto), <code>phone</code>, <code>ctaLabel</code>, <code
+          >ctaHref</code
+        >. Defaults wire the practice's real phone <code>(303) 841-5313</code> and the offsite NexHealth
+        booking URL as the booking destination — the high-intent action lives in the always-visible nav
+        bar.
+      </p>
+    </div>
+  </section>
+
+  <!-- FOOTER — globally mounted by BaseLayout, no in-page section -->
+
+  <!-- 11 ICONOGRAPHY -->
+  <section class="vs-band-cream">
+    <div class="vs-container">
+      <div class="ds-section-head">
+        <span class="ds-num">11</span><span class="ds-title">Iconography</span>
+      </div>
+      <p class="vs-body-text" style="max-width:64ch; margin-bottom:24px;">
+        Site-wide icon system is <strong>Font Awesome 6 (free, solid)</strong>, loaded globally by <code
+          >BaseLayout.astro</code
+        > from cdnjs. Always use the filled (solid) variants — <code
+          >&lt;i class="fa-solid fa-name"&gt;&lt;/i&gt;</code
+        >. The standard pattern wraps each icon in a circular badge sized to its context (38–48px on
+        cards, 32–36px on rows). Color uses <code>--vs-sage</code> on light surfaces, <code
+          >#fff</code
+        > on dark.
+      </p>
+
+      <div class="ds-icon-grid">
+        <div class="ds-icon-card">
+          <span class="ds-icon-badge"><i class="fa-solid fa-calendar-check"></i></span>
+          <code>fa-calendar-check</code>
+          <small>Booking</small>
+        </div>
+        <div class="ds-icon-card">
+          <span class="ds-icon-badge"><i class="fa-solid fa-phone"></i></span>
+          <code>fa-phone</code>
+          <small>Calls</small>
+        </div>
+        <div class="ds-icon-card">
+          <span class="ds-icon-badge"><i class="fa-solid fa-envelope"></i></span>
+          <code>fa-envelope</code>
+          <small>Email</small>
+        </div>
+        <div class="ds-icon-card">
+          <span class="ds-icon-badge"><i class="fa-solid fa-comment-dots"></i></span>
+          <code>fa-comment-dots</code>
+          <small>Messages</small>
+        </div>
+        <div class="ds-icon-card">
+          <span class="ds-icon-badge"><i class="fa-solid fa-location-dot"></i></span>
+          <code>fa-location-dot</code>
+          <small>Address</small>
+        </div>
+        <div class="ds-icon-card">
+          <span class="ds-icon-badge"><i class="fa-solid fa-clock"></i></span>
+          <code>fa-clock</code>
+          <small>Hours</small>
+        </div>
+      </div>
+
+      <p class="vs-body-text" style="max-width:64ch; margin-top:32px;">
+        <strong>Migration note:</strong> Font Awesome covers the Contact page and the global Footer (call/email/visit
+        rows use <code>fa-phone</code>, <code>fa-envelope</code>,
+        <code>fa-location-dot</code>). Remaining inline glyphs to migrate in a follow-up:
+        Mobile-menu service icons, FAQ <code>+</code> chevrons, and any ServiceCard arrows that aren't
+        part of the dual-glyph button system. Footer social links stay as inline brand SVGs since only
+        the FA Solid bundle is loaded site-wide.
+      </p>
+    </div>
+  </section>
+
+  <!-- 12 MOTION INTENT -->
+  <section class="vs-band-paper">
+    <div class="vs-container">
+      <div class="ds-section-head">
+        <span class="ds-num">12</span><span class="ds-title">Motion Intent</span>
+      </div>
+      <p class="vs-body-text" style="max-width:64ch; margin-bottom:24px;">
+        GSAP library lives in <code>src/scripts/animations.js</code>. Every effect is
+        matchMedia-gated to honor <code>prefers-reduced-motion</code>. Hover systems (button +
+        service-card + standalone arrow) work in both modes.
+      </p>
+
+      <table class="ds-motion-table">
+        <thead>
+          <tr><th>Hook</th><th>What it does</th><th>Where</th></tr>
+        </thead>
+        <tbody>
+          <tr
+            ><td><code>data-vs-reveal</code></td><td
+              >24px rise + fade · 0.6s power2.out · "top 85%" once</td
+            ><td>Cards, image frames, body sections</td></tr
+          >
+          <tr
+            ><td><code>data-vs-reveal-lines</code></td><td
+              >Per-line mask reveal · yPercent 110→0 + blur 10→0 · 1.6s expo.out · stagger 0.12</td
+            ><td>H1/H2/H3</td></tr
+          >
+          <tr
+            ><td><code>data-vs-reveal-batch</code></td><td
+              >Staggered child reveal · y50 + scale .97 + blur 6 → full · 1.4s · stagger 0.14</td
+            ><td>Grids of cards</td></tr
+          >
+          <tr
+            ><td><code>data-vs-parallax</code> + <code>data-parallax</code></td><td
+              >y drift on scroll · ease none · scrub 0.5 · desktop only</td
+            ><td>Image-frame insets</td></tr
+          >
+          <tr
+            ><td><code>data-vs-counter</code> + <code>data-target</code></td><td
+              >0 → target count-up · 2.0s expo.out · "top 92%"</td
+            ><td>Credential numbers</td></tr
+          >
+          <tr
+            ><td><code>data-vs-arrow</code> (+ flags <code>magnetic</code>, <code>ripple</code>)</td
+            ><td
+              >Canonical knock-up + swap on any host with a descendant <code
+                >&lt;ArrowBadge&gt;</code
+              > · arrow scale 1.08 rotate -45° · main glyph translates 130% out, ghost glyph translates
+              in · 0.55s expo.out · <code>magnetic</code> adds mousemove translate + 1.025 host scale
+              · <code>ripple</code> adds click ripple</td
+            ><td
+              >Buttons (magnetic ripple), service cards, standalone cards, mega-menu cards, contact
+              cards</td
+            ></tr
+          >
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- 13 LOCAL TRUST SECTION -->
+  <section class="vs-band-cream">
+    <div class="vs-container">
+      <div class="ds-section-head">
+        <span class="ds-num">13</span><span class="ds-title">Local Trust Section</span>
+      </div>
+      <p class="vs-body-text" style="max-width:64ch; margin-bottom:24px;">
+        "Our Practice" section used on service detail pages (id <code>local</code>). Centered
+        eyebrow → h2 → intro triad above a two-column trust block: framed Google Maps iframe on the
+        left (no API key, uses <code>output=embed</code>), per-page body + reviews summary (300+
+        five-star) + address + Book/Directions CTAs on the right. Map sits in a <code>vs-r-xl</code> framed
+        wrapper with shadow, 4:5 aspect on desktop, 4:3 then 1:1 as the viewport narrows. Collapses to
+        a single stacked column at 991px, matching the project's tablet breakpoint.
+      </p>
+      <p class="vs-body-text" style="max-width:64ch; margin-bottom:18px;">
+        <strong>Props:</strong>
+        <code>heading</code> (h2, required), <code>eyebrow</code> (default "Our Practice"), <code
+          >intro</code
+        > (centered lede, optional), <code>body</code> (right-column paragraph; omit to render the default
+        slot for rich markup like cost bullets), <code>id</code> (default <code>local</code>), <code
+          >background</code
+        > (<code>cream</code> | <code>paper</code>, default <code>cream</code>), <code>ctas</code> (array
+        of <code>&lcub;label, href, variant?, hoverLabel?&rcub;</code>; defaults to Book Online +
+        Get Directions), <code>note</code> (replaces the practice address with a single-line caption,
+        e.g. "Real cases · Real Vivid Smiles patients").
+      </p>
+    </div>
+    <LocalTrust
+      heading="Veneers Designed"
+      headingItalic="in Parker, Colorado"
+      intro="Dr. Richardson is a Parker resident who built Vivid Smiles Dentistry to bring high-level cosmetic care to patients locally and from across the country."
+      body="Located on Cedar Gulch Parkway, the practice welcomes patients locally and from out of state — many travel in for their veneer treatment. With 300+ five-star reviews, it has a reputation for consistent results and genuine attention to every patient."
+      id="lt-design-system-demo"
+    />
+  </section>
+</BaseLayout>
+
+<style is:global>
+  /* ── design-system route specifics (only used here) ─────────────── */
+  .ds-header {
+    padding-block: 80px 40px;
+  }
+  .ds-section-head {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    margin-bottom: 32px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--vs-line);
+  }
+  .ds-section-head .ds-num {
+    font-family: var(--vs-font-display);
+    font-size: 14px;
+    color: var(--vs-muted);
+    letter-spacing: 0.15em;
+  }
+  .ds-section-head .ds-title {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: 22px;
+    color: var(--vs-ink);
+    letter-spacing: -0.01em;
+  }
+
+  /* Color */
+  .ds-swatch-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 18px;
+  }
+  .ds-swatch-color {
+    width: 100%;
+    height: 100px;
+    border-radius: var(--vs-r-sm);
+  }
+  .ds-swatch-name {
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--vs-ink);
+    margin-top: 12px;
+    font-weight: 700;
+  }
+  .ds-swatch-hex {
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--vs-muted);
+    margin-top: 2px;
+  }
+  .ds-swatch-use {
+    font-size: 12px;
+    color: var(--vs-ink-soft);
+    margin-top: 8px;
+    line-height: 1.5;
+  }
+  .ds-shadows {
+    margin-top: 32px;
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+  }
+  .ds-shadow-specimen {
+    width: 200px;
+    height: 80px;
+    background: var(--vs-paper);
+    border-radius: var(--vs-r-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--vs-muted);
+  }
+
+  /* Type rows */
+  .ds-type-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+  }
+  .ds-type-row {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    gap: 24px;
+    align-items: start;
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--vs-line);
+  }
+  .ds-type-row .ds-meta {
+    grid-column: 2;
+    margin-top: 8px;
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    color: var(--vs-muted);
+  }
+
+  /* Reusable label badge */
+  .ds-label {
+    display: inline-block;
+    font-family: ui-monospace, monospace;
+    font-size: 11px;
+    background: var(--vs-ink);
+    color: #fff;
+    padding: 3px 8px;
+    border-radius: 4px;
+    letter-spacing: 0.02em;
+    align-self: start;
+  }
+  .ds-label-block {
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--vs-muted);
+    margin: 0 0 16px;
+    text-transform: lowercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* Section rhythm */
+  .ds-rhythm-stack {
+    border-radius: var(--vs-r-lg);
+    overflow: hidden;
+    border: 1px solid var(--vs-line);
+    max-width: 700px;
+  }
+  .ds-rhythm-band {
+    padding: 36px 32px;
+  }
+
+  /* Section intro demo wrappers */
+  .ds-intro-demo {
+    border-radius: var(--vs-r-lg);
+    border: 1px solid var(--vs-line);
+    padding: 56px 60px;
+    margin-bottom: 20px;
+  }
+  .ds-intro-demo.vs-band-sage {
+    border-color: transparent;
+  }
+
+  /* Buttons */
+  .ds-button-row {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding: 22px 26px;
+    border-radius: var(--vs-r-md);
+    background: var(--vs-paper);
+    border: 1px solid var(--vs-line);
+    margin-bottom: 14px;
+  }
+  .ds-button-row.sage-bg {
+    background: var(--vs-sage);
+    border-color: transparent;
+  }
+  .ds-button-row.sage-bg .ds-label {
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+  }
+
+  /* ArrowBadge demo */
+  .ds-arrowbadge-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 14px;
+  }
+  .ds-arrowbadge-cell {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 18px;
+    padding: 22px 26px;
+    border-radius: var(--vs-r-md);
+    background: var(--vs-paper);
+    border: 1px solid var(--vs-line);
+    text-decoration: none;
+    color: inherit;
+  }
+  .ds-arrowbadge-cell.dark {
+    background: var(--vs-ink);
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+  .ds-arrowbadge-cell.dark .ds-label {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+  }
+  @media (max-width: 900px) {
+    .ds-arrowbadge-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 540px) {
+    .ds-arrowbadge-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Frame demo */
+  .ds-frame-demo {
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .ds-frame-specs {
+    flex: 1;
+    min-width: 280px;
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--vs-ink-soft);
+  }
+  .ds-frame-specs p {
+    margin: 0 0 12px;
+  }
+
+  /* Motion table */
+  .ds-motion-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--vs-paper);
+    border-radius: var(--vs-r-md);
+    overflow: hidden;
+  }
+  .ds-motion-table th {
+    text-align: left;
+    padding: 12px 16px;
+    background: var(--vs-ink);
+    color: #fff;
+    font-family: var(--vs-font-body);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .ds-motion-table td {
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--vs-line);
+    vertical-align: top;
+    font-size: 13px;
+    color: var(--vs-ink-soft);
+    line-height: 1.6;
+  }
+  .ds-motion-table tr:last-child td {
+    border-bottom: 0;
+  }
+  .ds-motion-table td code {
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--vs-sage);
+    white-space: nowrap;
+  }
+
+  /* Iconography grid */
+  .ds-icon-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+  }
+  .ds-icon-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 22px 20px;
+    background: var(--vs-paper);
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-md);
+  }
+  .ds-icon-badge {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    border: 1px solid var(--vs-line);
+    background: var(--vs-cream);
+    color: var(--vs-sage);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    line-height: 1;
+  }
+  .ds-icon-card code {
+    font-family: ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--vs-ink);
+    background: var(--vs-cream);
+    padding: 2px 8px;
+    border-radius: 4px;
+  }
+  .ds-icon-card small {
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--vs-muted);
+    font-weight: 500;
+  }
+</style>

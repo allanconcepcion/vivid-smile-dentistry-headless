@@ -1,0 +1,864 @@
+---
+/**
+ * Cosmetic Dentistry — paid-traffic landing page.
+ *
+ * Lives at /cosmetic-dentistry-lp/, separate from the organic-focused
+ * /cosmetic-dentistry/ hub. Uses LandingLayout (stripped header + slim
+ * footer, no main nav). noindex by default. Single CTA throughout:
+ * "Design my new smile" / "Claim my free consult" → #consult (VirtualConsult
+ * Typeform) or the header/sticky Typeform popup (CVDRRQZk).
+ *
+ * conversion rebuild (business-partner review): outcome-led hero,
+ * promoted swipe-draggable smile gallery, a grand-slam offer stack,
+ * a featured video patient story, a 3-step "how it works", a demoted doctor
+ * bio, tightened cosmetic-leaning reviews, an elevated warranty/risk-reversal
+ * band, an FAQ, and a final form framed with honest scarcity. Every CTA is a
+ * high-contrast GOLD pill in outcome language. Gold is LP-scoped only — see
+ * the `.cdlp-page { --vs-gold }` tokens in cosmetic-dentistry-lp.css.
+ *
+ * Section order: Hero → Credentials → Smile gallery → Featured transformations →
+ * Offer → Video story → How it works → Meet Dr. Richardson → Services →
+ * Reviews → Warranty → FAQ → Final form.
+ */
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import LandingLayout from '../layouts/LandingLayout.astro';
+import Button from '../components/Button.astro';
+import VirtualConsult from '../components/VirtualConsult.astro';
+import StickyMobileCTA from '../components/StickyMobileCTA.astro';
+import ReviewCard from '../components/cards/ReviewCard.astro';
+import ProcessStep from '../components/ProcessStep.astro';
+import ProcessStepGrid from '../components/ProcessStepGrid.astro';
+import { getSmiles } from '../lib/smiles';
+import { phoneHref, phoneLabel } from '../data/contact';
+
+// Doctor portrait (hero attribution chip + philosophy section) + featured cases
+import imgRichardson from '../assets/images/team/dr-bryce-richardson.webp';
+import imgAnnMarie from '../assets/images/people/real/ann-marie-muscarello-veneer-makeover.webp';
+import imgBrittany from '../assets/images/people/real/brittany-fanning-smile-makeover.webp';
+
+// Hero proof trio shown above the fold — a hand-finishing beauty shot on top,
+// then two finished-smile photographs (distinct from the auto-loaded gallery
+// marquee below, which still pulls getSmiles).
+import imgBrushFront from '../assets/images/procedures/veneer-application-brush-front-closeup.webp';
+import imgHeroTilted from '../assets/images/procedures/finished-veneers-tilted-black.webp';
+import imgHeroDaylight from '../assets/images/procedures/natural-smile-macro-daylight.webp';
+
+// Warranty band editorial photo
+import imgBrush from '../assets/images/procedures/veneer-bonding-etch-application.webp';
+
+// Video-story thumbnails (YouTube shorts — clickable thumbnails only)
+import storyMore from '../assets/images/video-stories/veneers-story-more-than-a-smile.webp';
+import storyConfidence from '../assets/images/video-stories/veneers-story-confidence-restored.webp';
+import storyLength from '../assets/images/video-stories/veneers-story-length-and-balance.webp';
+
+// Accredited-by marquee logos — match home page composition
+import logoAACD from '../assets/images/credentials/american-academy-of-cosmetic-dentistry.webp';
+import logoAAID from '../assets/images/credentials/american-academy-of-implant-dentistry.webp';
+import logoFAM from '../assets/images/credentials/full-arch-masters.webp';
+import logoYomi from '../assets/images/facility/yomi-robotics.webp';
+import logoADA from '../assets/images/credentials/american-dental-association.webp';
+import logoGoogle from '../assets/images/credentials/google-reviews.png';
+
+// ── Smile gallery — auto-loaded from src/assets/images/smiles/.
+const galleryTiles = getSmiles();
+const galleryTrack = [...galleryTiles, ...galleryTiles];
+
+// Hero proof trio (curated, above the fold). Top card is a hand-finishing
+// process shot, and it is the only card that carries a label; the two
+// supporting cards are finished-smile photographs shown without one.
+const heroCases = [
+  {
+    src: imgBrushFront,
+    alt: 'Porcelain veneer being hand-finished tooth by tooth at Vivid Smiles',
+    label: 'Handcrafted porcelain veneers',
+  },
+  // mobileHero: on ≤991px this is the only hero image shown (above the copy);
+  // the other two are hidden. Desktop keeps the full trio.
+  {
+    src: imgHeroTilted,
+    alt: 'Close-up photograph of a Vivid Smiles patient smiling, tilted three-quarter view',
+    mobileHero: true,
+  },
+  {
+    src: imgHeroDaylight,
+    alt: 'Close-up photograph of a Vivid Smiles patient smiling in daylight',
+  },
+];
+
+// ── Reviews — surface cosmetic-leaning reviews for a tight static grid, then
+// top up from newest so we always have 6 cards. NOTE: the regex deliberately
+// avoids the bare word "smile" (it would match the practice name "Vivid
+// Smiles" in nearly every review). Today the collection has no cosmetic-
+// specific reviews, so this honestly falls back to the 6 newest; if veneer/
+// whitening reviews get added later they'll float to the top automatically.
+const allReviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +a.data.date);
+const cosmeticRe =
+  /veneer|cosmetic|makeover|whiten|invisalign|aligner|porcelain|bonding|new smile|dream smile/i;
+const cosmeticReviews = allReviews.filter(
+  (r) => cosmeticRe.test((r.data.tags || []).join(' ')) || cosmeticRe.test(r.body ?? ''),
+);
+const pickedReviews = [
+  ...cosmeticReviews,
+  ...allReviews.filter((r) => !cosmeticReviews.includes(r)),
+].slice(0, 6);
+// Duplicated set for the seamless swipe-draggable review marquee (same drag
+// contract as the smile gallery — initDraggableMarquee measures equal halves).
+const reviewTrack = [...pickedReviews, ...pickedReviews];
+
+// ── Featured transformations (relocated from the old full-bleed case bands).
+// Both NFL-cheerleader quotes preserved verbatim as compact social-proof cards.
+const featuredCases = [
+  {
+    img: imgAnnMarie,
+    alt: 'Ann Marie Muscarello — porcelain veneer makeover by Dr. Richardson',
+    firstName: 'Ann Marie',
+    lastName: 'Muscarello',
+    role: 'NFL Cheerleader',
+    quote:
+      'I chose Dr. Richardson because his before-and-afters were absolutely stunning, but what impressed me even more was how thorough and educated he was throughout the entire process. He walked me through every detail and made sure I felt completely confident in my decision. Now I get compliments on my smile all the time, and the first thing I say is ‘It was all Dr. Richardson.’',
+    treatment: 'Custom Porcelain Veneers',
+  },
+  {
+    img: imgBrittany,
+    alt: 'Brittany Fanning — smile makeover by Dr. Richardson',
+    firstName: 'Brittany',
+    lastName: 'Fanning',
+    role: 'NFL Cheerleader',
+    quote:
+      "I was always a little self-conscious about my smile and would do a soft smile because I didn't like the discoloration or how my teeth looked. This whole process has been completely life-changing. I now have a beautiful, perfect smile, and I love it so much. No matter what room I walk into, whether I'm with my teammates, my friends, or my family, I have this extra confidence about me.",
+    treatment: 'Custom Smile Makeover',
+  },
+];
+
+const offerItems = [
+  'A personal 1-on-1 with Dr. Richardson — not a sales rep',
+  'A full smile assessment and a digital preview of your results',
+  'A custom treatment plan built around your goals',
+  'Your exact cost — with financing options available',
+  'Zero pressure, zero obligation',
+];
+
+const videoStories = [
+  {
+    img: storyMore,
+    id: 'Nm7RjGKP8jw',
+    h: 'More than a smile',
+    p: 'How the right porcelain veneer plan resets confidence — at work, in photos, in everyday life.',
+    featured: true,
+  },
+  {
+    img: storyConfidence,
+    id: 'EA19QZ4lk8k',
+    h: 'Confidence, restored',
+    p: 'What happens when the smile finally matches the person behind it.',
+    featured: false,
+  },
+  {
+    img: storyLength,
+    id: 'fRyN4dHhizo',
+    h: 'Length & balance',
+    p: 'Restoring length, symmetry, and a fuller, natural finish.',
+    featured: false,
+  },
+];
+
+const howSteps = [
+  {
+    num: '01',
+    tagline: 'Two minutes.',
+    title: 'Book your free consult',
+    label: 'Step One',
+    body: 'Fill out the form or tap to call. Choose virtual or in-office — both go straight to Dr. Richardson.',
+  },
+  {
+    num: '02',
+    tagline: 'Face to face.',
+    title: 'Meet Dr. Richardson',
+    label: 'Step Two',
+    body: 'He personally reviews your smile and goals — by custom video or in our Parker office. No sales rep, no pressure.',
+  },
+  {
+    num: '03',
+    tagline: 'Everything, upfront.',
+    title: 'Get your plan & price',
+    label: 'Step Three',
+    body: 'Walk away with a personalized treatment plan and your exact cost, including financing options. Then decide on your own timeline.',
+  },
+];
+
+const trustBar = [
+  {
+    logo: logoAACD,
+    alt: 'American Academy of Cosmetic Dentistry',
+    title: 'AACD',
+    sub: 'Member Dentist',
+  },
+  {
+    logo: logoAAID,
+    alt: 'American Academy of Implant Dentistry',
+    title: 'AAID',
+    sub: 'Implant Trained',
+  },
+  { logo: logoFAM, alt: 'Full Arch Masters', title: 'Full Arch Masters', sub: 'Clinical Mentor' },
+  { logo: logoYomi, alt: 'Yomi Robotics', title: 'Yomi Robotics', sub: 'Certified Surgeon' },
+  {
+    logo: logoADA,
+    alt: 'American Dental Association',
+    title: 'ADA',
+    sub: 'American Dental Association',
+  },
+  { logo: logoGoogle, alt: 'Google Reviews', title: '5.0 · 300+ Reviews', sub: 'Google Verified' },
+];
+const trustTrack = [...trustBar, ...trustBar];
+
+const faqs = [
+  {
+    q: 'How much does it cost?',
+    a: "Every smile is different, so your exact price depends on your goals — and that's exactly what the free consult gives you: a personalized plan and your precise cost, with no surprises and no obligation. Many cosmetic treatments can be financed.",
+    open: true,
+  },
+  {
+    q: 'Will it hurt?',
+    a: 'Comfort is a priority at every visit. Most patients are surprised how easy cosmetic treatment is, and Dr. Richardson will walk you through exactly what to expect for your specific plan before anything begins.',
+    open: false,
+  },
+  {
+    q: 'How long does it take?',
+    a: "It depends on the treatment — some results come in as little as two visits, while a full smile makeover may span a few weeks. You'll get an exact timeline at your consultation.",
+    open: false,
+  },
+  {
+    q: "What if I don't love my new smile?",
+    a: "Your smile is designed <em>with</em> you before any permanent work begins, so there are no surprises — and our work is backed by a written warranty. If something isn't right, we make it right.",
+    open: false,
+  },
+  {
+    q: 'Can I finance it?',
+    a: "Yes. Financing is available, and we also offer an in-house dental membership plan. We'll walk through the options together at your free consult.",
+    open: false,
+  },
+  {
+    q: 'Am I a candidate?',
+    a: "Most healthy adults are. The fastest way to know for sure is a free consult — share a photo of your smile and Dr. Richardson will tell you exactly what's possible for you.",
+    open: false,
+  },
+];
+
+const reinforcer =
+  'Dr. Richardson reviews your smile, your goals, and gives you a personalized treatment plan and exact cost — no obligation, completely free.';
+
+const pageTitle = 'Cosmetic Dentistry in Parker, CO — Vivid Smiles Dentistry';
+const pageDescription =
+  "The smile you've always wanted, designed by Colorado's #1 cosmetic dentist. Veneers, smile makeovers, implants and more — all natural-looking. Book a free smile consult and walk away with a custom plan and your exact cost.";
+---
+
+<LandingLayout title={pageTitle} description={pageDescription} typeformPopupId="CVDRRQZk">
+  <div class="cdlp-page">
+    <!-- ─────────────── S1. Hero (outcome-led) ─────────────── -->
+    <section class="cdlp-hero">
+      <div class="cdlp-hero-wrap">
+        <div class="cdlp-hero-copy" data-vs-reveal-batch>
+          <span class="cdlp-eyebrow">
+            <span class="cdlp-eyebrow-rule"></span>
+            Cosmetic Dentistry · Parker, Colorado
+          </span>
+          <h1 class="cdlp-h1">The smile you've always wanted.</h1>
+          <p class="cdlp-display">
+            Designed by Colorado's <em>#1</em> cosmetic dentist.
+          </p>
+          <p class="cdlp-hero-byline">
+            <span class="cdlp-hero-byline-photo">
+              <Image
+                src={imgRichardson}
+                alt="Dr. Bryce Richardson, cosmetic dentist in Parker, Colorado"
+                widths={[96, 144]}
+                sizes="72px"
+              />
+            </span>
+            <span class="cdlp-hero-byline-text">
+              In the hands of <strong>Dr. Bryce Richardson, DDS</strong>
+            </span>
+          </p>
+          <p class="cdlp-lede">
+            Veneers, smile makeovers, implants and more — all designed to look completely natural.
+            Book a free consult and walk away with a custom plan and your exact cost, all in one
+            visit.
+          </p>
+          <div class="cdlp-hero-cta">
+            <Button
+              variant="gold"
+              href="#consult"
+              hoverLabel="Let's begin"
+              data-tf-popup="CVDRRQZk"
+              data-tf-transitive-search-params="utm_source,utm_medium,utm_campaign,utm_term,utm_content,utm_ad,utm_adset,gclid,fbclid"
+              >Design my new smile</Button
+            >
+            <a class="cdlp-hero-tel" href={phoneHref}>
+              <i class="fa-solid fa-phone" aria-hidden="true"></i>
+              <span>or call {phoneLabel}</span>
+            </a>
+          </div>
+          <p class="cdlp-hero-microcopy">Free · ~30 min with Dr. Richardson · No obligation</p>
+          <ul class="cdlp-hero-trust">
+            <li><strong>5.0 ★</strong><span>300+ Google reviews</span></li>
+            <li><strong>Top 1%</strong><span>Cosmetic dentists U.S.</span></li>
+            <li><strong>AACD</strong><span>Member dentist</span></li>
+          </ul>
+        </div>
+        <div class="cdlp-hero-art" data-vs-reveal-batch>
+          <div class="cdlp-hero-cases">
+            {
+              heroCases.map((c, i) => (
+                <figure class:list={['cdlp-hero-case', { 'is-mobile-hero': c.mobileHero }]}>
+                  <Image
+                    src={c.src}
+                    alt={c.alt}
+                    widths={[600, 900, 1200, 1800]}
+                    sizes="(max-width: 991px) 80vw, 460px"
+                    quality={86}
+                    loading={i === 0 || c.mobileHero ? 'eager' : 'lazy'}
+                    fetchpriority={i === 0 || c.mobileHero ? 'high' : undefined}
+                  />
+                  {c.label && <figcaption class="cdlp-hero-case-label">{c.label}</figcaption>}
+                </figure>
+              ))
+            }
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────── Credential trust strip ─────────────── -->
+    <section class="cdlp-trust" aria-label="Credentials and memberships">
+      <div class="cdlp-trust-card" data-vs-reveal>
+        <div class="cdlp-trust-label">Accredited by</div>
+        <div class="cdlp-trust-track">
+          <div class="cdlp-trust-strip">
+            {
+              trustTrack.map((t, i) => {
+                const isClone = i >= trustBar.length;
+                return (
+                  <div
+                    class="cdlp-trust-item"
+                    aria-hidden={isClone || undefined}
+                    inert={isClone || undefined}
+                  >
+                    <span class="cdlp-trust-logo">
+                      <Image src={t.logo} alt={t.alt} />
+                    </span>
+                    <span class="cdlp-trust-text">
+                      <>
+                        <b>{t.title}</b>
+                        <small>{t.sub}</small>
+                      </>
+                    </span>
+                  </div>
+                );
+              })
+            }
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────── S2. Smile gallery (swipe-draggable) ─────────────── -->
+    <section class="cdlp-work">
+      <div class="cdlp-section-wrap">
+        <div class="cdlp-section-intro cdlp-work-intro" data-vs-reveal-batch>
+          <span class="cdlp-eyebrow"
+            ><span class="cdlp-eyebrow-rule"></span>Real patients, real results</span
+          >
+          <h2 class="cdlp-h2">Hundreds of smiles, <em>designed to look natural.</em></h2>
+          <p class="cdlp-body">
+            Every case is custom-built around your facial features — no one-size-fits-all molds, no
+            off-the-shelf shades. Drag to explore real smiles from our patients.
+          </p>
+        </div>
+      </div>
+      <div
+        class="cdlp-marquee"
+        data-vs-marquee
+        aria-label="Smile gallery — drag to explore"
+      >
+        <div class="cdlp-marquee-track" data-vs-marquee-track>
+          {
+            galleryTrack.map((tile) => (
+              <div class="cdlp-marquee-tile">
+                <Image
+                  src={tile.src}
+                  alt={tile.alt}
+                  widths={[400, 600, 800]}
+                  sizes="(max-width: 768px) 70vw, 360px"
+                  draggable={false}
+                />
+              </div>
+            ))
+          }
+        </div>
+      </div>
+      <div class="cdlp-section-wrap cdlp-work-cta">
+        <p class="cdlp-work-note">
+          Every smile above belongs to an actual patient of Dr. Richardson.
+        </p>
+        <Button
+          variant="gold"
+          href="#consult"
+          hoverLabel="Let's find out"
+          data-tf-popup="CVDRRQZk"
+          data-tf-transitive-search-params="utm_source,utm_medium,utm_campaign,utm_term,utm_content,utm_ad,utm_adset,gclid,fbclid"
+          >See if I'm a candidate</Button
+        >
+      </div>
+    </section>
+
+    <!-- ─────────────── Featured transformations (NFL cheerleaders) ─────────────── -->
+    <section class="cdlp-ft">
+      <div class="cdlp-section-wrap">
+        <div class="cdlp-section-intro cdlp-ft-intro" data-vs-reveal-batch>
+          <span class="cdlp-eyebrow"><span class="cdlp-eyebrow-rule"></span>Featured cases</span>
+          <h2 class="cdlp-h2">Smiles they're <em>proud to show off.</em></h2>
+        </div>
+        <div class="cdlp-ft-grid" data-vs-reveal-batch>
+          {
+            featuredCases.map((c) => (
+              <figure class="cdlp-ft-card">
+                <div class="cdlp-ft-img">
+                  <Image
+                    src={c.img}
+                    alt={c.alt}
+                    widths={[360, 540, 720]}
+                    sizes="(max-width: 991px) 100vw, 360px"
+                  />
+                </div>
+                <figcaption class="cdlp-ft-body">
+                  <blockquote class="cdlp-ft-quote">&ldquo;{c.quote}&rdquo;</blockquote>
+                  <div class="cdlp-ft-meta">
+                    <span class="cdlp-ft-name">
+                      {c.firstName} {c.lastName}
+                    </span>
+                    <span class="cdlp-ft-role">{c.role}</span>
+                    <span class="cdlp-ft-treatment">{c.treatment}</span>
+                  </div>
+                </figcaption>
+              </figure>
+            ))
+          }
+        </div>
+        <div class="cdlp-ft-cta">
+          <Button
+            variant="gold"
+            href="#consult"
+            hoverLabel="Let's begin"
+            data-tf-popup="CVDRRQZk"
+            data-tf-transitive-search-params="utm_source,utm_medium,utm_campaign,utm_term,utm_content,utm_ad,utm_adset,gclid,fbclid"
+            >Start my transformation</Button
+          >
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────── S3. The offer (grand-slam value stack) ─────────────── -->
+    <section class="cdlp-offer">
+      <div class="cdlp-section-wrap">
+        <div class="cdlp-offer-card" data-vs-reveal-batch>
+          <div class="cdlp-offer-copy">
+            <span class="cdlp-eyebrow"
+              ><span class="cdlp-eyebrow-rule"></span>Your free smile consultation</span
+            >
+            <h2 class="cdlp-h2">What you get on your <em>free smile consultation.</em></h2>
+            <span class="cdlp-offer-value">A $500 value — <strong>free</strong></span>
+          </div>
+          <div class="cdlp-offer-stack">
+            <ul class="cdlp-offer-list">
+              {
+                offerItems.map((item) => (
+                  <li>
+                    <i class="fa-solid fa-circle-check" aria-hidden="true" />
+                    <span>{item}</span>
+                  </li>
+                ))
+              }
+            </ul>
+            <Button
+              variant="gold"
+              href="#consult"
+              hoverLabel="Let's begin"
+              data-tf-popup="CVDRRQZk"
+              data-tf-transitive-search-params="utm_source,utm_medium,utm_campaign,utm_term,utm_content,utm_ad,utm_adset,gclid,fbclid"
+              >Claim my free consult</Button
+            >
+            <p class="cdlp-cta-reinforcer">{reinforcer}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────── S4. Video patient story ─────────────── -->
+    <section class="cdlp-story">
+      <div class="cdlp-section-wrap">
+        <div class="cdlp-section-intro cdlp-intro-center cdlp-story-intro" data-vs-reveal-batch>
+          <span class="cdlp-eyebrow cdlp-eyebrow--light"
+            ><span class="cdlp-eyebrow-rule"></span>In their own words</span
+          >
+          <h2 class="cdlp-h2">Hear it straight from <em>our patients.</em></h2>
+        </div>
+        <div class="cdlp-story-grid" data-vs-reveal-batch>
+          {
+            videoStories.map((s) => (
+              <button
+                type="button"
+                class:list={['cdlp-story-card', s.featured && 'cdlp-story-card--featured']}
+                data-video-id={s.id}
+                data-video-short="true"
+                data-video-title={s.h}
+                aria-label={`Play patient story: ${s.h}`}
+              >
+                <div class="cdlp-story-photo">
+                  <Image
+                    src={s.img}
+                    alt={`Vivid Smiles patient story — ${s.h}`}
+                    widths={[400, 800]}
+                    sizes="(max-width: 780px) 100vw, 50vw"
+                    draggable={false}
+                  />
+                  <span class="cdlp-story-play" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" focusable="false">
+                      <path d="M8 5v14l11-7z" fill="currentColor" />
+                    </svg>
+                  </span>
+                </div>
+                <div class="cdlp-story-body">
+                  <h3>{s.h}</h3>
+                  <p>{s.p}</p>
+                  <span class="cdlp-story-label">Porcelain Veneers</span>
+                </div>
+              </button>
+            ))
+          }
+        </div>
+      </div>
+
+      <dialog
+        class="cdlp-story-video-modal"
+        id="cdlp-story-video-modal"
+        aria-label="Patient story video"
+      >
+        <button
+          type="button"
+          class="cdlp-story-video-close"
+          data-video-close
+          aria-label="Close video"
+        >
+          <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true"
+            ><path
+              d="M6 6l12 12M18 6L6 18"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"></path></svg
+          >
+        </button>
+        <div class="cdlp-story-video-frame" data-video-frame></div>
+      </dialog>
+
+      <script is:inline>
+        (() => {
+          const modal = document.getElementById('cdlp-story-video-modal');
+          if (!modal) return;
+          const frame = modal.querySelector('[data-video-frame]');
+          const closeBtn = modal.querySelector('[data-video-close]');
+          const cards = document.querySelectorAll('.cdlp-story-card[data-video-id]');
+
+          const openVideo = (id, title, isShort) => {
+            if (!id) return;
+            const iframe = document.createElement('iframe');
+            iframe.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
+            iframe.title = title || 'Patient story video';
+            iframe.allow =
+              'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+            iframe.allowFullscreen = true;
+            iframe.loading = 'lazy';
+            frame.replaceChildren(iframe);
+            modal.classList.toggle('is-short', !!isShort);
+            if (typeof modal.showModal === 'function') modal.showModal();
+            else modal.setAttribute('open', '');
+            document.body.style.overflow = 'hidden';
+          };
+
+          const closeVideo = () => {
+            frame.replaceChildren();
+            modal.classList.remove('is-short');
+            if (typeof modal.close === 'function' && modal.open) modal.close();
+            else modal.removeAttribute('open');
+            document.body.style.overflow = '';
+          };
+
+          cards.forEach((card) => {
+            card.addEventListener('click', () => {
+              openVideo(
+                card.dataset.videoId,
+                card.dataset.videoTitle,
+                card.dataset.videoShort === 'true',
+              );
+            });
+          });
+
+          closeBtn?.addEventListener('click', closeVideo);
+          modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeVideo();
+          });
+          modal.addEventListener('close', closeVideo);
+          modal.addEventListener('cancel', (e) => {
+            e.preventDefault();
+            closeVideo();
+          });
+        })();
+      </script>
+    </section>
+
+    <!-- ─────────────── S5. How it works ─────────────── -->
+    <section class="cdlp-how">
+      <div class="cdlp-section-wrap">
+        <div class="cdlp-section-intro cdlp-intro-center cdlp-how-intro" data-vs-reveal-batch>
+          <span class="cdlp-eyebrow"><span class="cdlp-eyebrow-rule"></span>How it works</span>
+          <h2 class="cdlp-h2">One visit, <em>start to plan.</em></h2>
+          <p class="cdlp-body">
+            No mystery, no pressure. Here's exactly what happens from the moment you reach out.
+          </p>
+        </div>
+        <ProcessStepGrid class="cdlp-how-grid">
+          {
+            howSteps.map((s) => (
+              <ProcessStep num={s.num} tagline={s.tagline} title={s.title} label={s.label}>
+                {s.body}
+              </ProcessStep>
+            ))
+          }
+        </ProcessStepGrid>
+        <div class="cdlp-how-cta">
+          <Button
+            variant="gold"
+            href="#consult"
+            hoverLabel="Let's begin"
+            data-tf-popup="CVDRRQZk"
+            data-tf-transitive-search-params="utm_source,utm_medium,utm_campaign,utm_term,utm_content,utm_ad,utm_adset,gclid,fbclid"
+            >Book my free consult</Button
+          >
+          <p class="cdlp-cta-reinforcer">{reinforcer}</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────── S6. Meet Dr. Richardson (demoted bio) ─────────────── -->
+    <section class="cdlp-philo">
+      <div class="cdlp-philo-wrap">
+        <div class="cdlp-philo-portrait" data-vs-reveal>
+          <Image
+            src={imgRichardson}
+            alt="Dr. Bryce Richardson, founder and cosmetic dentist at Vivid Smiles"
+            widths={[420, 640, 900]}
+            sizes="(max-width: 991px) 100vw, 480px"
+          />
+          <div class="cdlp-philo-sig">
+            <span class="cdlp-philo-sig-line">Bryce Richardson, DDS</span>
+            <span class="cdlp-philo-sig-sub">Founder · Cosmetic Dentist</span>
+          </div>
+        </div>
+        <div class="cdlp-philo-copy" data-vs-reveal-batch>
+          <span class="cdlp-eyebrow cdlp-eyebrow--light"
+            ><span class="cdlp-eyebrow-rule"></span>Meet your dentist</span
+          >
+          <h2 class="cdlp-philo-h">
+            Artistry first. Every smile <em>designed around your face.</em>
+          </h2>
+          <p class="cdlp-philo-body">
+            Dr. Richardson is recognized for creating custom, natural-looking smiles that enhance
+            each patient's unique features — blending artistry with precision so results feel
+            individual and never overdone. With 600+ hours of advanced post-doctoral esthetic
+            training, he personally designs and reviews every case.
+          </p>
+          <div class="cdlp-philo-stats">
+            <div>
+              <strong>600+</strong>
+              <span>Hours of advanced post-doctoral training</span>
+            </div>
+            <div>
+              <strong>AACD</strong>
+              <span>American Academy of Cosmetic Dentistry member</span>
+            </div>
+            <div>
+              <strong>Top 1%</strong>
+              <span>Cosmetic dentists nationally</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────── S7. Reviews (swipe-draggable marquee) ─────────────── -->
+    <section class="cdlp-reviews">
+      <div class="cdlp-section-wrap">
+        <div class="cdlp-reviews-head" data-vs-reveal-batch>
+          <span class="cdlp-eyebrow"><span class="cdlp-eyebrow-rule"></span>Patient reviews</span>
+          <div class="cdlp-reviews-rating">
+            <span class="cdlp-reviews-score">5.0</span>
+            <span class="cdlp-reviews-stars">★★★★★</span>
+            <span class="cdlp-reviews-count">
+              <Image
+                src={logoGoogle}
+                alt="Google"
+                class="cdlp-reviews-google"
+                widths={[120]}
+                sizes="80px"
+              />
+              300+ five-star reviews
+            </span>
+          </div>
+        </div>
+      </div>
+      <div
+        class="cdlp-marquee cdlp-marquee--reviews"
+        data-vs-marquee
+        aria-label="Patient reviews — drag to explore"
+      >
+        <div class="cdlp-marquee-track" data-vs-marquee-track>
+          {
+            reviewTrack.map((r) => (
+              <ReviewCard
+                reviewer={r.data.reviewer}
+                rating={r.data.rating}
+                source={r.data.source}
+                date={r.data.date}
+                tags={r.data.tags}
+              >
+                {r.body}
+              </ReviewCard>
+            ))
+          }
+        </div>
+      </div>
+      <div class="cdlp-section-wrap cdlp-reviews-cta">
+        <Button
+          variant="gold"
+          href="#consult"
+          hoverLabel="Let's begin"
+          data-tf-popup="CVDRRQZk"
+          data-tf-transitive-search-params="utm_source,utm_medium,utm_campaign,utm_term,utm_content,utm_ad,utm_adset,gclid,fbclid"
+          >Get my smile plan & price</Button
+        >
+      </div>
+    </section>
+
+    <!-- ─────────────── S8. Warranty / risk reversal ─────────────── -->
+    <section class="cdlp-close">
+      <div class="cdlp-close-wrap">
+        <div class="cdlp-close-photo" data-vs-reveal>
+          <Image
+            src={imgBrush}
+            alt="Etchant being brushed onto teeth with a fine applicator during veneer bonding at Vivid Smiles Dentistry"
+            widths={[400, 600, 800]}
+            sizes="(max-width: 880px) 100vw, 440px"
+          />
+        </div>
+        <div class="cdlp-close-copy" data-vs-reveal-batch>
+          <span class="cdlp-eyebrow cdlp-eyebrow--light"
+            ><span class="cdlp-eyebrow-rule"></span>Backed by our warranty</span
+          >
+          <h2 class="cdlp-close-h">
+            Expect the highest quality care — <em>and a warranty on our work.</em>
+          </h2>
+          <p class="cdlp-close-p">
+            Maintain your routine checkups and if something breaks, we'll fix it. And if you're not
+            in love with your smile, we make it right — in writing.
+          </p>
+          <ul class="cdlp-close-guarantees">
+            <li>
+              <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+              <div><strong>Written warranty</strong><span>We stand behind our work.</span></div>
+            </li>
+            <li>
+              <i class="fa-solid fa-gift" aria-hidden="true"></i>
+              <div><strong>Free consult</strong><span>A $500 value — yours free.</span></div>
+            </li>
+            <li>
+              <i class="fa-solid fa-handshake-angle" aria-hidden="true"></i>
+              <div><strong>No obligation</strong><span>Zero pressure, ever.</span></div>
+            </li>
+            <li>
+              <i class="fa-solid fa-award" aria-hidden="true"></i>
+              <div><strong>Top 1% dentist</strong><span>AACD-trained cosmetic care.</span></div>
+            </li>
+          </ul>
+          <Button
+            variant="gold"
+            href="#consult"
+            hoverLabel="Let's begin"
+            data-tf-popup="CVDRRQZk"
+            data-tf-transitive-search-params="utm_source,utm_medium,utm_campaign,utm_term,utm_content,utm_ad,utm_adset,gclid,fbclid"
+            >Design my new smile</Button
+          >
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────── S9. FAQ ─────────────── -->
+    <section class="cdlp-faq">
+      <div class="cdlp-section-wrap">
+        <div class="cdlp-section-intro cdlp-intro-center cdlp-faq-intro" data-vs-reveal-batch>
+          <span class="cdlp-eyebrow"><span class="cdlp-eyebrow-rule"></span>Common questions</span>
+          <h2 class="cdlp-h2">Answers before <em>you ask.</em></h2>
+        </div>
+        <div class="cdlp-faq-list" data-vs-reveal-batch>
+          {
+            faqs.map((f) => (
+              <details class="cdlp-faq-item" open={f.open}>
+                <summary>
+                  <h3>{f.q}</h3>
+                  <span class="cdlp-faq-icon" aria-hidden="true">
+                    +
+                  </span>
+                </summary>
+                <div class="cdlp-faq-answer" set:html={f.a} />
+              </details>
+            ))
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- ─────────────── S10. Final form (scarcity + risk reversal) ─────────────── -->
+    <VirtualConsult
+      id="consult"
+      eyebrow="Reserve your free consult"
+      background="cream"
+      typeformId="01KS3TT2ZEAX5H1BSV2KDBAFN8"
+    >
+      <Fragment slot="headline">
+        Book your <em>free smile consultation.</em>
+      </Fragment>
+      <Fragment slot="body">
+        Dr. Richardson takes a limited number of new cosmetic cases each month. Fill out the form
+        below — choose virtual or in-office — and reserve your spot. He personally reviews every
+        request.
+      </Fragment>
+      <Fragment slot="reassure">
+        <ul class="cdlp-vc-reassure">
+          <li><i class="fa-solid fa-circle-check" aria-hidden="true"></i><span>Free</span></li>
+          <li>
+            <i class="fa-solid fa-handshake-angle" aria-hidden="true"></i><span>No obligation</span>
+          </li>
+          <li>
+            <i class="fa-solid fa-shield-halved" aria-hidden="true"></i><span
+              >Backed by our written warranty</span>
+          </li>
+        </ul>
+      </Fragment>
+    </VirtualConsult>
+  </div>
+
+  <StickyMobileCTA slot="stickyCTA" label="Book my free consult" typeformPopupId="CVDRRQZk" />
+</LandingLayout>
+
+<style is:global>
+  @import '../styles/pages/cosmetic-dentistry-lp.css';
+</style>

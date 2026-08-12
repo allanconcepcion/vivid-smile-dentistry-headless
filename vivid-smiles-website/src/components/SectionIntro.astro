@@ -1,0 +1,101 @@
+---
+/**
+ * SectionIntro — eyebrow → H2 → lede → button.
+ *
+ * The italic emphasis word in the heading uses class `vs-italic-word`.
+ * Pass it in the `headingHtml` prop, OR provide both `heading` (no italic)
+ * and `headingItalic` and we'll wrap it for you.
+ *
+ * Usage:
+ *   <SectionIntro
+ *     eyebrow="A practice built on care"
+ *     heading="Artistry that"
+ *     headingItalic="transforms lives."
+ *     lede="From subtle refinements to complete makeovers…"
+ *     buttonLabel="Explore Services"
+ *     buttonHref="/services"
+ *   />
+ *
+ *   For full control, slot the heading directly:
+ *
+ *   <SectionIntro eyebrow="…" lede="…">
+ *     <h2 slot="heading" class="vs-h2">
+ *       Custom <em class="vs-italic-word">heading</em> markup.
+ *     </h2>
+ *   </SectionIntro>
+ */
+import Button from "./Button.astro";
+import Eyebrow from "./Eyebrow.astro";
+
+type Variant = "sage" | "ghost" | "light" | "outline-light";
+
+interface Props {
+  eyebrow?: string;
+  heading?: string;
+  headingItalic?: string;
+  lede?: string;
+  buttonLabel?: string;
+  buttonHref?: string;
+  buttonVariant?: Variant;
+  centered?: boolean;
+  class?: string;
+}
+
+const {
+  eyebrow,
+  heading,
+  headingItalic,
+  lede,
+  buttonLabel,
+  buttonHref = "#",
+  buttonVariant = "sage",
+  centered = false,
+  class: extra,
+} = Astro.props;
+
+const cls = ["vs-intro-triad", centered && "vs-intro-triad-center", extra]
+  .filter(Boolean)
+  .join(" ");
+---
+
+<div class={cls}>
+  {
+    eyebrow && (
+      <Eyebrow center={centered}>{eyebrow}</Eyebrow>
+    )
+  }
+
+  <slot name="heading">
+    {
+      (heading || headingItalic) && (
+        <h2 class="vs-h2" data-vs-reveal-lines>
+          {heading}
+          {heading && headingItalic && " "}
+          {headingItalic && <em class="vs-italic-word">{headingItalic}</em>}
+        </h2>
+      )
+    }
+  </slot>
+
+  {lede && <p class="vs-lede">{lede}</p>}
+
+  <slot />
+
+  {
+    buttonLabel && (
+      <div>
+        <Button variant={buttonVariant} href={buttonHref}>
+          {buttonLabel}
+        </Button>
+      </div>
+    )
+  }
+</div>
+
+<style is:global>
+  .vs-intro-triad-center {
+    text-align: center;
+    justify-items: center;
+    margin-inline: auto;
+  }
+</style>

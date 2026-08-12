@@ -1,0 +1,59 @@
+---
+/**
+ * ProcessStepGrid — bordered card with 3 vertical-divider columns inside.
+ *
+ * Children: ProcessStep components.
+ * The last child has its right border auto-removed via :last-child.
+ *
+ * Usage:
+ *   <ProcessStepGrid>
+ *     <ProcessStep num="01" tagline="Listen & envision." title="Discovery" label="Step One">
+ *       Body…
+ *     </ProcessStep>
+ *     ...
+ *   </ProcessStepGrid>
+ */
+interface Props {
+  class?: string;
+}
+const { class: extra } = Astro.props;
+const cls = ["vs-process-card", extra].filter(Boolean).join(" ");
+---
+
+<div class={cls} data-vs-reveal>
+  <div class="vs-process-grid">
+    <slot />
+  </div>
+</div>
+
+<style is:global>
+  .vs-process-card {
+    background: var(--vs-paper);
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-xl);
+    padding: 14px;
+    box-shadow: var(--vs-shadow);
+  }
+  .vs-process-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border-radius: calc(var(--vs-r-xl) - 14px);
+    overflow: hidden;
+  }
+  .vs-process-grid > .vs-pstep:last-child {
+    border-right: 0;
+  }
+  @media (max-width: 991px) {
+    .vs-process-grid {
+      grid-template-columns: 1fr;
+    }
+    .vs-process-grid > .vs-pstep {
+      border-right: 0;
+      border-bottom: 1px solid var(--vs-line);
+    }
+    .vs-process-grid > .vs-pstep:last-child {
+      border-bottom: 0;
+    }
+  }
+</style>

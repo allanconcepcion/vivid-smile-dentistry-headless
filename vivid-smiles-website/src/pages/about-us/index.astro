@@ -1,0 +1,749 @@
+---
+/**
+ * About Us — Vivid Smiles Dentistry, Parker CO.
+ *
+ * for the Team section). Page-scoped styles: src/styles/pages/about-us.css.
+ * Buttons + scroll reveals wired by src/scripts/animations.js (data-vs-arrow / data-vs-reveal*).
+ *
+ * Imagery: both doctors now have real, named portraits from the practice shoot
+ * (team/dr-annie.webp is Dr. Westermeier at the neon smile wall, team/
+ * dr-bryce-richardson.webp is Dr. Richardson). Both ImageFrame insets are real
+ * frames of the same doctor rather than generic scene imagery.
+ */
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Button from '../../components/Button.astro';
+import Eyebrow from '../../components/Eyebrow.astro';
+import SectionIntro from '../../components/SectionIntro.astro';
+import ImageFrame from '../../components/ImageFrame.astro';
+import VirtualConsult from '../../components/VirtualConsult.astro';
+import ReviewMarquee from '../../components/ReviewMarquee.astro';
+import CredentialBadge from '../../components/cards/CredentialBadge.astro';
+import { bookNowHref } from '../../data/contact';
+import '../../styles/pages/about-us.css';
+
+// Hero + section imagery.
+import heroTeam from '../../assets/images/team/annie-and-bryce.webp';
+import storyOffice from '../../assets/images/facility/neon-smile-sign-detail.webp';
+import drBryceMain from '../../assets/images/team/dr-bryce-richardson.webp';
+// Dr. Bryce inset — real candid Dr. Richardson moment. Replaces the previous
+// "parker-co-patient-previewing-porcelain-veneer-result.webp" which (despite
+// the filename) was actually a photo of a practice dog. Caught in the 2026-05
+// image audit.
+import drBryceInset from '../../assets/images/procedures/dr-rich-mid-procedure.webp';
+import drAnnieMain from '../../assets/images/team/dr-annie.webp';
+import drAnnieInset from '../../assets/images/team/dr-annie-candid.webp';
+import yomiImg from '../../assets/images/facility/operating-room.webp';
+
+// Credential logos.
+import aacdLogo from '../../assets/images/credentials/american-academy-of-cosmetic-dentistry.webp';
+import aaidLogo from '../../assets/images/credentials/american-academy-of-implant-dentistry.webp';
+import adaLogo from '../../assets/images/credentials/american-dental-association.webp';
+import iuLogo from '../../assets/images/credentials/indiana-university-school-of-dentistry.webp';
+import famLogo from '../../assets/images/credentials/full-arch-masters.webp';
+import yomiLogo from '../../assets/images/facility/yomi-robotics.webp';
+import googleLogo from '../../assets/images/credentials/google-reviews.png';
+import vsLogo from '../../assets/images/brand/vivid-logo-green.webp';
+
+// Team headshots (10 — hygienists, assistants, coordination, comfort officers).
+import teamMandy from '../../assets/images/team/mandy.webp';
+import teamSammie from '../../assets/images/team/sammie.webp';
+import teamLinh from '../../assets/images/team/linh.webp';
+import teamTina from '../../assets/images/team/tina.webp';
+import teamAlly from '../../assets/images/team/ally.webp';
+import teamSara from '../../assets/images/team/sara.webp';
+import teamKt from '../../assets/images/team/kt.webp';
+import teamCarol from '../../assets/images/team/carol.webp';
+import teamKnox from '../../assets/images/team/knox-dog.webp';
+import teamBirdie from '../../assets/images/team/birdie-dog.webp';
+
+const credentials = [
+  {
+    logo: aacdLogo,
+    alt: 'American Academy of Cosmetic Dentistry',
+    title: 'AACD',
+    body: 'American Academy of Cosmetic Dentistry.',
+    year: 'Member',
+    meta: 'Cosmetic Dentistry',
+  },
+  {
+    logo: aaidLogo,
+    alt: 'American Academy of Implant Dentistry',
+    title: 'AAID',
+    body: 'American Academy of Implant Dentistry.',
+    year: 'Member',
+    meta: 'Implant Dentistry',
+  },
+  {
+    logo: famLogo,
+    alt: 'Full Arch Masters',
+    title: 'Full Arch Masters',
+    body: 'Clinical mentor for advanced surgical and full-arch curriculum.',
+    year: 'Faculty',
+    meta: 'Clinical Mentor',
+  },
+  {
+    logo: iuLogo,
+    alt: 'Indiana University School of Dentistry',
+    title: 'Indiana University',
+    body: "School of Dentistry — Dr. Richardson's alma mater.",
+    year: 'Alumni',
+    meta: 'Doctorate',
+  },
+  {
+    logo: yomiLogo,
+    alt: 'Yomi Robotics',
+    title: 'Yomi Robotics',
+    body: 'FDA-cleared robotic-guided implant surgery certification.',
+    year: 'Certified',
+    meta: 'Certified Surgeon',
+  },
+  {
+    logo: adaLogo,
+    alt: 'American Dental Association',
+    title: 'ADA',
+    body: 'American Dental Association — ethical, evidence-based care.',
+    year: 'Member',
+    meta: 'Professional Standing',
+  },
+  {
+    logo: googleLogo,
+    alt: 'Google Reviews',
+    title: '5.0 · 300+ Reviews',
+    body: 'Google-verified patient reviews from across the Front Range.',
+    year: '2026',
+    meta: 'Patient Rated',
+  },
+  {
+    logo: vsLogo,
+    alt: 'Vivid Smiles',
+    title: 'Vivid Smile Process',
+    body: 'Our signature, facially-driven cosmetic methodology.',
+    year: 'In-house',
+    meta: 'Proprietary Method',
+  },
+];
+
+const techItems = [
+  {
+    num: '01',
+    title: 'Yomi Robot-Assisted Implants',
+    body: 'The only FDA-cleared robotic system for dental implants. Sub-millimeter accuracy, smaller incisions, and faster recovery.',
+  },
+  {
+    num: '02',
+    title: 'Digital Smile Design',
+    body: 'Facially-driven design software lets us preview your exact result, so nothing is left to chance.',
+  },
+  {
+    num: '03',
+    title: '3D CBCT Imaging',
+    body: 'High-resolution 3D scans replace guesswork with certainty for implants, airway analysis, and reconstruction.',
+  },
+  {
+    num: '04',
+    title: 'Intra-Oral Scanning',
+    body: 'Goodbye to gooey impressions. Digital scans capture your mouth in seconds with micron-level fidelity.',
+  },
+];
+
+// Team roster — 4 tier groups, ordered front-office → hygienists → assistants → comfort
+// (the order patients meet the team in real life: phone/check-in first, then chair-side).
+// The 3 → 2 → 3 → 2 column cadence also gives the section a deliberate visual rhythm.
+const teamGroups = [
+  {
+    id: 'coordination',
+    titleStart: 'Patient',
+    titleAccent: 'Coordination',
+    members: [
+      {
+        name: 'Sara',
+        role: 'Office Manager',
+        bio: "Bachelor's and master's in Healthcare Administration. Sets the tone of the practice and keeps every smile journey moving from first call to final visit.",
+        image: teamSara,
+        alt: 'Sara, Office Manager at Vivid Smiles',
+      },
+      {
+        name: 'KT',
+        role: 'Patient Care & Office Coordinator',
+        bio: "Often the first friendly voice you'll hear. Ten years in healthcare and dentistry, recently transplanted to Parker from Colorado's Western Slope.",
+        image: teamKt,
+        alt: 'KT, Patient Care and Office Coordinator at Vivid Smiles',
+      },
+      {
+        name: 'Carol',
+        role: 'Patient Coordinator',
+        bio: 'In dentistry since age 19. A Colorado native who hikes with her family and disappears to warm beaches whenever she gets the chance.',
+        image: teamCarol,
+        alt: 'Carol, Patient Coordinator at Vivid Smiles',
+      },
+    ],
+  },
+  {
+    id: 'hygienists',
+    titleStart: 'Dental',
+    titleAccent: 'Hygienists',
+    members: [
+      {
+        name: 'Mandy',
+        role: 'Registered Dental Hygienist',
+        bio: 'A Registered Dental Hygienist since 2011 who grew up in a military family — bringing warm, welcoming energy to every appointment.',
+        image: teamMandy,
+        alt: 'Mandy, Registered Dental Hygienist at Vivid Smiles',
+      },
+      {
+        name: 'Sammie',
+        role: 'Registered Dental Hygienist',
+        bio: 'UMKC graduate with seventeen years of hygiene experience and a focus on patient education and personalized oral health care.',
+        image: teamSammie,
+        alt: 'Sammie, Registered Dental Hygienist at Vivid Smiles',
+      },
+    ],
+  },
+  {
+    id: 'assistants',
+    titleStart: 'Dental',
+    titleAccent: 'Assistants',
+    members: [
+      {
+        name: 'Linh',
+        role: 'Dental Assistant',
+        bio: 'Skilled clinical support and patient education, ensuring every visit moves smoothly and every patient feels comfortable.',
+        image: teamLinh,
+        alt: 'Linh, Dental Assistant at Vivid Smiles',
+      },
+      {
+        name: 'Tina',
+        role: 'Expanded Duties Dental Assistant',
+        bio: 'An EDDA for nearly twenty years across every dental specialty, with deep experience in surgical work — and a side life of camping, fishing, and four-wheeling.',
+        image: teamTina,
+        alt: 'Tina, Expanded Duties Dental Assistant at Vivid Smiles',
+      },
+      {
+        name: 'Ally',
+        role: 'Expanded Duties Dental Assistant',
+        bio: 'Fourteen years in dentistry, EDDA-certified, and always tracking the next piece of clinical technology that makes treatment safer and faster.',
+        image: teamAlly,
+        alt: 'Ally, Expanded Duties Dental Assistant at Vivid Smiles',
+      },
+    ],
+  },
+  {
+    id: 'comfort',
+    titleStart: 'Comfort',
+    titleAccent: 'Officers',
+    members: [
+      {
+        name: 'Knox',
+        role: 'Director of Smiles',
+        bio: 'Part of the practice family since puppyhood. Greets patients with a wagging tail and brightens every visit, one nuzzle at a time.',
+        image: teamKnox,
+        alt: 'Knox, the Vivid Smiles dog and Director of Smiles',
+      },
+      {
+        name: 'Birdie',
+        role: 'Chief Comfort Officer',
+        bio: 'Three-legged, rescued from Turkey through Tattered Paws & Golden Hearts. Uncannily good at finding patients who need an extra dose of comfort.',
+        image: teamBirdie,
+        alt: 'Birdie, the Vivid Smiles dog and Chief Comfort Officer',
+      },
+    ],
+  },
+];
+
+// Patient Voices — full reviews collection (newest first), rendered in a
+// seamless marquee. Mirrors the home-page testimonials section.
+const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +a.data.date);
+---
+
+<BaseLayout
+  title="About Vivid Smiles Dentistry — Parker, CO"
+  description="Meet the doctors and team behind Vivid Smiles Dentistry — Colorado's premier destination for highly esthetic cosmetic and implant dentistry."
+>
+  <div class="aus">
+    {/* ---------- BREADCRUMB ---------- */}
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <div class="crumbs-inner">
+        <a href="/">Home</a>
+        <span class="sep">/</span>
+        <span class="here">About Us</span>
+      </div>
+    </nav>
+
+    <main id="main">
+      {/* ---------- HERO (cream) ---------- */}
+      <header class="hero">
+        <div class="wrap hero-inner">
+          <div class="hero-copy" data-vs-reveal-batch>
+            <Eyebrow>About Vivid Smiles · Parker, CO</Eyebrow>
+            <h1 data-vs-reveal-lines>
+              Where artistry meets <em class="vs-italic-word">esthetic dentistry.</em>
+            </h1>
+            <p class="hero-sub">
+              Vivid Smiles Dentistry is Colorado's premier destination for highly esthetic smile
+              transformations. Founded on the belief that a smile should feel effortless, youthful,
+              and authentically you, we pair world-class cosmetic artistry with the most advanced
+              clinical technology available.
+            </p>
+            <div class="hero-actions">
+              <Button variant="sage" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button>
+              <Button variant="ghost" href="#doctors" hoverLabel="The Doctors"
+                >Meet the Doctors</Button
+              >
+              <div class="ratings">
+                <span class="stars" aria-hidden="true">★★★★★</span>
+                <span>5.0 · 300+ reviews</span>
+              </div>
+            </div>
+          </div>
+          <div class="hero-img" data-vs-reveal data-vs-parallax data-parallax="-30">
+            <Image
+              src={heroTeam}
+              alt="Dr. Annie and Dr. Bryce of Vivid Smiles Dentistry in Parker, Colorado"
+              widths={[600, 900, 1400]}
+              sizes="(max-width: 991px) 100vw, 45vw"
+              loading="eager"
+              fetchpriority="high"
+              decoding="async"
+            />
+            <span class="signature">Smile boldly. Live vividly.</span>
+          </div>
+        </div>
+      </header>
+
+      {/* ---------- STORY (paper) ---------- */}
+      <section class="section" id="story">
+        <div class="wrap" data-vs-reveal-batch>
+          <SectionIntro
+            eyebrow="Our Story"
+            heading="A practice built on"
+            headingItalic="precision and warmth."
+            lede="Vivid Smiles was founded to raise the standard of cosmetic dentistry in Colorado, blending the discipline of master craftsmanship with the ease of a modern, hospitality-minded experience."
+            centered
+            class="aus-section-head"
+          />
+
+          <div class="story-grid">
+            <div class="story-img" data-vs-reveal>
+              <Image
+                src={storyOffice}
+                alt="The neon smile sign inside Vivid Smiles Dentistry in Parker, CO"
+                widths={[480, 720, 1080]}
+                sizes="(max-width: 991px) 100vw, 45vw"
+              />
+              <span class="badge">Parker, CO</span>
+            </div>
+            <div class="story-text" data-vs-reveal-batch>
+              <Eyebrow>Founding philosophy</Eyebrow>
+              <h2 class="vs-h2">
+                Every smile, treated like <em class="vs-italic-word">a signature piece.</em>
+              </h2>
+              <p>
+                Every detail of the practice, from our clinical workflows to the quiet rhythm of an
+                appointment, is designed around one idea: the smile you imagine should feel
+                inevitable, not improvised.
+              </p>
+              <p>
+                Patients travel locally and from out of state for <a
+                  class="vs-link"
+                  href="/cosmetic-dentistry/smile-makeover/">smile makeovers</a
+                >, <a class="vs-link" href="/cosmetic-dentistry/full-mouth-rehabilitation/"
+                  >full-mouth rehabilitations</a
+                >, and <a class="vs-link" href="/cosmetic-dentistry/porcelain-veneers/"
+                  >no-prep veneers</a
+                >. What they find in Parker is a small, focused practice that treats every case like
+                a signature piece, never a production line.
+              </p>
+              <div class="story-sig">
+                Smile boldly. Live vividly.
+                <small>Our promise to every patient</small>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- DOCTORS (cream) ---------- */}
+      <section class="section alt" id="doctors">
+        <div class="wrap" data-vs-reveal-batch>
+          <SectionIntro
+            eyebrow="Meet the Doctors"
+            heading="Two practitioners."
+            headingItalic="One philosophy."
+            lede="Dr. Bryce Richardson and Dr. Annelise Westermeier lead a small, focused team. Together they bring cosmetic mastery and holistic surgical care under one roof, so every patient finds the right hands for the right work."
+            centered
+            class="aus-section-head"
+          />
+
+          {/* Dr. Richardson — image LEFT */}
+          <article class="doc-grid" id="dr-richardson">
+            <ImageFrame
+              primary={{
+                src: drBryceMain,
+                alt: 'Dr. Bryce Richardson, founder of Vivid Smiles Dentistry',
+              }}
+              inset={{
+                src: drBryceInset,
+                alt: 'Dr. Richardson performing precise dental work in surgical loupes',
+              }}
+            />
+            <div class="doc-copy" data-vs-reveal-batch>
+              <Eyebrow>Founder &amp; Cosmetic Lead</Eyebrow>
+              <h2 class="vs-h2">Dr. Bryce<br /><em>Richardson</em></h2>
+              <div class="role">Cosmetic, full-arch &amp; implant dentistry</div>
+              <p class="lead">
+                Founder of Vivid Smiles Dentistry and one of the country's most sought-after
+                cosmetic dentists for smile makeovers, full-mouth rehabilitations, and minimal-prep
+                veneers.
+              </p>
+              <p class="bio">
+                A graduate of Indiana University School of Dentistry, Dr. Richardson has completed
+                more than 600 hours of advanced postgraduate training in esthetics, veneers,
+                full-mouth rehabilitation, and surgical dentistry. His cosmetic philosophy centers
+                on designing smiles that harmonize with each patient's facial features, personality,
+                and lifestyle, so the final result feels effortless, youthful, and authentically
+                you.
+              </p>
+              <p class="bio">
+                He also serves as a mentor for <em>Full Arch Masters</em>, one of the nation's
+                premier implant education programs, training doctors across the country in advanced
+                surgical and full-arch procedures. Outside the office, Dr. Richardson enjoys
+                traveling, playing golf, and spending time with his wife and their three dogs.
+              </p>
+
+              <div class="doc-credentials">
+                <div class="cred">
+                  <div class="k">IU</div><div class="v">School of Dentistry Graduate</div>
+                </div>
+                <div class="cred">
+                  <div class="k">600+</div><div class="v">Hours Postgrad Training</div>
+                </div>
+                <div class="cred">
+                  <div class="k">FAM</div><div class="v">Full Arch Masters Mentor</div>
+                </div>
+              </div>
+
+              <div class="doc-actions">
+                <Button variant="light" href={bookNowHref}>Book Online</Button>
+                <Button variant="ghost-light" href="/smile-gallery/">See Case Portfolio</Button>
+              </div>
+            </div>
+          </article>
+
+          {/* Dr. Annie — image RIGHT */}
+          <article class="doc-grid image-right" id="dr-annie">
+            <div class="doc-copy" data-vs-reveal-batch>
+              <Eyebrow>General &amp; Holistic Care</Eyebrow>
+              <h2 class="vs-h2">Dr. Annelise<br /><em>Westermeier</em></h2>
+              <div class="role">Known to patients as <em>Dr. Annie</em></div>
+              <p class="lead">
+                A fourth-generation dentist practicing with the warmth of family tradition and the
+                rigor of modern clinical training.
+              </p>
+              <p class="bio">
+                Dr. Annie attended the University at Buffalo School of Dental Medicine in her
+                hometown of Buffalo, NY, alongside her brother, before completing her Advanced
+                Education in General Dentistry at Virginia Commonwealth University. That residency
+                deepened her expertise in surgery, implants, and the care of medically complex
+                patients.
+              </p>
+              <p class="bio">
+                Her approach is holistic: she treats the mouth as inseparable from the rest of the
+                body, and the patient as a person first. She is passionate about making every visit
+                feel comfortable, unhurried, and collaborative, and will undoubtedly coax a smile
+                from even the most nervous of patients. Whether you are in pain or simply want to
+                eat and smile more freely, Dr. Annie is eager to care for you.
+              </p>
+
+              <div class="doc-credentials">
+                <div class="cred">
+                  <div class="k">UB</div><div class="v">Buffalo School of Dental Medicine</div>
+                </div>
+                <div class="cred">
+                  <div class="k">VCU</div><div class="v">
+                    Advanced Education in General Dentistry
+                  </div>
+                </div>
+                <div class="cred">
+                  <div class="k">4th</div><div class="v">Generation Dentist</div>
+                </div>
+              </div>
+
+              <div class="doc-actions">
+                <Button variant="light" href={bookNowHref}>Book with Dr. Annie</Button>
+                <Button variant="ghost-light" href="/general-dentistry/"
+                  >Learn About Holistic Care</Button
+                >
+              </div>
+            </div>
+            <ImageFrame
+              primary={{
+                src: drAnnieMain,
+                alt: 'Dr. Annelise Westermeier, general & holistic dentist at Vivid Smiles',
+              }}
+              inset={{
+                src: drAnnieInset,
+                alt: 'Dr. Annelise Westermeier in the Vivid Smiles Dentistry office',
+              }}
+            />
+          </article>
+        </div>
+      </section>
+
+      {
+        /* ---------- TEAM (sage-pale) ----------
+           `.section.dark` paints the sage-pale band. Page CSS at about-us.css
+           handles ink-on-pale text overrides for the SectionIntro children. */
+      }
+      <section class="section dark" id="team">
+        <div class="wrap" data-vs-reveal-batch>
+          <SectionIntro
+            eyebrow="The team"
+            heading="The people who make"
+            headingItalic="every visit feel easy."
+            lede="Two doctors, eight teammates, and two very good dogs — hand-picked for skill, for warmth, and for the quiet way they turn a long appointment into a short one."
+            centered
+            class="aus-section-head"
+          />
+
+          {
+            teamGroups.map((group) => (
+              <div class="aus-team-group" id={group.id}>
+                <h3 class="aus-team-group-title">
+                  {group.titleStart} <em>{group.titleAccent}</em>
+                </h3>
+                {/* Inner data-vs-reveal-batch staggers the cards independently of the
+                  outer wrapper batch, mirroring the .creds-grid pattern. */}
+                <div
+                  class={`aus-team-grid aus-team-grid-${group.members.length}`}
+                  data-vs-reveal-batch
+                >
+                  {group.members.map((m) => (
+                    <article class="aus-team-card">
+                      <div class="aus-team-pic">
+                        <Image
+                          src={m.image}
+                          alt={m.alt}
+                          widths={[360, 540, 720]}
+                          sizes="(min-width: 1100px) 380px, (min-width: 780px) 50vw, 100vw"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </div>
+                      <div class="aus-team-body">
+                        <span class="aus-team-role">{m.role}</span>
+                        <h4>{m.name}</h4>
+                        <p>{m.bio}</p>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      </section>
+
+      {/* ---------- TECHNOLOGY (paper) ---------- */}
+      <section class="section" id="technology">
+        <div class="wrap" data-vs-reveal-batch>
+          <SectionIntro
+            eyebrow="Advanced Technology"
+            heading="Clinical precision,"
+            headingItalic="at the leading edge."
+            lede="Cosmetic artistry is only half of the equation. The other half is technology, and at Vivid Smiles we invest in the instruments that make treatment safer, faster, and measurably more precise than traditional dentistry."
+            centered
+            class="aus-section-head"
+          />
+
+          <div class="tech-grid">
+            <div class="tech-img" data-vs-reveal>
+              <Image
+                src={yomiImg}
+                alt="A treatment room at Vivid Smiles Dentistry in Parker, CO"
+                widths={[480, 720, 1080]}
+                sizes="(max-width: 991px) 100vw, 50vw"
+              />
+              <div class="stamp">
+                <b>Yomi</b>
+                <small>FDA-Cleared Robotics</small>
+              </div>
+            </div>
+            <div class="tech-text" data-vs-reveal-batch>
+              <Eyebrow>In our operatory</Eyebrow>
+              <h2 class="vs-h2">
+                The instruments <em class="vs-italic-word">behind the artistry.</em>
+              </h2>
+              <p class="lead">
+                From robotic-guided implant surgery to facially-driven digital smile design, every
+                tool in the practice is chosen for one reason: it makes the result measurably
+                better.
+              </p>
+
+              <div class="tech-list" data-vs-reveal-batch>
+                {
+                  techItems.map((t) => (
+                    <div class="tech-item">
+                      <div class="idx">{t.num}</div>
+                      <div>
+                        <h4>{t.title}</h4>
+                        <p>{t.body}</p>
+                      </div>
+                    </div>
+                  ))
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- CREDENTIALS (cream) ---------- */}
+      <section class="section alt" id="credentials">
+        <div class="wrap" data-vs-reveal-batch>
+          <SectionIntro
+            eyebrow="Credentials & Recognition"
+            heading="The standards"
+            headingItalic="we practice by."
+            lede="A short list of the training, memberships, and recognition that inform how we practice every day."
+            centered
+            class="aus-section-head"
+          />
+
+          <div class="creds-grid" data-vs-reveal-batch>
+            {
+              credentials.map((c) => (
+                <CredentialBadge
+                  logoSrc={c.logo}
+                  logoAlt={c.alt}
+                  title={c.title}
+                  body={c.body}
+                  yearTag={c.year}
+                  metaTag={c.meta}
+                />
+              ))
+            }
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- TESTIMONIALS (paper) — exact clone of the home-page section ---------- */}
+      <section class="testi" id="voices">
+        <div class="wrap">
+          <div class="testi-head" data-vs-reveal-batch>
+            <Eyebrow center>Testimonials</Eyebrow>
+            <h2 data-vs-reveal-lines>5-Star <em>Smiles</em></h2>
+            <div class="stars" aria-hidden="true">★★★★★</div>
+            <p>
+              Hear from some of our happy patients. Vivid Smiles Dentistry is the only dentist with
+              a 5-star rating in Parker, CO.
+            </p>
+          </div>
+          <div class="testi-actions" data-vs-reveal>
+            <Button
+              variant="sage"
+              href="https://share.google/CletN4Tfk51TpK4It"
+              hoverLabel="See Reviews">Read More on Google</Button
+            >
+          </div>
+        </div>
+        <ReviewMarquee reviews={reviews} ariaLabel="Patient testimonials" />
+      </section>
+    </main>
+
+    {/* ---------- VIRTUAL CONSULT (cream) ---------- */}
+    <VirtualConsult id="consult" eyebrow="Free virtual consultation">
+      <Fragment slot="headline">Begin your <em>Vivid Smile.</em></Fragment>
+      <Fragment slot="body">
+        Whether it's a smile makeover, a second opinion, or just a question — Dr. Richardson
+        personally records a custom video reply for every consultation request.
+      </Fragment>
+    </VirtualConsult>
+
+    {/* ---------- JSON-LD STRUCTURED DATA ---------- */}
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: new URL('/', Astro.site).href },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'About Us',
+            item: new URL('/about-us/', Astro.site).href,
+          },
+        ],
+      })}
+    />
+
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'Person',
+        name: 'Dr. Bryce Richardson',
+        jobTitle: 'Founder & Cosmetic Lead',
+        alumniOf: {
+          '@type': 'CollegeOrUniversity',
+          name: 'Indiana University School of Dentistry',
+        },
+        worksFor: {
+          '@type': 'Dentist',
+          name: 'Vivid Smiles Dentistry',
+          address: {
+            '@type': 'PostalAddress',
+            streetAddress: '17167 Cedar Gulch Pkwy Ste 102',
+            addressLocality: 'Parker',
+            addressRegion: 'CO',
+            postalCode: '80134',
+            addressCountry: 'US',
+          },
+        },
+        knowsAbout: [
+          'Cosmetic Dentistry',
+          'Porcelain Veneers',
+          'Full-Arch Implant Dentistry',
+          'Full-Mouth Rehabilitation',
+        ],
+        image: new URL(drBryceMain.src, Astro.site).href,
+      })}
+    />
+
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'Person',
+        name: 'Dr. Annelise Westermeier',
+        alternateName: 'Dr. Annie',
+        jobTitle: 'General & Holistic Dentist',
+        alumniOf: [
+          {
+            '@type': 'CollegeOrUniversity',
+            name: 'University at Buffalo School of Dental Medicine',
+          },
+          {
+            '@type': 'CollegeOrUniversity',
+            name: 'Virginia Commonwealth University — Advanced Education in General Dentistry',
+          },
+        ],
+        worksFor: {
+          '@type': 'Dentist',
+          name: 'Vivid Smiles Dentistry',
+        },
+        knowsAbout: [
+          'General Dentistry',
+          'Holistic Dentistry',
+          'Implant Dentistry',
+          'Medically Complex Patient Care',
+        ],
+      })}
+    />
+  </div>
+</BaseLayout>

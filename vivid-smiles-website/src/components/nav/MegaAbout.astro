@@ -1,0 +1,167 @@
+---
+/**
+ * MegaAbout — About Us mega-menu panel.
+ *
+ * 4-card grid linking to the four About-tier routes. Each card carries a
+ * photo (rendered through `astro:assets` <Image>) sized to the .img frame.
+ *
+ * Hover wired via [data-vs-arrow] in src/scripts/animations.js — same
+ * canonical knock-up + swap as buttons + service cards. The badge's
+ * sage→paper color flip lives on the ghost-sage variant in ArrowBadge.
+ *
+ * Used by Nav.astro inside the .mega-wrap when "About Us" is open.
+ *
+ * Parity: the `cards` array below must mirror the "about" section in
+ * MobileMenu.astro. No shared data source — change links here AND there
+ * in the same edit.
+ */
+
+import { Image } from "astro:assets";
+import ArrowBadge from "../ArrowBadge.astro";
+import imgAbout from "../../assets/images/team/annie-and-bryce.webp";
+import imgTeam from "../../assets/images/team/vivid-team-photo.webp";
+import imgOffice from "../../assets/images/facility/operating-room.webp";
+import imgGallery from "../../assets/images/procedures/smile-three-quarter-dark-backdrop.webp";
+
+const cards = [
+  {
+    href: "/about-us/",
+    eyebrow: "Our practice",
+    title: "About Us",
+    body: "The story behind Vivid Smiles — our calm, premium, patient-centered approach to cosmetic and implant dentistry in Parker, CO.",
+    img: imgAbout,
+    alt: "Drs. Bryce Richardson and Annie Westermeier at Vivid Smiles",
+    imgPos: "center 37%",
+  },
+  {
+    href: "/about-us/#team",
+    eyebrow: "Doctors & team",
+    title: "Meet the Team",
+    body: "The dentists and hygienists who built Vivid Smiles. Decades of training, a single calm chair-side voice.",
+    img: imgTeam,
+    alt: "The Vivid Smiles team",
+  },
+  {
+    href: "/our-office/",
+    eyebrow: "Visit us",
+    title: "Our Office",
+    body: "A bright, low-stress space with the technology of a specialty clinic and the warmth of a neighborhood practice.",
+    img: imgOffice,
+    alt: "Inside the Vivid Smiles Parker office",
+  },
+  {
+    href: "/smile-gallery/",
+    eyebrow: "Our work",
+    title: "Smile Gallery",
+    body: "Real patients, real smiles. See the finished cosmetic and implant work that comes through our chairs.",
+    img: imgGallery,
+    alt: "Close-up of a Vivid Smiles patient smiling",
+  },
+];
+---
+
+<div class="mega mega-about-panel" role="region" aria-label="About Us menu">
+  <div class="mega-head">About Us</div>
+  <div class="mega-about">
+    {cards.map((c) => (
+      <a class="about-card" href={c.href} data-vs-arrow>
+        <div class="img">
+          <Image src={c.img} alt={c.alt} widths={[320, 480, 640]} sizes="(max-width: 1100px) 50vw, 25vw" style={c.imgPos ? `object-position: ${c.imgPos}` : undefined} />
+        </div>
+        <div class="about-eyebrow">{c.eyebrow}</div>
+        <h4>{c.title}</h4>
+        <p>{c.body}</p>
+        <span class="more">
+          More
+          <ArrowBadge size="sm" variant="ghost-sage" />
+        </span>
+      </a>
+    ))}
+  </div>
+</div>
+
+<style is:global>
+  .mega-about-panel .mega-about {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+  }
+
+  .mega-about-panel .about-card {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 20px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid rgba(231, 228, 221, 0.7);
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.25s ease, background 0.25s ease, border-color 0.25s ease;
+    min-height: 240px;
+  }
+  .mega-about-panel .about-card:hover {
+    background: var(--vs-paper);
+    border-color: var(--vs-sage-soft);
+    transform: translateY(-2px);
+  }
+  .mega-about-panel .about-card .img {
+    aspect-ratio: 4 / 3;
+    border-radius: 10px;
+    background: rgba(107, 122, 84, 0.06);
+    border: 1px solid rgba(107, 122, 84, 0.14);
+    margin-bottom: 4px;
+    overflow: hidden;
+    position: relative;
+  }
+  .mega-about-panel .about-card .img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+  }
+  .mega-about-panel .about-card:hover .img img {
+    transform: scale(1.04);
+  }
+  .mega-about-panel .about-eyebrow {
+    font-family: var(--vs-font-body);
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--vs-muted);
+    font-weight: 500;
+  }
+  .mega-about-panel .about-card h4 {
+    font-family: var(--vs-font-display);
+    font-size: 19px;
+    font-weight: 500;
+    color: var(--vs-ink);
+    margin: 0;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+  .mega-about-panel .about-card p {
+    font-size: 12.5px;
+    line-height: 1.5;
+    color: var(--vs-ink-soft);
+    margin: 0;
+  }
+  .mega-about-panel .about-card .more {
+    margin-top: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--vs-font-body);
+    font-size: 10.5px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    padding-top: 8px;
+  }
+  @media (max-width: 1100px) {
+    .mega-about-panel .mega-about {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>

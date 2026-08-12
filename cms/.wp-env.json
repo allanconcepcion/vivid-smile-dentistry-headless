@@ -1,0 +1,21 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/wp-env.json",
+  "core": "https://wordpress.org/latest.zip",
+  "phpVersion": "8.3",
+  "port": 8888,
+  "testsPort": 8889,
+  "config": {
+    "WP_DEBUG": true,
+    "WP_DEBUG_LOG": true,
+    "WP_DEBUG_DISPLAY": false,
+    "SCRIPT_DEBUG": false,
+    "GRAPHQL_DEBUG": true,
+    "VS_FRONTEND_URL": "http://localhost:4321"
+  },
+  "mappings": {
+    "wp-content/mu-plugins": "./mu-plugins",
+    "wp-content/vs-import/content": "../vivid-smiles-website/src/content",
+    "wp-content/vs-import/assets": "../vivid-smiles-website/src/assets",
+    "wp-content/vs-import/bin": "./import"
+  }
+}

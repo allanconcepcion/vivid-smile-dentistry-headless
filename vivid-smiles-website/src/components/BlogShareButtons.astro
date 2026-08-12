@@ -1,0 +1,149 @@
+---
+/**
+ * BlogShareButtons — X / Facebook / copy-link affordances for the post template.
+ *
+ * Renders three icon buttons. The copy-link button uses navigator.clipboard
+ * (falls back to a select-and-execCommand path on browsers without async
+ * clipboard support) and flips its label to "Copied" for ~1.6s on success.
+ *
+ * Icons are inlined SVG so we don't have to load FA's brands bundle — the
+ * site only loads fontawesome+solid (see BaseLayout.astro). FA solid doesn't
+ * ship brand glyphs.
+ *
+ * Pass the absolute URL + title — the parent has both already.
+ */
+
+interface Props {
+  url: string;
+  title: string;
+}
+
+const { url, title } = Astro.props;
+const enc = (s: string) => encodeURIComponent(s);
+const xHref = `https://twitter.com/intent/tweet?url=${enc(url)}&text=${enc(title)}`;
+const fbHref = `https://www.facebook.com/sharer/sharer.php?u=${enc(url)}`;
+---
+
+<div class="vs-share" data-url={url}>
+  <span class="vs-share-label">Share</span>
+  <a
+    class="vs-share-btn"
+    href={xHref}
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Share on X"
+    title="Share on X"
+  >
+    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="currentColor">
+      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.66l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231L18.244 2.25Zm-1.161 17.52h1.833L7.084 4.126H5.117l11.966 15.644Z"/>
+    </svg>
+  </a>
+  <a
+    class="vs-share-btn"
+    href={fbHref}
+    target="_blank"
+    rel="noopener noreferrer"
+    aria-label="Share on Facebook"
+    title="Share on Facebook"
+  >
+    <svg viewBox="0 0 24 24" width="14" height="14" aria-hidden="true" fill="currentColor">
+      <path d="M22 12c0-5.523-4.477-10-10-10S2 6.477 2 12c0 4.991 3.657 9.128 8.438 9.878v-6.987h-2.54V12h2.54V9.797c0-2.506 1.492-3.89 3.777-3.89 1.094 0 2.238.195 2.238.195v2.46h-1.26c-1.243 0-1.63.771-1.63 1.562V12h2.773l-.443 2.89h-2.33v6.988C18.343 21.128 22 16.991 22 12Z"/>
+    </svg>
+  </a>
+  <button class="vs-share-btn vs-share-copy" type="button" aria-label="Copy link" title="Copy link">
+    <i class="fa-solid fa-link" aria-hidden="true"></i>
+    <span class="vs-share-copied">Copied</span>
+  </button>
+</div>
+
+<script>
+  // Copy-link behavior. Scoped per-instance; multiple BlogShareButtons on a page
+  // each find their own button via the closest .vs-share wrapper.
+  document.querySelectorAll<HTMLButtonElement>(".vs-share-copy").forEach((btn) => {
+    btn.addEventListener("click", async () => {
+      const root = btn.closest<HTMLElement>(".vs-share");
+      const url = root?.dataset.url || window.location.href;
+      try {
+        await navigator.clipboard.writeText(url);
+      } catch {
+        // Fallback for browsers without async clipboard
+        const ta = document.createElement("textarea");
+        ta.value = url;
+        ta.setAttribute("readonly", "");
+        ta.style.position = "absolute";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand("copy");
+        document.body.removeChild(ta);
+      }
+      btn.classList.add("is-copied");
+      window.setTimeout(() => btn.classList.remove("is-copied"), 1600);
+    });
+  });
+</script>
+
+<style>
+  .vs-share {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--vs-font-body);
+  }
+  .vs-share-label {
+    font-size: 10.5px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-muted);
+    margin-right: 6px;
+  }
+  .vs-share-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    border: 1px solid var(--vs-line);
+    background: var(--vs-paper);
+    color: var(--vs-ink-soft);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    transition: color 200ms var(--vs-ease), border-color 200ms var(--vs-ease),
+      transform 200ms var(--vs-ease), background 200ms var(--vs-ease);
+    cursor: pointer;
+  }
+  .vs-share-btn:hover {
+    color: var(--vs-sage);
+    border-color: var(--vs-sage);
+    transform: translateY(-1px);
+  }
+  .vs-share-btn :global(i) {
+    font-size: 13px;
+    line-height: 1;
+  }
+  .vs-share-btn :global(svg) {
+    display: block;
+  }
+  .vs-share-copied {
+    position: absolute;
+    inset: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    background: var(--vs-sage);
+    color: var(--vs-paper);
+    border-radius: 999px;
+    opacity: 0;
+    transform: scale(0.92);
+    pointer-events: none;
+    transition: opacity 200ms var(--vs-ease), transform 200ms var(--vs-ease);
+  }
+  .vs-share-copy.is-copied .vs-share-copied {
+    opacity: 1;
+    transform: scale(1);
+  }
+</style>

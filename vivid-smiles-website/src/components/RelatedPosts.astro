@@ -1,0 +1,182 @@
+---
+/**
+ * RelatedPosts — bottom-of-article navigation. Renders prev/next neighbors
+ * (date-ordered) + up to 3 same-category recommendations.
+ *
+ * Drop into the post template as:
+ *   <RelatedPosts current={post} all={allPosts} />
+ *
+ * Posts are expected to be sorted newest-first (that's what getAllPosts returns).
+ */
+
+import BlogCard from "./cards/BlogCard.astro";
+import type { BlogPost } from "../lib/blog";
+import { getRelatedPosts, getPrevNext, postUrl } from "../lib/blog";
+
+interface Props {
+  current: BlogPost;
+  all: BlogPost[];
+}
+
+const { current, all } = Astro.props;
+const related = getRelatedPosts(current, all, 3);
+const { prev, next } = getPrevNext(current, all);
+
+// Bail out entirely when there are no neighbors AND no related posts.
+// On a brand-new blog (one or two posts), this section would render an
+// empty padded band — better to omit it until there's something to show.
+const hasContent = related.length > 0 || prev || next;
+---
+
+{hasContent && (
+<section class="vs-related" aria-labelledby="related-h">
+  <div class="vs-related-inner">
+    {/* Prev / next */}
+    {(prev || next) && (
+      <nav class="vs-pn" aria-label="More articles">
+        {prev ? (
+          <a class="vs-pn-item vs-pn-prev" href={postUrl(prev)}>
+            <span class="vs-pn-label"><span aria-hidden="true">←</span> Previous article</span>
+            <span class="vs-pn-title">{prev.data.title}</span>
+          </a>
+        ) : <span aria-hidden="true" />}
+        {next ? (
+          <a class="vs-pn-item vs-pn-next" href={postUrl(next)}>
+            <span class="vs-pn-label">Next article <span aria-hidden="true">→</span></span>
+            <span class="vs-pn-title">{next.data.title}</span>
+          </a>
+        ) : <span aria-hidden="true" />}
+      </nav>
+    )}
+
+    {related.length > 0 && (
+      <div class="vs-related-head">
+        <span class="vs-related-eyebrow">Continue Reading</span>
+        <h2 id="related-h" class="vs-related-h">More from <em>the chair</em></h2>
+      </div>
+      <div class="vs-related-grid">
+        {related.map((p) => <BlogCard post={p} />)}
+      </div>
+    )}
+  </div>
+</section>
+)}
+
+<style>
+  .vs-related {
+    background: var(--vs-cream);
+    padding: 96px 0 120px;
+  }
+  .vs-related-inner {
+    max-width: var(--vs-container-max);
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+  @media (max-width: 600px) {
+    .vs-related-inner {
+      padding: 0 24px;
+    }
+  }
+
+  /* Prev / Next */
+  .vs-pn {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 80px;
+    padding-bottom: 36px;
+    border-bottom: 1px solid var(--vs-line);
+  }
+  .vs-pn-item {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 18px 22px;
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-md);
+    background: var(--vs-paper);
+    transition: transform 200ms var(--vs-ease), border-color 200ms var(--vs-ease),
+      box-shadow 200ms var(--vs-ease);
+  }
+  .vs-pn-item:hover {
+    transform: translateY(-2px);
+    border-color: var(--vs-sage);
+    box-shadow: 0 12px 30px -14px rgba(40, 40, 30, 0.16);
+  }
+  .vs-pn-next {
+    text-align: right;
+    align-items: flex-end;
+  }
+  .vs-pn-label {
+    font-family: var(--vs-font-body);
+    font-size: 10.5px;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--vs-muted);
+    font-weight: 500;
+  }
+  .vs-pn-title {
+    font-family: var(--vs-font-display);
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--vs-ink);
+    line-height: 1.35;
+  }
+  @media (max-width: 600px) {
+    .vs-pn {
+      grid-template-columns: 1fr;
+    }
+    .vs-pn-next {
+      text-align: left;
+      align-items: flex-start;
+    }
+  }
+
+  /* Related grid */
+  .vs-related-head {
+    text-align: center;
+    margin-bottom: 36px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+  .vs-related-eyebrow {
+    font-family: var(--vs-font-body);
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+  }
+  .vs-related-h {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    font-size: clamp(28px, 3.5vw, 42px);
+    line-height: 1.15;
+    letter-spacing: -0.015em;
+    color: var(--vs-sage);
+    margin: 0;
+  }
+  .vs-related-h em {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+
+  .vs-related-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+  @media (max-width: 991px) {
+    .vs-related-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 600px) {
+    .vs-related-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

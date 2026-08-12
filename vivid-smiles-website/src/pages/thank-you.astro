@@ -1,0 +1,168 @@
+---
+/**
+ * Thank-you page — destination for ALL Typeform redirects, regardless of
+ * form type (virtual consult, contact, cosmetic LP, future forms). Redirects
+ * are configured upstream on each Typeform; this page just renders a generic
+ * confirmation. Ad-platform conversion tracking is wired upstream too — no
+ * on-page pixels.
+ *
+ * **Copy must stay form-agnostic.** Don't lock the lede or step copy to any
+ * one form (e.g. don't promise "Dr. Richardson will record you a custom
+ * video" — that's true for virtual consult only, not for a contact form
+ * asking about hours). The current copy works for any inquiry: confirmation
+ * → review → follow-up.
+ *
+ * Excluded from sitemap (astro.config.mjs) and `noindex`'d in markup —
+ * destination URLs shouldn't compete with hub pages in search.
+ *
+ * Rhythm: full-bleed team-photo hero → cream "what to expect" (3 generic
+ * steps) → charcoal-green "while you wait" (3 explore links) → paper
+ * FinalBand.
+ */
+import { Image } from "astro:assets";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import FinalBand from "../components/FinalBand.astro";
+import ArrowBadge from "../components/ArrowBadge.astro";
+import "../styles/pages/thank-you.css";
+
+import heroBg from "../assets/images/team/vivid-smiles-team-candid.webp";
+
+const steps = [
+  {
+    num: "1",
+    title: "We confirm we got it",
+    body: "Within one business day, you'll hear from our front desk letting you know we've received your message.",
+  },
+  {
+    num: "2",
+    title: "We review your request",
+    body: "The right person on our team — front desk, treatment coordinator, or Dr. Richardson — personally reviews what you sent.",
+  },
+  {
+    num: "3",
+    title: "We follow up to talk next steps",
+    body: "Whether it's a quick answer, more detail, or scheduling a visit — we'll reach out with what makes sense for your request. No pressure.",
+  },
+];
+
+const explore = [
+  {
+    label: "Smile gallery",
+    title: "See finished smiles from real patients.",
+    body: "Photos of real Vivid Smiles patients: veneers, implants, whitening, alignment, and full-mouth work.",
+    href: "/smile-gallery/",
+  },
+  {
+    label: "Meet the doctor",
+    title: "Get to know Dr. Richardson.",
+    body: "AACD-trained, accreditation-track cosmetic dentist with a calm, artistic approach to smile design.",
+    href: "/about-us/",
+  },
+  {
+    label: "From the journal",
+    title: "Read the latest from our blog.",
+    body: "Practical guides on veneers, implants, whitening, and what to expect from cosmetic dentistry.",
+    href: "/blog/",
+  },
+];
+---
+
+<BaseLayout
+  title="Thank you — Vivid Smiles Dentistry"
+  description="We've received your request. Here's what happens next at Vivid Smiles Dentistry in Parker, CO."
+  noindex={true}
+>
+  <div class="tyou">
+
+    <main id="main">
+
+      {/* ---------- HERO (full-bleed team photo) ----------
+           data-vs-reveal-batch is on .wrap (content only), NOT on
+           <section class="hero">. Keeping it on the section would pre-hide the
+           LCP <Image> + .hero-scrim via animations.css [data-anim] and
+           slide-animate them on reveal — defeating fetchpriority="high" and
+           introducing a 1.4s jank on the LCP element. Widths trimmed to the
+           source's 1600px ceiling so Astro doesn't emit clamped/duplicate
+           srcset entries. */}
+      <section class="hero">
+        <Image
+          class="hero-bg"
+          src={heroBg}
+          alt="The Vivid Smiles team walking together outside the Parker practice"
+          widths={[768, 1280, 1600]}
+          sizes="100vw"
+          loading="eager"
+          fetchpriority="high"
+        />
+        <div class="hero-scrim" aria-hidden="true"></div>
+        <div class="wrap" data-vs-reveal-batch>
+          <span class="eyebrow">Request received</span>
+          <h1 data-vs-reveal-lines>Thank you, <em>truly.</em></h1>
+          <p class="lede">
+            Your message is in. We'll be in touch within one business day to walk through
+            next steps.
+          </p>
+          <span class="meta">
+            <span class="dot" aria-hidden="true"></span>
+            Our team typically responds within 24 hours
+          </span>
+        </div>
+      </section>
+
+      {/* ---------- WHAT TO EXPECT (cream) ---------- */}
+      <section class="section expect" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head center">
+            <span class="eyebrow">What happens next</span>
+            <h2>Here's what to <em>expect.</em></h2>
+            <p>
+              Nothing more for you to do right now. Here's how the next few days will unfold
+              from our side.
+            </p>
+          </div>
+          <div class="steps">
+            {steps.map((s) => (
+              <article class="step" data-vs-reveal>
+                <span class="num">{s.num}</span>
+                <h3>{s.title}</h3>
+                <p>{s.body}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- WHILE YOU WAIT (charcoal-green) ---------- */}
+      <section class="section alt wait" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head center">
+            <span class="eyebrow">While you wait</span>
+            <h2>Get to know <em>Vivid Smiles.</em></h2>
+            <p>
+              A few places to look around while we get back to you.
+            </p>
+          </div>
+          <div class="explore">
+            {explore.map((card) => (
+              <a class="explore-card" href={card.href} data-vs-arrow data-vs-reveal>
+                <span class="label">{card.label}</span>
+                <h3>{card.title}</h3>
+                <p>{card.body}</p>
+                <ArrowBadge size="lg" variant="ghost-line" />
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- FINAL BAND (paper) ---------- */}
+      <FinalBand eyebrow="Prefer to skip the wait?">
+        <p>
+          Call our front desk and we'll get you scheduled — same-day appointments are often
+          available.
+        </p>
+      </FinalBand>
+
+    </main>
+  </div>
+</BaseLayout>

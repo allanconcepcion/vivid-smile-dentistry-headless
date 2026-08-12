@@ -1,0 +1,183 @@
+---
+/**
+ * SmileGallery — lifestyle smile portrait band.
+ *
+ * Decorative 4-up portrait strip used as a section break between bands on
+ * higher-traffic pages (home, /cosmetic-dentistry/, /patient-testimonials/,
+ * /new-patients/). NOT a patient-story component — there are no names,
+ * quotes, or case labels here on purpose. Drop in between any two existing
+ * sections; self-contained styles + tokens, no parent-page CSS required.
+ *
+ * Edit imagery: swap the four `src/assets/images/people/smile-portrait-*`
+ * webps and update `alt` text below. The grid auto-collapses to 2-up at
+ * ≤991px (legacy tablet break) and stays 2-up at 390px so portraits
+ * remain large enough to read.
+ */
+import { Image } from "astro:assets";
+import smileVanity from "../assets/images/people/generated/smile-portrait-vanity-setting.webp";
+import smileSelfie from "../assets/images/people/generated/smile-portrait-selfie.webp";
+import smileStudioDark from "../assets/images/people/generated/smile-portrait-studio-dark.webp";
+import smileStudioNatural from "../assets/images/people/generated/smile-portrait-studio-natural.webp";
+
+interface Props {
+  eyebrow?: string;
+  heading?: string;
+  italic?: string;
+  body?: string;
+  background?: "paper" | "cream" | "charcoal" | "sage-pale";
+}
+
+const {
+  eyebrow = "The Smile Effect",
+  heading = "Confidence, captured in a",
+  italic = "smile.",
+  body = "From everyday moments to milestone occasions — the kind of smile you don't think twice about sharing.",
+  background = "paper",
+} = Astro.props;
+
+const portraits = [
+  { src: smileVanity,        alt: "Lifestyle smile portrait — warm natural light" },
+  { src: smileSelfie,        alt: "Candid lifestyle smile portrait" },
+  { src: smileStudioDark,    alt: "Editorial smile portrait on a deep backdrop" },
+  { src: smileStudioNatural, alt: "Smile portrait in a soft studio setting" },
+];
+---
+
+<section
+  class:list={["vs-smile-gallery", `bg-${background}`]}
+  aria-label="Lifestyle smiles"
+  data-vs-reveal-batch
+>
+  <div class="vsg-wrap">
+    <div class="vsg-head">
+      <span class="vsg-eyebrow">{eyebrow}</span>
+      <h2 class="vsg-h2">{heading} <em>{italic}</em></h2>
+      <p class="vsg-body">{body}</p>
+    </div>
+
+    <div class="vsg-grid">
+      {portraits.map((p) => (
+        <figure class="vsg-card" data-vs-reveal>
+          <Image
+            src={p.src}
+            alt={p.alt}
+            widths={[320, 520, 720]}
+            sizes="(max-width: 991px) 50vw, 25vw"
+            loading="lazy"
+          />
+        </figure>
+      ))}
+    </div>
+  </div>
+</section>
+
+<style>
+  .vs-smile-gallery {
+    padding: var(--vs-section-pad) 0;
+  }
+  .vs-smile-gallery.bg-paper { background: var(--vs-paper); }
+  .vs-smile-gallery.bg-cream { background: var(--vs-cream); }
+  .vs-smile-gallery.bg-charcoal { background: var(--vs-charcoal-green); }
+  .vs-smile-gallery.bg-sage-pale { background: var(--vs-sage-pale); }
+
+  /* Charcoal variant — light text on dark band */
+  .vs-smile-gallery.bg-charcoal .vsg-eyebrow { color: var(--vs-eyebrow-on-sage); }
+  .vs-smile-gallery.bg-charcoal .vsg-h2 { color: #fff; }
+  .vs-smile-gallery.bg-charcoal .vsg-h2 em { color: var(--vs-eyebrow-on-sage); }
+  .vs-smile-gallery.bg-charcoal .vsg-body { color: rgba(255, 255, 255, 0.85); }
+
+  /* Sage-pale variant — dark text on light-sage band */
+  .vs-smile-gallery.bg-sage-pale .vsg-eyebrow { color: var(--vs-ink-soft); }
+  .vs-smile-gallery.bg-sage-pale .vsg-h2 { color: var(--vs-ink); }
+  .vs-smile-gallery.bg-sage-pale .vsg-h2 em { color: var(--vs-sage); }
+  .vs-smile-gallery.bg-sage-pale .vsg-body { color: var(--vs-ink-soft); }
+
+  .vsg-wrap {
+    max-width: var(--vs-container-max);
+    margin: 0 auto;
+    padding: 0 clamp(20px, 4vw, 40px);
+  }
+
+  .vsg-head {
+    text-align: center;
+    max-width: 640px;
+    margin: 0 auto clamp(40px, 5vw, 64px);
+    /* Belt-and-suspenders: reset any page-level decorative styles on
+       eyebrow pseudo-elements that descendant rules may be applying.
+       Both /cosmetic-dentistry/ and /patient-testimonials/ inject
+       ::before / ::after hairlines on .eyebrow which would otherwise
+       cascade into this band. */
+  }
+  .vsg-head .vsg-eyebrow {
+    display: inline-block;
+    font-family: var(--vs-font-body);
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    margin-bottom: 18px;
+  }
+  .vsg-head .vsg-eyebrow::before,
+  .vsg-head .vsg-eyebrow::after {
+    content: none !important;
+  }
+  .vsg-head .vsg-h2 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    font-size: var(--vs-h2-size);
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    color: var(--vs-sage-soft);
+    margin: 0 0 18px;
+  }
+  .vsg-head .vsg-h2 em {
+    font-style: italic;
+    color: inherit;
+    font-weight: 300;
+  }
+  .vsg-head .vsg-body {
+    font-family: var(--vs-font-body);
+    font-size: clamp(15px, 1.2vw, 17px);
+    line-height: 1.55;
+    color: var(--vs-ink-soft);
+    margin: 0;
+  }
+
+  .vsg-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: clamp(14px, 1.6vw, 22px);
+  }
+
+  .vsg-card {
+    aspect-ratio: 4 / 5;
+    border-radius: var(--vs-r-md);
+    overflow: hidden;
+    margin: 0;
+    background: var(--vs-cream);
+    box-shadow: var(--vs-shadow);
+    position: relative;
+  }
+  .vsg-card :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform var(--vs-dur-image) var(--vs-ease);
+    will-change: transform;
+  }
+  .vsg-card:hover :global(img) {
+    transform: scale(1.04);
+  }
+
+  @media (max-width: 991px) {
+    .vsg-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .vsg-card :global(img) {
+      transition: none;
+    }
+  }
+</style>

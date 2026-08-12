@@ -1,0 +1,121 @@
+---
+// Self-hosted Urbanist + Public Sans (variable axes) + italic 400 for Urbanist.
+// Replaces the Google Fonts CDN <link> — eliminates ~850 ms of render-blocking
+// CSS from fonts.googleapis.com.
+import "@fontsource-variable/urbanist";
+import "@fontsource-variable/urbanist/wght-italic.css";
+import "@fontsource-variable/public-sans";
+// Self-hosted FontAwesome 6 Free Solid — replaces the cdnjs CSS pair.
+// Eliminates ~1.2–1.4 s render-blocking CSS per page.
+// Iconography spec: /design-system § Iconography.
+import "@fortawesome/fontawesome-free/css/fontawesome.css";
+import "@fortawesome/fontawesome-free/css/solid.css";
+import "../styles/tokens.css";
+import "../styles/global.css";
+import "../styles/animations.css";
+import "../styles/components/crumbs.css";
+import "../styles/components/marquee.css";
+import Nav from "../components/nav/Nav.astro";
+import Footer from "../components/Footer.astro";
+import Analytics from "../components/Analytics.astro";
+import AnalyticsNoscript from "../components/AnalyticsNoscript.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+  noindex?: boolean;
+  /**
+   * Absolute or root-relative URL of the social-share preview image.
+   * Used for og:image and twitter:image. Defaults to the site logo when omitted.
+   */
+  ogImage?: string;
+  /**
+   * Set on article pages (blog posts) so og:type becomes "article" and
+   * the published-time / author meta tags are emitted. Omit on non-article pages.
+   */
+  articlePublishedDate?: Date;
+  articleAuthor?: string;
+}
+
+const {
+  title = "Vivid Smiles Dentistry — Cosmetic & Implant Dentistry in Parker, CO",
+  description = "Cosmetic, implant, general, and emergency dentistry in Parker, Colorado. Calm, premium, patient-centered care.",
+  noindex = false,
+  ogImage,
+  articlePublishedDate,
+  articleAuthor,
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImageAbsolute = ogImage
+  ? new URL(ogImage, Astro.site).href
+  : new URL("/apple-touch-icon.png", Astro.site).href;
+const ogType = articlePublishedDate ? "article" : "website";
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+
+    <Analytics />
+
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="canonical" href={canonical} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex,nofollow" />}
+
+    {/* Open Graph / Twitter card — minimal but enough for share previews. */}
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImageAbsolute} />
+    <meta property="og:site_name" content="Vivid Smiles Dentistry" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageAbsolute} />
+
+    {articlePublishedDate && (
+      <meta property="article:published_time" content={articlePublishedDate.toISOString()} />
+    )}
+    {articleAuthor && <meta property="article:author" content={articleAuthor} />}
+
+    <!-- WhatConverts dynamic number insertion (profile 162233). Sitewide call
+         tracking — swaps phone numbers at runtime based on visitor source.
+         is:inline keeps Astro from bundling the third-party tag. -->
+    <script is:inline>
+      var $wc_load = function (a) {
+        return JSON.parse(JSON.stringify(a));
+      };
+      var $wc_leads = $wc_leads || {
+        doc: {
+          url: $wc_load(document.URL),
+          ref: $wc_load(document.referrer),
+          search: $wc_load(location.search),
+          hash: $wc_load(location.hash),
+        },
+      };
+    </script>
+    <script is:inline async src="https://s.ksrndkehqnwntyxlhgto.com/162233.js"></script>
+  </head>
+  <body>
+    <AnalyticsNoscript />
+    <a class="vs-skip-link" href="#main">Skip to content</a>
+    <Nav currentPath={Astro.url.pathname} />
+    <slot />
+    <Footer />
+
+    <script>
+      import "../scripts/lenis.js";
+      import "../scripts/nav.js";
+      import "../scripts/animations.js";
+    </script>
+  </body>
+</html>

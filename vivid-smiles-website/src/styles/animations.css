@@ -1,0 +1,83 @@
+/*
+ * Vivid Smiles — CSS-driven motion + initial states for GSAP-driven motion.
+ * Live GSAP wiring lives in src/scripts/animations.js. Keep the two in sync.
+ *
+ * Two-phase reveal pattern:
+ *   1. Pre-hide animated elements via [data-anim] (set by animations.js once GSAP is ready).
+ *   2. GSAP plays the reveal animation, removing inline transforms when finished.
+ *
+ * If JS fails to load, no [data-anim] attribute is set, so content stays visible.
+ */
+
+/* ── Marquee keyframes (used by .gallery-marquee, etc.) ───────────────────── */
+@keyframes vs-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+/* ── Pulse dot (live status, "open now" badge) ─────────────────────────────── */
+/* Each consuming element sets `--vs-pulse-halo-rgb` so the same keyframe
+   works for both the green --vs-pulse-live and amber --vs-pulse-amber dots. */
+@keyframes vs-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 4px rgba(var(--vs-pulse-halo-rgb, var(--vs-pulse-live-rgb)), 0.25);
+  }
+  50% {
+    box-shadow: 0 0 0 7px rgba(var(--vs-pulse-halo-rgb, var(--vs-pulse-live-rgb)), 0.06);
+  }
+}
+
+/* ── Reveal initial states (only applied once GSAP is ready) ───────────────── */
+.gsap-ready [data-anim] {
+  opacity: 0;
+  visibility: hidden;
+}
+
+/* Without [data-anim] (JS not loaded / before pre-hide), elements show normally */
+[data-vs-reveal],
+[data-vs-reveal-lines],
+[data-vs-reveal-batch] > * {
+  opacity: 1;
+  transform: none;
+}
+
+/* Heading line-mask reveal — wraps each line in an overflow-hidden mask
+   so its inner span can rise from yPercent:110. The .gx-inner span is
+   added by the JS line-splitter at runtime.
+
+   padding-bottom + matching negative margin-bottom give the mask enough
+   room to render Urbanist's descenders (g, p, y, j, q) without changing
+   the perceived baseline-to-baseline rhythm. Without this, descenders
+   on tight-leading display headings get clipped flat. */
+[data-vs-reveal-lines] .gx-line {
+  overflow: hidden;
+  display: block;
+  padding-bottom: 0.2em;
+  margin-bottom: -0.2em;
+}
+[data-vs-reveal-lines] .gx-inner {
+  display: inline-block;
+  will-change: transform;
+}
+
+/* ── Reduced-motion guard ──────────────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* Always show animated content under reduced motion */
+  .gsap-ready [data-anim] {
+    opacity: 1 !important;
+    visibility: visible !important;
+  }
+}

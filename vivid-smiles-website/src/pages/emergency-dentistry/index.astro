@@ -1,0 +1,574 @@
+---
+/**
+ * Emergency Dentistry — standalone service page.
+ *
+ * Replaces the placeholder. Port-from-template build off
+ * `/general-dentistry/`, namespace-swapped to `.emerg`.
+ * SEO copy is used verbatim — H1/H2/H3 hierarchy preserved exactly.
+ *
+ * Structural deviations from `.gdent`:
+ *   • Hero primary CTA is "Call" (sage), Book Online demoted to ghost. The
+ *     emergency context flips the funnel: phone is the actual emergency
+ *     channel, not the online booking widget. Carry-forward precedent: when
+ *     a service page's intent is urgency rather than scheduling, swap Call
+ *     to primary.
+ *   • NEW page-local pattern: `.scenario-grid` + `.scenario-card` +
+ *     `.scenario-card--always`. The 5 first-aid items aren't a sequence —
+ *     they're 4 parallel scenarios ("if X happens, do Y") plus one universal
+ *     action ("call ahead") that applies in every case. The 4 scenarios sit
+ *     in a 2×2 grid (`.scenario-grid`); the universal action renders below
+ *     as a full-width sage card (`.scenario-card--always`) so it reads as
+ *     applicable to every scenario above rather than as a fifth peer.
+ *   • NEW page-local pattern: `.emerg-callout-list` (lift of
+ *     `.priv-callout-list` from privacy-policy.css with namespace swap).
+ *     Sage circular bullets, used for the 7-item "Common Dental Emergencies"
+ *     list.
+ *   • Contact form (Typeform embed) replaces `<VirtualConsult>` in the bottom
+ *     CTA slot. Emergency context benefits from a real "tell us what happened"
+ *     channel rather than the smile-consult video framing of VC. Same
+ *     CONTACT_TYPEFORM_ID as `/contact/` — this is the canonical front-desk
+ *     funnel; if the contact form embed ID ever changes, sync both pages.
+ *   • DROP — no #doctors portrait section. The SEO copy folds Bryce + Annie
+ *     credentials into the #why-us prose; per the rule "if SEO
+ *     copy doesn't allocate a dedicated doctor section, don't fabricate
+ *     one", we don't lift the equal-billing `.doctor--feature` pattern.
+ *   • DROP — no #services 4-up tile grid. Emergency services aren't navigated
+ *     as a catalog; the 7 common cases render as a single sage-bullet list
+ *     in the new `.emerg-callout-list`.
+ *   • DROP — no #payment / membership card. The cost framing lives entirely
+ *     inside FAQ #4 ($150–$300 for exam + X-rays); no marketing module
+ *     needed.
+ *
+ * Section order (preserves SEO copy H2 sequence; `#area` inserts between
+ * `#why-us` and `#prevent` to keep band rhythm clean):
+ *   hero P → #when C → #protocol P → #how C → #emergencies P → #why-us S
+ *     → #area C → #prevent P → #faq C → .closing P → #contact-form C
+ *     → FinalBand dark.
+ * Band rhythm: P-C-P-C-P-S-C-P-C-P-C-dark. No back-to-back duplicates.
+ *
+ * Inline `<a class="vs-link">` anchors (rendered via `set:html`):
+ *   • #emergencies bullet #3 → /cosmetic-dentistry/  (paper band)
+ *   • #prevent prose → /general-dentistry/           (paper band)
+ *   • .closing outro → /services + tel:              (paper band)
+ *
+ * JSON-LD trio: `MedicalProcedure` (matches detail-page precedent —
+ * single-tooth-dental-implants, clear-aligners) + `FAQPage` + `BreadcrumbList`.
+ *
+ * Reveals/parallax wired by src/scripts/animations.js — `data-vs-reveal`,
+ * `data-vs-reveal-batch`, `data-vs-parallax` attributes only.
+ */
+import { Image } from "astro:assets";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Button from "../../components/Button.astro";
+import FinalBand from "../../components/FinalBand.astro";
+
+import {
+  phoneHref,
+  phoneLabel,
+  phoneE164,
+  bookNowHref,
+  addressStreet,
+  addressCity,
+  addressState,
+  addressZip,
+  addressLine,
+  directionsHref,
+  contactTypeformId,
+} from "../../data/contact";
+import "../../styles/pages/emergency-dentistry.css";
+
+// Hero — patient portrait. Staff portraits never front a service page.
+import imgHero from "../../assets/images/people/real/woman-blonde-warm-interior.webp";
+
+// #how · 2-col copy + image. Real same-day emergency care in the Vivid Smiles
+// operatory. The clinician is masked and unconfirmed — do not name him.
+// Real Vivid Smiles content, exactly matches the page's "we'll see you today"
+// emergency framing. Previous placeholder was a yomi-robotic shot which read
+// as routine implant work, not emergency triage.
+import imgHow from "../../assets/images/procedures/same-day-emergency-dental-care.webp";
+
+const tocLinks = [
+  { href: "#when",        label: "When to Seek" },
+  { href: "#protocol",    label: "First Aid" },
+  { href: "#how",         label: "How We Handle" },
+  { href: "#emergencies", label: "Common Cases" },
+  { href: "#why-us",      label: "Why Choose Us" },
+  { href: "#area",        label: "Parker Location" },
+  { href: "#prevent",     label: "Prevention" },
+  { href: "#faq",         label: "FAQ" },
+];
+
+// 5 first-aid scenarios — each is a parallel "if this happens, do that" panel,
+// NOT a sequence. The first 4 are scenario-specific (knocked-out / pain /
+// broken / lost crown); the 5th ("Call ahead") is a universal action that
+// applies in every scenario — rendered with a distinct sage card treatment
+// (see .scenario--always rule in emergency-dentistry.css).
+const scenarios = [
+  {
+    title: "Knocked-out tooth",
+    body: "Handle by the crown, rinse gently without scrubbing, and store in milk or saliva. Get to our office within an hour.",
+  },
+  {
+    title: "Severe pain",
+    body: "Rinse with warm salt water and apply a cold compress to the outside of your face; over-the-counter pain relief is appropriate.",
+  },
+  {
+    title: "Broken tooth",
+    body: "Save all pieces, rinse your mouth, and apply gauze if bleeding.",
+  },
+  {
+    title: "Lost crown or filling",
+    body: "Retrieve the crown if possible; temporary dental cement from a pharmacy can protect the exposed tooth until you arrive.",
+  },
+];
+
+const callAhead = {
+  title: "And always — call ahead",
+  body: `By calling <a class="vs-link" href="${phoneHref}">${phoneLabel}</a> before you arrive, our team can prepare and get you seen as quickly as possible.`,
+};
+
+// 7 Common Dental Emergencies — verbatim from SEO copy. Rendered as <li
+// set:html> so bullet #3's inline /cosmetic-dentistry/ anchor renders.
+const commonCases = [
+  `<b>Severe toothache:</b> Diagnosed with CBCT imaging; root canal or extraction performed same visit if needed.`,
+  `<b>Knocked-out tooth:</b> Reimplantation if timing and condition allow; same-visit implant consultation if not.`,
+  `<b>Broken or cracked tooth:</b> Bonding, crown, or extraction completed same day when possible; front tooth trauma may involve <a class="vs-link" href="/cosmetic-dentistry/">cosmetic restoration</a> to renew appearance alongside function.`,
+  `<b>Dental abscess:</b> Drainage, antibiotics, and root canal or extraction to eliminate infection and prevent spread.`,
+  `<b>Lost filling or crown:</b> Temporary or permanent restoration placed the same day.`,
+  `<b>Soft tissue injury:</b> Suturing and infection prevention as needed.`,
+  `<b>Broken orthodontic appliance:</b> Sharp edges removed or repaired to prevent further tissue injury.`,
+];
+
+// FAQs verbatim from the SEO copy. Answers rendered via set:html (
+// pattern; Google permits HTML in acceptedAnswer.text).
+const faqs = [
+  {
+    q: "Should I go to the ER or a dentist for a dental emergency?",
+    a: "Go to the ER for airway compromise, uncontrolled bleeding, a jaw fracture with suspected head trauma, or loss of consciousness. For everything tooth-specific, a dentist is faster and less costly.",
+    open: true,
+  },
+  {
+    q: "What should I do if a dental emergency happens after hours?",
+    a: `Dr. Richardson and Dr. Westermeier maintain after-hours availability for emergency cases; call <a class="vs-link" href="${phoneHref}">${phoneLabel}</a>. If you reach voicemail, leave a message and follow the first-aid steps above while waiting for a return call.`,
+  },
+  {
+    q: "Does insurance cover emergency dental visits?",
+    a: `Most dental insurance plans cover emergency exams and necessary treatment. Vivid Smiles verifies your benefits before treatment, and uninsured patients can access the in-house <a class="vs-link" href="/dental-membership-plan/">membership plan</a> to reduce costs.`,
+  },
+  {
+    q: "How much does emergency dental care cost?",
+    a: "An emergency exam and X-rays range from $150 to $300; treatment costs vary based on what is needed. Vivid Smiles provides a transparent estimate before a treatment.",
+  },
+  {
+    q: "Can a knocked-out tooth be saved?",
+    a: "Reimplantation is possible when you act within 30 to 60 minutes and store the tooth in milk or saliva. Speed and proper handling are the two factors most within your control.",
+  },
+];
+
+// Hero lede — also used (HTML-stripped) as the JSON-LD MedicalProcedure
+// description.
+const heroLede =
+  "Dental emergencies don't follow business hours, and knowing where to go in Parker can be the difference between saving a tooth and losing one. Vivid Smiles Dentistry offers same-day emergency appointments, 3D diagnostic imaging, and in-house surgical expertise to resolve most cases on the first visit. The following is how to recognize a dental emergency, what to do before you arrive, and why Vivid Smiles is equipped to handle it.";
+---
+
+<BaseLayout
+  title="Emergency Dental Care in Parker, CO | Vivid Smiles Dentistry"
+  description="Same-day emergency dental care in Parker, CO at Vivid Smiles Dentistry. CBCT 3D imaging, in-house milling, and surgical expertise to resolve most emergencies in a single visit. Call (303) 841-5313."
+>
+  <div class="emerg">
+
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <div class="crumbs-inner">
+        <a href="/">Home</a>
+        <span class="sep">/</span>
+        <a href="/services/">Services</a>
+        <span class="sep">/</span>
+        <span class="here">Emergency Dental Care</span>
+      </div>
+    </nav>
+
+    <main id="main">
+
+    <header class="hero" data-vs-reveal-batch>
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <span class="eyebrow">Emergency Dentistry · Parker, CO</span>
+          <h1 data-vs-reveal-lines>Emergency dental care <em>in Parker, Colorado.</em></h1>
+          <p class="hero-sub">{heroLede}</p>
+          <div class="hero-actions">
+            <Button variant="sage" href={phoneHref} hoverLabel="Tap to Dial">Call {phoneLabel}</Button>
+            <Button variant="ghost" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button>
+            <div class="ratings">
+              <span class="stars" aria-hidden="true">★★★★★</span>
+              <span>5.0 · 300+ reviews</span>
+            </div>
+          </div>
+        </div>
+        <div class="hero-stack">
+          <div class="hero-primary" data-vs-parallax data-parallax="-25">
+            <Image
+              src={imgHero}
+              alt="Smiling woman photographed in a warm interior setting"
+              widths={[540, 800, 1080]}
+              sizes="(max-width: 991px) 100vw, 540px"
+              loading="eager"
+              fetchpriority="high"
+            />
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <nav class="toc" id="toc" aria-label="On this page">
+      <div class="toc-inner">
+        <span class="toc-label">On this page</span>
+        <div class="toc-scroll">
+          <div class="toc-list">
+            {tocLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <section class="section alt" id="when" data-vs-reveal-batch>
+      <div class="why-grid">
+        <div class="why-copy">
+          <span class="eyebrow">When to seek care</span>
+          <h2>When to seek <em>emergency dental care.</em></h2>
+          <p>
+            Dental emergencies and urgent dental issues need same-day attention; knowing the difference helps you act
+            quickly and calmly. Vivid Smiles prioritizes same-day appointments for both categories.
+          </p>
+          <h3>Dental Emergencies</h3>
+          <p>
+            True dental emergencies involve conditions where timing affects the outcome. A knocked-out permanent tooth
+            requires care within 30 to 60 minutes: handle by the crown, rinse, and store in milk or saliva until you get
+            to our practice. Uncontrolled bleeding, severe infection with swelling affecting breathing or swallowing,
+            jaw fractures, and facial trauma also require immediate attention.
+          </p>
+          <h3>Urgent Dental Issues</h3>
+          <p>
+            Urgent dental issues are not life-threatening but need same-day care to prevent serious complications.
+            Severe toothaches, cracked or broken teeth, lost crowns or fillings, abscesses without airway involvement,
+            soft tissue injuries, and broken orthodontic wires all require prompt treatment. Delay allows infection to
+            spread, increases pain, and makes eventual treatment more complex.
+          </p>
+        </div>
+
+        <div class="why-stats">
+          <div class="stat-card">
+            <div class="stat-num">30–60</div>
+            <div class="stat-label">Minute Reimplantation Window</div>
+            <p class="stat-detail">A knocked-out tooth has the best chance of being saved when it reaches the operatory inside the first hour.</p>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num">3D</div>
+            <div class="stat-label">CBCT Diagnostic Imaging</div>
+            <p class="stat-detail">Full view of tooth, bone, and tissue — root fractures and infection that standard X-rays miss, visible in minutes.</p>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num">600<em>+</em></div>
+            <div class="stat-label">Hours Surgical Training</div>
+            <p class="stat-detail">Dr. Richardson's advanced training. Same-day crowns, implant consultation, and sedation handled in-house.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="protocol" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">First aid</span>
+          <h2>What to do <em>before you reach our office.</em></h2>
+          <p>The right first-aid response depends on what happened. Find your scenario below and follow the steps for that situation — these are independent, not sequential.</p>
+        </div>
+
+        <div class="scenario-grid">
+          {scenarios.map((s) => (
+            <article class="scenario-card">
+              <span class="scenario-tag">In case of</span>
+              <h3>{s.title}</h3>
+              <p>{s.body}</p>
+            </article>
+          ))}
+        </div>
+
+        <article class="scenario-card scenario-card--always">
+          <span class="scenario-tag">In every case</span>
+          <h3>{callAhead.title}</h3>
+          <p set:html={callAhead.body}></p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section alt" id="how" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="what-grid">
+          <div class="what-text">
+            <span class="eyebrow">How we handle it</span>
+            <h2>How Vivid Smiles handles <em>emergency dental cases.</em></h2>
+            <p>
+              Same-day emergency appointments are a priority at Vivid Smiles, with advanced technology and surgical
+              expertise to resolve most cases on the first visit. Dr. Bryce Richardson's 600+ hours of advanced surgical
+              training and Dr. Annelise Westermeier's advanced residency training in medically compromised patient care
+              mean our practice is prepared for both complex trauma and sensitive medical situations.
+            </p>
+            <h3>Advanced Diagnostic Technology</h3>
+            <p>
+              CBCT imaging provides a full 3D view of tooth structure, surrounding bone, and tissue, allowing
+              Dr. Richardson to identify root fractures, bone damage, and the extent of the infection that standard
+              X-rays might miss, all within minutes of arrival. Digital scanners replace traditional impressions.
+              Accurate diagnosis on the first appointment means no second-guessing and no delays.
+            </p>
+            <h3>In-House Treatments</h3>
+            <p>
+              Our milling unit and 3D printer enable same-day crowns and temporary restorations. Dr. Richardson's
+              implant training, including experience at Implant Pathway and robotic placement technology, supports
+              same-visit implant consultation for teeth that cannot be reimplanted. Sedation is available for patients
+              managing severe pain or high anxiety.
+            </p>
+          </div>
+          <div class="what-img" data-vs-parallax data-parallax="-25">
+            <Image
+              src={imgHow}
+              alt="A Vivid Smiles dentist and assistant treating an emergency patient in Parker, CO"
+              widths={[500, 800, 1100]}
+              sizes="(max-width: 991px) 100vw, 50vw"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="emergencies" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Common cases</span>
+          <h2>Common <em>dental emergencies.</em></h2>
+          <p>Vivid Smiles treats the full range of dental emergencies, resolving most cases the same day.</p>
+        </div>
+
+        <ul class="emerg-callout-list">
+          {commonCases.map((c) => (
+            <li set:html={c}></li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <section class="section dark" id="why-us" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="trust-quote">
+          <span class="eyebrow light">Why choose Vivid Smiles</span>
+          <h2>Why choose Vivid Smiles <em>for emergency dental care.</em></h2>
+          <p class="trust-body">
+            Vivid Smiles offers emergency care that goes beyond availability. Dr. Richardson graduated at the top of
+            his class from Indiana University School of Dentistry, completed 600+ hours of advanced surgical training,
+            and served as team dentist for the Indiana University basketball team. Dr. Westermeier's advanced
+            residency adds capability for patients managing complex health conditions.
+          </p>
+          <p class="trust-body">
+            With over 300 five-star reviews highlighting a calm, welcoming environment, patients who arrive anxious
+            leave <em>relieved.</em>
+          </p>
+          <p class="trust-attr">
+            <span class="stars" aria-hidden="true">★★★★★</span>
+            <span>5.0 · 300+ Google reviews</span>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="area" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="area">
+          <div class="area-copy">
+            <span class="eyebrow">Visit the office</span>
+            <h2>Same-day emergencies <em>in Parker.</em></h2>
+            <p>
+              Vivid Smiles Dentistry is located at {addressStreet}, in {addressCity}. Same-day emergency appointments
+              are accepted; call ahead so we can prep the operatory and get you seen as quickly as possible.
+            </p>
+            <p>
+              After-hours? Leave a voicemail and follow the first-aid steps above while waiting for a return call from
+              Dr. Richardson or Dr. Westermeier.
+            </p>
+            <p class="area-address-line">
+              <b>{addressStreet}</b><br />
+              {addressCity}, {addressState} {addressZip} · <a class="vs-link" href={phoneHref}>{phoneLabel}</a>
+            </p>
+            <div class="area-actions">
+              <Button variant="light" href={phoneHref} hoverLabel="Tap to Dial">Call {phoneLabel}</Button>
+              <Button variant="ghost-light" href={directionsHref} hoverLabel="Open Maps">Get Directions</Button>
+            </div>
+          </div>
+          <div class="area-map" aria-label="Map showing Vivid Smiles Dentistry">
+            <iframe
+              src={`https://maps.google.com/maps?q=${encodeURIComponent(addressLine)}&output=embed`}
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              title={`Map showing Vivid Smiles Dentistry at ${addressLine}`}
+            ></iframe>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="prevent" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Prevention</span>
+          <h2>Preventing <em>dental emergencies.</em></h2>
+        </div>
+
+        <div class="prevent-prose">
+          <p>
+            Most dental emergencies are preventable. Regular checkups catch cracked fillings, early decay, and gum
+            disease before they become urgent. Custom mouthguards, a natural extension of Dr. Richardson's team
+            dentist background, protect teeth during contact sports; a nightguard addresses grinding that erodes
+            enamel. Avoiding ice, hard candy, and using teeth as tools eliminates common fracture causes.
+          </p>
+          <p set:html={`Consistent <a class="vs-link" href="/general-dentistry/">general dentistry care</a> is the best prevention strategy.`}></p>
+          <div class="prevent-actions">
+            <Button variant="ghost" href="/general-dentistry/" hoverLabel="See Care">Explore General Dentistry</Button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="faq" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">FAQ</span>
+          <h2>Dental emergency <em>FAQs.</em></h2>
+          <p>Practical answers to the questions patients ask first. Anything else, send a message through the <a class="vs-link" href="#contact-form">contact form</a> and a member of our team will write back within one business day.</p>
+        </div>
+
+        <div class="faq-list">
+          {faqs.map((f) => (
+            <details class="faq" open={f.open}>
+              <summary><h3>{f.q}</h3><span class="icon" aria-hidden="true">+</span></summary>
+              <div class="answer" set:html={f.a} />
+            </details>
+          ))}
+        </div>
+
+        <div class="cta-row">
+          <div class="cta-buttons">
+            <Button variant="light" href={phoneHref} hoverLabel="Tap to Dial">Call {phoneLabel}</Button>
+            <Button variant="ghost-light" href="#contact-form" hoverLabel="Send a Message">Send a Message</Button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="closing" data-vs-reveal>
+      <div class="wrap">
+        <div class="closing-inner">
+          <span class="eyebrow">Same-day care when it counts</span>
+          <h2>A dental emergency is stressful. <em>Vivid Smiles is ready.</em></h2>
+          <p>
+            A dental emergency is stressful. Vivid Smiles offers same-day appointments, advanced diagnostic imaging,
+            and the surgical expertise to handle most cases in a single visit.
+          </p>
+          <p
+            class="outro"
+            set:html={`Vivid Smiles Dentistry in Parker, Colorado, offers a <a class="vs-link" href="/services">full range of dental services</a>, from emergency care to preventive and cosmetic treatment, all under one roof. Call <a class="vs-link" href="${phoneHref}">${phoneLabel}</a> or book online at vividsmilesdentistry.com to schedule same-day care.`}
+          ></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt contact-section" id="contact-form" aria-label="Send us a message" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="contact-grid">
+          <div class="contact-copy">
+            <span class="eyebrow">Send a message</span>
+            <h2>Not sure if it's an <em>emergency? Send a message.</em></h2>
+            <p>
+              Describe what happened and we'll write back within one business day. For anything urgent, call
+              <a class="vs-link" href={phoneHref}>{phoneLabel}</a> — that's the fastest channel during business hours.
+            </p>
+            <div class="contact-actions">
+              <Button variant="light" href={phoneHref} hoverLabel="Tap to Dial">Call {phoneLabel}</Button>
+              <Button variant="ghost-light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button>
+              <span class="reply-note">
+                <span class="dot" aria-hidden="true"></span>
+                <span>Replies within one business day</span>
+              </span>
+            </div>
+          </div>
+
+          <div class="hero-form" data-vs-reveal data-vs-lenis-passthrough>
+            <div class="tf-loading" aria-hidden="true">
+              <span class="spinner"></span>
+              <span>Loading form…</span>
+            </div>
+            <div data-tf-live={contactTypeformId}></div>
+            <script is:inline src="https://embed.typeform.com/next/embed.js"></script>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <FinalBand>
+      <p>
+        Vivid Smiles Dentistry in Parker offers same-day emergency dental care backed by CBCT 3D imaging, in-house
+        milling, and a dual-doctor team with 600+ hours of advanced surgical training.
+      </p>
+    </FinalBand>
+
+    </main>
+
+    <script>
+      import { initTocSpy } from "../../scripts/toc-spy";
+      initTocSpy(".emerg");
+    </script>
+
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "MedicalProcedure",
+      "name": "Emergency Dental Care",
+      "procedureType": "https://schema.org/TherapeuticProcedure",
+      "bodyLocation": "Mouth",
+      "description": heroLede,
+      "preparation": "Call ahead before arriving so our team can prepare. For a knocked-out tooth, handle by the crown, rinse gently, and store in milk or saliva — get to our office within 30 to 60 minutes.",
+      "howPerformed": "Same-day emergency appointments with CBCT 3D imaging for accurate diagnosis, in-house milling for same-day crowns, and surgical expertise for trauma cases. Sedation is available for patients managing severe pain or high anxiety.",
+      "performer": {
+        "@type": "Dentist",
+        "name": "Vivid Smiles Dentistry",
+        "url": new URL("/", Astro.site).href,
+        "telephone": phoneE164,
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": addressStreet,
+          "addressLocality": addressCity,
+          "addressRegion": addressState,
+          "postalCode": addressZip,
+          "addressCountry": "US",
+        },
+      },
+    })} />
+
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": faqs.map((f) => ({
+        "@type": "Question",
+        "name": f.q,
+        "acceptedAnswer": { "@type": "Answer", "text": f.a },
+      })),
+    })} />
+
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home",                   "item": new URL("/", Astro.site).href },
+        { "@type": "ListItem", "position": 2, "name": "Services",               "item": new URL("/services/", Astro.site).href },
+        { "@type": "ListItem", "position": 3, "name": "Emergency Dental Care",  "item": new URL("/emergency-dentistry/", Astro.site).href },
+      ],
+    })} />
+
+  </div>
+</BaseLayout>

@@ -1,0 +1,767 @@
+/*
+ * Vivid Smiles — Clear Aligners page styles.
+ *
+ * sibling to src/styles/pages/porcelain-veneers.css. Same layout
+ * primitives (.crumbs, .hero, .keys, .toc, .section[.alt|.dark], .why-card,
+ * .what-grid, .process-card, .compare-card, .natural-grid, .lasting-card,
+ * .gallery-marquee, .smile-tile, .faq, .final-band) — every
+ * rule is namespaced under .caligners so styles can't leak between pages.
+ *
+ * Reveals are wired by src/scripts/animations.js — these rules are layout,
+ * color, and rhythm only.
+ */
+
+.caligners {
+  /* Heights of the global nav and the page's sticky TOC. Defaults match
+     desktop measurements; the page script overwrites these at runtime so the
+     scroll-margin on every anchored section + the scroll-spy line below
+     stay in lockstep across breakpoints (nav and TOC are both shorter on
+     mobile). */
+  --nav-h: 77px;
+  --toc-h: 68px;
+
+  /* Local aliases so the prototype's CSS reads cleanly while still pulling
+     from the central token system. Every alias maps to a `--vs-*` token —
+     do not introduce raw hex values in this block. */
+  --sage: var(--vs-sage);
+  --sage-deep: var(--vs-sage-deep);
+  --sage-soft: var(--vs-sage-soft);
+  --cream: var(--vs-cream);
+  --paper: var(--vs-paper);
+  --ink: var(--vs-ink);
+  --ink-soft: var(--vs-ink-soft);
+  --muted: var(--vs-muted);
+  --line: var(--vs-line);
+  --shadow: var(--vs-shadow);
+  --shadow-lg: var(--vs-shadow-lg);
+  --r-sm: var(--vs-r-sm);
+  --r-md: var(--vs-r-md);
+  --r-lg: var(--vs-r-lg);
+  --r-xl: var(--vs-r-xl);
+  --f-display: var(--vs-font-display);
+  --f-body: var(--vs-font-body);
+}
+
+/* ---------- primitives (page-scoped) ---------- */
+.caligners .wrap { max-width: 1240px; margin: 0 auto; padding: 0 40px; }
+.caligners .wrap-sm { max-width: 1040px; margin: 0 auto; padding: 0 40px; }
+
+.caligners .eyebrow {
+  font-family: var(--f-body);
+  font-size: 12px; letter-spacing: 0.28em; text-transform: uppercase;
+  color: var(--sage); font-weight: 500;
+}
+.caligners .eyebrow.light { color: var(--vs-eyebrow-on-sage); }
+
+.caligners h1, .caligners h2, .caligners h3, .caligners h4 {
+  font-family: var(--f-display); font-weight: 400; color: var(--sage);
+  margin: 0; line-height: 1.1; letter-spacing: -0.015em;
+}
+.caligners h1 { font-size: clamp(48px, 7vw, 92px); font-weight: 300; letter-spacing: -0.025em; }
+.caligners h1 em { font-style: italic; color: var(--sage-soft); font-weight: 300; }
+.caligners h2 { font-size: clamp(32px, 4.2vw, 54px); font-weight: 400; letter-spacing: -0.022em; }
+.caligners h3 { font-size: clamp(20px, 2vw, 26px); font-weight: 500; color: var(--ink); }
+.caligners h4 { font-size: 17px; font-weight: 500; color: var(--ink); letter-spacing: 0; }
+.caligners p { margin: 0; color: var(--ink-soft); }
+.caligners em { font-style: italic; color: var(--sage-soft); font-weight: 300; }
+
+/* ---------- HERO ---------- */
+.caligners .hero {
+  position: relative;
+  background: var(--vs-charcoal-green);
+  padding: 80px 0 100px;
+  overflow: hidden;
+}
+.caligners .hero h1,
+.caligners .hero h2,
+.caligners .hero h3 { color: #fff; }
+.caligners .hero h1 em { color: var(--vs-eyebrow-on-sage); }
+.caligners .hero .eyebrow { color: var(--vs-eyebrow-on-sage); }
+.caligners .hero .eyebrow::before { background: rgba(255, 255, 255, 0.6); }
+.caligners .hero p,
+.caligners .hero .hero-sub { color: rgba(255, 255, 255, 0.85); }
+.caligners .hero em { color: var(--vs-eyebrow-on-sage); }
+.caligners .hero::before {
+  content: ""; position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 900px 500px at 85% 15%, rgba(107, 122, 84, 0.08), transparent 60%),
+    radial-gradient(ellipse 700px 400px at 5% 95%, rgba(107, 122, 84, 0.06), transparent 60%);
+  pointer-events: none;
+}
+.caligners .hero-inner {
+  position: relative;
+  display: grid; grid-template-columns: 1.1fr 0.9fr;
+  gap: 70px; align-items: center;
+  max-width: 1240px; margin: 0 auto; padding: 0 40px;
+}
+.caligners .hero-copy .eyebrow { display: inline-flex; align-items: center; gap: 14px; }
+.caligners .hero-copy .eyebrow::before {
+  content: ""; width: 28px; height: 1px; background: var(--sage);
+}
+.caligners .hero h1 { margin: 22px 0 26px; max-width: 14ch; }
+.caligners .hero-sub {
+  max-width: 56ch; font-size: 17px; line-height: 1.75; color: var(--ink-soft);
+}
+.caligners .hero-actions {
+  margin-top: 36px;
+  display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+}
+.caligners .hero-actions .ratings {
+  display: flex; align-items: center; gap: 10px;
+  padding-left: 18px;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 12px; color: rgba(255, 255, 255, 0.7); letter-spacing: 0.04em;
+}
+.caligners .hero-actions .stars {
+  color: var(--vs-eyebrow-on-sage); letter-spacing: 0.12em;
+}
+.caligners .hero-img {
+  aspect-ratio: 4/5;
+  box-shadow: var(--shadow);
+  border-radius: var(--r-xl);
+  overflow: hidden;
+}
+.caligners .hero-img img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+
+/* ---------- AT-A-GLANCE BAND ---------- */
+.caligners .keys {
+  background: var(--paper);
+  padding: 50px 0;
+  border-bottom: 1px solid var(--line);
+}
+.caligners .keys-grid {
+  display: grid; grid-template-columns: auto repeat(4, 1fr);
+  gap: 16px;
+  max-width: 1240px; margin: 0 auto; padding: 0 40px;
+}
+.caligners .keys-label {
+  background: var(--sage); color: #fff;
+  border-radius: var(--r-md);
+  padding: 22px 26px;
+  display: flex; align-items: center;
+  font-size: 10.5px; letter-spacing: 0.28em; text-transform: uppercase;
+  white-space: nowrap;
+}
+.caligners .keys-item {
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 22px 24px;
+  display: flex; flex-direction: column; gap: 6px; justify-content: center;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+.caligners .keys-item:hover {
+  transform: translateY(-2px);
+  border-color: var(--sage-soft);
+  box-shadow: 0 12px 24px -16px rgba(40, 40, 30, 0.18);
+}
+.caligners .keys-item .k {
+  font-family: var(--f-display); font-size: 22px; color: var(--sage);
+  font-weight: 400; line-height: 1.05; letter-spacing: -0.01em;
+}
+.caligners .keys-item .v {
+  font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--muted);
+}
+
+/* ---------- ON-THIS-PAGE TOC ----------
+   Sticks under the global Nav (77px tall) instead of competing with it for
+   `top: 0`. Anchored sections set their own `scroll-margin-top` further down
+   so a TOC click lands just under both bars. */
+.caligners .toc {
+  position: sticky; top: var(--nav-h);
+  z-index: 40;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: saturate(140%) blur(10px);
+  -webkit-backdrop-filter: saturate(140%) blur(10px);
+  border-bottom: 1px solid var(--line);
+  padding: 10px 0;
+}
+.caligners .toc-inner {
+  max-width: 1240px; margin: 0 auto; padding: 0 40px;
+  display: flex; align-items: center; gap: 20px;
+}
+.caligners .toc-label {
+  font-size: 10.5px; letter-spacing: 0.26em; text-transform: uppercase;
+  color: var(--sage); font-weight: 500;
+  display: inline-flex; align-items: center; gap: 10px; flex-shrink: 0;
+}
+.caligners .toc-label::before {
+  content: ""; width: 18px; height: 1px; background: var(--sage);
+}
+.caligners .toc-scroll { flex: 1; overflow: hidden; position: relative; }
+.caligners .toc-scroll::after {
+  content: ""; position: absolute; right: 0; top: 0; bottom: 0; width: 40px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.95));
+  pointer-events: none;
+}
+.caligners .toc-list {
+  display: flex; gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  /* Vertical padding gives hover-lift + 2px border room before
+     overflow-x: auto's implicit vertical clipping bites the pill edges. */
+  padding: 4px 30px 4px 0;
+}
+.caligners .toc-list::-webkit-scrollbar { display: none; }
+.caligners .toc-list a {
+  flex-shrink: 0;
+  font-size: 12.5px; color: var(--ink-soft); text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #fff;
+  letter-spacing: 0.02em;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+.caligners .toc-list a:hover {
+  color: var(--sage); border-color: var(--sage); transform: translateY(-1px);
+}
+.caligners .toc-list a.active {
+  background: var(--sage); color: #fff; border-color: var(--sage);
+}
+.caligners .toc-list a.active:hover {
+  color: #fff;
+}
+
+/* Anchored-section scroll offset — keep section heading clear of the
+   stacked global Nav + sticky TOC when the user clicks a TOC chip. The
+   global VirtualConsult component renders a <section id="consult"> which
+   is captured by the .caligners section[id] selector below. */
+.caligners section[id],
+.caligners .keys,
+.caligners .hero {
+  scroll-margin-top: calc(var(--nav-h) + var(--toc-h) + 12px);
+}
+
+/* ---------- SECTIONS (band system) ---------- */
+.caligners .section { padding: 110px 0; }
+.caligners .section.alt { background: var(--vs-charcoal-green); }
+.caligners .section.alt h1,
+.caligners .section.alt h2,
+.caligners .section.alt h3,
+.caligners .section.alt h4 { color: #fff; }
+.caligners .section.alt .eyebrow { color: var(--vs-eyebrow-on-sage); }
+.caligners .section.alt p { color: rgba(255, 255, 255, 0.85); }
+.caligners .section.alt em { color: var(--vs-eyebrow-on-sage); }
+
+.caligners .section.dark { background: var(--vs-sage-pale); }
+.caligners .section.dark h1,
+.caligners .section.dark h2,
+.caligners .section.dark h3,
+.caligners .section.dark h4 { color: var(--vs-ink); }
+.caligners .section.dark .eyebrow { color: var(--vs-ink-soft); }
+.caligners .section.dark p { color: var(--vs-ink-soft); }
+.caligners .section.dark em { color: var(--vs-sage); }
+
+.caligners .section-head {
+  max-width: 760px; margin: 0 auto 64px;
+  text-align: center;
+}
+.caligners .section-head .eyebrow {
+  display: inline-flex; align-items: center; gap: 14px;
+}
+.caligners .section-head .eyebrow::before,
+.caligners .section-head .eyebrow::after {
+  content: ""; width: 28px; height: 1px; background: var(--sage);
+}
+.caligners .section.alt .section-head .eyebrow::before,
+.caligners .section.alt .section-head .eyebrow::after {
+  background: rgba(255, 255, 255, 0.6);
+}
+.caligners .section.dark .section-head .eyebrow::before,
+.caligners .section.dark .section-head .eyebrow::after {
+  background: var(--vs-ink-soft);
+}
+.caligners .section-head h2 { margin: 22px 0 22px; }
+.caligners .section-head p {
+  font-size: 17px; line-height: 1.7; max-width: 60ch; margin: 0 auto;
+}
+
+.caligners .prose p { font-size: 16.5px; line-height: 1.85; max-width: 70ch; }
+.caligners .prose p + p { margin-top: 18px; }
+
+/* ---------- WHY ---------- */
+.caligners .why-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+.caligners .why-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 42px 38px;
+  display: flex; flex-direction: column; gap: 14px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.caligners .why-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow);
+}
+.caligners .why-card .num {
+  font-family: var(--f-display); font-style: italic; font-weight: 300;
+  font-size: 36px; color: var(--sage-soft); line-height: 1;
+}
+.caligners .why-card h3 {
+  font-family: var(--f-display); font-weight: 500; font-size: 22px; color: var(--ink);
+}
+.caligners .why-card .lead {
+  font-family: var(--f-display); font-style: italic; font-weight: 300;
+  color: var(--sage); font-size: 17px; line-height: 1.45;
+  letter-spacing: -0.005em;
+}
+.caligners .why-card p { font-size: 15px; line-height: 1.75; }
+
+/* ---------- WHAT ---------- */
+.caligners .what-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 80px; align-items: center;
+}
+.caligners .what-img {
+  aspect-ratio: 5/4;
+  border-radius: var(--r-xl);
+  overflow: hidden; position: relative;
+  box-shadow: var(--shadow);
+}
+.caligners .what-img img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  transition: transform 0.6s ease;
+}
+.caligners .what-img:hover img { transform: scale(1.03); }
+.caligners .what-text .eyebrow { display: inline-flex; align-items: center; gap: 14px; }
+.caligners .what-text .eyebrow::before {
+  content: ""; width: 28px; height: 1px; background: var(--sage);
+}
+.caligners .what-text h2 { margin: 22px 0 26px; max-width: 14ch; }
+
+/* ---------- PROCESS ----------
+   4 cards on this page (veneers has 5). The grid auto-fits; the underlying
+   `repeat(4, 1fr)` keeps cards balanced at desktop. Mobile collapses via
+   the responsive block below — same behavior as veneers. */
+.caligners .process-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+.caligners .process-card {
+  background: rgba(255, 255, 255, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: var(--r-lg);
+  padding: 28px 24px 30px;
+  display: flex; flex-direction: column; gap: 14px;
+  position: relative;
+  min-height: 280px;
+  transition: background 0.3s ease, transform 0.3s ease, border-color 0.3s ease;
+}
+.caligners .process-card:hover {
+  background: rgba(255, 255, 255, 0.75);
+  border-color: #fff;
+  transform: translateY(-3px);
+}
+.caligners .process-card .step-tag {
+  font-size: 10px; letter-spacing: 0.26em; text-transform: uppercase;
+  color: var(--vs-ink-soft); font-weight: 500;
+}
+.caligners .process-card .num {
+  font-family: var(--f-display); font-style: italic; font-weight: 300;
+  font-size: 52px; color: var(--vs-sage); line-height: 1;
+  letter-spacing: -0.02em;
+}
+.caligners .process-card h3 {
+  color: var(--vs-ink); font-weight: 500; font-size: 19px; line-height: 1.25;
+}
+.caligners .process-card p {
+  color: var(--vs-ink-soft); font-size: 14px; line-height: 1.65;
+}
+
+/* ---------- COMPARE ---------- */
+.caligners .compare {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+}
+.caligners .compare-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 36px 32px 32px;
+  display: flex; flex-direction: column; gap: 14px;
+  position: relative;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.caligners .compare-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow);
+}
+.caligners .compare-card .tag {
+  font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--sage); font-weight: 500;
+}
+.caligners .compare-card h3 {
+  font-family: var(--f-display); font-weight: 500; font-size: 24px;
+  color: var(--ink); letter-spacing: -0.005em;
+}
+.caligners .compare-card p { font-size: 14.5px; line-height: 1.75; }
+.caligners .compare-card.featured {
+  background: var(--sage); border-color: var(--sage);
+}
+.caligners .compare-card.featured .tag { color: var(--vs-eyebrow-on-sage); }
+.caligners .compare-card.featured h3 { color: #fff; }
+.caligners .compare-card.featured p { color: rgba(255, 255, 255, 0.88); }
+.caligners .compare-card .ribbon {
+  position: absolute; top: 18px; right: 18px;
+  background: rgba(255, 255, 255, 0.18); color: #fff;
+  font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase;
+  padding: 5px 10px; border-radius: 999px;
+}
+
+/* ---------- NATURAL ---------- */
+.caligners .natural-grid {
+  display: grid; grid-template-columns: 1fr 1.1fr;
+  gap: 80px; align-items: center;
+}
+.caligners .natural-img {
+  aspect-ratio: 4/5;
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.caligners .natural-img img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: transform 0.6s ease;
+}
+.caligners .natural-img:hover img { transform: scale(1.03); }
+.caligners .natural-text .eyebrow { display: inline-flex; align-items: center; gap: 14px; }
+.caligners .natural-text .eyebrow::before {
+  content: ""; width: 28px; height: 1px; background: var(--sage);
+}
+.caligners .natural-text h2 { margin: 22px 0 28px; max-width: 14ch; }
+.caligners .natural-quote {
+  font-family: var(--f-display); font-style: italic; font-weight: 300;
+  font-size: clamp(22px, 2.2vw, 28px); color: var(--sage);
+  line-height: 1.4; letter-spacing: -0.005em;
+  padding: 24px 0 26px;
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 26px;
+  max-width: 36ch;
+}
+
+/* ---------- CTA ROW ---------- */
+.caligners .cta-row {
+  margin-top: 56px;
+  display: flex; flex-direction: column;
+  align-items: center; gap: 18px;
+}
+.caligners .cta-row .cta-buttons {
+  display: flex; flex-wrap: wrap; gap: 14px;
+  align-items: center; justify-content: center;
+}
+.caligners .cta-row.left { align-items: flex-start; }
+.caligners .cta-row.left .cta-buttons { justify-content: flex-start; }
+.caligners .cta-row .cta-note {
+  font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--muted);
+  display: inline-flex; align-items: center; gap: 10px;
+}
+.caligners .section.dark .cta-row .cta-note { color: var(--vs-ink-soft); }
+
+/* ---------- INLINE CTA ---------- */
+.caligners .inline-cta {
+  margin-top: 44px;
+  background: var(--cream);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 28px 32px;
+  display: flex; align-items: center; justify-content: space-between; gap: 30px;
+  flex-wrap: wrap;
+}
+.caligners .inline-cta .ic-text {
+  font-family: var(--f-display); font-weight: 400;
+  font-size: clamp(18px, 1.8vw, 22px); color: var(--ink);
+  letter-spacing: -0.005em; line-height: 1.35;
+  max-width: 46ch;
+}
+.caligners .inline-cta .ic-text em {
+  font-style: italic; color: var(--sage); font-weight: 300;
+}
+.caligners .inline-cta .ic-buttons {
+  display: flex; gap: 12px; flex-wrap: wrap;
+}
+.caligners .inline-cta.dark {
+  background: var(--sage-deep); border-color: var(--sage-deep);
+}
+.caligners .inline-cta.dark .ic-text { color: #fff; }
+.caligners .inline-cta.dark .ic-text em { color: var(--vs-eyebrow-on-sage); }
+
+/* ---------- LASTING ----------
+   Adapted from veneers: this page hosts the 6-bullet care list inside
+   `.lasting-body`. The shell is unchanged; the small block at the bottom of
+   this section adds list-specific typography. */
+.caligners .lasting-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--r-xl);
+  padding: 56px 60px;
+  display: grid; grid-template-columns: auto 1fr;
+  gap: 60px; align-items: center;
+  box-shadow: var(--shadow);
+}
+.caligners .lasting-stat {
+  display: flex; flex-direction: column; gap: 10px;
+  padding-right: 60px;
+  border-right: 1px solid var(--line);
+}
+.caligners .lasting-stat .big {
+  font-family: var(--f-display); font-weight: 300;
+  font-size: clamp(48px, 5vw, 68px);
+  color: var(--sage); line-height: 1; letter-spacing: -0.025em;
+}
+.caligners .lasting-stat .big em {
+  font-style: italic; color: var(--sage-soft); font-weight: 300;
+  font-size: 0.55em; margin-left: 6px;
+}
+.caligners .lasting-stat .label {
+  font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--muted);
+  max-width: 18ch;
+}
+.caligners .lasting-body p { font-size: 15.5px; line-height: 1.8; }
+.caligners .lasting-body p + p { margin-top: 14px; }
+.caligners .lasting-body .cta-row.left { margin-top: 32px; }
+
+/* Care-list typography inside the Lasting card. The bullets carry verbatim
+   guidance from the copy — small, indented, sage bullet, soft body color
+   to match the rest of `.lasting-body`. */
+.caligners .lasting-body ul {
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.caligners .lasting-body ul li {
+  position: relative;
+  padding-left: 22px;
+  font-size: 15px; line-height: 1.7; color: var(--ink-soft);
+}
+.caligners .lasting-body ul li::before {
+  content: ""; position: absolute;
+  left: 0; top: 0.7em;
+  width: 10px; height: 1px; background: var(--sage);
+}
+.caligners .lasting-body ul li strong {
+  color: var(--ink); font-weight: 600;
+}
+
+/* ---------- GALLERY ---------- */
+.caligners .gallery-marquee {
+  margin-top: 40px;
+  --vs-marquee-gap: 22px;
+  --vs-marquee-speed: 60s;
+  --vs-marquee-pad: 8px 0;
+}
+.caligners .smile-tile {
+  width: 380px; height: 285px;
+  flex-shrink: 0;
+  border-radius: var(--r-lg);
+  overflow: hidden; position: relative;
+  box-shadow: 0 12px 30px -16px rgba(0, 0, 0, 0.5);
+}
+.caligners .smile-tile img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+
+/* ---------- FAQ ---------- */
+.caligners .faq-list {
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  max-width: 920px; margin: 0 auto;
+  background: #fff;
+}
+.caligners .faq { border-bottom: 1px solid var(--line); }
+.caligners .faq:last-child { border-bottom: 0; }
+.caligners .faq summary {
+  padding: 28px 32px;
+  cursor: pointer;
+  list-style: none;
+  display: grid; grid-template-columns: 1fr 28px; gap: 24px;
+  align-items: center;
+  transition: background 0.2s ease;
+}
+.caligners .faq summary::-webkit-details-marker { display: none; }
+.caligners .faq summary h3 {
+  font-family: var(--f-display); font-weight: 500; font-size: 20px;
+  color: var(--ink); letter-spacing: -0.005em;
+  transition: color 0.2s ease;
+  margin: 0;
+}
+.caligners .faq[open] summary h3 { color: var(--sage); }
+.caligners .faq[open] { background: var(--cream); }
+.caligners .faq summary:hover h3 { color: var(--sage); }
+.caligners .faq summary .icon {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--sage);
+  font-family: var(--f-display); font-size: 16px; line-height: 1;
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+}
+.caligners .faq[open] summary .icon {
+  background: var(--sage); color: #fff; border-color: var(--sage);
+  transform: rotate(45deg);
+}
+.caligners .faq .answer {
+  padding: 0 32px 28px;
+  font-size: 15.5px; line-height: 1.8; color: var(--ink-soft);
+  max-width: 70ch;
+}
+
+.caligners .pull {
+  margin: 50px auto 0;
+  max-width: 920px;
+  padding: 36px 40px;
+  border-radius: var(--r-lg);
+  background: var(--cream);
+  border-left: 3px solid var(--sage);
+}
+.caligners .pull p {
+  font-family: var(--f-display); font-style: italic; font-weight: 300;
+  font-size: clamp(20px, 2.1vw, 26px);
+  color: var(--sage); line-height: 1.45; letter-spacing: -0.005em;
+}
+
+/* ---------- CLOSING BAND ----------
+   Slim final fallback below the VirtualConsult form section. Two-column
+   layout at desktop (text left, action pair right) collapses to stacked at
+   ≤991px. Lives on the same paper surface the previous .final card sat on. */
+.caligners .final-band {
+  padding: 90px 40px;
+  background: var(--paper);
+  border-top: 1px solid var(--line);
+}
+.caligners .final-band .wrap {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.caligners .final-band-inner {
+  display: grid;
+  grid-template-columns: 1.2fr auto;
+  align-items: center;
+  gap: 40px;
+}
+.caligners .final-band-text .eyebrow {
+  display: inline-flex; align-items: center; gap: 14px;
+  color: var(--sage);
+}
+.caligners .final-band-text .eyebrow::before {
+  content: ""; width: 28px; height: 1px; background: var(--sage);
+}
+.caligners .final-band-text p {
+  margin: 14px 0 0;
+  font-size: 16px;
+  color: var(--ink-soft);
+  max-width: 50ch;
+}
+.caligners .final-band-phone {
+  margin-top: 12px;
+  font-family: var(--f-display);
+  font-size: 22px;
+  color: var(--sage);
+  letter-spacing: -0.01em;
+}
+.caligners .final-band-actions {
+  display: inline-flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 991px) {
+  .caligners .hero-inner { grid-template-columns: 1fr; gap: 50px; }
+  .caligners .hero-img { max-width: 540px; }
+  .caligners .keys-grid { grid-template-columns: 1fr 1fr; }
+  .caligners .keys-label { grid-column: 1 / -1; justify-content: center; }
+  .caligners .why-grid { grid-template-columns: 1fr; }
+  .caligners .what-grid,
+  .caligners .natural-grid { grid-template-columns: 1fr; gap: 50px; }
+  .caligners .process-grid { grid-template-columns: repeat(2, 1fr); }
+  .caligners .compare { grid-template-columns: 1fr; }
+  .caligners .lasting-card {
+    grid-template-columns: 1fr; gap: 30px; padding: 40px;
+  }
+  .caligners .lasting-stat {
+    padding-right: 0; padding-bottom: 30px;
+    border-right: 0; border-bottom: 1px solid var(--line);
+  }
+}
+
+@media (max-width: 780px) {
+  .caligners .wrap, .caligners .wrap-sm { padding: 0 22px; }
+  .caligners .hero { padding: 50px 0 70px; }
+  .caligners .hero-inner { padding: 0 22px; }
+  .caligners .keys { padding: 32px 0; }
+  .caligners .keys-grid { grid-template-columns: 1fr; padding: 0 22px; gap: 12px; }
+  .caligners .toc { padding: 12px 0; }
+  .caligners .toc-inner { padding: 0 22px; gap: 12px; }
+  .caligners .toc-label { display: none; }
+  .caligners .section { padding: 70px 0; }
+  .caligners .process-grid { grid-template-columns: 1fr; }
+  .caligners .lasting-card { padding: 32px 26px; }
+  .caligners .inline-cta { padding: 24px 22px; }
+  .caligners .cta-row { margin-top: 36px; }
+  .caligners .faq summary { padding: 22px 24px; }
+  .caligners .faq .answer { padding: 0 24px 22px; }
+  .caligners .final-band { padding: 60px 22px; }
+  .caligners .final-band-inner {
+    grid-template-columns: 1fr;
+    gap: 28px;
+    text-align: left;
+  }
+  .caligners .final-band-actions { justify-content: flex-start; }
+  .caligners .pull { padding: 28px 24px; }
+}
+
+@media (max-width: 480px) {
+  .caligners .hero h1 { max-width: none; }
+  .caligners .smile-tile { width: 280px; height: 210px; }
+  .caligners .final-band-phone { font-size: 18px; }
+}
+
+/* ---------- Reduced-motion safety ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .caligners .keys-item,
+  .caligners .why-card,
+  .caligners .compare-card,
+  .caligners .process-card,
+  .caligners .toc-list a,
+  .caligners .what-img img,
+  .caligners .natural-img img { transition: none !important; }
+}
+
+/* ---------- band-color refresh source-order overrides ----------
+   Source-order tie-breakers so charcoal-on-alt and sage-pale-on-dark text
+   colors win against page-specific selectors of the same specificity. See
+   porcelain-veneers.css for the full explanation. */
+.caligners .section.alt h1,
+.caligners .section.alt h2,
+.caligners .section.alt h3,
+.caligners .section.alt h4 { color: #fff; }
+.caligners .section.alt p { color: rgba(255, 255, 255, 0.85); }
+.caligners .section.alt em { color: var(--vs-eyebrow-on-sage); }
+.caligners .section.alt .eyebrow { color: var(--vs-eyebrow-on-sage); }
+.caligners .section.alt h1 em,
+.caligners .section.alt h2 em,
+.caligners .section.alt h3 em { color: var(--vs-eyebrow-on-sage); }
+.caligners .section.alt .natural-quote { color: #fff; border-top-color: rgba(255, 255, 255, 0.25); border-bottom-color: rgba(255, 255, 255, 0.25); }
+
+.caligners .section.dark h1,
+.caligners .section.dark h2,
+.caligners .section.dark h3,
+.caligners .section.dark h4 { color: var(--vs-ink); }
+.caligners .section.dark p { color: var(--vs-ink-soft); }
+.caligners .section.dark em { color: var(--vs-sage); }
+.caligners .section.dark .eyebrow { color: var(--vs-ink-soft); }
+
+/* H2 base color → ink for sitewide split-color pattern.
+   Equal specificity (0,1,1) with the h1/h2/h3/h4 group rule above; comes later
+   in the cascade, so this wins for h2 only. h1/h3/h4 keep sage. Dark-band
+   `.section.alt h2 { color: #fff }` (0,2,1) still trumps. */
+.caligners h2 { color: var(--vs-ink); }

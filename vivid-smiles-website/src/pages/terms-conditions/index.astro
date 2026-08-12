@@ -1,0 +1,625 @@
+---
+/**
+ * Terms & Conditions — Vivid Smiles Dentistry, Parker CO.
+ *
+ * Ported from the legacy site's terms doc (23 sections); reformat-only
+ * (ALL CAPS → sentence case, Roman numerals I–XXIII → Arabic 1–23). Substantive
+ * legal content preserved verbatim. One cleanup: section 22 (SMS messaging) in
+ * the source had a duplicated paste of items 1–5 and three redundant inline
+ * "privacy-related inquiries" URL repetitions — collapsed to a single clean
+ * pass since the duplicated paragraphs added no substantive content.
+ *
+ * Wrapper class: .terms
+ * Page-scoped styles: src/styles/pages/terms-conditions.css
+ * Two JSON-LD blocks (WebPage + BreadcrumbList) — same shape as /privacy-policy/.
+ */
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Eyebrow from "../../components/Eyebrow.astro";
+import {
+  emailAddress,
+  emailHref,
+  phoneE164,
+} from "../../data/contact";
+import "../../styles/pages/terms-conditions.css";
+
+// SMS support line in section 22 — distinct from the practice's main phone line
+// (legacy doc references a vendor / SMS HELP routing). Inlined here rather than
+// added to contact.ts because it's specific to the SMS messaging program.
+const smsHelpLabel = "(303) 276-9932";
+const smsHelpHref = "tel:+13032769932";
+
+const tocLinks = [
+  { href: "#interpretation", label: "1. Interpretation & definitions" },
+  { href: "#acknowledgement", label: "2. Acknowledgement" },
+  { href: "#orders",          label: "3. Placing orders" },
+  { href: "#your-info",       label: "4. Your information" },
+  { href: "#order-cancel",    label: "5. Order cancellation" },
+  { href: "#cancel-rights",   label: "6. Cancellation rights" },
+  { href: "#prices",          label: "7. Prices policy" },
+  { href: "#payments",        label: "8. Payments" },
+  { href: "#promotions",      label: "9. Promotions" },
+  { href: "#accounts",        label: "10. User accounts" },
+  { href: "#ip",              label: "11. Intellectual property" },
+  { href: "#feedback",        label: "12. Your feedback" },
+  { href: "#third-party",     label: "13. Links to other sites" },
+  { href: "#termination",     label: "14. Termination" },
+  { href: "#liability",       label: "15. Limitation of liability" },
+  { href: "#as-is",           label: "16. “As is” disclaimer" },
+  { href: "#governing-law",   label: "17. Governing law" },
+  { href: "#disputes",        label: "18. Disputes resolution" },
+  { href: "#severability",    label: "19. Severability & waiver" },
+  { href: "#translation",     label: "20. Translation" },
+  { href: "#changes",         label: "21. Changes to terms" },
+  { href: "#sms",             label: "22. SMS messaging" },
+  { href: "#contact-us",      label: "23. Contact us" },
+];
+---
+
+<BaseLayout
+  title="Terms & Conditions — Vivid Smiles Dentistry"
+  description="The terms and conditions governing your use of the Vivid Smiles Dentistry website — rights, obligations, account terms, returns, SMS messaging, and contact information."
+>
+  <div class="terms">
+
+    {/* ---------- BREADCRUMB ---------- */}
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <div class="crumbs-inner">
+        <a href="/">Home</a>
+        <span class="sep">/</span>
+        <span class="here">Terms &amp; Conditions</span>
+      </div>
+    </nav>
+
+    <main id="main">
+
+      {/* ---------- HERO ---------- */}
+      <header class="terms-hero" data-vs-reveal-batch>
+        <div class="wrap">
+          <Eyebrow>Legal</Eyebrow>
+          <h1 class="vs-h1">Terms &amp; Conditions</h1>
+          <p class="vs-lede">
+            The terms and conditions governing your use of the Vivid Smiles Dentistry website — rights, obligations,
+            account terms, returns, SMS messaging, and contact information.
+          </p>
+        </div>
+      </header>
+
+      {/* ---------- BODY — two-column TOC + prose ---------- */}
+      <section class="terms-body">
+        <div class="wrap">
+          <div class="terms-grid">
+
+            <aside class="terms-toc" aria-label="On this page">
+              <span class="terms-toc-label">On this page</span>
+              <ul class="terms-toc-list">
+                {tocLinks.map((l) => (
+                  <li><a href={l.href}>{l.label}</a></li>
+                ))}
+              </ul>
+            </aside>
+
+            <div class="terms-prose">
+
+              <section id="interpretation" data-vs-reveal>
+                <h2 class="vs-h3">1. Interpretation and definitions</h2>
+
+                <h3 class="terms-sub">A. Interpretation</h3>
+                <p>
+                  The words of which the initial letter is capitalized have meanings defined under the following
+                  conditions. The following definitions shall have the same meaning regardless of whether they appear
+                  in singular or in plural.
+                </p>
+
+                <h3 class="terms-sub">B. Definitions</h3>
+                <p>For the purposes of these Terms and Conditions:</p>
+                <dl class="terms-dl">
+                  <dt>Account</dt>
+                  <dd>Means a unique account created for you to access our Service or parts of our Service.</dd>
+
+                  <dt>Country</dt>
+                  <dd>Refers to: Colorado, US.</dd>
+
+                  <dt>Company</dt>
+                  <dd>(Referred to as either "the Company," "We," "Us" or "Our" in this Agreement) refers to Vivid Smiles.</dd>
+
+                  <dt>Device</dt>
+                  <dd>Means any device that can access the Service such as a computer, a cellphone or a digital tablet.</dd>
+
+                  <dt>Feedback</dt>
+                  <dd>Means feedback, innovations or suggestions sent by you regarding the attributes, performance or features of our Service.</dd>
+
+                  <dt>Goods</dt>
+                  <dd>Refer to the items offered for sale on the Service.</dd>
+
+                  <dt>Orders</dt>
+                  <dd>Means a request by you to purchase Goods from us.</dd>
+
+                  <dt>Promotions</dt>
+                  <dd>Refer to contests, sweepstakes or other promotions offered through the Service.</dd>
+
+                  <dt>Service</dt>
+                  <dd>Refers to the Website.</dd>
+
+                  <dt>Terms and Conditions</dt>
+                  <dd>(Also referred to as "Terms") mean these Terms and Conditions that form the entire agreement between you and the Company regarding the use of the Service.</dd>
+
+                  <dt>Third-Party Social Media Service</dt>
+                  <dd>Means any services or content (including data, information, products or services) provided by a third party that may be displayed, included or made available by the Service.</dd>
+
+                  <dt>Website</dt>
+                  <dd>Refers to Vivid Smiles, accessible from <a class="vs-link" href="https://vividsmilesdentistry.com/" target="_blank" rel="noopener">https://vividsmilesdentistry.com/</a></dd>
+
+                  <dt>You</dt>
+                  <dd>Means the individual accessing or using the Service, or the company, or other legal entity on behalf of which such individual is accessing or using the Service, as applicable.</dd>
+                </dl>
+              </section>
+
+              <section id="acknowledgement" data-vs-reveal>
+                <h2 class="vs-h3">2. Acknowledgement</h2>
+                <p>
+                  These are the Terms and Conditions governing the use of this Service and the agreement that operates
+                  between you and the Company. These Terms and Conditions set out the rights and obligations of all
+                  users regarding the use of the Service.
+                </p>
+                <p>
+                  Your access to and use of the Service is conditioned on your acceptance of and compliance with these
+                  Terms and Conditions. These Terms and Conditions apply to all visitors, users and others who access
+                  or use the Service.
+                </p>
+                <p>
+                  By accessing or using the Service you agree to be bound by these Terms and Conditions. If you
+                  disagree with any part of these Terms and Conditions then you may not access the Service.
+                </p>
+                <p>
+                  You represent that you are over the age of 18. The Company does not permit those under 18 to use the
+                  Service.
+                </p>
+                <p>
+                  Your access to and use of the Service is also conditioned on your acceptance of and compliance with
+                  the Privacy Policy of the Company. Our <a class="vs-link" href="/privacy-policy/">Privacy Policy</a>
+                  describes our policies and procedures on the collection, use and disclosure of your personal
+                  information when you use the application or the Website and tells you about your privacy rights and
+                  how the law protects you. Please read our Privacy Policy carefully before using our Service.
+                </p>
+              </section>
+
+              <section id="orders" data-vs-reveal>
+                <h2 class="vs-h3">3. Placing orders for Goods</h2>
+                <p>
+                  By placing an Order for Goods through the Service, you warrant that you are legally capable of
+                  entering into binding contracts.
+                </p>
+              </section>
+
+              <section id="your-info" data-vs-reveal>
+                <h2 class="vs-h3">4. Your information</h2>
+                <p>
+                  If you wish to place an Order for Goods available on the Service, you may be asked to supply certain
+                  information relevant to your Order including, without limitation, your name, your email, your phone
+                  number, your credit card number, the expiration date of your credit card, your billing address, and
+                  your shipping information.
+                </p>
+                <p>You represent and warrant that:</p>
+                <ul class="terms-defs">
+                  <li>(i) You have the legal right to use any credit or debit card(s) or other payment method(s) in connection with any Order; and</li>
+                  <li>(ii) The information you supply to us is true, correct and complete.</li>
+                </ul>
+                <p>
+                  By submitting such information, you grant us the right to provide the information to payment
+                  processing third parties for purposes of facilitating the completion of your Order.
+                </p>
+              </section>
+
+              <section id="order-cancel" data-vs-reveal>
+                <h2 class="vs-h3">5. Order cancellation</h2>
+                <p>
+                  We reserve the right to refuse or cancel your Order at any time for certain reasons including but
+                  not limited to:
+                </p>
+                <ul class="terms-defs">
+                  <li>Goods availability</li>
+                  <li>Errors in the description or prices for Goods</li>
+                  <li>Errors in your Order</li>
+                </ul>
+                <p>
+                  We reserve the right to refuse or cancel your Order if fraud or an unauthorized or illegal
+                  transaction is suspected.
+                </p>
+              </section>
+
+              <section id="cancel-rights" data-vs-reveal>
+                <h2 class="vs-h3">6. Your Order cancellation rights</h2>
+                <p>
+                  Any Goods you purchase can only be returned in accordance with these Terms and Conditions and our
+                  Returns Policy.
+                </p>
+                <p>
+                  Our Returns Policy forms a part of these Terms and Conditions. Please read our Returns Policy to
+                  learn more about your right to cancel your Order.
+                </p>
+                <p>
+                  Your right to cancel an Order only applies to Goods that are returned in the same condition as you
+                  received them. You should also include all of the product's instructions, documents and wrappings.
+                  Goods that are damaged or not in the same condition as you received them or which are worn simply
+                  beyond opening the original packaging will not be refunded. You should therefore take reasonable
+                  care of the purchased Goods while they are in your possession.
+                </p>
+                <p>
+                  We will reimburse you no later than 14 days from the day on which we receive the returned Goods. We
+                  will use the same means of payment as you used for the Order, and you will not incur any fees for
+                  such reimbursement.
+                </p>
+                <p>You will not have any right to cancel an Order for the supply of any of the following Goods:</p>
+                <ul class="terms-defs">
+                  <li>The supply of Goods made to your specifications or clearly personalized.</li>
+                  <li>The supply of Goods which according to their nature are not suitable to be returned, deteriorate rapidly or where the date of expiry is over.</li>
+                  <li>The supply of Goods which are not suitable for return due to health protection or hygiene reasons and were unsealed after delivery.</li>
+                  <li>The supply of Goods which are, after delivery, according to their nature, inseparably mixed with other items.</li>
+                  <li>The supply of digital content which is not supplied on a tangible medium if the performance has begun with your prior express consent and you have acknowledged your loss of cancellation right.</li>
+                </ul>
+              </section>
+
+              <section id="prices" data-vs-reveal>
+                <h2 class="vs-h3">7. Prices policy</h2>
+                <p>The Company reserves the right to revise its prices at any time prior to accepting an Order.</p>
+                <p>
+                  The prices quoted may be revised by the Company subsequent to accepting an Order in the event of any
+                  occurrence affecting delivery caused by government action, variation in customs duties, increased
+                  shipping charges, higher foreign exchange costs and any other matter beyond the control of the
+                  Company. In that event, you will have the right to cancel your Order.
+                </p>
+              </section>
+
+              <section id="payments" data-vs-reveal>
+                <h2 class="vs-h3">8. Payments</h2>
+                <p>
+                  All Goods purchased are subject to a one-time payment. Payment can be made through various payment
+                  methods we have available, such as Visa, Mastercard, Affinity Card, American Express or online
+                  payment methods (PayPal, for example).
+                </p>
+                <p>
+                  Payment cards (credit cards or debit cards) are subject to validation checks and authorization by
+                  your card issuer. If we do not receive the required authorization, we will not be liable for any
+                  delay or non-delivery of your Order.
+                </p>
+              </section>
+
+              <section id="promotions" data-vs-reveal>
+                <h2 class="vs-h3">9. Promotions</h2>
+                <p>
+                  Any Promotions made available through the Service may be governed by rules that are separate from
+                  these Terms.
+                </p>
+                <p>
+                  If you participate in any Promotions, please review the applicable rules as well as our
+                  <a class="vs-link" href="/privacy-policy/">Privacy Policy</a>. If the rules for a Promotion conflict
+                  with these Terms, the Promotion rules will apply.
+                </p>
+              </section>
+
+              <section id="accounts" data-vs-reveal>
+                <h2 class="vs-h3">10. User accounts</h2>
+                <p>
+                  When you create an account with us, you must provide information that is accurate, complete, and
+                  current at all times. Failure to do so constitutes a breach of these Terms, which may result in
+                  immediate termination of your account on our Service.
+                </p>
+                <p>
+                  You are responsible for safeguarding the password that you use to access the Service and for any
+                  activities or actions under your password, whether your password is with our Service or a
+                  Third-Party Social Media Service.
+                </p>
+                <p>
+                  You agree not to disclose your password to any third party. You must notify us immediately upon
+                  becoming aware of any breach of security or unauthorized use of your account.
+                </p>
+                <p>
+                  You may not use as a username the name of another person or entity, or a name or trademark that is
+                  subject to any rights of another person or entity without appropriate authorization, or a name that
+                  is otherwise offensive, vulgar or obscene.
+                </p>
+              </section>
+
+              <section id="ip" data-vs-reveal>
+                <h2 class="vs-h3">11. Intellectual property</h2>
+                <p>
+                  The Service and its original content (excluding content provided by you or other users), features
+                  and functionality are, and will remain, the exclusive property of the Company and its licensors.
+                </p>
+                <p>
+                  The Service is protected by copyright, trademark, and other laws of both the Country and foreign
+                  countries.
+                </p>
+                <p>
+                  Our trademarks and trade dress may not be used in connection with any product or service without the
+                  prior written consent of the Company.
+                </p>
+              </section>
+
+              <section id="feedback" data-vs-reveal>
+                <h2 class="vs-h3">12. Your feedback to us</h2>
+                <p>
+                  You assign all rights, title and interest in any Feedback you provide to the Company. If for any
+                  reason such assignment is ineffective, you agree to grant the Company a non-exclusive, perpetual,
+                  irrevocable, royalty-free, worldwide right and license to use, reproduce, disclose, sub-license,
+                  distribute, modify and exploit such Feedback without restriction.
+                </p>
+              </section>
+
+              <section id="third-party" data-vs-reveal>
+                <h2 class="vs-h3">13. Links to other websites</h2>
+                <p>
+                  Our Service may contain links to third-party websites or services that are not owned or controlled
+                  by the Company.
+                </p>
+                <p>
+                  The Company has no control over, and assumes no responsibility for, the content, privacy policies,
+                  or practices of any third-party websites or services. You acknowledge and agree that the Company
+                  shall not be responsible or liable, directly or indirectly, for any damage or loss caused or
+                  alleged to be caused by or in connection with the use of or reliance on any such content, goods or
+                  services.
+                </p>
+                <p>
+                  We strongly advise you to read the terms and conditions and privacy policies of any third-party
+                  websites or services that you visit.
+                </p>
+              </section>
+
+              <section id="termination" data-vs-reveal>
+                <h2 class="vs-h3">14. Termination</h2>
+                <p>
+                  We may terminate or suspend your account immediately, without prior notice or liability, for any
+                  reason whatsoever, including without limitation if you breach these Terms and Conditions.
+                </p>
+                <p>
+                  Upon termination, your right to use the Service will cease immediately. If you wish to terminate
+                  your account, you may simply discontinue using the Service.
+                </p>
+              </section>
+
+              <section id="liability" data-vs-reveal>
+                <h2 class="vs-h3">15. Limitation of liability</h2>
+                <p>
+                  Notwithstanding any damages that you might incur, the entire liability of the Company and any of its
+                  suppliers under any provision of these Terms and your exclusive remedy for all of the foregoing
+                  shall be limited to the amount actually paid by you through the Service or 100 USD if you haven't
+                  purchased anything through the Service.
+                </p>
+                <p>
+                  To the maximum extent permitted by applicable law, in no event shall the Company or its suppliers be
+                  liable for any special, incidental, indirect, or consequential damages whatsoever (including, but
+                  not limited to, damages for loss of profits, loss of data or other information, business
+                  interruption, personal injury, or loss of privacy arising out of or in any way related to the use
+                  of or inability to use the Service, third-party software and/or third-party hardware used with the
+                  Service, or otherwise in connection with any provision of these Terms), even if the Company or any
+                  supplier has been advised of the possibility of such damages and even if the remedy fails of its
+                  essential purpose.
+                </p>
+                <p>
+                  Some states do not allow the exclusion of implied warranties or limitation of liability for
+                  incidental or consequential damages, which means that some of the above limitations may not apply.
+                  In these states, each party's liability will be limited to the greatest extent permitted by law.
+                </p>
+              </section>
+
+              <section id="as-is" data-vs-reveal>
+                <h2 class="vs-h3">16. "As is" and "as available" disclaimer</h2>
+                <p>
+                  The Service is provided to you "AS IS" and "AS AVAILABLE" and with all faults and defects without
+                  warranty of any kind. To the maximum extent permitted under applicable law, the Company, on its own
+                  behalf and on behalf of its Partners and their respective licensors and service providers, expressly
+                  disclaims all warranties, whether express, implied, statutory or otherwise, with respect to the
+                  Service, including all implied warranties of merchantability, fitness for a particular purpose,
+                  title, and non-infringement, and warranties that may arise out of course of dealing, course of
+                  performance, usage or trade practice. Without limitation, the Company provides no warranty or
+                  undertaking, and makes no representation of any kind that the Service will meet your requirements,
+                  achieve any intended results, be compatible or work with any other software, applications, systems
+                  or services, operate without interruption, meet any performance or reliability standards, or be
+                  error free or that any errors or defects can or will be corrected.
+                </p>
+                <p>
+                  Without limiting the foregoing, neither the Company nor any of the Company's providers makes any
+                  representation or warranty of any kind, express or implied: (i) as to the operation or availability
+                  of the Service, or the information, content, materials or products included thereon; (ii) that the
+                  Service will be uninterrupted or error-free; (iii) as to the accuracy, reliability, or currency of
+                  any information or content provided through the Service; or (iv) that the Service, its servers, the
+                  content, or emails sent from or on behalf of the Company are free of viruses, scripts, trojan
+                  horses, worms, malware, timebombs or other harmful components.
+                </p>
+                <p>
+                  Some jurisdictions do not allow the exclusion of certain types of warranties or limitations on
+                  applicable statutory rights of a consumer, so some or all of the above exclusions and limitations
+                  may not apply to you. But in such a case, the exclusions and limitations set forth in this section
+                  shall be applied to the greatest extent enforceable under applicable law.
+                </p>
+              </section>
+
+              <section id="governing-law" data-vs-reveal>
+                <h2 class="vs-h3">17. Governing law</h2>
+                <p>
+                  The laws of the Country, excluding its conflicts of law rules, shall govern these Terms and your use
+                  of the Service. Your use of the application may also be subject to other local, state, national, or
+                  international laws.
+                </p>
+              </section>
+
+              <section id="disputes" data-vs-reveal>
+                <h2 class="vs-h3">18. Disputes resolution</h2>
+                <p>
+                  If you have any concern or dispute about the Service, you agree to first try to resolve the dispute
+                  informally by contacting the Company.
+                </p>
+
+                <h3 class="terms-sub">A. For European Union (EU) users</h3>
+                <p>
+                  If you are a European Union consumer, you will benefit from any mandatory provisions of the law of
+                  the country in which you are resident.
+                </p>
+
+                <h3 class="terms-sub">B. United States legal compliance</h3>
+                <p>You represent and warrant that:</p>
+                <ul class="terms-defs">
+                  <li>(i) You are not located in a country that is subject to the United States government embargo, or that has been designated by the United States government as a "terrorist supporting" country; and</li>
+                  <li>(ii) You are not listed on any United States government list of prohibited or restricted parties.</li>
+                </ul>
+              </section>
+
+              <section id="severability" data-vs-reveal>
+                <h2 class="vs-h3">19. Severability and waiver</h2>
+
+                <h3 class="terms-sub">A. Severability</h3>
+                <p>
+                  If any provision of these Terms is held to be unenforceable or invalid, such provision will be
+                  changed and interpreted to accomplish the objectives of such provision to the greatest extent
+                  possible under applicable law, and the remaining provisions will continue in full force and effect.
+                </p>
+
+                <h3 class="terms-sub">B. Waiver</h3>
+                <p>
+                  Except as provided herein, the failure to exercise a right or to require performance of an
+                  obligation under these Terms shall not affect a party's ability to exercise such right or require
+                  such performance at any time thereafter, nor shall the waiver of a breach constitute a waiver of any
+                  subsequent breach.
+                </p>
+              </section>
+
+              <section id="translation" data-vs-reveal>
+                <h2 class="vs-h3">20. Translation interpretation</h2>
+                <p>
+                  These Terms and Conditions may have been translated if we have made them available to you on our
+                  Service. You agree that the original English text shall prevail in the case of a dispute.
+                </p>
+              </section>
+
+              <section id="changes" data-vs-reveal>
+                <h2 class="vs-h3">21. Changes to these Terms and Conditions</h2>
+                <p>
+                  We reserve the right, at our sole discretion, to modify or replace these Terms at any time. If a
+                  revision is material, we will make reasonable efforts to provide at least 30 days' notice prior to
+                  any new terms taking effect. What constitutes a material change will be determined at our sole
+                  discretion.
+                </p>
+                <p>
+                  By continuing to access or use our Service after those revisions become effective, you agree to be
+                  bound by the revised terms. If you do not agree to the new terms, in whole or in part, please stop
+                  using the website and the Service.
+                </p>
+              </section>
+
+              <section id="sms" data-vs-reveal>
+                <h2 class="vs-h3">22. SMS messaging — dental implants</h2>
+                <p>
+                  Upon opting in, you will receive messaging regarding promotions and information regarding dental
+                  implants.
+                </p>
+                <p>
+                  You can cancel the SMS service at any time. Simply text "STOP" to the shortcode. Upon sending "STOP,"
+                  we will confirm your unsubscribe status via SMS. Following this confirmation, you will no longer
+                  receive SMS messages from us. To rejoin, sign up as you did initially, and we will resume sending
+                  SMS messages to you.
+                </p>
+                <p>
+                  If you experience issues with the messaging program, reply with the keyword HELP for more
+                  assistance, or reach out directly to <a class="vs-link" href={smsHelpHref}>{smsHelpLabel}</a>.
+                </p>
+                <p>Carriers are not liable for delayed or undelivered messages.</p>
+                <p>
+                  As always, message and data rates may apply for messages sent to you from us and to us from you.
+                  Message frequency varies. For questions about your text plan or data plan, contact your wireless
+                  provider.
+                </p>
+                <p>
+                  For privacy-related inquiries, please refer to our
+                  {" "}<a class="vs-link" href="/privacy-policy/">Privacy Policy</a>.
+                </p>
+              </section>
+
+              <section id="contact-us" class="terms-contact" data-vs-reveal>
+                <h2 class="vs-h3">23. Contact us</h2>
+                <p>
+                  If you have any questions about these Terms and Conditions, you can contact us by email:
+                  {" "}<a class="vs-link" href={emailHref}>{emailAddress}</a>.
+                </p>
+              </section>
+
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    {/* Inline scroll-spy — same logic as /privacy-policy/. Simplified for a
+        vertical sidebar TOC (no horizontal pill-rail centering). */}
+    <script>
+      (() => {
+        const wrap = document.querySelector(".terms");
+        if (!wrap) return;
+        const links = Array.from(wrap.querySelectorAll<HTMLAnchorElement>(".terms-toc-list a"));
+        if (links.length === 0) return;
+        const sections = links
+          .map((a) => document.querySelector(a.getAttribute("href") || ""))
+          .filter((el): el is HTMLElement => el !== null);
+        const navEl = document.querySelector(".vs-nav-shell, header") as HTMLElement | null;
+
+        const linkByHash = new Map<string, HTMLAnchorElement>(
+          links.map((a) => [a.getAttribute("href") || "", a]),
+        );
+        let lastActive: string | null = null;
+        const setActive = (id: string | null) => {
+          if (id === lastActive) return;
+          if (lastActive !== null) linkByHash.get(`#${lastActive}`)?.classList.remove("active");
+          if (id !== null) linkByHash.get(`#${id}`)?.classList.add("active");
+          lastActive = id;
+        };
+
+        const update = () => {
+          const navH = navEl?.getBoundingClientRect().height ?? 77;
+          const spyLine = navH + 24;
+          let active: string | null = null;
+          for (const s of sections) {
+            if (s.getBoundingClientRect().top - spyLine <= 4) active = s.id;
+          }
+          setActive(active);
+        };
+        update();
+
+        let raf = 0;
+        const schedule = () => {
+          if (raf) return;
+          raf = requestAnimationFrame(() => { raf = 0; update(); });
+        };
+        window.addEventListener("scroll", schedule, { passive: true });
+        window.addEventListener("resize", schedule, { passive: true });
+      })();
+    </script>
+
+    {/* JSON-LD — WebPage + BreadcrumbList. No Service, no FAQPage. */}
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "Terms & Conditions",
+      "description": "The terms and conditions governing your use of the Vivid Smiles Dentistry website.",
+      "url": new URL("/terms-conditions/", Astro.site).href,
+      "inLanguage": "en-US",
+      "about": { "@type": "Thing", "name": "Terms & Conditions" },
+      "publisher": {
+        "@type": "Dentist",
+        "name": "Vivid Smiles Dentistry",
+        "url": new URL("/", Astro.site).href,
+        "telephone": phoneE164,
+        "email": emailAddress
+      }
+    })} />
+
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home",                "item": new URL("/", Astro.site).href },
+        { "@type": "ListItem", "position": 2, "name": "Terms & Conditions",  "item": new URL("/terms-conditions/", Astro.site).href }
+      ]
+    })} />
+
+  </div>
+</BaseLayout>

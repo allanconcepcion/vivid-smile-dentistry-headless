@@ -1,0 +1,562 @@
+/*
+ * Vivid Smiles — Our Office page styles.
+ *
+ * Mirrors the contact + new-patients primitives: .crumbs, .hero, .section
+ * [.alt|.dark], .section-head, .wrap, .location-grid (copy + map), .faq-list +
+ * .faq, .hours-table. Every rule is namespaced under `.vs-office`.
+ *
+ * Bespoke additions for this page only:
+ *   .bento + .bento-tile  — 4-col × 3-row CSS-grid facility gallery
+ *   .tech-grid + .tech-* — sage-band technology highlight section
+ *   .expect-grid + .expect-tile — 4-tile arrival-experience strip
+ *
+ * Reveals/parallax wired by src/scripts/animations.js — these rules are
+ * layout, color, and rhythm only.
+ */
+
+.vs-office {
+  --nav-h: 77px;
+
+  /* Local aliases mapping every property back to a `--vs-*` token. */
+  --sage: var(--vs-sage);
+  --sage-deep: var(--vs-sage-deep);
+  --sage-soft: var(--vs-sage-soft);
+  --cream: var(--vs-cream);
+  --cream-warm: var(--vs-cream-warm);
+  --paper: var(--vs-paper);
+  --ink: var(--vs-ink);
+  --ink-soft: var(--vs-ink-soft);
+  --muted: var(--vs-muted);
+  --line: var(--vs-line);
+  --eyebrow-on-sage: var(--vs-eyebrow-on-sage);
+  --shadow: var(--vs-shadow);
+  --shadow-lg: var(--vs-shadow-lg);
+  --r-sm: var(--vs-r-sm);
+  --r-md: var(--vs-r-md);
+  --r-lg: var(--vs-r-lg);
+  --r-xl: var(--vs-r-xl);
+  --f-display: var(--vs-font-display);
+  --f-body: var(--vs-font-body);
+}
+
+/* ---------- primitives ---------- */
+.vs-office .wrap { max-width: 1240px; margin: 0 auto; padding: 0 40px; }
+
+/* Eyebrow base — single ::before hairline for left-aligned eyebrows
+   (hero, location-copy, tech-copy). Centered eyebrows get an additional
+   ::after flanker via the .section-head.center rule further down. The
+   single rule covers paper + cream + sage bands; .light flips the flanker
+   color for dark-band placements. */
+.vs-office .eyebrow {
+  font-family: var(--f-body);
+  font-size: 11.5px; font-weight: 500;
+  letter-spacing: 0.28em; text-transform: uppercase;
+  color: var(--sage);
+  display: inline-flex; align-items: center; gap: 14px;
+}
+.vs-office .eyebrow::before {
+  content: ""; width: 28px; height: 1px; background: var(--sage);
+}
+/* `.eyebrow.light` was the old white-on-sage variant. Sage-pale band reads
+   dark, so keep `.light` rendering as ink-soft for back-compat with markup. */
+.vs-office .eyebrow.light { color: var(--ink-soft); }
+.vs-office .eyebrow.light::before { background: var(--ink-soft); }
+
+.vs-office h1,
+.vs-office h2,
+.vs-office h3 { color: var(--ink); margin: 0; }
+.vs-office h1 {
+  font-family: var(--f-display); font-weight: 300;
+  font-size: clamp(48px, 6.8vw, 86px); line-height: 1.04;
+  letter-spacing: -0.02em; color: var(--sage); text-wrap: pretty;
+}
+.vs-office h1 em {
+  font-style: italic; color: var(--sage-soft); font-weight: inherit;
+}
+.vs-office h2 {
+  font-family: var(--f-display); font-weight: 400;
+  font-size: clamp(32px, 4.2vw, 54px); line-height: 1.1;
+  letter-spacing: -0.015em; color: var(--sage); text-wrap: pretty;
+}
+.vs-office h2 em {
+  font-style: italic; color: var(--sage-soft); font-weight: inherit;
+}
+/* sage-pale flip: dark text on the .section.dark band (#technology, #faq) —
+   detailed overrides live in the section-bands block below. */
+.vs-office h3 {
+  font-family: var(--f-display); font-weight: 500;
+  font-size: 20px; line-height: 1.3; letter-spacing: 0;
+}
+.vs-office p { color: var(--ink-soft); }
+
+/* Sections anchored by id sit clear of the global nav when jumped to. */
+.vs-office section[id],
+.vs-office header[id] { scroll-margin-top: calc(var(--nav-h) + 12px); }
+
+/* Section bands — rhythm matches the rest of the site. */
+.vs-office .section { padding: clamp(80px, 9vw, 120px) 0; }
+
+/* `.section.alt` (cream → charcoal-green) — used by #tour + #visit. */
+.vs-office .section.alt { background: var(--vs-charcoal-green); color: #fff; }
+.vs-office .section.alt h1,
+.vs-office .section.alt h2,
+.vs-office .section.alt h3 { color: #fff; }
+.vs-office .section.alt h1 em,
+.vs-office .section.alt h2 em { color: var(--vs-eyebrow-on-sage); }
+.vs-office .section.alt p { color: rgba(255, 255, 255, 0.85); }
+.vs-office .section.alt .eyebrow { color: var(--vs-eyebrow-on-sage); }
+.vs-office .section.alt .eyebrow::before,
+.vs-office .section.alt .eyebrow::after { background: rgba(255, 255, 255, 0.6); }
+
+/* `.section.dark` (sage → sage-pale) — used by #technology + #faq.
+   Now a light band; text must read dark. */
+.vs-office .section.dark { background: var(--vs-sage-pale); color: var(--vs-ink); }
+.vs-office .section.dark h1,
+.vs-office .section.dark h2,
+.vs-office .section.dark h3 { color: var(--vs-ink); }
+.vs-office .section.dark h1 em,
+.vs-office .section.dark h2 em { color: var(--vs-sage); }
+.vs-office .section.dark p { color: var(--vs-ink-soft); }
+.vs-office .section.dark .eyebrow { color: var(--vs-ink-soft); }
+.vs-office .section.dark .eyebrow::before,
+.vs-office .section.dark .eyebrow::after { background: var(--vs-ink-soft); }
+
+.vs-office .section-head {
+  display: grid; gap: 18px; max-width: 60ch;
+  margin: 0 0 56px;
+}
+.vs-office .section-head.center {
+  margin-left: auto; margin-right: auto; text-align: center;
+}
+.vs-office .section-head.center p { margin-left: auto; margin-right: auto; }
+/* Centered eyebrows: add ::after flanker so the eyebrow renders as
+   "— TEXT —", and explicitly center the eyebrow within its grid cell
+   (inline-flex items don't follow text-align inside a grid container). */
+.vs-office .section-head.center .eyebrow { justify-self: center; }
+.vs-office .section-head.center .eyebrow::after {
+  content: ""; width: 28px; height: 1px; background: var(--sage);
+}
+.vs-office .section-head.center .eyebrow.light::after {
+  background: var(--ink-soft);
+}
+.vs-office .section-head h2 { margin: 4px 0 0; }
+.vs-office .section-head p {
+  font-size: 17px; line-height: 1.6; margin: 4px 0 0; max-width: 64ch;
+}
+
+/* ============================================================== */
+/* HERO — paper — copy left, ImageFrame right                      */
+/* ============================================================== */
+.vs-office .hero {
+  background: var(--paper);
+  padding: clamp(56px, 7vw, 96px) 0 clamp(72px, 8vw, 112px);
+}
+.vs-office .hero-inner {
+  display: grid;
+  grid-template-columns: 1.05fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+.vs-office .hero-copy { max-width: 60ch; }
+.vs-office .hero-copy .eyebrow { margin-bottom: 18px; }
+.vs-office .hero-copy h1 { margin-bottom: 22px; }
+.vs-office .hero-sub {
+  font-size: 18px; line-height: 1.6;
+  color: var(--ink-soft); max-width: 56ch;
+  margin: 0 0 32px;
+}
+.vs-office .hero-actions {
+  display: inline-flex; flex-wrap: wrap; gap: 12px;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.vs-office .hero-actions .ratings {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-size: 13px; color: var(--ink-soft);
+  margin-left: 6px;
+}
+.vs-office .hero-actions .ratings .stars {
+  color: var(--sage); letter-spacing: 0.06em; font-size: 14px;
+}
+
+/* ============================================================== */
+/* BENTO GALLERY (cream) — facility tour                            */
+/* ============================================================== */
+.vs-office .bento {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  /* Explicit row height keeps the grid compact instead of letting intrinsic
+     image heights (esp. portrait tiles in 1×2 cells) stretch the rows. */
+  grid-template-rows: repeat(3, 280px);
+  grid-template-areas:
+    "a a b c"
+    "a a b c"
+    "d d e e";
+  gap: 16px;
+}
+.vs-office .bento-tile {
+  position: relative;
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: var(--line);
+  box-shadow: var(--shadow);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+.vs-office .bento-tile.tile-a { grid-area: a; }
+.vs-office .bento-tile.tile-b { grid-area: b; }
+.vs-office .bento-tile.tile-c { grid-area: c; }
+.vs-office .bento-tile.tile-d { grid-area: d; }
+.vs-office .bento-tile.tile-e { grid-area: e; }
+.vs-office .bento-tile img {
+  width: 100%; height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.6s cubic-bezier(0.2, 0.6, 0.2, 1);
+}
+.vs-office .bento-tile:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+.vs-office .bento-tile:hover img {
+  transform: scale(1.03);
+}
+
+/* ============================================================== */
+/* TECH + EQUIPMENT (sage dark) — copy + ImageFrame                 */
+/* ============================================================== */
+.vs-office .tech-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+.vs-office .tech-copy .eyebrow { margin-bottom: 18px; }
+.vs-office .tech-copy h2 { margin-bottom: 22px; max-width: 16ch; }
+/* Sage-pale band: lede inherits ink-soft already
+   — explicit color kept so cascading global rules don't bleed in. */
+.vs-office .tech-copy .lede {
+  font-size: 16.5px; line-height: 1.75; max-width: 52ch;
+  color: var(--ink-soft);
+  margin: 0 0 30px;
+}
+
+.vs-office .tech-list {
+  list-style: none; padding: 0; margin: 0 0 32px;
+  display: grid; gap: 20px;
+}
+.vs-office .tech-list li {
+  display: grid;
+  grid-template-columns: minmax(180px, auto) 1fr;
+  gap: 20px;
+  align-items: baseline;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.15);
+}
+.vs-office .tech-list li:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+.vs-office .tech-list .tech-pill {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: 16px;
+  color: var(--vs-ink);
+  letter-spacing: -0.005em;
+  line-height: 1.3;
+}
+.vs-office .tech-list li p {
+  margin: 0;
+  font-size: 14.5px; line-height: 1.6;
+  color: var(--ink-soft);
+}
+
+.vs-office .tech-actions {
+  display: inline-flex; flex-wrap: wrap; gap: 12px;
+}
+
+/* ============================================================== */
+/* WHAT TO EXPECT (paper) — 4-tile arrival-experience strip         */
+/* ============================================================== */
+.vs-office .expect-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+}
+.vs-office .expect-tile {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 32px 28px;
+  display: flex; flex-direction: column; gap: 14px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.vs-office .expect-tile:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow);
+  border-color: var(--sage-soft);
+}
+.vs-office .expect-ic {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--cream);
+  color: var(--sage);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 18px; line-height: 1;
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.3s ease;
+}
+.vs-office .expect-tile:hover .expect-ic {
+  background: var(--sage); color: #fff; border-color: var(--sage);
+  transform: scale(1.06);
+}
+.vs-office .expect-tile h3 {
+  font-family: var(--f-display); font-weight: 500;
+  font-size: 18px; color: var(--ink);
+  letter-spacing: -0.005em; line-height: 1.3;
+}
+.vs-office .expect-tile p {
+  font-size: 14.5px; line-height: 1.6;
+  color: var(--ink-soft); margin: 0;
+}
+
+/* ============================================================== */
+/* LOCATION + HOURS + MAP (cream)                                   */
+/* Mirrors /contact/ but on a cream band instead of sage dark.      */
+/* ============================================================== */
+.vs-office .location-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 80px; align-items: stretch;
+}
+.vs-office .location-copy { padding: 8px 0; }
+.vs-office .location-copy .eyebrow { margin-bottom: 18px; }
+.vs-office .location-copy h2 { margin-bottom: 22px; max-width: 14ch; }
+.vs-office .location-copy .lede {
+  font-size: 16.5px; line-height: 1.7; max-width: 50ch;
+  color: var(--ink-soft);
+}
+/* Charcoal-band override: #visit flips cream → charcoal. The
+   .lede selector (0,3,1) outranks `.section.alt p` (0,3,0), so re-assert. */
+.vs-office .section.alt .location-copy .lede { color: rgba(255, 255, 255, 0.85); }
+
+.vs-office .location-card {
+  margin-top: 32px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 32px 32px 28px;
+  display: grid; gap: 26px;
+}
+.vs-office .location-card .row {
+  display: grid; grid-template-columns: 36px 1fr;
+  gap: 20px; align-items: start;
+}
+.vs-office .location-card .row + .row {
+  padding-top: 22px;
+  border-top: 1px solid var(--line);
+}
+.vs-office .location-card .ic {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 1px solid var(--line);
+  color: var(--sage);
+  background: var(--cream);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 15px; line-height: 1;
+  margin-top: 1px;
+}
+.vs-office .location-card .ic i { line-height: 1; }
+.vs-office .location-card .row > div .label {
+  display: block; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--muted); font-weight: 500;
+  margin-bottom: 6px;
+}
+.vs-office .location-card .row > div .val,
+.vs-office .location-card .row > div a {
+  font-family: var(--f-display); font-size: 18.5px; color: var(--ink);
+  letter-spacing: -0.005em; text-decoration: none;
+  line-height: 1.4;
+}
+.vs-office .location-card .row > div a { transition: color 0.2s ease; }
+.vs-office .location-card .row > div a:hover { color: var(--sage); }
+
+.vs-office .hours-table {
+  display: grid; gap: 8px;
+  margin-top: 4px;
+}
+.vs-office .hours-table .day-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  gap: 16px;
+  font-family: var(--f-body);
+  font-size: 15.5px; color: var(--ink);
+  letter-spacing: 0;
+  font-weight: 400;
+}
+.vs-office .hours-table .day-row .day {
+  font-family: var(--f-body);
+  font-size: 14px; letter-spacing: 0;
+  text-transform: none;
+  color: var(--muted);
+  font-weight: 500;
+}
+.vs-office .hours-table .day-row.closed .hrs { color: var(--muted); }
+
+.vs-office .location-actions {
+  margin-top: 28px;
+  display: flex; gap: 14px; flex-wrap: wrap;
+}
+
+.vs-office .location-map-wrap {
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  background: var(--ink);
+  aspect-ratio: 4 / 5;
+  width: 100%;
+}
+.vs-office .location-map {
+  width: 100%; height: 100%;
+  border: 0;
+  display: block;
+}
+
+/* ============================================================== */
+/* FAQ (sage-pale band) — native details/summary                     */
+/* ============================================================== */
+.vs-office .faq-list {
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  max-width: 920px; margin: 0 auto;
+  background: rgba(255, 255, 255, 0.55);
+}
+.vs-office .faq { border-bottom: 1px solid rgba(0, 0, 0, 0.1); }
+.vs-office .faq:last-child { border-bottom: 0; }
+.vs-office .faq summary {
+  padding: 26px 32px;
+  cursor: pointer;
+  list-style: none;
+  display: grid; grid-template-columns: 1fr 28px; gap: 24px;
+  align-items: center;
+  transition: background 0.2s ease;
+}
+.vs-office .faq summary::-webkit-details-marker { display: none; }
+.vs-office .faq summary h3 {
+  font-family: var(--f-display); font-weight: 500; font-size: 20px;
+  color: var(--vs-ink); letter-spacing: -0.005em;
+  transition: color 0.2s ease;
+  margin: 0;
+}
+.vs-office .faq summary:hover h3,
+.vs-office .faq[open] summary h3 { color: var(--sage); }
+.vs-office .faq[open] { background: rgba(255, 255, 255, 0.75); }
+.vs-office .faq summary .icon {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--sage);
+  font-family: var(--f-display); font-size: 16px; line-height: 1;
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+}
+.vs-office .faq[open] summary .icon {
+  background: var(--sage); color: #fff; border-color: var(--sage);
+  transform: rotate(45deg);
+}
+.vs-office .faq .answer {
+  padding: 0 32px 26px;
+  font-size: 15.5px; line-height: 1.8;
+  color: var(--ink-soft);
+  max-width: 70ch;
+}
+.vs-office .faq .answer a {
+  color: var(--sage);
+  text-decoration: underline; text-underline-offset: 3px;
+}
+.vs-office .faq .answer a:hover { color: var(--sage-deep); }
+
+/* ============================================================== */
+/* RESPONSIVE                                                       */
+/* ============================================================== */
+@media (max-width: 1100px) {
+  .vs-office .hero-inner { grid-template-columns: 1fr; gap: 50px; }
+  .vs-office .hero-copy { max-width: none; }
+  .vs-office .tech-grid { grid-template-columns: 1fr; gap: 50px; }
+  .vs-office .tech-copy h2 { max-width: none; }
+  .vs-office .location-grid { grid-template-columns: 1fr; gap: 50px; }
+  .vs-office .location-copy h2 { max-width: none; }
+  .vs-office .location-map-wrap { max-width: 600px; }
+}
+
+@media (max-width: 991px) {
+  /* Bento — collapse to 2 columns. Hero tile remains 2×2, portraits stay 1×2
+     side by side, then wide tiles stack underneath full-width. */
+  .vs-office .bento {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(6, 220px);
+    grid-template-areas:
+      "a a"
+      "a a"
+      "b c"
+      "b c"
+      "d d"
+      "e e";
+  }
+  .vs-office .expect-grid { grid-template-columns: repeat(2, 1fr); }
+  .vs-office .tech-list li { grid-template-columns: 1fr; gap: 6px; }
+}
+
+@media (max-width: 780px) {
+  .vs-office .wrap { padding: 0 22px; }
+  .vs-office .hero-sub { font-size: 16.5px; }
+  .vs-office .section { padding: clamp(64px, 11vw, 96px) 0; }
+  .vs-office .section-head { margin-bottom: 40px; }
+  .vs-office .bento { gap: 12px; }
+  .vs-office .expect-grid { gap: 14px; }
+  .vs-office .expect-tile { padding: 26px 22px; }
+  .vs-office .location-card { padding: 26px 22px; }
+  .vs-office .faq summary { padding: 22px 24px; }
+  .vs-office .faq summary h3 { font-size: 17px; }
+  .vs-office .faq .answer { padding: 0 24px 22px; }
+}
+
+@media (max-width: 640px) {
+  /* Bento — single column. Each tile reverts to a natural landscape ratio. */
+  .vs-office .bento {
+    grid-template-columns: 1fr;
+    grid-template-rows: none;
+    grid-auto-rows: auto;
+    grid-template-areas:
+      "a"
+      "b"
+      "c"
+      "d"
+      "e";
+  }
+  .vs-office .bento-tile { aspect-ratio: 4 / 3; }
+  .vs-office .expect-grid { grid-template-columns: 1fr; }
+  .vs-office .location-map-wrap { aspect-ratio: 1 / 1; }
+}
+
+@media (max-width: 480px) {
+  .vs-office .hero-actions { gap: 10px; }
+  .vs-office .hero-actions .ratings { margin-left: 0; width: 100%; }
+  .vs-office .location-card .row { grid-template-columns: 32px 1fr; gap: 14px; }
+  .vs-office .location-card .ic { width: 32px; height: 32px; font-size: 13px; }
+  .vs-office .location-card .row > div .val,
+  .vs-office .location-card .row > div a { font-size: 16.5px; }
+}
+
+/* ---------- Reduced-motion safety ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .vs-office .bento-tile,
+  .vs-office .bento-tile img,
+  .vs-office .expect-tile,
+  .vs-office .expect-ic,
+  .vs-office .faq summary,
+  .vs-office .faq summary .icon { transition: none; }
+}
+
+/* H2 base color → ink for sitewide split-color pattern.
+   Equal specificity (0,1,1) with the h1/h2/h3/h4 group rule above; comes later
+   in the cascade, so this wins for h2 only. h1/h3/h4 keep sage. Dark-band
+   `.section.alt h2 { color: #fff }` (0,2,1) still trumps. */
+.vs-office h2 { color: var(--vs-ink); }

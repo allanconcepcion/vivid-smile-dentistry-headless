@@ -1,0 +1,751 @@
+---
+/**
+ * Bone Grafting — Vivid Smiles Dentistry, Parker CO.
+ * Page-scoped styles: src/styles/pages/bone-grafting.css (.bgraft wrapper).
+ *
+ * Ported from the all-on-4-single-arch template. Same structural sections —
+ * HERO → KEYS → TOC → WHY → WHAT → IMPLANTS → PROCESS → TYPES → CANDIDACY → GALLERY → FAQ
+ * → VirtualConsult → final-band — with markdown copy mapped verbatim. The COMPARE slot is
+ * repurposed for "Types of Bone Grafting": procedures render as a 3-card .alternatives-grid
+ * (clinical situations), and material sources render as a 2-col .materials-block (head left,
+ * stacked .material-row definition rows right) — distinct visual treatment so two 3-card grids
+ * don't sit back-to-back. WHAT section integrates "Why Jawbone Loss Happens" inline as a
+ * .what-causes block in the same right column as the definition prose, separated by a hairline
+ * rule, so the causes content doesn't float as a centered orphan below the cream split.
+ * No new images were added — assets reused from src/assets/images/procedures/ and people/.
+ */
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Button from '../../components/Button.astro';
+import FinalBand from '../../components/FinalBand.astro';
+import VirtualConsult from '../../components/VirtualConsult.astro';
+import { phoneHref, phoneLabel, bookNowHref, directionsHref } from '../../data/contact';
+import { getSmiles } from '../../lib/smiles';
+import '../../styles/pages/bone-grafting.css';
+
+import heroImg from '../../assets/images/people/real/man-bearded-natural-smile.webp';
+// "What is bone grafting" — anatomical cross-section diagram (gpt_image_2).
+import whatImg from '../../assets/images/procedures/bone-graft-cross-section-diagram.webp';
+// "Implants context band" — real Dr. Richardson + Yomi-arm procedure shot
+// (the actual robotic implant placement in Vivid Smiles' operatory). Replaces
+// the previous AI-generated yomi-robotic-implant-procedure.webp which read as
+// "photo of a computer" because it was dominated by planning screens.
+import implantsImg from '../../assets/images/procedures/implant-prosthesis-arch-detail.webp';
+// Candidacy section — lifestyle patient portrait.
+import candidacyImg from '../../assets/images/people/real/woman-stone-wall-portrait.webp';
+
+// Track doubled for seamless marquee loop.
+const galleryTiles = getSmiles();
+const galleryTrack = [...galleryTiles, ...galleryTiles];
+
+const tocLinks = [
+  { href: '#why', label: 'Why Vivid Smiles' },
+  { href: '#what', label: 'What It Is' },
+  { href: '#implants', label: 'Grafting & Implants' },
+  { href: '#process', label: 'The Procedure' },
+  { href: '#types', label: 'Types & Materials' },
+  { href: '#candidacy', label: 'Who Needs It' },
+  { href: '#faq', label: 'FAQ' },
+];
+
+const whyCards = [
+  {
+    num: '01',
+    title: '600+ Hours of Surgical Training',
+    body: 'Dr. Richardson brings 600-plus hours of specialized surgical training and Implant Pathway staff experience to every bone grafting case.',
+  },
+  {
+    num: '02',
+    title: 'CBCT Imaging-Guided',
+    body: 'CBCT imaging guides bone volume assessment before treatment begins, and robotic implant placement follows once healing is confirmed.',
+  },
+  {
+    num: '03',
+    title: '5-Star · 300+ Reviews',
+    body: 'Vivid Smiles holds a 5-star rating across 300+ Google reviews, reflecting the precision and patient-first care Parker patients receive at every stage.',
+  },
+  {
+    num: '04',
+    title: 'Parker Resident · Implant Pathway',
+    body: "Dr. Richardson trained at Implant Pathway, one of the country's most selective implant training institutions, and lives and practices in Parker, CO.",
+  },
+];
+
+const processSteps = [
+  {
+    tag: 'Step One',
+    num: '01',
+    title: 'CBCT scan',
+    body: 'Dr. Richardson maps your jaw in 3D to measure bone volume and identify the exact grafting site.',
+  },
+  {
+    tag: 'Step Two',
+    num: '02',
+    title: 'Treatment planning',
+    body: 'A custom approach is designed using digital imaging data before any procedure begins.',
+  },
+  {
+    tag: 'Step Three',
+    num: '03',
+    title: 'Grafting',
+    body: 'Local anesthesia is applied; graft material is placed and secured in a single visit.',
+  },
+  {
+    tag: 'Step Four',
+    num: '04',
+    title: 'Healing',
+    body: 'The graft undergoes osseointegration (gradual fusion with existing bone) over 3 to 6 months.',
+  },
+  {
+    tag: 'Step Five',
+    num: '05',
+    title: 'Implant placement',
+    body: 'Once healing is confirmed, implants are placed with robotic-assisted positioning for precision.',
+  },
+];
+
+const procedures = [
+  {
+    tag: 'Procedure',
+    title: 'Socket Preservation',
+    body: 'Performed at extraction — graft material is placed in the empty socket immediately after a tooth is removed to maintain ridge volume for future implant placement.',
+  },
+  {
+    tag: 'Procedure',
+    title: 'Ridge Augmentation',
+    body: 'Rebuilds implant site height or width when the jawbone has already resorbed, restoring the volume an implant needs to anchor securely.',
+  },
+  {
+    tag: 'Procedure',
+    title: 'Sinus Lifts',
+    body: 'Used for upper molar cases — the sinus floor is gently lifted and graft material is added to create enough vertical bone for implants in the back of the upper jaw.',
+  },
+];
+
+const materials = [
+  {
+    tag: 'Allograft',
+    title: 'Processed donor bone',
+    body: 'Processed donor bone from a certified tissue bank; integrates predictably with natural jawbone.',
+  },
+  {
+    tag: 'Xenograft',
+    title: 'Bovine-derived mineral',
+    body: 'Mineral derived from bovine bone, used for its structural compatibility with human jaw tissue.',
+  },
+  {
+    tag: 'Synthetic',
+    title: 'Lab-made scaffold',
+    body: 'Lab-made scaffold material that supports new bone growth while your body rebuilds around it.',
+  },
+];
+
+const keyStats: [string, string][] = [
+  ['CBCT', '3D Imaging Guided'],
+  ['3–6 mo', 'Healing Window'],
+  ['600+ hrs', 'Surgical Training'],
+  ['5.0★ · 300+', 'Google Reviews'],
+];
+
+const faqs = [
+  {
+    q: 'Is bone grafting painful?',
+    a: 'Bone grafting is performed under local anesthesia, so there is no pain during the procedure. Post-operative discomfort is typically mild and managed with over-the-counter medication.',
+    open: true,
+  },
+  {
+    q: 'How long does it take for a dental bone graft to heal?',
+    a: 'Most grafts require 3 to 6 months to fully integrate with natural bone. Dr. Richardson confirms healing on follow-up imaging before scheduling implant placement.',
+  },
+  {
+    q: 'How much does bone grafting cost?',
+    a: 'Cost depends on procedure type, extent of bone loss, and graft material. Contact Vivid Smiles at (303) 841-5313 for an estimate based on your specific case.',
+  },
+  {
+    q: 'Can I get a dental implant without bone grafting?',
+    a: 'Yes, some patients have sufficient natural bone and proceed directly to implants without grafting. A CBCT evaluation at Vivid Smiles determines whether grafting is part of your treatment plan.',
+  },
+  {
+    q: 'Can implants be placed the same day as a bone graft?',
+    a: 'Same-day placement is possible in select cases but is not the standard approach. Waiting for full graft integration significantly improves long-term implant stability and success.',
+  },
+];
+---
+
+<BaseLayout
+  title="Bone Grafting in Parker, CO | Vivid Smiles Dentistry"
+  description="Bone grafting in Parker, CO with Dr. Bryce Richardson — CBCT-guided assessment, socket preservation, ridge augmentation, and sinus lifts that prepare your jaw for dental implants."
+>
+  <div class="bgraft">
+    {/* ---------- BREADCRUMB ---------- */}
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <div class="crumbs-inner">
+        <a href="/">Home</a>
+        <span class="sep">/</span>
+        <a href="/services/">Services</a>
+        <span class="sep">/</span>
+        <a href="/implant-dentistry/">Implant Dentistry</a>
+        <span class="sep">/</span>
+        <span class="here">Bone Grafting</span>
+      </div>
+    </nav>
+
+    <main id="main">
+      {/* ---------- HERO ---------- */}
+      <header class="hero" data-vs-reveal-batch>
+        <div class="wrap hero-inner">
+          <div class="hero-copy">
+            <span class="eyebrow">Implant Dentistry · Parker, CO</span>
+            <h1 data-vs-reveal-lines>Bone Grafting <em>in Parker, CO</em></h1>
+            <p class="hero-sub">
+              Bone grafting rebuilds jawbone lost after tooth extraction or gum disease, creating
+              the foundation needed for dental implants. Without adequate bone volume, implants
+              cannot anchor securely, which is why Dr. Richardson evaluates every patient with CBCT
+              3D imaging before recommending treatment. Here is what bone grafting involves, who
+              needs it, and what to expect at Vivid Smiles Dentistry in Parker.
+            </p>
+            <div class="hero-actions">
+              <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button
+              >
+              <Button variant="ghost-light" href="#consult" hoverLabel="Get a Video"
+                >Free Virtual Consult</Button
+              >
+              <div class="ratings">
+                <span class="stars" aria-hidden="true">★★★★★</span>
+                <span>5.0 · 300+ reviews</span>
+              </div>
+            </div>
+          </div>
+          <div class="hero-img" data-vs-parallax data-parallax="-30">
+            <Image
+              src={heroImg}
+              alt="Smiling man photographed at the Vivid Smiles Dentistry neon smile wall in Parker, CO"
+              widths={[600, 900, 1400]}
+              sizes="(max-width: 991px) 100vw, 50vw"
+            />
+          </div>
+        </div>
+      </header>
+
+      {/* ---------- KEYS — at-a-glance ---------- */}
+      <section class="keys" id="keys" aria-label="Bone grafting at a glance" data-vs-reveal-batch>
+        <div class="keys-grid">
+          <div class="keys-label">At a glance</div>
+          {
+            keyStats.map(([k, v]) => (
+              <div class="keys-item">
+                <>
+                  <div class="k">{k}</div>
+                  <div class="v">{v}</div>
+                </>
+              </div>
+            ))
+          }
+        </div>
+      </section>
+
+      {/* ---------- ON-THIS-PAGE TOC ---------- */}
+      <nav class="toc" id="toc" aria-label="On this page">
+        <div class="toc-inner">
+          <span class="toc-label">On this page</span>
+          <div class="toc-scroll">
+            <div class="toc-list">
+              {tocLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* ---------- WHY ---------- */}
+      <section class="section" id="why" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Why Vivid Smiles</span>
+            <h2>Why Choose Vivid Smiles Dentistry <em>for Bone Grafting</em></h2>
+          </div>
+
+          <div class="why-grid">
+            {
+              whyCards.map((c) => (
+                <article class="why-card">
+                  <div class="num">{c.num}</div>
+                  <h3>{c.title}</h3>
+                  <p>{c.body}</p>
+                </article>
+              ))
+            }
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- WHAT (cream split + Why Jawbone Loss Happens sub) ---------- */}
+      <section class="section alt" id="what" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="what-grid">
+            <div class="what-img" data-vs-parallax data-parallax="-25">
+              <Image
+                src={whatImg}
+                alt="Cross-section illustration showing bone-graft material placed under a collagen barrier membrane against native jawbone"
+                widths={[500, 800, 1100]}
+                sizes="(max-width: 991px) 100vw, 50vw"
+              />
+            </div>
+            <div class="what-text">
+              <span class="eyebrow">Definition</span>
+              <h2>What Is <em>Bone Grafting?</em></h2>
+              <div class="prose">
+                <p>
+                  Bone grafting adds material to the jaw to restore volume and density lost after
+                  tooth removal or long-term tooth absence. Once a tooth is gone, the surrounding
+                  bone breaks down without the stimulation it needs. Dr. Richardson uses CBCT
+                  imaging to measure exactly how much bone remains before recommending a grafting
+                  approach.
+                </p>
+              </div>
+
+              {
+                /* Causes content integrated inline so it shares the column with the definition prose
+                (instead of floating as a centered .what-sub block below the cream split). */
+              }
+              <div class="what-causes">
+                <div class="what-causes-rule" aria-hidden="true"></div>
+                <span class="eyebrow">Causes</span>
+                <h3>Why Jawbone Loss Happens</h3>
+                <p>
+                  Jawbone loss most often results from tooth extraction without replacement,
+                  periodontal disease, or a missing tooth left untreated for years. How quickly bone
+                  resorbs varies by patient. CBCT imaging reveals your current bone volume and
+                  determines whether grafting is necessary before implant planning begins.
+                </p>
+              </div>
+
+              <div class="cta-row left">
+                <div class="cta-buttons">
+                  <Button variant="light" href="#consult" hoverLabel="Get a Video"
+                    >Free Virtual Consult</Button
+                  >
+                  <Button variant="ghost-light" href="#process" hoverLabel="See How"
+                    >See the Procedure</Button
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {
+        /* ---------- IMPLANTS (centered intro + compact highlight band — distinct from WHAT) ---------- */
+      }
+      {
+        /* Original ROBOTICS slot was image-left + text-right 50/50, which sat next to WHAT's
+        same-shape split and read as a duplicate layout. Restructured here as a vertical
+        stack: centered intro (max-width 760px) on top, then a sage-tinted .implants-band
+        below with a smaller framed image flanked by the callout content — same content,
+        very different rhythm from the section above. */
+      }
+      <section class="section" id="implants" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="implants-intro">
+            <span class="eyebrow">Grafting & Implants</span>
+            <h2>Bone Grafting and <em>Dental Implants</em></h2>
+            <p>
+              Bone grafting is the prerequisite that makes implant placement possible when natural
+              bone volume is insufficient. Implants require a dense, stable base to anchor and
+              function long-term. At Vivid Smiles, robotic implant placement follows grafting, and
+              the quality of that graft determines the precision the technology can deliver.
+            </p>
+          </div>
+
+          <div class="implants-band">
+            <div class="implants-band-img" data-vs-parallax data-parallax="-15">
+              <Image
+                src={implantsImg}
+                alt="Close-up of an implant-supported restoration on a dental model"
+                widths={[400, 600, 900]}
+                sizes="(max-width: 991px) 100vw, 38vw"
+              />
+            </div>
+            <div class="implants-band-text">
+              <span class="eyebrow">Why grafting comes first</span>
+              <h3>Foundation, then placement.</h3>
+              <p>
+                Bone grafting is needed when bone loss is significant enough to prevent stable <a
+                  class="vs-link"
+                  href="/implant-dentistry/single-tooth-dental-implants/">implant placement</a
+                >. Common candidates include patients with unpreserved extraction sites, multiple
+                missing teeth, or denture wearers considering <a
+                  class="vs-link"
+                  href="/implant-dentistry/full-mouth-dental-implants/">implant-supported options</a
+                >. Not all implant cases require grafting, and a CBCT evaluation at Vivid Smiles
+                confirms whether it applies to you.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- PROCESS (sage, 5-step + Recovery Timeline inline-cta) ---------- */}
+      <section class="section dark" id="process" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow light">The Procedure</span>
+            <h2>The Bone Grafting Procedure <em>at Vivid Smiles</em></h2>
+            <p>Bone grafting at Vivid Smiles follows a precise, imaging-guided process.</p>
+          </div>
+
+          <div class="process-grid">
+            {
+              processSteps.map((s) => (
+                <div class="process-card">
+                  <span class="step-tag">{s.tag}</span>
+                  <div class="num">{s.num}</div>
+                  <h3>{s.title}</h3>
+                  <p>{s.body}</p>
+                </div>
+              ))
+            }
+          </div>
+
+          <div class="inline-cta dark">
+            <div class="ic-text">
+              <strong>What to expect during recovery.</strong> Most patients manage post-graft discomfort
+              with over-the-counter pain medication. Swelling peaks at 48 to 72 hours; a soft food diet
+              is recommended for the first week. Full osseointegration, meaning the graft material fusing
+              completely with your jawbone, takes 3 to 6 months before implant surgery proceeds.
+            </div>
+            <div class="ic-buttons">
+              <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button
+              >
+              <Button variant="ghost-light" href={phoneHref} hoverLabel="Tap to Dial"
+                >Call {phoneLabel}</Button
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {
+        /* ---------- TYPES (reuses COMPARE slot — 3 procedure cards + materials glossary) ---------- */
+      }
+      {
+        /* Two distinct patterns: .alternatives-grid for procedures (3 prominent cards), then a
+        2-col .materials-block (head + .materials-list) for material sources — keeps the eye
+        from reading two identical 3-card rows back-to-back. */
+      }
+      <section class="section" id="types" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Types & Materials</span>
+            <h2>Types of <em>Bone Grafting We Perform</em></h2>
+            <p>
+              We offer three main grafting procedures, each suited to a specific clinical situation.
+              The right approach depends on where the implant will go and how much rebuilding your
+              jaw requires.
+            </p>
+          </div>
+
+          <div class="alternatives-grid">
+            {
+              procedures.map((p) => (
+                <article class="config-card">
+                  <span class="tag">{p.tag}</span>
+                  <h4>{p.title}</h4>
+                  <p>{p.body}</p>
+                </article>
+              ))
+            }
+          </div>
+
+          {
+            /* Materials list — split 2-col (head left, stacked definition rows right) so it reads
+            as reference info, not a duplicate of the procedures card grid above. */
+          }
+          <div class="materials-block">
+            <div class="materials-head">
+              <span class="eyebrow">Material Sources</span>
+              <h3>Where Does Bone Graft Material Come From?</h3>
+              <p>Graft material is selected based on your anatomy and the procedure required.</p>
+            </div>
+            <dl class="materials-list">
+              {
+                materials.map((m) => (
+                  <div class="material-row">
+                    <dt>
+                      <span class="tag">{m.tag}</span>
+                      <span class="label">{m.title}</span>
+                    </dt>
+                    <dd>{m.body}</dd>
+                  </div>
+                ))
+              }
+            </dl>
+          </div>
+
+          <div class="cta-row">
+            <div class="cta-buttons">
+              <Button variant="sage" href="#consult" hoverLabel="Get a Video"
+                >Free Virtual Consult</Button
+              >
+              <Button variant="ghost" href="#faq" hoverLabel="See Answers">Read FAQ</Button>
+            </div>
+            <span class="cta-note">No commitment · Personal video reply</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- CANDIDACY (cream, image+text + bottom-line sub) ---------- */}
+      <section class="section alt" id="candidacy" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="natural-grid">
+            <div class="natural-text">
+              <span class="eyebrow">Candidacy</span>
+              <h2>Who Needs <em>Bone Grafting?</em></h2>
+              <div class="natural-quote">
+                Bone grafting is needed when bone loss is significant enough to prevent stable
+                implant placement.
+              </div>
+              <ul class="candidate-list">
+                <li>
+                  <span class="marker">01</span>
+                  <span
+                    ><b>Unpreserved extraction sites —</b> Patients whose teeth were removed without a
+                    socket-preservation graft at the time of extraction.</span
+                  >
+                </li>
+                <li>
+                  <span class="marker">02</span>
+                  <span
+                    ><b>Multiple missing teeth —</b> When several teeth have been absent long enough for
+                    surrounding bone to resorb.</span
+                  >
+                </li>
+                <li>
+                  <span class="marker">03</span>
+                  <span
+                    ><b>Denture wearers considering implants —</b> Long-term denture wear accelerates
+                    bone loss; grafting often restores enough volume to switch to an implant-supported
+                    option.</span
+                  >
+                </li>
+                <li>
+                  <span class="marker">04</span>
+                  <span
+                    ><b>CBCT-confirmed deficit —</b> Not all implant cases require grafting, and a CBCT
+                    evaluation at Vivid Smiles confirms whether it applies to you.</span
+                  >
+                </li>
+              </ul>
+            </div>
+            <div class="natural-img" data-vs-parallax data-parallax="-25">
+              <Image
+                src={candidacyImg}
+                alt="Woman standing beside a stone wall on a bright afternoon"
+                widths={[500, 800, 1100]}
+                sizes="(max-width: 991px) 100vw, 50vw"
+              />
+            </div>
+          </div>
+
+          <div class="candidacy-sub">
+            <span class="label">The bottom line</span>
+            <h3>An imaging-guided foundation for implants</h3>
+            <p>
+              Bone grafting makes implant placement possible for patients who have experienced
+              significant jawbone loss, and Dr. Richardson's imaging-guided approach ensures every
+              decision is based on your actual anatomy. Understanding the timeline and your
+              candidacy removes the uncertainty that often delays treatment.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- GALLERY ---------- */}
+      <section class="section dark" id="gallery">
+        <div class="wrap">
+          <div class="section-head" data-vs-reveal>
+            <span class="eyebrow light">Smile Gallery</span>
+            <h2>Finished smiles from <em>our chair.</em></h2>
+            <p>
+              A selection of finished cosmetic and restorative work from across the practice, not
+              bone grafting cases specifically.
+            </p>
+          </div>
+        </div>
+
+        <div class="gallery-marquee" data-vs-marquee aria-label="Vivid Smiles smile gallery">
+          <div class="gallery-track" data-vs-marquee-track>
+            {
+              galleryTrack.map((t, i) => {
+                const isClone = i >= galleryTiles.length;
+                return (
+                  <div
+                    class="smile-tile"
+                    aria-hidden={isClone || undefined}
+                    inert={isClone || undefined}
+                  >
+                    <Image src={t.src} alt={t.alt} widths={[420, 640, 840]} sizes="420px" />
+                  </div>
+                );
+              })
+            }
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- FAQ (paper, 5 accordion items) ---------- */}
+      <section class="section" id="faq" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">FAQ</span>
+            <h2>Frequently Asked Questions <em>About Bone Grafting</em></h2>
+          </div>
+
+          <div class="faq-list">
+            {
+              faqs.map((f) => (
+                <details class="faq" open={f.open}>
+                  <summary>
+                    <>
+                      <h3>{f.q}</h3>
+                      <span class="icon" aria-hidden="true">
+                        +
+                      </span>
+                    </>
+                  </summary>
+                  <div class="answer">{f.a}</div>
+                </details>
+              ))
+            }
+          </div>
+
+          <div class="cta-row">
+            <div class="cta-buttons">
+              <Button variant="sage" href="#consult" hoverLabel="Get a Video"
+                >Still Have Questions? Free Virtual Consult</Button
+              >
+              <Button variant="ghost" href={phoneHref} hoverLabel="Tap to Dial"
+                >Call {phoneLabel}</Button
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- VIRTUAL CONSULT ---------- */}
+      <VirtualConsult id="consult" eyebrow="Free bone grafting consultation">
+        <Fragment slot="headline">Free bone grafting <em>consultation.</em></Fragment>
+        <Fragment slot="body">
+          Vivid Smiles Dentistry serves patients across Parker, Douglas County, and the surrounding
+          communities. Schedule a free consultation <a
+            href={bookNowHref}
+            target="_blank"
+            rel="noopener noreferrer">online</a
+          > or call
+          {' '}{phoneLabel} to find out whether bone grafting is the right next step for you.
+        </Fragment>
+      </VirtualConsult>
+
+      {/* ---------- CLOSING BAND ---------- */}
+      <FinalBand>
+        <p>
+          Dr. Bryce Richardson combines CBCT-guided planning with 600-plus hours of advanced
+          surgical training to deliver bone grafting outcomes built to support implants for the long
+          term.
+        </p>
+      </FinalBand>
+    </main>
+
+    <script>
+      import { initTocSpy } from '../../scripts/toc-spy';
+      initTocSpy('.bgraft');
+    </script>
+
+    {/* JSON-LD: MedicalProcedure + FAQPage + BreadcrumbList */}
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'MedicalProcedure',
+        name: 'Bone Grafting',
+        alternateName: [
+          'Dental Bone Graft',
+          'Jawbone Grafting',
+          'Socket Preservation',
+          'Ridge Augmentation',
+          'Sinus Lift',
+        ],
+        procedureType: 'https://schema.org/SurgicalProcedure',
+        bodyLocation: 'Jaw',
+        preparation:
+          'CBCT 3D imaging maps the jaw to measure bone volume and identify the exact grafting site; a custom treatment plan is designed using digital imaging data before any procedure begins.',
+        howPerformed:
+          'Local anesthesia is applied; graft material (allograft, xenograft, or synthetic) is placed and secured in a single visit. The procedure may take the form of socket preservation at extraction, ridge augmentation to rebuild implant site height or width, or a sinus lift for upper molar cases.',
+        followup:
+          'Post-operative discomfort is managed with over-the-counter pain medication; swelling peaks at 48 to 72 hours; a soft food diet is recommended for the first week. Full osseointegration takes 3 to 6 months before implant surgery proceeds.',
+        performer: {
+          '@type': 'Dentist',
+          name: 'Dr. Bryce Richardson',
+          worksFor: {
+            '@type': 'Dentist',
+            name: 'Vivid Smiles Dentistry',
+            address: {
+              '@type': 'PostalAddress',
+              streetAddress: '17167 Cedar Gulch Pkwy Ste 102',
+              addressLocality: 'Parker',
+              addressRegion: 'CO',
+              postalCode: '80134',
+              addressCountry: 'US',
+            },
+            telephone: '+1-303-841-5313',
+          },
+        },
+      })}
+    />
+
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faqs.map((f) => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
+      })}
+    />
+
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: new URL('/', Astro.site).href },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'Services',
+            item: new URL('/services/', Astro.site).href,
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: 'Implant Dentistry',
+            item: new URL('/implant-dentistry/', Astro.site).href,
+          },
+          {
+            '@type': 'ListItem',
+            position: 4,
+            name: 'Bone Grafting',
+            item: new URL('/implant-dentistry/bone-grafting/', Astro.site).href,
+          },
+        ],
+      })}
+    />
+  </div>
+</BaseLayout>

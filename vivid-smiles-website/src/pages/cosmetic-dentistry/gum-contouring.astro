@@ -1,0 +1,536 @@
+---
+/**
+ * Gum Contouring — Vivid Smiles Dentistry, Parker CO.
+ *
+ * Template: src/pages/cosmetic-dentistry/porcelain-veneers.astro (the canonical
+ * service detail layout). No the design prototype
+ * exists, so the veneers page is the closest visual reference by sitewide convention.
+ *
+ * Page-scoped styles: src/styles/pages/gum-contouring.css.
+ * Buttons + scroll reveals wired by src/scripts/animations.js (data-vs-arrow / data-vs-reveal*).
+ *
+ * Copy: verbatim from supplied SEO markdown ("Laser Gum Contouring in Parker, CO").
+ *
+ * Sections vs. veneers template:
+ *  Kept: Hero · Keys · TOC · What · Laser (re-uses Natural-with-quote pattern,
+ *  on a sage band) · Candidates (Why-grid 2-card) · Process · Recovery
+ *  (Lasting 2-col with stat) · Results (Natural-style 2-col, no quote, alt-flip)
+ *  · Why (3-up 6-card grid) · FAQ · VirtualConsult · Final band.
+ *
+ *  Skipped (no copy support, see plan):
+ *  - Compare    — SEO source has no comparison block (the contouring-vs-grafting
+ *                 distinction lives in a single FAQ, kept there).
+ *  - Local      — Parker-resident + 300+-reviews moments are bullets inside the
+ *                 "Why Choose Vivid Smiles" cards; a dedicated Local section
+ *                 would duplicate copy.
+ *  - Gallery    — no before/after gum-contouring images on disk; reusing veneer
+ *                 smile tiles would violate the "never fake the categorization"
+ *                 sitewide rule.
+ *
+ * Image strategy: only `services/gum_contouring.webp` is a real gum-contouring
+ * photo on disk (used in the hero). Inner image slots reuse images from
+ * porcelain-veneers/ and home/ as visible placeholders, each marked with a
+ * TODO so they're easy to grep and swap when real photos arrive.
+ *
+ * Global <Nav /> + <Footer /> are mounted by BaseLayout — this page renders
+ * only its own content, starting with an inline breadcrumb under the global nav.
+ */
+import { Image } from "astro:assets";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Button from "../../components/Button.astro";
+import FinalBand from "../../components/FinalBand.astro";
+import VirtualConsult from "../../components/VirtualConsult.astro";
+import {
+  phoneHref,
+  phoneLabel,
+  phoneE164,
+  bookNowHref,
+  directionsHref,
+  addressStreet,
+  addressCity,
+  addressState,
+  addressZip,
+} from "../../data/contact";
+import "../../styles/pages/gum-contouring.css";
+
+import heroImg from "../../assets/images/people/real/woman-pines-portrait.webp";
+// "What is gum contouring" — real macro of a smile showing the gum line
+// framing the upper teeth, which is the ratio this section explains.
+import whatImg from "../../assets/images/procedures/smile-macro-front-view.webp";
+// "Laser technology" section — macro of the gumline where it meets the teeth.
+import gumlineImg from "../../assets/images/procedures/finished-veneers-lip-detail.webp";
+// "Results" — real patient portrait in the office. Distinct subject from
+// the hero portrait; the alt describes the photograph, not an outcome.
+import resultsImg from "../../assets/images/people/real/woman-office-portrait.webp";
+
+const tocLinks = [
+  { href: "#what",       label: "What It Is" },
+  { href: "#laser",      label: "Laser Tech" },
+  { href: "#candidates", label: "Who Benefits" },
+  { href: "#process",    label: "The Process" },
+  { href: "#recovery",   label: "Recovery" },
+  { href: "#results",    label: "Results" },
+  { href: "#why",        label: "Why Vivid Smiles" },
+  { href: "#faq",        label: "FAQ" },
+];
+
+const processSteps = [
+  { tag: "Step One",   num: "01", title: "Consultation and digital imaging", body: "Dr. Richardson reviews your gum-to-tooth ratio and uses digital imaging tools to map the gum line and preview potential results. If gum contouring is part of a larger smile plan, that coordination begins here." },
+  { tag: "Step Two",   num: "02", title: "Treatment planning",               body: "Your ideal gum line is marked precisely. Any combination work with veneers or other cosmetic procedures is coordinated so every element of the result aligns." },
+  { tag: "Step Three", num: "03", title: "Laser procedure",                  body: "The procedure typically takes 30 to 60 minutes. Local anesthetic is applied, and the soft tissue laser removes and reshapes tissue with minimal discomfort and little to no bleeding." },
+  { tag: "Step Four",  num: "04", title: "Immediate results",                body: "Results are visible as soon as the procedure is complete. The gum line is reshaped, and the improved tooth-to-gum ratio is apparent before you leave the office." },
+  { tag: "Step Five",  num: "05", title: "Recovery",                         body: "Most patients return to normal activities the same day. Minor sensitivity for one to three days is common, and over-the-counter pain relief is typically all that is needed." },
+];
+
+const whyCards = [
+  { tag: "Digital Preview",   title: "Digital smile preview",                       body: "Before any work is scheduled, you see a preview of your projected gum line. This is a specific, patient-facing view of your planned outcome, not a generic illustration of general improvements." },
+  { tag: "Laser Technology",  title: "Laser over scalpel",                          body: "Soft tissue laser technology means less discomfort, minimal bleeding, no sutures in most cases, and significantly faster healing compared to traditional gum surgery." },
+];
+
+const faqs = [
+  { q: "Does gum contouring hurt?",                                   a: "Most patients experience mild pressure during the procedure and minor sensitivity for one to three days after. Local anesthetic is used during treatment, and over-the-counter pain relief is generally all that is needed during recovery.", open: true },
+  { q: "Is gum contouring permanent?",                                a: "Yes. Once laser reshaping removes gum tissue, it does not regrow to its original position. The result you see immediately after the procedure reflects the long-term outcome." },
+  { q: "How long does gum contouring take?",                          a: "The laser procedure itself typically takes 30 to 60 minutes, depending on how much tissue needs to be reshaped. The consultation and digital planning appointment is scheduled separately ahead of treatment." },
+  { q: "How much does gum contouring cost?",                          a: "Cost varies based on the extent of reshaping needed and whether gum contouring is part of a broader cosmetic plan. The best way to get an accurate estimate is during a free consultation, where Dr. Richardson can review your specific situation and outline a personalized treatment plan." },
+  { q: "Is gum contouring covered by insurance?",                     a: "Gum contouring is typically considered a cosmetic procedure and is not covered by dental insurance. Vivid Smiles offers financing options and an in-house dental membership plan for patients without coverage who want to move forward." },
+  { q: "What is the difference between gum contouring and gum grafting?", a: "Gum contouring removes excess tissue when the gum line sits too high or too unevenly over the teeth. Gum grafting adds tissue in the opposite situation, when gums have receded too far and the tooth root is exposed. They treat different problems and are not interchangeable." },
+];
+---
+
+<BaseLayout
+  title="Laser Gum Contouring in Parker, CO | Vivid Smiles Dentistry"
+  description="Laser gum contouring in Parker, CO with Dr. Bryce Richardson. Reshape excess or uneven gum tissue with soft-tissue laser technology — minimal recovery, immediate results, permanent change."
+>
+  <div class="gcontouring">
+
+    {/* ---------- BREADCRUMB ---------- */}
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <div class="crumbs-inner">
+        <a href="/">Home</a>
+        <span class="sep">/</span>
+        <a href="/services/">Services</a>
+        <span class="sep">/</span>
+        <a href="/cosmetic-dentistry/">Cosmetic Dentistry</a>
+        <span class="sep">/</span>
+        <span class="here">Gum Contouring</span>
+      </div>
+    </nav>
+
+    <main id="main">
+
+    {/* ---------- HERO ---------- */}
+    <header class="hero" data-vs-reveal-batch>
+      <div class="wrap hero-inner">
+        <div class="hero-copy">
+          <span class="eyebrow">Cosmetic Dentistry · Parker, CO</span>
+          <h1 data-vs-reveal-lines>Laser Gum Contouring <em>in Parker, CO</em></h1>
+          <p class="hero-sub">
+            Gum contouring is a cosmetic dental procedure that reshapes excess or uneven gum tissue to reveal more
+            of the natural tooth structure underneath. Laser technology makes the process precise and minimally
+            invasive, with most patients experiencing little to no downtime. Here is who benefits, what the
+            procedure involves, and how Dr. Bryce Richardson at Vivid Smiles Dentistry approaches gum reshaping
+            as part of a complete smile design plan.
+          </p>
+          <div class="hero-actions">
+            <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button>
+            <Button variant="ghost-light" href="#consult" hoverLabel="Get a Video">Free Virtual Consult</Button>
+            <div class="ratings">
+              <span class="stars" aria-hidden="true">★★★★★</span>
+              <span>5.0 · 300+ reviews</span>
+            </div>
+          </div>
+        </div>
+        <div class="hero-img" data-vs-parallax data-parallax="-30">
+          <Image
+            src={heroImg}
+            alt="Smiling woman photographed outdoors among Colorado pines"
+            widths={[600, 900, 1400]}
+            sizes="(max-width: 991px) 100vw, 50vw"
+          />
+        </div>
+      </div>
+    </header>
+
+    {/* ---------- KEYS — at-a-glance ---------- */}
+    <section class="keys" id="keys" aria-label="Gum contouring at a glance" data-vs-reveal-batch>
+      <div class="keys-grid">
+        <div class="keys-label">At a glance</div>
+        <div class="keys-item"><div class="k">Laser-Precise</div><div class="v">Soft Tissue Laser</div></div>
+        <div class="keys-item"><div class="k">30–60 min</div><div class="v">Procedure Time</div></div>
+        <div class="keys-item"><div class="k">Same Day</div><div class="v">Return to Activities</div></div>
+        <div class="keys-item"><div class="k">Permanent</div><div class="v">No Regrowth</div></div>
+      </div>
+    </section>
+
+    {/* ---------- ON-THIS-PAGE TOC ---------- */}
+    <nav class="toc" id="toc" aria-label="On this page">
+      <div class="toc-inner">
+        <span class="toc-label">On this page</span>
+        <div class="toc-scroll">
+          <div class="toc-list">
+            {tocLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    {/* ---------- WHAT (cream) — definition + image ---------- */}
+    <section class="section alt" id="what" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="what-grid">
+          <div class="what-img" data-vs-parallax data-parallax="-25">
+            <Image
+              src={whatImg}
+              alt="Close-up of a smile showing the gum line framing the upper teeth"
+              widths={[500, 800, 1100]}
+              sizes="(max-width: 991px) 100vw, 50vw"
+            />
+          </div>
+          <div class="what-text">
+            <span class="eyebrow">Definition</span>
+            <h2>What Is <em>Gum Contouring?</em></h2>
+            <div class="prose">
+              <p>
+                Gum contouring removes or reshapes excess gum tissue so that more of the natural tooth surface
+                becomes visible, improving the overall balance between gums and teeth. The procedure addresses a
+                range of cosmetic concerns, including gummy smiles, uneven gum lines, asymmetrical tissue, and
+                teeth that appear shorter than they actually are.
+              </p>
+            </div>
+            <div class="cta-row left">
+              <div class="cta-buttons">
+                <Button variant="light" href="#consult" hoverLabel="Get a Video">Free Virtual Consult</Button>
+                <Button variant="ghost-light" href="#process" hoverLabel="View Steps">How It Works</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- LASER (sage) — Natural-with-quote pattern, repainted on the
+         dark band. Holds the strongest pull-quote moment in the copy. */}
+    <section class="section dark" id="laser" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="natural-grid">
+          <div class="natural-text">
+            <span class="eyebrow light">Laser Technology</span>
+            <h2>How Laser Technology Makes <em>Gum Contouring Gentle and Precise</em></h2>
+            <div class="natural-quote">
+              Most patients don't realize the procedure actually happened until they look in the mirror.
+              The laser is that gentle.
+            </div>
+            <span class="natural-quote-attrib">— Dr. Bryce Richardson, DDS, Vivid Smiles Dentistry</span>
+            <div class="prose">
+              <p>
+                Laser gum contouring is significantly more precise and comfortable than traditional scalpel-based
+                gingivectomy (surgical gum removal), with less bleeding, no sutures in most cases, and faster
+                healing. A soft tissue laser targets only the excess tissue, sealing as it works and leaving the
+                surrounding area untouched. Local anesthetic is all that is needed during the procedure, and most
+                patients are genuinely surprised by how uneventful the experience turns out to be.
+              </p>
+              <p>
+                The precision of laser technology also means more predictable results and less post-procedure
+                sensitivity. Dr. Richardson uses laser gum reshaping as the standard approach for all contouring
+                work at Vivid Smiles precisely because of that consistency.
+              </p>
+            </div>
+          </div>
+          <div class="natural-img" data-vs-parallax data-parallax="-25">
+            <Image
+              src={gumlineImg}
+              alt="Side-lit macro close-up of lips and upper teeth"
+              widths={[500, 800, 1100]}
+              sizes="(max-width: 991px) 100vw, 50vw"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- CANDIDATES (paper) — Why-grid 2-card pattern.
+         Card 1: "Who Benefits…" paragraph; Card 2: "Smile Makeover" sub-section. */}
+    <section class="section" id="candidates" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Candidacy</span>
+          <h2>Who Benefits from <em>Gum Contouring in Parker?</em></h2>
+          <p>
+            Gum contouring is a strong fit for patients whose gum tissue covers too much of the tooth surface,
+            creating a gummy or unbalanced appearance that <a class="vs-link" href="/cosmetic-dentistry/teeth-whitening/">whitening</a> or <a class="vs-link" href="/cosmetic-dentistry/clear-aligners/">alignment treatment</a> alone cannot fix.
+          </p>
+        </div>
+
+        <div class="why-grid">
+          <article class="why-card">
+            <div class="num">01</div>
+            <h3>Strong-Fit Candidates</h3>
+            <p class="lead">A balanced gum-to-tooth ratio is something whitening or alignment alone cannot reach.</p>
+            <p>
+              Many candidates have spent years hiding their smile in photos or feeling self-conscious about their
+              gum-to-tooth ratio, even after investing in other cosmetic work.
+            </p>
+          </article>
+
+          <article class="why-card">
+            <div class="num">02</div>
+            <h3>Gum Contouring as Part of a Complete Smile Makeover</h3>
+            <p class="lead">Reshaping the gum line first ensures every restoration sits on a balanced, well-proportioned base.</p>
+            <p>
+              Gum contouring enhances <a class="vs-link" href="/cosmetic-dentistry/porcelain-veneers/">porcelain veneer</a> outcomes by establishing the ideal tooth proportions and symmetry
+              that veneers are then designed to match. When gum tissue is uneven, veneers built over that
+              foundation will look uneven too.
+            </p>
+            <p>
+              Dr. Richardson uses digital smile design to show patients a preview of their projected outcome
+              before any work begins, so the plan is always something patients have seen, understood, and agreed
+              to. That preview step is something most practices in the area do not offer, and it removes the fear
+              of committing to a result you have not yet seen.
+            </p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- PROCESS (sage) — 5-step grid + dark inline CTA ---------- */}
+    <section class="section dark" id="process" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow light">The Process</span>
+          <h2>The Gum Contouring Process <em>at Vivid Smiles Dentistry</em></h2>
+          <p>Here is what patients can expect at every stage of gum contouring at Vivid Smiles Dentistry.</p>
+        </div>
+
+        <div class="process-grid">
+          {processSteps.map((s) => (
+            <div class="process-card">
+              <span class="step-tag">{s.tag}</span>
+              <div class="num">{s.num}</div>
+              <h3>{s.title}</h3>
+              <p>{s.body}</p>
+            </div>
+          ))}
+        </div>
+
+        <div class="inline-cta dark">
+          <div class="ic-text">Ready for the next step? <em>Book online and we'll take it from here.</em></div>
+          <div class="ic-buttons">
+            <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button>
+            <Button variant="ghost-light" href={phoneHref} hoverLabel="Tap to Dial">Call {phoneLabel}</Button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- RECOVERY (paper) — Lasting 2-col with stat ---------- */}
+    <section class="section" id="recovery" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Recovery</span>
+          <h2>What to Expect <em>During Recovery</em></h2>
+          <p>Recovery from laser gum contouring is noticeably lighter than traditional surgical gum procedures, and most patients return to their regular schedule the same day.</p>
+        </div>
+
+        <div class="lasting-card">
+          <div class="lasting-stat">
+            <div class="big">1–3<em>days</em></div>
+            <div class="label">Typical sensitivity window</div>
+          </div>
+          <div class="lasting-body">
+            <p>
+              Expect minor sensitivity for one to three days, manageable with over-the-counter pain relief. Soft
+              foods are recommended for a day or two, along with gentle brushing around the healing area and
+              brief avoidance of spicy or acidic foods.
+            </p>
+            <p>
+              The gum contour continues to settle over the first week or two, with final results fully apparent
+              within that window.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- RESULTS (cream) — Natural-style 2-col, image + text. Uses
+         alt-flip so the image lands on the left and the text on the right,
+         giving the page rhythm a different shape from the Laser section above. */}
+    <section class="section alt" id="results" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="natural-grid alt-flip">
+          <div class="natural-img" data-vs-parallax data-parallax="-25">
+            <Image
+              src={resultsImg}
+              alt="Smiling woman photographed inside the Vivid Smiles Dentistry office in Parker, CO"
+              widths={[500, 800, 1100]}
+              sizes="(max-width: 991px) 100vw, 50vw"
+            />
+          </div>
+          <div class="natural-text">
+            <span class="eyebrow">Results</span>
+            <h2>Gum Contouring Results: <em>What to Expect</em></h2>
+            <div class="prose">
+              <p>
+                Gum contouring produces immediate, visible changes to the gum-to-tooth ratio and overall smile
+                proportions. Teeth that previously appeared short or partially covered become fuller and more
+                prominent in the smile. The gum line takes on a more even, symmetrical arc, which can transform
+                the way the entire smile reads, even before any other cosmetic work is added.
+              </p>
+              <p>
+                Results are permanent: reshaped gum tissue does not regenerate back to its original position.
+                Dr. Richardson's approach to reshaping is grounded in natural proportions rather than maximizing
+                exposure. The goal is a balance that fits the patient's face, tooth structure, and overall smile
+                goals. With 600+ hours of specialized esthetic training and digital smile design integrated into
+                every cosmetic case, outcomes are planned and communicated before treatment begins.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- WHY (paper) — 3-up 6-card grid. Substitutes for the veneers
+         template's 2-card .why-grid because the "Why Choose Vivid Smiles"
+         copy expands into six bullets that each warrant a tagged card. */}
+    <section class="section" id="why" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Why Vivid Smiles</span>
+          <h2>Why Choose Vivid Smiles Dentistry <em>for Gum Contouring in Parker?</em></h2>
+          <p>
+            Vivid Smiles Dentistry combines advanced laser technology, digital preview tools, and Dr. Richardson's
+            specialized cosmetic training to deliver gum reshaping results that are precise, gentle, and designed
+            to last.
+          </p>
+        </div>
+
+        <div class="why-3up">
+          {whyCards.map((c) => (
+            <article class="why-3up-card">
+              <span class="tag">{c.tag}</span>
+              <h3>{c.title}</h3>
+              <p>{c.body}</p>
+            </article>
+          ))}
+        </div>
+
+        <div class="cta-row">
+          <div class="cta-buttons">
+            <Button variant="sage" href={bookNowHref} hoverLabel="Book Now">Book Online</Button>
+            <Button variant="ghost" href={directionsHref} hoverLabel="Open Map">Get Directions</Button>
+          </div>
+          <span class="cta-note">17167 Cedar Gulch Pkwy Ste 102 · Parker, CO</span>
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- FAQ (paper) — native details/summary, zero JS ---------- */}
+    <section class="section" id="faq" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">FAQ</span>
+          <h2>Frequently Asked Questions <em>About Gum Contouring</em></h2>
+        </div>
+
+        <div class="faq-list">
+          {faqs.map((f) => (
+            <details class="faq" open={f.open}>
+              <summary><h3>{f.q}</h3><span class="icon" aria-hidden="true">+</span></summary>
+              <div class="answer">{f.a}</div>
+            </details>
+          ))}
+        </div>
+
+        <div class="pull">
+          <p>
+            Gum contouring is one of the most efficient cosmetic procedures available: immediate results,
+            minimal recovery, and a lasting change to the way your smile looks.
+          </p>
+        </div>
+
+        <div class="cta-row">
+          <div class="cta-buttons">
+            <Button variant="sage" href="#consult" hoverLabel="Get a Video">Still Have Questions? Free Virtual Consult</Button>
+            <Button variant="ghost" href={phoneHref} hoverLabel="Tap to Dial">Call {phoneLabel}</Button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- VIRTUAL CONSULT — primary closing conversion. Anchor #consult
+         is the destination for every mid-page CTA on this page. */}
+    <VirtualConsult id="consult" eyebrow="Free gum contouring consultation">
+      <Fragment slot="headline">Free gum contouring <em>consultation.</em></Fragment>
+      <Fragment slot="body">
+        Gum contouring is one of the most efficient cosmetic procedures available: immediate results, minimal
+        recovery, and a lasting change to the way your smile looks. If you have ever wondered whether your gum
+        line is affecting the way your teeth appear, a consultation with Dr. Richardson will give you a clear
+        answer and a preview of what is possible before any commitment is made.
+      </Fragment>
+    </VirtualConsult>
+
+    {/* ---------- CLOSING BAND ---------- */}
+    <FinalBand>
+      <p>Free cosmetic consultations at 17167 Cedar Gulch Pkwy, Suite 102, Parker, CO 80134.</p>
+    </FinalBand>
+
+    </main>
+
+    <script>
+      import { initTocSpy } from "../../scripts/toc-spy";
+      initTocSpy(".gcontouring");
+    </script>
+
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "MedicalProcedure",
+      "name": "Laser Gum Contouring",
+      "alternateName": ["Gum Reshaping", "Gingival Sculpting", "Laser Gingivectomy"],
+      "procedureType": "https://schema.org/SurgicalProcedure",
+      "bodyLocation": "Gums",
+      "preparation": "Local anesthetic; digital imaging and gum-line mapping during consultation.",
+      "howPerformed": "A soft tissue laser is used to precisely remove and reshape excess gum tissue, sealing as it works to minimize bleeding and recovery time.",
+      "followup": "Soft foods and gentle brushing for one to two days; over-the-counter pain relief if needed.",
+      "performer": {
+        "@type": "Dentist",
+        "name": "Dr. Bryce Richardson",
+        "worksFor": {
+          "@type": "Dentist",
+          "name": "Vivid Smiles Dentistry",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": addressStreet,
+            "addressLocality": addressCity,
+            "addressRegion": addressState,
+            "postalCode": addressZip,
+            "addressCountry": "US"
+          },
+          "telephone": phoneE164
+        }
+      }
+    })} />
+
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": faqs.map((f) => ({
+        "@type": "Question",
+        "name": f.q,
+        "acceptedAnswer": { "@type": "Answer", "text": f.a }
+      }))
+    })} />
+
+    {/* Breadcrumb URLs source the host from astro.config.mjs `site` and use real
+        site routes (matching the visible breadcrumb above). Trailing slashes are
+        required because the site is configured `trailingSlash: 'always'`. */}
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home",                "item": new URL("/", Astro.site).href },
+        { "@type": "ListItem", "position": 2, "name": "Services",            "item": new URL("/services/", Astro.site).href },
+        { "@type": "ListItem", "position": 3, "name": "Cosmetic Dentistry",  "item": new URL("/cosmetic-dentistry/", Astro.site).href },
+        { "@type": "ListItem", "position": 4, "name": "Gum Contouring",      "item": new URL("/cosmetic-dentistry/gum-contouring/", Astro.site).href }
+      ]
+    })} />
+  </div>
+</BaseLayout>

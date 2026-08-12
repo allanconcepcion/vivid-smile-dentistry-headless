@@ -1,0 +1,264 @@
+---
+/**
+ * PricingTiers — segmented pricing/tier block for service-cost sections.
+ *
+ * Pass an array of tiers; each renders as a card with a tagline, a large
+ * price, and a feature bullet list. One tier per card can be highlighted
+ * (sage background, white text, optional ribbon) to act as the centerpiece.
+ *
+ * Sized to support 1-4 tiers side-by-side on desktop. 4-tier collapses to
+ * 2-up at ≤991px and 1-up at ≤480px; 2/3-tier collapse straight to 1-up.
+ * Use within an existing section that already has the eyebrow + H2 + intro
+ * paragraph rendered above; this component handles the tier grid + an
+ * optional financing note below.
+ */
+export interface Tier {
+  /** Tier name, e.g. "All-on-4 Single Arch" */
+  name: string;
+  /** Display price, e.g. "$14,995" or "+$4,000" */
+  price: string;
+  /** Small uppercase label above the price, e.g. "Starting at" */
+  priceQualifier?: string;
+  /** Small caption below the price, e.g. "per arch" */
+  priceSuffix?: string;
+  /** Short selling line under the tier name */
+  tagline?: string;
+  /** Feature bullets — keep to 3–5 per tier for legibility */
+  bullets: string[];
+  /** Optional ribbon — appears top-right on the card, e.g. "Most Common" */
+  ribbon?: string;
+  /** Centerpiece treatment — sage background, white text */
+  highlight?: boolean;
+}
+
+interface Props {
+  tiers: Tier[];
+  /** Bottom-of-block note for financing partners / insurance / consult-required language */
+  financingNote?: string;
+}
+
+const { tiers, financingNote } = Astro.props;
+---
+
+<div class="vs-pricing-tiers">
+  <div class:list={["vs-pricing-tiers__grid", `vs-pricing-tiers__grid--${tiers.length}`]}>
+    {tiers.map((t) => (
+      <article class:list={["vs-pricing-tier", t.highlight && "vs-pricing-tier--highlight"]} data-vs-reveal>
+        {t.ribbon && <span class="vs-pricing-tier__ribbon">{t.ribbon}</span>}
+        <div class="vs-pricing-tier__header">
+          <h3 class="vs-pricing-tier__name">{t.name}</h3>
+          {t.tagline && <p class="vs-pricing-tier__tagline">{t.tagline}</p>}
+        </div>
+        <div class="vs-pricing-tier__price">
+          {t.priceQualifier && <span class="vs-pricing-tier__qualifier">{t.priceQualifier}</span>}
+          <span class="vs-pricing-tier__amount">{t.price}</span>
+          {t.priceSuffix && <span class="vs-pricing-tier__suffix">{t.priceSuffix}</span>}
+        </div>
+        <ul class="vs-pricing-tier__bullets">
+          {t.bullets.map((b) => <li>{b}</li>)}
+        </ul>
+      </article>
+    ))}
+  </div>
+  {financingNote && (
+    <p class="vs-pricing-tiers__financing" data-vs-reveal>{financingNote}</p>
+  )}
+</div>
+
+<style>
+  .vs-pricing-tiers {
+    display: flex;
+    flex-direction: column;
+    gap: 28px;
+  }
+
+  .vs-pricing-tiers__grid {
+    display: grid;
+    gap: 22px;
+  }
+  .vs-pricing-tiers__grid--1 { grid-template-columns: minmax(0, 540px); justify-content: center; }
+  .vs-pricing-tiers__grid--2 { grid-template-columns: repeat(2, 1fr); }
+  .vs-pricing-tiers__grid--3 { grid-template-columns: repeat(3, 1fr); }
+  .vs-pricing-tiers__grid--4 { grid-template-columns: repeat(4, 1fr); gap: 18px; }
+
+  /* ---------- Card chrome ---------- */
+  .vs-pricing-tier {
+    background: var(--vs-paper);
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-lg);
+    padding: 40px 36px 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    position: relative;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .vs-pricing-tier:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--vs-shadow);
+  }
+
+  /* Highlighted (centerpiece) variant — sage background, white text. */
+  .vs-pricing-tier--highlight {
+    background: var(--vs-sage);
+    border-color: var(--vs-sage);
+    color: #fff;
+  }
+
+  /* Flow chip (not absolute) so long tier names don't collide at narrow
+     column widths; align-self keeps it pill-sized inside the flex column. */
+  .vs-pricing-tier__ribbon {
+    align-self: flex-start;
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+    font-family: var(--vs-font-body);
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    font-weight: 500;
+    padding: 6px 12px;
+    border-radius: var(--vs-radius-pill);
+    margin-bottom: -10px;
+  }
+  /* On non-highlighted (paper) cards a ribbon flips to sage on cream */
+  .vs-pricing-tier:not(.vs-pricing-tier--highlight) .vs-pricing-tier__ribbon {
+    background: var(--vs-sage);
+    color: #fff;
+  }
+
+  /* ---------- Header (name + tagline) ---------- */
+  .vs-pricing-tier__header {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .vs-pricing-tier__name {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: clamp(22px, 2.2vw, 28px);
+    line-height: 1.18;
+    letter-spacing: -0.005em;
+    color: var(--vs-ink);
+    margin: 0;
+  }
+  .vs-pricing-tier--highlight .vs-pricing-tier__name { color: #fff; }
+
+  .vs-pricing-tier__tagline {
+    font-family: var(--vs-font-body);
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--vs-ink-soft);
+    margin: 0;
+    max-width: 38ch;
+  }
+  .vs-pricing-tier--highlight .vs-pricing-tier__tagline { color: rgba(255, 255, 255, 0.86); }
+
+  /* ---------- Price ---------- */
+  .vs-pricing-tier__price {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding-top: 18px;
+    border-top: 1px solid var(--vs-line);
+  }
+  .vs-pricing-tier--highlight .vs-pricing-tier__price {
+    border-top-color: rgba(255, 255, 255, 0.22);
+  }
+
+  .vs-pricing-tier__qualifier {
+    font-family: var(--vs-font-body);
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    font-weight: 500;
+    color: var(--vs-sage);
+  }
+  .vs-pricing-tier--highlight .vs-pricing-tier__qualifier {
+    color: var(--vs-eyebrow-on-sage);
+  }
+
+  .vs-pricing-tier__amount {
+    font-family: var(--vs-font-display);
+    font-weight: 300;
+    font-size: clamp(40px, 5vw, 60px);
+    line-height: 1;
+    letter-spacing: -0.02em;
+    color: var(--vs-sage);
+  }
+  .vs-pricing-tier--highlight .vs-pricing-tier__amount { color: #fff; }
+
+  .vs-pricing-tier__suffix {
+    font-family: var(--vs-font-body);
+    font-size: 13px;
+    color: var(--vs-muted);
+    margin-top: 2px;
+  }
+  .vs-pricing-tier--highlight .vs-pricing-tier__suffix {
+    color: rgba(255, 255, 255, 0.72);
+  }
+
+  /* ---------- Bullets ---------- */
+  .vs-pricing-tier__bullets {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .vs-pricing-tier__bullets li {
+    position: relative;
+    padding-left: 22px;
+    font-family: var(--vs-font-body);
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--vs-ink-soft);
+  }
+  .vs-pricing-tier--highlight .vs-pricing-tier__bullets li {
+    color: rgba(255, 255, 255, 0.88);
+  }
+  .vs-pricing-tier__bullets li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.75em;
+    width: 12px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+  .vs-pricing-tier--highlight .vs-pricing-tier__bullets li::before {
+    background: rgba(255, 255, 255, 0.55);
+  }
+
+  /* ---------- Financing note ---------- */
+  .vs-pricing-tiers__financing {
+    font-family: var(--vs-font-body);
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--vs-ink-soft);
+    text-align: center;
+    max-width: 78ch;
+    margin: 0 auto;
+    padding-top: 16px;
+    border-top: 1px solid var(--vs-line);
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 991px) {
+    .vs-pricing-tiers__grid--2,
+    .vs-pricing-tiers__grid--3 {
+      grid-template-columns: 1fr;
+    }
+    .vs-pricing-tiers__grid--4 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .vs-pricing-tier { padding: 32px 28px; }
+  }
+
+  @media (max-width: 480px) {
+    .vs-pricing-tiers__grid--4 {
+      grid-template-columns: 1fr;
+    }
+    .vs-pricing-tier { padding: 28px 22px; gap: 20px; }
+  }
+</style>

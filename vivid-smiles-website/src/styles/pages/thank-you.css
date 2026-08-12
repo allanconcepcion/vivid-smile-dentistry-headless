@@ -1,0 +1,294 @@
+/*
+ * Vivid Smiles — Thank-you page styles.
+ *
+ * Destination URL for every form-submit Typeform redirect on the site,
+ * regardless of form type (virtual consult, contact, cosmetic LP, future).
+ * Copy stays form-agnostic — see header comment in src/pages/thank-you.astro.
+ * Ad-platform conversion tracking is wired upstream, not on-page.
+ *
+ * Rhythm: full-bleed team-photo hero → cream "what to expect" → charcoal-green
+ * "while you wait" → paper FinalBand closer. Mirrors the section primitive
+ * vocabulary used by referral-program / new-patients (.section.alt,
+ * .section-head, .wrap), namespaced under `.tyou` so styles cannot leak.
+ */
+
+.tyou {
+  --sage: var(--vs-sage);
+  --sage-deep: var(--vs-sage-deep);
+  --sage-soft: var(--vs-sage-soft);
+  --cream: var(--vs-cream);
+  --paper: var(--vs-paper);
+  --ink: var(--vs-ink);
+  --ink-soft: var(--vs-ink-soft);
+  --muted: var(--vs-muted);
+  --line: var(--vs-line);
+  --shadow: var(--vs-shadow);
+  --shadow-lg: var(--vs-shadow-lg);
+  --r-md: var(--vs-r-md);
+  --r-lg: var(--vs-r-lg);
+  --r-xl: var(--vs-r-xl);
+  --f-display: var(--vs-font-display);
+  --f-body: var(--vs-font-body);
+}
+
+/* ---------- primitives ---------- */
+.tyou .wrap { max-width: 1240px; margin: 0 auto; padding: 0 40px; }
+
+.tyou .eyebrow {
+  font-family: var(--f-body); font-size: 11.5px; font-weight: 500;
+  letter-spacing: 0.28em; text-transform: uppercase;
+  color: var(--sage);
+  display: inline-flex; align-items: center; gap: 14px;
+}
+.tyou .eyebrow::before {
+  content: "";
+  width: 28px; height: 1px; background: var(--sage);
+}
+/* Symmetric right-dash on centered eyebrows (hero + .section-head.center).
+   Off-center eyebrows keep the single left-dash treatment. */
+.tyou .hero .eyebrow::after,
+.tyou .section-head.center .eyebrow::after {
+  content: "";
+  width: 28px; height: 1px; background: var(--sage);
+}
+
+.tyou h1, .tyou h2, .tyou h3 { color: var(--ink); margin: 0; }
+.tyou h1 {
+  font-family: var(--f-display); font-weight: 300;
+  font-size: clamp(48px, 6.8vw, 86px); line-height: 1.04;
+  letter-spacing: -0.02em; color: var(--sage); text-wrap: pretty;
+}
+.tyou h1 em { font-style: italic; color: var(--sage-soft); font-weight: inherit; }
+.tyou h2 {
+  font-family: var(--f-display); font-weight: 400;
+  font-size: clamp(32px, 4.2vw, 54px); line-height: 1.1;
+  letter-spacing: -0.015em; color: var(--ink); text-wrap: pretty;
+}
+.tyou h2 em { font-style: italic; color: var(--sage-soft); font-weight: inherit; }
+.tyou h3 {
+  font-family: var(--f-display); font-weight: 500;
+  font-size: 20px; line-height: 1.3; letter-spacing: 0;
+}
+.tyou p { color: var(--ink-soft); }
+
+/* Section bands.
+   Charcoal-green overrides are scoped to .section-head — without that scope,
+   `.tyou .section.alt p` (0,3,1) beats `.tyou .explore-card p` (0,2,1) and
+   paints the white cards' body text white-on-white. Keep dark-band overrides
+   on the head only; child components keep their own text colors. */
+.tyou .section { padding: clamp(80px, 9vw, 120px) 0; }
+.tyou .section.alt { background: var(--vs-charcoal-green); color: #fff; }
+.tyou .section.alt .section-head h2 { color: #fff; }
+.tyou .section.alt .section-head h2 em { color: var(--vs-eyebrow-on-sage); }
+.tyou .section.alt .section-head p { color: rgba(255, 255, 255, 0.85); }
+.tyou .section.alt .section-head .eyebrow { color: var(--vs-eyebrow-on-sage); }
+.tyou .section.alt .section-head .eyebrow::before,
+.tyou .section.alt .section-head .eyebrow::after { background: rgba(255, 255, 255, 0.6); }
+
+.tyou .section-head { max-width: 720px; }
+.tyou .section-head.center {
+  text-align: center; margin-inline: auto;
+}
+.tyou .section-head.center p { margin-left: auto; margin-right: auto; }
+.tyou .section-head .eyebrow { margin-bottom: 22px; }
+.tyou .section-head h2 { margin: 4px 0 0; }
+.tyou .section-head p {
+  font-family: var(--f-body); font-size: 16px; line-height: 1.7;
+  max-width: 56ch; margin: 18px 0 0;
+}
+
+/* ---------- HERO (full-bleed team photo) ----------
+   <Image> renders an absolutely-positioned <img> beneath the .hero-scrim
+   gradient. The image is the LCP candidate (loading="eager" +
+   fetchpriority="high" in markup); the scrim handles legibility for the
+   white H1 + lede over the photo. */
+.tyou .hero {
+  position: relative;
+  isolation: isolate;
+  padding: clamp(120px, 14vw, 180px) 0 clamp(80px, 10vw, 120px);
+  min-height: clamp(560px, 78vh, 760px);
+  display: grid;
+  place-items: center;
+  text-align: center;
+  color: #fff;
+  overflow: hidden;
+  background: var(--vs-charcoal-green);
+}
+.tyou .hero .hero-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 35%;
+  z-index: -2;
+}
+/* Center-weighted scrim: content sits middle-center per place-items: center,
+   so the gradient darkens through the middle band where the H1 + lede live
+   and lightens at top/bottom so the team's faces and feet aren't dimmed. */
+.tyou .hero .hero-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(28, 32, 24, 0.40) 0%,
+      rgba(28, 32, 24, 0.65) 50%,
+      rgba(28, 32, 24, 0.40) 100%
+    );
+}
+.tyou .hero .wrap {
+  position: relative;
+  z-index: 1;
+  max-width: 880px;
+}
+.tyou .hero .eyebrow {
+  color: var(--vs-eyebrow-on-sage);
+  margin: 0 auto 26px;
+}
+.tyou .hero .eyebrow::before,
+.tyou .hero .eyebrow::after { background: rgba(255, 255, 255, 0.6); }
+.tyou .hero h1 {
+  color: #fff;
+  max-width: 18ch;
+  margin: 0 auto;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.35);
+}
+.tyou .hero h1 em { color: var(--vs-eyebrow-on-sage); }
+.tyou .hero .lede {
+  font-family: var(--f-body);
+  font-size: clamp(16px, 1.4vw, 18px);
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.92);
+  max-width: 56ch;
+  margin: 28px auto 0;
+}
+.tyou .hero .meta {
+  margin-top: 36px;
+  display: inline-flex; align-items: center; gap: 12px;
+  font-family: var(--f-body);
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.85);
+  letter-spacing: 0.02em;
+}
+.tyou .hero .meta .dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--vs-pulse-live);
+  box-shadow: 0 0 0 4px rgba(var(--vs-pulse-live-rgb), 0.24);
+}
+
+/* ---------- WHAT TO EXPECT (cream) ---------- */
+.tyou .expect {
+  background: var(--cream);
+}
+.tyou .expect .section-head { margin: 0 auto 56px; }
+
+.tyou .steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.tyou .step {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 36px 32px;
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+.tyou .step .num {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  background: var(--sage);
+  color: #fff;
+  display: inline-flex; align-items: center; justify-content: center;
+  font-family: var(--f-display); font-weight: 500; font-size: 14px;
+}
+.tyou .step h3 {
+  font-family: var(--f-display); font-weight: 500;
+  font-size: 19px; color: var(--ink); margin: 0;
+  letter-spacing: 0.005em;
+}
+.tyou .step p {
+  font-family: var(--f-body);
+  font-size: 14.5px; line-height: 1.7;
+  color: var(--ink-soft);
+  margin: 0;
+}
+
+/* ---------- WHILE YOU WAIT (charcoal-green via .section.alt) ---------- */
+.tyou .wait .section-head { margin: 0 auto 56px; }
+
+.tyou .explore {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.tyou .explore-card {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  padding: 34px 30px;
+  background: var(--paper);
+  border-radius: var(--r-lg);
+  text-decoration: none;
+  color: var(--ink);
+  transition: transform 0.32s var(--vs-ease), box-shadow 0.32s var(--vs-ease);
+  border: 1px solid transparent;
+}
+.tyou .explore-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+.tyou .explore-card .label {
+  font-family: var(--f-body);
+  font-size: 11.5px; font-weight: 500;
+  letter-spacing: 0.28em; text-transform: uppercase;
+  color: var(--sage);
+}
+.tyou .explore-card h3 {
+  font-family: var(--f-display); font-weight: 400;
+  font-size: 26px; line-height: 1.15;
+  color: var(--ink);
+  letter-spacing: -0.012em;
+  max-width: 14ch;
+}
+.tyou .explore-card p {
+  font-family: var(--f-body);
+  font-size: 14.5px; line-height: 1.65;
+  color: var(--ink-soft);
+  margin: 0;
+}
+/* Arrow badge: canonical <ArrowBadge variant="ghost-line" size="lg"> wired
+   to GSAP's wireArrowSwap via the parent's [data-vs-arrow] attribute. The
+   sitewide hover effect (rotate -45° + scale 1.08 + dual-glyph slide-swap)
+   is driven by animations.js; no CSS hover rules needed here. Small top
+   margin nudges the badge off the body copy in the card's grid track. */
+.tyou .explore-card .vs-arrow { margin-top: 6px; }
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 991px) {
+  .tyou .steps,
+  .tyou .explore {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    max-width: 560px;
+  }
+  .tyou .step { padding: 30px 26px; }
+  .tyou .explore-card { padding: 30px 26px; }
+}
+
+@media (max-width: 600px) {
+  .tyou .wrap { padding: 0 22px; }
+  .tyou .hero { padding: clamp(96px, 24vw, 130px) 0 64px; }
+  .tyou .expect,
+  .tyou .wait { padding: 72px 0; }
+  .tyou .section-head { text-align: left; margin-left: 0; margin-right: 0; }
+  .tyou .section-head.center { text-align: center; }
+}

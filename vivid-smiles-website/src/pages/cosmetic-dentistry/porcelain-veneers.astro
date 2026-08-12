@@ -1,0 +1,692 @@
+---
+/**
+ * Porcelain Veneers — Vivid Smiles Dentistry, Parker CO.
+ *
+ * Recovered template (post-bundler decode): /tmp/porcelain-veneers-template.html
+ * Page-scoped styles: src/styles/pages/porcelain-veneers.css
+ * Buttons + scroll reveals wired by src/scripts/animations.js (data-vs-arrow / data-vs-reveal*).
+ *
+ * Global <Nav /> + <Footer /> are mounted by BaseLayout — this page renders
+ * only its own content, starting with an inline breadcrumb under the global nav.
+ */
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Button from '../../components/Button.astro';
+import FinalBand from '../../components/FinalBand.astro';
+import VirtualConsult from '../../components/VirtualConsult.astro';
+import LocalTrust from '../../components/LocalTrust.astro';
+import PricingTiers from '../../components/PricingTiers.astro';
+import { phoneHref, phoneLabel, bookNowHref } from '../../data/contact';
+import { getSmiles } from '../../lib/smiles';
+import '../../styles/pages/porcelain-veneers.css';
+
+// Hero — a patient portrait. replaced a full-face portrait here that
+// turned out to be the PRE-treatment frame of that patient's before/after
+// pair, so the veneers page was led by a photo of someone before she got
+// veneers. Two mouth-macro replacements were tried and both read as an
+// intraoral exam next to the headline — the macro sources are tight enough
+// that no crop includes eyes. This subject appears nowhere in
+// src/assets/images/smiles/, so she cannot collide with the marquee below.
+import heroImg from '../../assets/images/people/real/woman-radiant-smile-green-dress.webp';
+// "What are veneers" — the actual porcelain shells on a model, which shows what
+// a veneer physically is better than any in-mouth shot can.
+import whatImg from '../../assets/images/procedures/veneer-shells-on-model.webp';
+// "Natural results" — the in-mouth result. Lab shells read opaque and
+// artificial, which is the opposite of what this section argues.
+import naturalImg from '../../assets/images/procedures/finished-veneers-lip-detail.webp';
+
+// Auto-loaded from src/assets/images/smiles/ — every photo in the folder is a
+// real Dr. Richardson patient case and appropriate for this page.
+const galleryTiles = getSmiles();
+const galleryTrack = [...galleryTiles, ...galleryTiles];
+
+const tocLinks = [
+  { href: '#why', label: 'Why Vivid Smiles' },
+  { href: '#what', label: 'What Are Veneers' },
+  { href: '#process', label: 'The Process' },
+  { href: '#compare', label: 'Comparison' },
+  { href: '#natural', label: 'Natural Results' },
+  { href: '#lasting', label: 'Lifespan' },
+  { href: '#local', label: 'Parker, CO' },
+  { href: '#cost', label: 'Investment' },
+  { href: '#faq', label: 'FAQ' },
+];
+
+const processSteps = [
+  {
+    tag: 'Step One',
+    num: '01',
+    title: 'Digital consultation',
+    body: 'Dr. Richardson evaluates your smile with digital imaging and generates a personalized preview.',
+  },
+  {
+    tag: 'Step Two',
+    num: '02',
+    title: 'Design review',
+    body: 'You refine the preview together, adjusting shape, shade, and proportions before treatment begins.',
+  },
+  {
+    tag: 'Step Three',
+    num: '03',
+    title: 'Minimal preparation',
+    body: 'For no-prep or minimal-prep candidates, little to no enamel is removed before veneer placement.',
+  },
+  {
+    tag: 'Step Four',
+    num: '04',
+    title: 'Custom fabrication',
+    body: 'Your veneers are crafted from dental porcelain at a specialist lab, typically within one to two weeks.',
+  },
+  {
+    tag: 'Step Five',
+    num: '05',
+    title: 'Final placement',
+    body: 'Dr. Richardson bonds the finished veneers, confirms your bite, and makes any adjustments before you leave.',
+  },
+];
+
+const faqs = [
+  {
+    q: 'What are veneers made of?',
+    a: 'High-quality veneers use dental porcelain, a ceramic that replicates enamel in translucency and light reflection. Composite resin is a lower-cost alternative but stains more readily and has a shorter lifespan.',
+    open: true,
+  },
+  {
+    q: 'How much do veneers cost?',
+    a: 'Porcelain veneers are $2,250 per tooth at Vivid Smiles. Most patients treat 8–10 teeth across the smile zone; the per-tooth price stays the same regardless of case complexity. Financing is available.',
+  },
+  {
+    q: 'Does getting veneers hurt?',
+    a: 'Most patients experience minimal discomfort, particularly with no-prep and minimal-prep techniques. Temporary sensitivity after placement is normal and typically resolves within a few days.',
+  },
+  {
+    q: 'Are veneers covered by insurance?',
+    a: 'Porcelain veneers are cosmetic and are not covered by most dental insurance plans. For uninsured patients, Vivid Smiles offers an in-house dental membership plan; financing is also available.',
+  },
+  {
+    q: 'Who is a good candidate for veneers?',
+    a: 'Good candidates have healthy teeth and gums with no active decay. Patients with significant grinding habits may need a nightguard to protect their veneers.',
+  },
+];
+---
+
+<BaseLayout
+  title="Porcelain Veneers in Parker, CO | Vivid Smiles Dentistry"
+  description="No-prep & minimal-prep porcelain veneers in Parker, CO with Dr. Bryce Richardson. Preview your smile with Digital Smile Design before any treatment begins."
+>
+  <div class="pveneers">
+    {/* ---------- BREADCRUMB ---------- */}
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <div class="crumbs-inner">
+        <a href="/">Home</a>
+        <span class="sep">/</span>
+        <a href="/services/">Services</a>
+        <span class="sep">/</span>
+        <a href="/cosmetic-dentistry/">Cosmetic Dentistry</a>
+        <span class="sep">/</span>
+        <span class="here">Porcelain Veneers</span>
+      </div>
+    </nav>
+
+    <main id="main">
+      {/* ---------- HERO ---------- */}
+      <header class="hero" data-vs-reveal-batch>
+        <div class="wrap hero-inner">
+          <div class="hero-copy">
+            <span class="eyebrow">Cosmetic Dentistry · Parker, CO</span>
+            <h1 data-vs-reveal-lines>Porcelain Veneers <em>in Parker, CO</em></h1>
+            <p class="hero-sub">
+              Porcelain veneers are thin shells of dental porcelain bonded to the front of your
+              teeth to correct discoloration, chips, gaps, and worn enamel. At Vivid Smiles
+              Dentistry, Dr. Bryce Richardson specializes in no-prep and minimal-prep veneers that
+              transform smiles while preserving natural tooth structure. Here is what the process
+              looks like, how digital technology lets patients preview results first, and what sets
+              this Parker practice apart.
+            </p>
+            <div class="hero-actions">
+              <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button
+              >
+              <Button variant="ghost-light" href="#consult" hoverLabel="Get a Video"
+                >Free Virtual Consult</Button
+              >
+              <div class="ratings">
+                <span class="stars" aria-hidden="true">★★★★★</span>
+                <span>5.0 · 300+ reviews</span>
+              </div>
+            </div>
+          </div>
+          <div class="hero-img" data-vs-parallax data-parallax="-30">
+            <Image
+              src={heroImg}
+              alt="Vivid Smiles patient smiling in front of the practice neon sign"
+              widths={[500, 750, 1000]}
+              sizes="(max-width: 991px) 100vw, 50vw"
+            />
+          </div>
+        </div>
+      </header>
+
+      {/* ---------- KEYS — at-a-glance ---------- */}
+      <section class="keys" id="keys" aria-label="Veneers at a glance" data-vs-reveal-batch>
+        <div class="keys-grid">
+          <div class="keys-label">At a glance</div>
+          <div class="keys-item">
+            <div class="k">No-prep</div><div class="v">&amp; Minimal-Prep Specialty</div>
+          </div>
+          <div class="keys-item">
+            <div class="k">10–20 yrs</div><div class="v">Typical Lifespan</div>
+          </div>
+          <div class="keys-item">
+            <div class="k">1–2 weeks</div><div class="v">Lab Fabrication</div>
+          </div>
+          <div class="keys-item">
+            <div class="k">Preview First</div><div class="v">Digital Smile Design</div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- ON-THIS-PAGE TOC ---------- */}
+      <nav class="toc" id="toc" aria-label="On this page">
+        <div class="toc-inner">
+          <span class="toc-label">On this page</span>
+          <div class="toc-scroll">
+            <div class="toc-list">
+              {tocLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* ---------- WHY (paper) ---------- */}
+      <section class="section" id="why" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Why Vivid Smiles</span>
+            <h2>Why Choose Vivid Smiles <em>for Veneers in Parker</em></h2>
+            <p>
+              Vivid Smiles Dentistry pairs Dr. Richardson's 600+ hours of esthetic training with
+              in-office digital smile design technology. Patients see their finished smile on screen
+              before treatment begins, and every result is calibrated to their face, not a template.
+            </p>
+          </div>
+
+          <div class="why-grid">
+            <article class="why-card">
+              <div class="num">01</div>
+              <h3>No-Prep and Minimal-Prep Veneer Expertise</h3>
+              <p class="lead">
+                No-prep and minimal-prep veneers deliver the same transformation as traditional
+                veneers while preserving natural tooth structure.
+              </p>
+              <p>
+                Traditional veneers require removing approximately 0.5mm to 1.0mm of enamel from the
+                front of each tooth, a permanent change because enamel does not regenerate.
+                Minimal-prep veneers remove 0.3mm or less; no-prep veneers require no enamel removal
+                at all.
+              </p>
+              <p>
+                That difference matters: a tooth with less preparation can still function without
+                veneers if they ever need to be replaced, and more options remain available over the
+                long term.
+              </p>
+            </article>
+
+            <article class="why-card">
+              <div class="num">02</div>
+              <h3>Digital Smile Design: Preview Your Results First</h3>
+              <p class="lead">
+                Digital smile design lets you see your new smile on screen before any preparation or
+                placement begins.
+              </p>
+              <p>
+                Dr. Richardson generates a digital preview at your consultation, calibrated to your
+                facial features and preferences. If anything looks wrong, you adjust it before
+                committing. This directly answers what most patients don't say out loud: what if I
+                don't like how they look?
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- WHAT (cream) ---------- */}
+      <section class="section alt" id="what" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="what-grid">
+            <div class="what-img" data-vs-parallax data-parallax="-25">
+              <Image
+                src={whatImg}
+                alt="Porcelain veneer shells seated on a dental model at Vivid Smiles in Parker, CO"
+                widths={[500, 800, 1100]}
+                sizes="(max-width: 991px) 100vw, 50vw"
+              />
+            </div>
+            <div class="what-text">
+              <span class="eyebrow">Definition</span>
+              <h2>What Are <em>Porcelain Veneers?</em></h2>
+              <div class="prose">
+                <p>
+                  Porcelain veneers are ultra-thin custom shells bonded to the front surface of your
+                  teeth to correct discoloration, chips, gaps, misalignment, and worn enamel. Dental
+                  porcelain closely mirrors the light-reflecting properties of natural enamel,
+                  making well-crafted veneers difficult to distinguish from real teeth. Shade,
+                  shape, and texture are each customized to match the surrounding dentition.
+                </p>
+              </div>
+              <div class="cta-row left">
+                <div class="cta-buttons">
+                  <Button variant="light" href="#consult" hoverLabel="Get a Video"
+                    >Free Virtual Consult</Button
+                  >
+                  <Button variant="ghost-light" href="#process" hoverLabel="View Steps"
+                    >How It Works</Button
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- PROCESS (sage) ---------- */}
+      <section class="section dark" id="process" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow light">The Process</span>
+            <h2>The No-Prep Veneer Process <em>at Vivid Smiles</em></h2>
+            <p>
+              The veneer process at Vivid Smiles follows a digital workflow from consultation to
+              placement.
+            </p>
+          </div>
+
+          <div class="process-grid">
+            {
+              processSteps.map((s) => (
+                <div class="process-card">
+                  <span class="step-tag">{s.tag}</span>
+                  <div class="num">{s.num}</div>
+                  <h3>{s.title}</h3>
+                  <p>{s.body}</p>
+                </div>
+              ))
+            }
+          </div>
+
+          <div class="inline-cta dark">
+            <div class="ic-text">
+              Ready for the next step? <em>Book online and we'll take it from here.</em>
+            </div>
+            <div class="ic-buttons">
+              <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button
+              >
+              <Button variant="ghost-light" href={phoneHref} hoverLabel="Tap to Dial"
+                >Call {phoneLabel}</Button
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- COMPARE (paper) ---------- */}
+      <section class="section" id="compare" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Comparison</span>
+            <h2>Veneers vs. <em>Other Cosmetic Options</em></h2>
+            <p>
+              Veneers are one of several cosmetic options; the right choice depends on the extent of
+              correction needed. <a class="vs-link" href="/cosmetic-dentistry/teeth-whitening/"
+                >Professional whitening</a
+              > handles color-only concerns, and a <a
+                class="vs-link"
+                href="/cosmetic-dentistry/smile-makeover/">smile makeover</a
+              > sequences veneers with alignment or whitening when the goal calls for more than shells
+              alone.
+            </p>
+          </div>
+
+          <div class="compare">
+            <article class="compare-card">
+              <span class="tag">Resin</span>
+              <h3>Dental bonding</h3>
+              <p>
+                Resin is shaped directly on the tooth. Affordable and reversible, but less durable
+                and prone to staining. Best for minor corrections.
+              </p>
+            </article>
+            <article class="compare-card">
+              <span class="tag">Full-Coverage</span>
+              <h3>Dental crowns</h3>
+              <p>
+                Cap the full tooth rather than just the front surface. More appropriate for
+                significant structural damage; more invasive than veneers for cosmetic purposes.
+              </p>
+            </article>
+            <article class="compare-card featured">
+              <span class="ribbon">Our Specialty</span>
+              <span class="tag">Porcelain</span>
+              <h3>Porcelain veneers</h3>
+              <p>
+                Cover only the front surface with stain-resistant porcelain. The right choice when a
+                lasting cosmetic correction is the goal and the tooth is structurally healthy.
+              </p>
+            </article>
+          </div>
+
+          <div class="cta-row">
+            <div class="cta-buttons">
+              <Button variant="sage" href="#consult" hoverLabel="Get a Video"
+                >Free Virtual Consult</Button
+              >
+              <Button variant="ghost" href="#faq" hoverLabel="See Answers">Read FAQ</Button>
+            </div>
+            <span class="cta-note">No commitment · Personal video reply</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- NATURAL (cream) ---------- */}
+      <section class="section alt" id="natural" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="natural-grid">
+            <div class="natural-text">
+              <span class="eyebrow">Design Philosophy</span>
+              <h2>Achieving <em>Natural-Looking Results</em></h2>
+              <div class="natural-quote">
+                Veneers that look artificial are a failure of the planning process.
+              </div>
+              <div class="prose">
+                <p>
+                  Dr. Richardson's design philosophy is direct. Shade selection accounts for skin
+                  tone, eye color, and age; each veneer is customized for translucency and texture
+                  because natural teeth vary. The digital preview means you approve the result
+                  before fabrication.
+                </p>
+              </div>
+            </div>
+            <div class="natural-img" data-vs-parallax data-parallax="-25">
+              <Image
+                src={naturalImg}
+                alt="Macro close-up of finished porcelain veneers in place"
+                widths={[500, 800, 1100]}
+                sizes="(max-width: 991px) 100vw, 50vw"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- LASTING (paper) ---------- */}
+      <section class="section" id="lasting" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Lifespan</span>
+            <h2>How Long Do <em>Veneers Last?</em></h2>
+            <p>
+              Porcelain veneers typically last 20+ years with consistent oral hygiene and routine
+              dental care.
+            </p>
+          </div>
+
+          <div class="lasting-card">
+            <div class="lasting-stat">
+              <div class="big">20+<em>years</em></div>
+              <div class="label">Typical lifespan with proper care</div>
+            </div>
+            <div class="lasting-body">
+              <p>
+                Protecting veneers from grinding (a nightguard is recommended for bruxism patients),
+                regular brushing and flossing, and routine checkups all extend their lifespan.
+              </p>
+              <p>
+                No-prep and minimal-prep veneers have an added advantage: if replacement is needed,
+                more natural structure remains to support the new set.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- LOCAL (cream) ---------- */}
+      <LocalTrust
+        heading="Veneers Designed"
+        headingItalic="in Parker, Colorado"
+        intro="Dr. Richardson is a Parker resident who built Vivid Smiles Dentistry to bring high-level cosmetic care to patients locally and from across the country."
+        body="Located on Cedar Gulch Parkway, the practice welcomes patients locally and from out of state — many travel in for their veneer treatment. With 300+ five-star reviews, it has a reputation for consistent results and genuine attention to every patient."
+      />
+
+      {
+        /* ---------- COST (paper) — Investment + 1-tier PricingTiers.
+         Placed between LocalTrust (cream) and Gallery (sage) so the band
+         rhythm stays cream → paper → sage → paper for the closing run. */
+      }
+      <section class="section" id="cost" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Investment</span>
+            <h2>Porcelain Veneer Cost <em>in Parker, CO</em></h2>
+            <p>
+              Vivid Smiles publishes a flat per-tooth price for porcelain veneers — no variable
+              pricing based on case complexity. Most patients treat 8–10 teeth across the smile zone
+              for a complete transformation.
+            </p>
+          </div>
+
+          <PricingTiers
+            tiers={[
+              {
+                name: 'Porcelain Veneers',
+                price: '$2,250',
+                priceSuffix: 'per tooth',
+                tagline: 'Custom hand-layered porcelain — one tooth at a time.',
+                bullets: [
+                  'Master ceramist hand-layered porcelain',
+                  'Digital Smile Design preview before treatment',
+                  'No-prep and minimal-prep techniques available',
+                  'CBCT-planned bite check',
+                  'Vivid Smiles touch-up policy',
+                ],
+                highlight: true,
+              },
+            ]}
+            financingNote="Porcelain veneers are cosmetic and aren't covered by most dental insurance plans. Vivid Smiles offers in-house financing and a dental membership plan for uninsured patients — both reviewed during your consultation."
+          />
+        </div>
+      </section>
+
+      {/* ---------- GALLERY (sage) — marquee, doubled track ---------- */}
+      <section class="section dark" id="gallery">
+        <div class="wrap">
+          <div class="section-head" data-vs-reveal>
+            <span class="eyebrow light">Smile Gallery</span>
+            <h2>Finished smiles from <em>our chair.</em></h2>
+            <p>
+              A selection of finished cosmetic and restorative cases from Dr. Richardson's chair.
+            </p>
+          </div>
+        </div>
+
+        <div class="gallery-marquee" data-vs-marquee aria-label="Vivid Smiles smile gallery">
+          <div class="gallery-track" data-vs-marquee-track>
+            {
+              galleryTrack.map((t, i) => {
+                const isClone = i >= galleryTiles.length;
+                return (
+                  <div
+                    class="smile-tile"
+                    aria-hidden={isClone || undefined}
+                    inert={isClone || undefined}
+                  >
+                    <Image src={t.src} alt={t.alt} widths={[420, 640, 840]} sizes="420px" />
+                  </div>
+                );
+              })
+            }
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- FAQ (paper) — native details/summary, zero JS ---------- */}
+      <section class="section" id="faq" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">FAQ</span>
+            <h2>Frequently Asked Questions <em>About Veneers</em></h2>
+          </div>
+
+          <div class="faq-list">
+            {
+              faqs.map((f) => (
+                <details class="faq" open={f.open}>
+                  <summary>
+                    <>
+                      <h3>{f.q}</h3>
+                      <span class="icon" aria-hidden="true">
+                        +
+                      </span>
+                    </>
+                  </summary>
+                  <div class="answer">{f.a}</div>
+                </details>
+              ))
+            }
+          </div>
+
+          <div class="pull">
+            <p>
+              Porcelain veneers done well look natural and last for years with proper care.
+              Understanding the difference between no-prep, minimal-prep, and traditional approaches
+              puts you in control before any appointment begins.
+            </p>
+          </div>
+
+          <div class="cta-row">
+            <div class="cta-buttons">
+              <Button variant="sage" href="#consult" hoverLabel="Get a Video"
+                >Still Have Questions? Free Virtual Consult</Button
+              >
+              <Button variant="ghost" href={phoneHref} hoverLabel="Tap to Dial"
+                >Call {phoneLabel}</Button
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {
+        /* ---------- VIRTUAL CONSULT — primary closing conversion.
+         Anchor #consult is the destination for every mid-page CTA on this
+         page; the form delivers users directly to a Typeform that sends
+         Dr. Richardson their photo + questions for a personalized video reply.
+         Service-specific framing via slot. */
+      }
+      <VirtualConsult id="consult" eyebrow="Free veneers consultation">
+        <Fragment slot="headline">Free veneers <em>consultation.</em></Fragment>
+        <Fragment slot="body">
+          Curious about your veneer options? Skip the office visit — Dr. Richardson personally
+          records a custom video reviewing your smile, the changes you're imagining, and what's
+          possible with no-prep or minimal-prep porcelain veneers, all from photos you submit below.
+        </Fragment>
+      </VirtualConsult>
+
+      {/* ---------- CLOSING BAND ---------- */}
+      <FinalBand>
+        <p>Patients welcome locally and from out of state.</p>
+      </FinalBand>
+    </main>
+
+    <script>
+      import { initTocSpy } from '../../scripts/toc-spy';
+      initTocSpy('.pveneers');
+    </script>
+
+    {
+      /* JSON-LD structured data — lifted from the source prototype.
+        Keeps the SEO surface (procedure, FAQ, breadcrumb) the design intends. */
+    }
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'MedicalProcedure',
+        name: 'Porcelain Veneers',
+        alternateName: ['Dental Veneers', 'No-Prep Veneers', 'Minimal-Prep Veneers'],
+        procedureType: 'https://schema.org/SurgicalProcedure',
+        bodyLocation: 'Teeth',
+        preparation: 'Minimal or no enamel removal depending on case suitability.',
+        howPerformed:
+          'Custom porcelain shells are bonded to the front surface of the teeth following digital smile design and chairside refinement.',
+        followup:
+          'Routine brushing, flossing, and dental visits; nightguard recommended for bruxism.',
+        performer: {
+          '@type': 'Dentist',
+          name: 'Dr. Bryce Richardson',
+          worksFor: {
+            '@type': 'Dentist',
+            name: 'Vivid Smiles Dentistry',
+            address: {
+              '@type': 'PostalAddress',
+              streetAddress: '17167 Cedar Gulch Pkwy Ste 102',
+              addressLocality: 'Parker',
+              addressRegion: 'CO',
+              postalCode: '80134',
+              addressCountry: 'US',
+            },
+            telephone: '+1-303-841-5313',
+          },
+        },
+      })}
+    />
+
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faqs.map((f) => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
+      })}
+    />
+
+    {
+      /* Breadcrumb URLs source the host from astro.config.mjs `site` and use real
+        site routes (matching the visible breadcrumb above). Trailing slashes are
+        required because the site is configured `trailingSlash: 'always'`. */
+    }
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: new URL('/', Astro.site).href },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'Services',
+            item: new URL('/services/', Astro.site).href,
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: 'Cosmetic Dentistry',
+            item: new URL('/cosmetic-dentistry/', Astro.site).href,
+          },
+          {
+            '@type': 'ListItem',
+            position: 4,
+            name: 'Porcelain Veneers',
+            item: new URL('/cosmetic-dentistry/porcelain-veneers/', Astro.site).href,
+          },
+        ],
+      })}
+    />
+  </div>
+</BaseLayout>

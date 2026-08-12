@@ -1,0 +1,537 @@
+---
+/**
+ * Full-Mouth Rehabilitation — Vivid Smiles Dentistry, Parker CO.
+ *
+ * Built from SEO-locked markdown copy (no prototype) using porcelain-veneers
+ * as the structural template. Section order
+ * mirrors veneers 1:1 with four documented adaptations:
+ *
+ *   1. #gallery — DROPPED. No service-specific FMR before/after photos exist;
+ *      reusing veneer photos would violate the "never fake the categorization"
+ *      rule.  (gum-contouring) precedent.
+ *   2. #lasting → #cost. Same paper-band 2-col card pattern, but the left
+ *      column is a 3-row attribute list (Implants & restoration / Insurance /
+ *      Financing) instead of a stat, and the right column carries the closing
+ *      "no treatment begins without a clear picture of the plan" prose.
+ *   3. #compare → #options as a 2-card grid with the
+ *      hybrid path featured. Source copy describes exactly two pathways
+ *      (full-arch implants vs. implants + cosmetic), so a 3-card grid would
+ *      need invented content.
+ *   4. #local → #why-us as a 2x2 .why-4up grid carrying the four "Why Choose
+ *      Vivid Smiles for Full-Mouth Rehab?" bullets verbatim. Page-local
+ *      pattern; lift to a shared component if a third page adopts it.
+ *
+ * Imagery reuses photos from elsewhere in src/assets/images/ (services hub +
+ * home/) per the precedent — every reuse is marked with a
+ * `// TODO: replace with full-mouth-rehabilitation-specific photo` comment so
+ * the swap points are greppable when real photography lands.
+ *
+ * Page-scoped styles: src/styles/pages/full-mouth-rehabilitation.css
+ * Buttons + scroll reveals wired by src/scripts/animations.js (data-vs-arrow / data-vs-reveal*).
+ *
+ * Global <Nav /> + <Footer /> are mounted by BaseLayout — this page renders
+ * only its own content, starting with an inline breadcrumb under the global nav.
+ */
+import { Image } from "astro:assets";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Button from "../../components/Button.astro";
+import FinalBand from "../../components/FinalBand.astro";
+import VirtualConsult from "../../components/VirtualConsult.astro";
+import {
+  phoneHref,
+  phoneLabel,
+  phoneE164,
+  bookNowHref,
+  addressStreet,
+  addressCity,
+  addressState,
+  addressZip,
+} from "../../data/contact";
+import "../../styles/pages/full-mouth-rehabilitation.css";
+
+import heroImg from "../../assets/images/people/real/woman-glasses-cream-blazer.webp";
+// "What is full-mouth rehabilitation" — a real full-arch restoration on a
+// lab model. A prosthesis, not a procedure or a patient: the section defines
+// what the treatment produces, and an object carries no outcome claim.
+import whatImg from "../../assets/images/procedures/full-arch-restoration-model.webp";
+// "Design section" — finished-smile macro in profile.
+import designImg from "../../assets/images/procedures/finished-veneers-side-smile-black.webp";
+
+const tocLinks = [
+  { href: "#why",      label: "Who It's For" },
+  { href: "#what",     label: "What It Is" },
+  { href: "#options",  label: "Treatment Options" },
+  { href: "#process",  label: "The Process" },
+  { href: "#design",   label: "Smile Design" },
+  { href: "#cost",     label: "Cost" },
+  { href: "#why-us",   label: "Why Vivid Smiles" },
+  { href: "#faq",      label: "FAQ" },
+];
+
+const processSteps = [
+  {
+    tag: "Step One", num: "01",
+    title: "Comprehensive exam and imaging",
+    body: "CBCT 3D imaging and digital scanning map bone volume, gum health, and existing restorations before planning begins.",
+  },
+  {
+    tag: "Step Two", num: "02",
+    title: "Treatment planning",
+    body: "Dr. Richardson reviews findings and designs a phased plan; sedation options are discussed at this stage.",
+  },
+  {
+    tag: "Step Three", num: "03",
+    title: "Phased treatment and final restoration",
+    body: "Implant placement, healing, and final restoration are sequenced appropriately, followed by ongoing care to protect long-term results.",
+  },
+];
+
+const whyUsCards = [
+  {
+    tag: "Specialized Training",
+    title: "600+ hours of specialized training",
+    body: "Dr. Richardson completed 600+ hours of advanced surgical and esthetic coursework and served on staff at Implant Pathway, one of the country's most respected implant education facilities.",
+  },
+  {
+    tag: "In-House Technology",
+    title: "Robotic placement and in-house fabrication",
+    body: "Robotic technology improves implant precision, and on-site milling and 3D printing allow custom restorations without off-site lab delays.",
+  },
+  {
+    tag: "Phased Coordination",
+    title: "Phased coordination, in-house",
+    body: "Dr. Richardson sequences the surgical, restorative, and esthetic phases himself; on-site CBCT planning and in-house fabrication keep the plan tight across every visit.",
+  },
+  {
+    tag: "Patient Reputation",
+    title: "300+ five-star reviews",
+    body: "Consistent outcomes across Parker and Douglas County reflect the genuine care patients experience at every stage of treatment.",
+  },
+];
+
+const faqs = [
+  {
+    q: "What is the downside of full-mouth dental implants?",
+    a: `<a class="vs-link" href="/implant-dentistry/full-mouth-dental-implants/">Full-mouth implant</a> cases require several months to allow for healing between the surgical and restorative phases. Patients with bone loss may also need <a class="vs-link" href="/implant-dentistry/bone-grafting/">grafting</a> before placement, adding time and cost to the overall plan.`,
+    open: true,
+  },
+  {
+    q: "How painful is a full-mouth implant?",
+    a: "Implant surgery is performed under local anesthesia with sedation available; most patients report less discomfort than expected. Post-procedure soreness is typically manageable with over-the-counter medication.",
+  },
+];
+---
+
+<BaseLayout
+  title="Full-Mouth Rehabilitation in Parker, CO | Vivid Smiles Dentistry"
+  description="Full-mouth rehabilitation in Parker, CO with Dr. Bryce Richardson. Implants, crowns, bridges, veneers, and implant-supported dentures combined into one coordinated plan, with digital smile design preview."
+>
+  <div class="fmrehab">
+
+    {/* ---------- BREADCRUMB ---------- */}
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <div class="crumbs-inner">
+        <a href="/">Home</a>
+        <span class="sep">/</span>
+        <a href="/services/">Services</a>
+        <span class="sep">/</span>
+        <a href="/cosmetic-dentistry/">Cosmetic Dentistry</a>
+        <span class="sep">/</span>
+        <span class="here">Full-Mouth Rehabilitation</span>
+      </div>
+    </nav>
+
+    <main id="main">
+
+    {/* ---------- HERO ---------- */}
+    <header class="hero" data-vs-reveal-batch>
+      <div class="wrap hero-inner">
+        <div class="hero-copy">
+          <span class="eyebrow">Cosmetic Dentistry · Parker, CO</span>
+          <h1 data-vs-reveal-lines>Full-Mouth Rehabilitation in <em>Parker, Colorado</em></h1>
+          <p class="hero-sub">
+            Full-mouth rehabilitation restores function, health, and appearance across multiple teeth in a single
+            coordinated plan. Treatment combines whichever procedures each patient's condition requires: implants,
+            crowns, bridges, veneers, or implant-supported dentures. Here is what to expect at Vivid Smiles
+            Dentistry in Parker, Colorado.
+          </p>
+          <div class="hero-actions">
+            <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button>
+            <Button variant="ghost-light" href="#consult" hoverLabel="Get a Video">Free Virtual Consult</Button>
+            <div class="ratings">
+              <span class="stars" aria-hidden="true">★★★★★</span>
+              <span>5.0 · 300+ reviews</span>
+            </div>
+          </div>
+        </div>
+        <div class="hero-img" data-vs-parallax data-parallax="-30">
+          <Image
+            src={heroImg}
+            alt="Smiling woman photographed at the Vivid Smiles Dentistry office in Parker, CO"
+            widths={[600, 900, 1400]}
+            sizes="(max-width: 991px) 100vw, 50vw"
+          />
+        </div>
+      </div>
+    </header>
+
+    {/* ---------- KEYS — at-a-glance ---------- */}
+    <section class="keys" id="keys" aria-label="Full-mouth rehabilitation at a glance" data-vs-reveal-batch>
+      <div class="keys-grid">
+        <div class="keys-label">At a glance</div>
+        <div class="keys-item"><div class="k">3–6 mo</div><div class="v">Typical Timeline</div></div>
+        <div class="keys-item"><div class="k">4–6 implants</div><div class="v">Per Arch (Typical)</div></div>
+        <div class="keys-item"><div class="k">600+ hrs</div><div class="v">Implant Pathway Training</div></div>
+        <div class="keys-item"><div class="k">300+ reviews</div><div class="v">Five-Star Care</div></div>
+      </div>
+    </section>
+
+    {/* ---------- ON-THIS-PAGE TOC ---------- */}
+    <nav class="toc" id="toc" aria-label="On this page">
+      <div class="toc-inner">
+        <span class="toc-label">On this page</span>
+        <div class="toc-scroll">
+          <div class="toc-list">
+            {tocLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    {/* ---------- WHY (paper) — Who Needs FMR? ---------- */}
+    <section class="section" id="why" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Candidates</span>
+          <h2>Who Needs <em>Full-Mouth Rehabilitation?</em></h2>
+          <p>Full-mouth rehab is for patients facing a significant breakdown across multiple teeth.</p>
+        </div>
+
+        <div class="why-grid">
+          <article class="why-card">
+            <div class="num">01</div>
+            <h3>Damage that compounds</h3>
+            <p class="lead">Common scenarios include severe decay, worn teeth from grinding (bruxism), dental trauma, or failing older restorations.</p>
+          </article>
+
+          <article class="why-card">
+            <div class="num">02</div>
+            <h3>Years of compromise</h3>
+            <p class="lead">Many have spent years avoiding certain foods or hiding their smile.</p>
+          </article>
+        </div>
+
+      </div>
+    </section>
+
+    {/* ---------- WHAT (cream) — What is FMR? ---------- */}
+    <section class="section alt" id="what" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="what-grid">
+          <div class="what-img" data-vs-parallax data-parallax="-25">
+            <Image
+              src={whatImg}
+              alt="Full-arch restoration on a dental model, held in a gloved hand"
+              widths={[500, 800, 1100]}
+              sizes="(max-width: 991px) 100vw, 50vw"
+            />
+          </div>
+          <div class="what-text">
+            <span class="eyebrow">Definition</span>
+            <h2>What is <em>Full-Mouth Rehabilitation?</em></h2>
+            <div class="prose">
+              <p>
+                Full-mouth rehabilitation treats widespread damage, disease, or deterioration across the entire
+                mouth rather than individual teeth.
+              </p>
+              <p>
+                The procedures vary by case; a plan might include implants, crowns, bridges, veneers, or
+                implant-supported dentures based on bone health and tooth structure.
+              </p>
+            </div>
+            <div class="cta-row left">
+              <div class="cta-buttons">
+                <Button variant="light" href="#consult" hoverLabel="Get a Video">Free Virtual Consult</Button>
+                <Button variant="ghost-light" href="#process" hoverLabel="View Steps">How It Works</Button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- OPTIONS (paper) — Treatment Options, 2-card compare ---------- */}
+    <section class="section" id="options" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Treatment Options</span>
+          <h2>Full-Mouth Rehab <em>Treatment Options</em></h2>
+          <p>
+            Full-mouth rehab uses several treatment pathways; the right combination depends on how many teeth are
+            missing, available bone, and which natural teeth can be preserved. Dr. Richardson evaluates each case
+            individually and selects from implant-based, cosmetic, or hybrid approaches based on the patient's goals.
+          </p>
+        </div>
+
+        <div class="compare">
+          <article class="compare-card">
+            <span class="tag">Implant-Supported</span>
+            <h3>Dental Implants for Full-Mouth Restoration</h3>
+            <p>
+              Dental implants replace tooth roots and anchor a permanent foundation for full arch restorations.
+              Full arch cases typically use four to six implants per arch, planned with CBCT imaging and placed
+              with robotic precision. Dr. Richardson trained at Implant Pathway, one of the country's leading
+              implant education facilities.
+            </p>
+          </article>
+          <article class="compare-card featured">
+            <span class="ribbon">Hybrid Plan</span>
+            <span class="tag">Implants + Cosmetic</span>
+            <h3>Combining Implants with Cosmetic Dentistry</h3>
+            <p>
+              Patients with some healthy teeth benefit from a hybrid plan: implants for missing teeth, veneers,
+              or crowns on natural ones. Digital smile design lets patients preview results before any
+              irreversible work begins.
+            </p>
+          </article>
+        </div>
+
+        <div class="cta-row">
+          <div class="cta-buttons">
+            <Button variant="sage" href="#consult" hoverLabel="Get a Video">Free Virtual Consult</Button>
+            <Button variant="ghost" href="#faq" hoverLabel="See Answers">Read FAQ</Button>
+          </div>
+          <span class="cta-note">No commitment · Personal video reply</span>
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- PROCESS (sage) ---------- */}
+    <section class="section dark" id="process" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow light">The Process</span>
+          <h2>The Full-Mouth Rehab Process <em>at Vivid Smiles</em></h2>
+          <p>Most full-mouth rehab cases take three to six months, with treatment sequenced to allow adequate healing between phases.</p>
+        </div>
+
+        <div class="process-grid">
+          {processSteps.map((s) => (
+            <div class="process-card">
+              <span class="step-tag">{s.tag}</span>
+              <div class="num">{s.num}</div>
+              <h3>{s.title}</h3>
+              <p>{s.body}</p>
+            </div>
+          ))}
+        </div>
+
+        <div class="inline-cta dark">
+          <div class="ic-text">Ready for the next step? <em>Book online and we'll take it from here.</em></div>
+          <div class="ic-buttons">
+            <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button>
+            <Button variant="ghost-light" href={phoneHref} hoverLabel="Tap to Dial">Call {phoneLabel}</Button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- DESIGN (cream) — Digital Smile Design, natural-grid pattern ---------- */}
+    <section class="section alt" id="design" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="natural-grid">
+          <div class="natural-text">
+            <span class="eyebrow">Treatment Planning</span>
+            <h2>Digital Smile Design <em>and Treatment Planning</em></h2>
+            <div class="natural-quote">
+              Patients can review and refine before any permanent changes are made.
+            </div>
+            <div class="prose">
+              <p>
+                Digital smile design lets patients see their projected result before any irreversible work begins.
+                Using 3D imaging and design software, Dr. Richardson creates a preview that patients can review
+                and refine before any permanent changes are made.
+              </p>
+            </div>
+          </div>
+          <div class="natural-img" data-vs-parallax data-parallax="-25">
+            <Image
+              src={designImg}
+              alt="Close-up of a smile in profile, photographed against black"
+              widths={[500, 800, 1100]}
+              sizes="(max-width: 991px) 100vw, 50vw"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- COST (paper) — repurposed lasting-card pattern ---------- */}
+    <section class="section" id="cost" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Investment</span>
+          <h2>Cost of Full-Mouth Rehabilitation <em>in Parker</em></h2>
+          <p>Full-mouth rehab costs vary based on case complexity; the number of implants, restoration type, and need for <a class="vs-link" href="/implant-dentistry/bone-grafting/">bone grafting</a> all affect the total investment.</p>
+        </div>
+
+        <div class="cost-card">
+          <div class="cost-list">
+            <ul>
+              <li>
+                <div>
+                  <strong>Implants and restoration type</strong>
+                  Full arch implant plans differ in cost from hybrid approaches that preserve natural teeth with crowns or veneers.
+                </div>
+              </li>
+              <li>
+                <div>
+                  <strong>Insurance</strong>
+                  Medically necessary components such as extractions or bone grafting may qualify for partial dental or medical benefits.
+                </div>
+              </li>
+              <li>
+                <div>
+                  <strong>Financing</strong>
+                  Third-party financing is available; Vivid Smiles' in-house membership plan also reduces ongoing maintenance costs after treatment.
+                </div>
+              </li>
+            </ul>
+          </div>
+          <div class="cost-body">
+            <p>A consultation with Dr. Richardson includes a full case review and cost estimate.</p>
+            <p>No treatment begins without a clear picture of the plan.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- WHY-US (cream) — Why Choose Vivid Smiles, why-4up 2x2 ---------- */}
+    <section class="section alt" id="why-us" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Why Vivid Smiles</span>
+          <h2>Why Choose Vivid Smiles <em>for Full-Mouth Rehab?</em></h2>
+          <p>Vivid Smiles brings specialized training, advanced technology, and two-doctor coordination to every full-mouth case in Parker.</p>
+        </div>
+
+        <div class="why-4up">
+          {whyUsCards.map((c) => (
+            <article class="why-4up-card">
+              <span class="tag">{c.tag}</span>
+              <h3>{c.title}</h3>
+              <p>{c.body}</p>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- FAQ (paper) — native details/summary, zero JS ---------- */}
+    <section class="section" id="faq" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">FAQ</span>
+          <h2>Frequently Asked Questions About <em>Full-Mouth Rehab in Parker</em></h2>
+        </div>
+
+        <div class="faq-list">
+          {faqs.map((f) => (
+            <details class="faq" open={f.open}>
+              <summary><h3>{f.q}</h3><span class="icon" aria-hidden="true">+</span></summary>
+              <div class="answer" set:html={f.a} />
+            </details>
+          ))}
+        </div>
+
+        <div class="pull">
+          <p>
+            Full-mouth rehabilitation is a major investment in long-term health, function, and confidence. The
+            right team and technology make the difference between a result that lasts and one that doesn't.
+          </p>
+        </div>
+
+        <div class="cta-row">
+          <div class="cta-buttons">
+            <Button variant="sage" href="#consult" hoverLabel="Get a Video">Still Have Questions? Free Virtual Consult</Button>
+            <Button variant="ghost" href={phoneHref} hoverLabel="Tap to Dial">Call {phoneLabel}</Button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- VIRTUAL CONSULT — primary closing conversion ---------- */}
+    <VirtualConsult id="consult" eyebrow="Free full-mouth rehab consultation">
+      <Fragment slot="headline">Free full-mouth rehab <em>consultation.</em></Fragment>
+      <Fragment slot="body">
+        Curious about full-mouth rehabilitation? Skip the office visit — Dr. Richardson personally records a
+        custom video reviewing your situation, the path that fits your case, and what's possible with implants,
+        cosmetic work, or a hybrid plan, all from photos you submit below.
+      </Fragment>
+    </VirtualConsult>
+
+    {/* ---------- CLOSING BAND ---------- */}
+    <FinalBand>
+      <p>Vivid Smiles Dentistry in Parker, Colorado, offers the specialized training, technology, and in-house coordination that full-mouth cases require.</p>
+    </FinalBand>
+
+    </main>
+
+    <script>
+      import { initTocSpy } from "../../scripts/toc-spy";
+      initTocSpy(".fmrehab");
+    </script>
+
+    {/* JSON-LD structured data — same trio as veneers (MedicalProcedure +
+        FAQPage + BreadcrumbList). */}
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "MedicalProcedure",
+      "name": "Full-Mouth Rehabilitation",
+      "alternateName": ["Full-Mouth Reconstruction", "Full-Arch Restoration", "Full-Mouth Restoration"],
+      "procedureType": "https://schema.org/SurgicalProcedure",
+      "bodyLocation": "Mouth",
+      "preparation": "Comprehensive exam with CBCT 3D imaging and digital scanning to map bone volume, gum health, and existing restorations before planning begins. Sedation options reviewed; bone grafting may be required prior to implant placement.",
+      "howPerformed": "A coordinated, phased plan that may combine dental implants, crowns, bridges, veneers, or implant-supported dentures. Full-arch cases typically use four to six implants per arch, planned with CBCT imaging and placed with robotic precision; hybrid cases combine implants for missing teeth with veneers or crowns on natural teeth, previewed first via digital smile design.",
+      "followup": "Phased restoration over three to six months with healing between surgical and restorative phases, followed by ongoing maintenance (routine brushing, flossing, and dental visits; nightguard recommended for bruxism).",
+      "performer": {
+        "@type": "Dentist",
+        "name": "Dr. Bryce Richardson",
+        "worksFor": {
+          "@type": "Dentist",
+          "name": "Vivid Smiles Dentistry",
+          "address": {
+            "@type": "PostalAddress",
+            "streetAddress": addressStreet,
+            "addressLocality": addressCity,
+            "addressRegion": addressState,
+            "postalCode": addressZip,
+            "addressCountry": "US"
+          },
+          "telephone": phoneE164
+        }
+      }
+    })} />
+
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": faqs.map((f) => ({
+        "@type": "Question",
+        "name": f.q,
+        "acceptedAnswer": { "@type": "Answer", "text": f.a }
+      }))
+    })} />
+
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home",                       "item": new URL("/", Astro.site).href },
+        { "@type": "ListItem", "position": 2, "name": "Services",                   "item": new URL("/services/", Astro.site).href },
+        { "@type": "ListItem", "position": 3, "name": "Cosmetic Dentistry",         "item": new URL("/cosmetic-dentistry/", Astro.site).href },
+        { "@type": "ListItem", "position": 4, "name": "Full-Mouth Rehabilitation",  "item": new URL("/cosmetic-dentistry/full-mouth-rehabilitation/", Astro.site).href }
+      ]
+    })} />
+  </div>
+</BaseLayout>

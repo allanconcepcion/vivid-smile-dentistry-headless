@@ -1,0 +1,153 @@
+# Redirect rules, applied by the host before its own 404 fallback.
+#
+# Syntax (Netlify/Cloudflare):  <from-path>  <to-path>  <status>
+#   301 = permanent (use for renamed / migrated URLs)
+#   302 = temporary
+#   Trailing slashes match Astro's `trailingSlash: 'always'` — keep them on both sides.
+#   ALWAYS include a no-slash variant for each rule. Matching is
+#   exact; Astro's trailingSlash: 'always' only normalizes paths that
+#   exist in dist/, so /foo (no slash) 404s unless we list it explicitly.
+#   Wildcards: `/old/*  /new/:splat  301` forwards the matched suffix.
+#
+# Organize new entries under the matching section below. If none of the
+# sections fit, add a new one with a heading comment.
+
+# ─── Retired services ─────────────────────────────────────
+# Services Bryce no longer offers; inbound SEO links land on the parent hub.
+/cosmetic-dentistry/composite-bonding/        /cosmetic-dentistry/    301
+/cosmetic-dentistry/composite-bonding         /cosmetic-dentistry/    301
+/implant-dentistry/implant-retained-dentures/ /implant-dentistry/     301
+/implant-dentistry/implant-retained-dentures  /implant-dentistry/     301
+
+# ─── Legacy WordPress URLs → /blog/* ────────────────────────
+# One-time migration on 2026-05-19. Old vividsmilesdentistry.com (WordPress)
+# served blog posts at the root (/<slug>/); the new Astro build serves them
+# under /blog/<slug>/. Two posts also got a slug change because the new slug
+# is derived from the H1 (which carried a subtitle on the source page):
+#   - do-dental-implants-hurt → do-dental-implants-hurt-what-to-expect-before-during-and-after-treatment
+#   - what-to-do-hairline-cracks-in-tooth-treatment-options-that-work → hairline-cracks-in-tooth-what-are-your-treatment-options
+# One legacy URL was a wrong-titled re-scrape of the Myths post; it forwards
+# to the canonical Myths article:
+#   - 5-things-to-know-about-baby-teeth → common-myths-about-dental-care-debunked
+/5-things-to-know-about-baby-teeth/                                                                                  /blog/common-myths-about-dental-care-debunked/                                                              301
+/5-things-to-know-about-baby-teeth                                                                                   /blog/common-myths-about-dental-care-debunked/                                                              301
+/how-cosmetic-dentistry/                                                                                             /blog/how-cosmetic-dentistry-can-boost-your-confidence/                                                     301
+/how-cosmetic-dentistry                                                                                              /blog/how-cosmetic-dentistry-can-boost-your-confidence/                                                     301
+/what-are-veneers-and-how-long-do-they-last/                                                                         /cosmetic-dentistry/porcelain-veneers/                                                                      301
+/what-are-veneers-and-how-long-do-they-last                                                                          /cosmetic-dentistry/porcelain-veneers/                                                                      301
+/are-implant-dentures-better-than-regular-dentures/                                                                  /blog/are-implant-dentures-better-than-regular-dentures/                                                    301
+/are-implant-dentures-better-than-regular-dentures                                                                   /blog/are-implant-dentures-better-than-regular-dentures/                                                    301
+/how-long-does-all-on-4-implants-last/                                                                               /blog/how-long-does-all-on-4-implants-last/                                                                 301
+/how-long-does-all-on-4-implants-last                                                                                /blog/how-long-does-all-on-4-implants-last/                                                                 301
+/parker-colorados-annual-dental-makeover-event-vivid-smile-parker-dr-bryce-richardsons-dental-implant-giveaway/      /blog/parker-colorados-annual-dental-makeover-event-vivid-smile-parker-dr-bryce-richardsons-dental-implant-giveaway/  301
+/parker-colorados-annual-dental-makeover-event-vivid-smile-parker-dr-bryce-richardsons-dental-implant-giveaway       /blog/parker-colorados-annual-dental-makeover-event-vivid-smile-parker-dr-bryce-richardsons-dental-implant-giveaway/  301
+/what-to-expect-at-your-dental-check-up/                                                                             /blog/what-to-expect-at-your-dental-check-up/                                                               301
+/what-to-expect-at-your-dental-check-up                                                                              /blog/what-to-expect-at-your-dental-check-up/                                                               301
+/porcelain-veneers-tooth-repair-that-transforms-your-smile/                                                          /cosmetic-dentistry/porcelain-veneers/                                                                      301
+/porcelain-veneers-tooth-repair-that-transforms-your-smile                                                           /cosmetic-dentistry/porcelain-veneers/                                                                      301
+/what-to-do-hairline-cracks-in-tooth-treatment-options-that-work/                                                    /blog/hairline-cracks-in-tooth-what-are-your-treatment-options/                                             301
+/what-to-do-hairline-cracks-in-tooth-treatment-options-that-work                                                     /blog/hairline-cracks-in-tooth-what-are-your-treatment-options/                                             301
+/do-dental-implants-hurt/                                                                                            /blog/do-dental-implants-hurt-what-to-expect-before-during-and-after-treatment/                             301
+/do-dental-implants-hurt                                                                                             /blog/do-dental-implants-hurt-what-to-expect-before-during-and-after-treatment/                             301
+/how-much-do-veneers-cost/                                                                                           /blog/how-much-do-veneers-cost/                                                                             301
+/how-much-do-veneers-cost                                                                                            /blog/how-much-do-veneers-cost/                                                                             301
+/dental-implant-cost-what-you-need-to-know-before-starting-treatment/                                                /blog/dental-implant-cost-what-you-need-to-know-before-starting-treatment/                                  301
+/dental-implant-cost-what-you-need-to-know-before-starting-treatment                                                 /blog/dental-implant-cost-what-you-need-to-know-before-starting-treatment/                                  301
+/i-want-all-new-teeth-how-dental-implants-can-replace-all-your-teeth/                                                /blog/i-want-all-new-teeth-how-dental-implants-can-replace-all-your-teeth/                                  301
+/i-want-all-new-teeth-how-dental-implants-can-replace-all-your-teeth                                                 /blog/i-want-all-new-teeth-how-dental-implants-can-replace-all-your-teeth/                                  301
+/the-best-type-of-dental-veneers-the-different-types-of-veneers/                                                     /blog/the-best-type-of-dental-veneers-the-different-types-of-veneers/                                       301
+/the-best-type-of-dental-veneers-the-different-types-of-veneers                                                      /blog/the-best-type-of-dental-veneers-the-different-types-of-veneers/                                       301
+
+# ─── Legacy WordPress non-blog URLs ─────────────────────────
+# Old vividsmilesdentistry.com routes that don't exist on the new site, or
+# moved to a new slug. Audited against the full legacy URL list 2026-05-20.
+# (URLs that are unchanged — /new-patients/, /referral-program/, /privacy-policy/,
+#  /terms-conditions/, /our-office/, /contact/, /services/, /general-dentistry/,
+#  /cosmetic-dentistry/, /dental-membership-plan/, /about-us/ — need no entry.)
+
+# Service slug renames
+/invisalign/                              /cosmetic-dentistry/clear-aligners/         301
+/invisalign                               /cosmetic-dentistry/clear-aligners/         301
+/veneers/                                 /cosmetic-dentistry/porcelain-veneers/      301
+/veneers                                  /cosmetic-dentistry/porcelain-veneers/      301
+/emergency-dental-care-in-parker-co/      /emergency-dentistry/                       301
+/emergency-dental-care-in-parker-co       /emergency-dentistry/                       301
+/dental-implants-parker-co/               /implant-dentistry/                         301
+/dental-implants-parker-co                /implant-dentistry/                         301
+/full-mouth-all-on-x-dental-implants/     /implant-dentistry/full-mouth-dental-implants/   301
+/full-mouth-all-on-x-dental-implants      /implant-dentistry/full-mouth-dental-implants/   301
+
+# Retired service page — implant-retained dentures (Bryce no longer offers).
+# Mirrors the existing /implant-dentistry/implant-retained-dentures/ → hub rule.
+/implant-dentures/                        /implant-dentistry/                         301
+/implant-dentures                         /implant-dentistry/                         301
+
+# People pages collapsed into /about-us/ (which now houses Meet the Team)
+# Both slash variants — this file is exact-match; Astro's
+# trailingSlash: 'always' only normalizes paths that exist in dist/.
+/dr-bryce-richardson/                     /about-us/                                  301
+/dr-bryce-richardson                      /about-us/                                  301
+/meet-the-team/                           /about-us/                                  301
+/meet-the-team                            /about-us/                                  301
+
+# Patient stories hub → testimonials page (educational content lives in /blog/)
+/patient-stories-education/               /patient-testimonials/                      301
+/patient-stories-education                /patient-testimonials/                      301
+
+# Booking page — new site uses Typeform popup CTAs; eventually a 3rd-party
+# booking URL. Until that's wired, send booking intent to /contact/.
+# TODO: when the 3rd-party booking URL is configured, point this there instead.
+/book-now/                                /contact/                                   301
+/book-now                                 /contact/                                   301
+
+# ─── Form-submit destination ────────────────────────────────
+# Typeform redirects + ad-platform conversion goals are keyed to /thank-you/.
+# Defensive no-slash variant so an inbound URL without the trailing slash
+# (a misconfigured Typeform redirect, a hand-typed URL, an ad-platform
+# goal entered without the slash) still lands on the page instead of 404'ing.
+/thank-you                                /thank-you/                                 301
+
+# ─── All-On-4 slug fixes (SEO audit 2026-05-28) ────────────────────────
+# Old/variant All-On-4 URLs that 404. Canonical page is the single-arch page.
+# The two internal links that pointed here were also fixed at source; these
+# rules catch any external inbound links to the old URLs.
+/implant-dentistry/all-on-4-dental-implants/   /implant-dentistry/all-on-4-single-arch/   301
+/implant-dentistry/all-on-4-dental-implants    /implant-dentistry/all-on-4-single-arch/   301
+/all-on-4-dental-implants/                      /implant-dentistry/all-on-4-single-arch/   301
+/all-on-4-dental-implants                       /implant-dentistry/all-on-4-single-arch/   301
+
+# ─── Legacy WordPress landing pages retired ─────────────────
+# The last legacy WP LP. /veneers-lp and /general-lp were
+# rebuilt as Astro pages at the SAME slug, so removing them from the worker
+# passthrough was enough — no redirect needed. The WordPress cosmetic LP lived
+# at the DISTINCT /cosmetic-dentistry-lp-1 slug, so it 301s to the Astro rebuild
+# at /cosmetic-dentistry-lp/. Query strings are preserved (UTMs/gclid)
+# across the redirect, so ad attribution still reaches the Typeform. With this in
+# place the worker WordPress passthrough is fully retired.
+/cosmetic-dentistry-lp-1/                       /cosmetic-dentistry-lp/                     301
+/cosmetic-dentistry-lp-1                        /cosmetic-dentistry-lp/                     301
+
+# ─── Veneers blog posts consolidated into service page (2026-06-18) ────
+# Two thin/overlapping veneers blog posts were retired and 301'd to the
+# canonical porcelain-veneers service page to consolidate SEO authority and
+# stop duplicate-content competition. The source markdown was deleted, so the
+# /blog/<slug>/ routes no longer build — these rules catch inbound links. The
+# legacy WordPress root URLs for these two posts were
+# repointed straight to the service page to avoid a double-hop 301 chain.
+/blog/porcelain-veneers-tooth-repair-that-transforms-your-smile/     /cosmetic-dentistry/porcelain-veneers/   301
+/blog/porcelain-veneers-tooth-repair-that-transforms-your-smile      /cosmetic-dentistry/porcelain-veneers/   301
+/blog/what-are-veneers-and-how-long-do-they-last/                    /cosmetic-dentistry/porcelain-veneers/   301
+/blog/what-are-veneers-and-how-long-do-they-last                     /cosmetic-dentistry/porcelain-veneers/   301
+
+# ─── /before-and-afters/ → /smile-gallery/ ──────
+# The B&A catalog was retired and rebuilt as /smile-gallery/, showing finished
+# work only until new before/after pairs are shot. The old page source is
+# preserved unrouted at an archived copyindex.astro, so
+# dist/before-and-afters/index.html no longer exists — which means the host
+# default html_handling (auto-trailing-slash) can no longer normalize the
+# no-slash form either. The no-slash rule below is therefore load-bearing, not
+# defensive: two live blog posts link to the URL without the trailing slash.
+# RESTORE: if this page is ever un-archived, DELETE both rules in the same
+# commit — a routed asset and a redirect at the same path is undefined here.
+/before-and-afters/                             /smile-gallery/                             301
+/before-and-afters                              /smile-gallery/                             301

@@ -1,0 +1,470 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Button from '../../components/Button.astro';
+import ArrowBadge from '../../components/ArrowBadge.astro';
+import ProcessStepGrid from '../../components/ProcessStepGrid.astro';
+import ProcessStep from '../../components/ProcessStep.astro';
+import VirtualConsult from '../../components/VirtualConsult.astro';
+import { phoneHref, phoneLabel, bookNowHref } from '../../data/contact';
+import '../../styles/pages/services.css';
+
+import imgVeneers from '../../assets/images/procedures/finished-veneers-tilted-black.webp';
+import imgSmileMakeover from '../../assets/images/people/real/woman-radiant-smile-green-dress.webp';
+// Clear aligners is the one remaining generated image on this page: it is the
+// only card whose subject is an appliance rather than a person, and the shoot
+// contains no aligner tray to replace it with.
+import imgClearAligners from '../../assets/images/people/generated/clear-aligners.webp';
+import imgWhitening from '../../assets/images/people/real/man-bearded-natural-smile.webp';
+import imgGumContouring from '../../assets/images/people/real/woman-mountain-portrait.webp';
+import imgFullMouthRehab from '../../assets/images/procedures/full-arch-restoration-model.webp';
+
+import imgSingleImplant from '../../assets/images/procedures/dr-richardson-performing-yomi-guided-implant-surgery.webp';
+import imgFullMouthImplants from '../../assets/images/people/real/woman-blonde-studio-portrait.webp';
+import imgAllOn4 from '../../assets/images/people/real/woman-glasses-cream-blazer.webp';
+import imgBoneGraft from '../../assets/images/procedures/dr-rich-mid-procedure.webp';
+import imgSinusLift from '../../assets/images/facility/operating-room.webp';
+
+import imgGeneral from '../../assets/images/people/real/woman-portrait-office-lounge.webp';
+import imgEmergency from '../../assets/images/procedures/same-day-emergency-dental-care.webp';
+
+// Cosmetic + implant cards are kicker-free; only the everyday + emergency
+// cards carry a `.svc-tag` pill where the kicker adds real signal.
+const cosmeticServices = [
+  {
+    title: 'Porcelain Veneers',
+    href: '/cosmetic-dentistry/porcelain-veneers/',
+    img: imgVeneers,
+    alt: 'Close-up of a finished smile at a three-quarter angle',
+    desc: 'No-prep and minimal-prep, our signature work.',
+  },
+  {
+    title: 'Smile Makeover',
+    href: '/cosmetic-dentistry/smile-makeover/',
+    img: imgSmileMakeover,
+    alt: 'Smiling woman in a green dress photographed at the Vivid Smiles Dentistry neon smile wall in Parker, CO',
+    desc: 'A complete look, designed before treatment begins.',
+  },
+  {
+    title: 'Clear Aligners',
+    href: '/cosmetic-dentistry/clear-aligners/',
+    img: imgClearAligners,
+    alt: 'Clear aligners on a model',
+    desc: 'Discreet straightening with quiet check-ins.',
+  },
+  {
+    title: 'Teeth Whitening',
+    href: '/cosmetic-dentistry/teeth-whitening/',
+    img: imgWhitening,
+    alt: 'Smiling man photographed at the Vivid Smiles Dentistry neon smile wall in Parker, CO',
+    desc: 'Professional brightening, calibrated to shade.',
+  },
+  {
+    title: 'Gum Contouring',
+    href: '/cosmetic-dentistry/gum-contouring/',
+    img: imgGumContouring,
+    alt: 'Smiling woman photographed outdoors in the Colorado foothills',
+    desc: 'Reshape the frame around the smile.',
+  },
+  {
+    title: 'Full Mouth Rehabilitation',
+    href: '/cosmetic-dentistry/full-mouth-rehabilitation/',
+    img: imgFullMouthRehab,
+    alt: 'Full-arch restoration on a dental model',
+    desc: 'Function and esthetics, restored together.',
+  },
+];
+
+const implantServices = [
+  {
+    title: 'Single Tooth Implant',
+    href: '/implant-dentistry/single-tooth-dental-implants/',
+    img: imgSingleImplant,
+    alt: 'Dr. Bryce Richardson placing a dental implant with the Yomi robotic arm at Vivid Smiles Dentistry',
+    desc: 'One missing tooth, restored to look and chew normally.',
+  },
+  {
+    title: 'Full Mouth Implants',
+    href: '/implant-dentistry/full-mouth-dental-implants/',
+    img: imgFullMouthImplants,
+    alt: 'Smiling woman photographed against a dark studio background',
+    desc: 'Replace an arch — or both — with fixed teeth.',
+  },
+  {
+    title: 'All-on-4 Single Arch',
+    href: '/implant-dentistry/all-on-4-single-arch/',
+    img: imgAllOn4,
+    alt: 'Smiling woman photographed at the Vivid Smiles Dentistry office in Parker, CO',
+    desc: 'A full upper or lower set on four implants in one visit.',
+    objPos: 'center 25%',
+  },
+  {
+    title: 'Bone Grafting',
+    href: '/implant-dentistry/bone-grafting/',
+    img: imgBoneGraft,
+    alt: 'Dr. Bryce Richardson performing chairside surgical work',
+    desc: 'Rebuild the foundation when bone has receded.',
+  },
+  {
+    title: 'Sinus Lift',
+    href: '/implant-dentistry/sinus-lift/',
+    img: imgSinusLift,
+    alt: 'A treatment room at Vivid Smiles Dentistry in Parker, CO',
+    desc: 'Add height in the upper jaw before placement.',
+  },
+];
+
+const everydayServices = [
+  {
+    title: 'General Dentistry',
+    href: '/general-dentistry/',
+    img: imgGeneral,
+    alt: 'Smiling woman seated in the Vivid Smiles Dentistry office lounge in Parker, CO',
+    tag: 'Cleanings & Care',
+    desc: 'Six-month exams, hygiene, fillings and crowns for every member of the family.',
+    objPos: 'center 25%',
+  },
+  {
+    title: 'Emergency Dentistry',
+    href: '/emergency-dentistry/',
+    img: imgEmergency,
+    alt: 'Same-day emergency dental care',
+    tag: 'Same-Day',
+    desc: 'Toothache, broken tooth, lost crown? Call now — we hold same-day spots open every day.',
+  },
+];
+
+const faqs = [
+  {
+    q: 'How do I know which service is right for me?',
+    a: "You don't need to. The first visit is a conversation — what you want changed, what's bothering you, what you'd want a smile to do. From there we build a plan that may pull from one service or several. Many cosmetic patients also want their general care under the same roof, and that's by design.",
+    open: true,
+  },
+  {
+    q: 'What does a consultation cost?',
+    a: "An initial cosmetic or implant consultation with Dr. Richardson is complimentary. If imaging is needed for an accurate plan, we'll let you know up front. New-patient general exams are billed to your insurance where applicable, with a clear out-of-pocket estimate before the visit.",
+  },
+  {
+    q: 'Do you offer financing or a membership plan?',
+    a: 'Yes — both. We accept most major dental insurance and offer third-party financing for cosmetic and implant work. For uninsured patients we run an in-house Vivid Smiles Membership Plan that covers preventive visits and discounts treatment. A patient coordinator walks through the numbers before any plan is locked in.',
+  },
+  {
+    q: 'Do you treat patients flying in from out of state?',
+    a: 'Roughly a third of our cosmetic and full-arch caseload comes from out of state. We coordinate scans and planning ahead of arrival, schedule treatment in compressed visits, and partner with a local hotel for stays. Send a few photos through the virtual consult to start the conversation before you book travel.',
+  },
+  {
+    q: 'How long does a typical treatment take?',
+    a: `It depends on the service. <a class="vs-link" href="/cosmetic-dentistry/teeth-whitening/">Whitening</a> can be one visit. <a class="vs-link" href="/cosmetic-dentistry/porcelain-veneers/">Veneers</a> are usually two to three visits over four to six weeks. A <a class="vs-link" href="/implant-dentistry/single-tooth-dental-implants/">single-tooth implant</a> takes a few months end to end (most of which is healing, not chair time). <a class="vs-link" href="/implant-dentistry/all-on-4-single-arch/">All-on-4</a> cases place fixed teeth in a single day. We give you an honest timeline at the planning stage.`,
+  },
+  {
+    q: "What happens if I'm in pain right now?",
+    a: "Call us — we hold same-day spots every day for emergencies: toothache, swelling, a broken or lost crown, trauma. If we can't see you in the office today, we'll triage by phone and get you started on the right next step.",
+  },
+];
+
+const allServices = [...cosmeticServices, ...implantServices, ...everydayServices].map((s) => ({
+  name: s.title,
+  url: s.href,
+  image: s.img.src,
+}));
+---
+
+<BaseLayout
+  title="Services in Parker, CO | Vivid Smiles Dentistry"
+  description="Cosmetic, implant, and family dentistry in Parker, CO with Dr. Bryce Richardson. Explore veneers, clear aligners, dental implants, full-mouth rehabilitation, and same-day emergency care."
+>
+  <div class="services">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <div class="crumbs-inner">
+        <a href="/">Home</a>
+        <span class="sep">/</span>
+        <span class="here">Services</span>
+      </div>
+    </nav>
+
+    <main id="main">
+      {
+        /* H1 lives off-screen because the page has no hero band — visible category
+        headings stay as h2 so the SR/SEO outline still has a single H1. */
+      }
+      <h1 class="visually-hidden">Services in Parker, CO — Vivid Smiles Dentistry</h1>
+
+      <section class="section alt" id="cosmetic" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Cosmetic Dentistry · Specialty</span>
+            <h2>Where artistry meets <em>esthetic dentistry.</em></h2>
+            <p>
+              Smile design is our signature work. Cases are previewed facially before treatment
+              begins — calibrated to your features, not a template — and finished at a specialist
+              lab so every margin holds up under close inspection.
+            </p>
+            <div class="cta-row in-head">
+              <div class="cta-buttons">
+                <Button variant="light" href="/cosmetic-dentistry/" hoverLabel="See All"
+                  >View All Cosmetic Services</Button
+                >
+                <Button variant="ghost-light" href="/smile-gallery/" hoverLabel="See Results"
+                  >Smile Gallery</Button
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="svc-grid svc-grid-6">
+            {
+              cosmeticServices.map((s) => (
+                <a class="svc-card compact" href={s.href} data-vs-arrow>
+                  <div class="svc-img">
+                    <Image
+                      src={s.img}
+                      alt={s.alt}
+                      widths={[420, 640, 900]}
+                      sizes="(max-width: 991px) 100vw, 33vw"
+                    />
+                  </div>
+                  <div class="svc-body">
+                    <p class="svc-desc">{s.desc}</p>
+                    <div class="svc-row-bot">
+                      <h3>{s.title}</h3>
+                      <ArrowBadge size="xl" variant="ghost-light" />
+                    </div>
+                  </div>
+                </a>
+              ))
+            }
+          </div>
+        </div>
+      </section>
+
+      <section class="section dark" id="implants" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow light">Implant Dentistry · Yomi-Certified</span>
+            <h2>Replace what's missing <em>with sub-millimeter accuracy.</em></h2>
+            <p>
+              Yomi robot-assisted implant placement, planned with 3D CBCT imaging and executed
+              through smaller incisions and faster recovery. From a
+              <a class="vs-link" href="/implant-dentistry/single-tooth-dental-implants/"
+                >single tooth</a
+              >
+              to a <a class="vs-link" href="/implant-dentistry/all-on-4-single-arch/"
+                >full arch in a day</a
+              > — every case is sequenced from the finished smile backward.
+            </p>
+            <div class="cta-row in-head">
+              <div class="cta-buttons">
+                <Button variant="light" href="/implant-dentistry/" hoverLabel="See All"
+                  >View All Implant Services</Button
+                >
+                <Button variant="ghost-light" href={phoneHref} hoverLabel="Tap to Dial"
+                  >Call {phoneLabel}</Button
+                >
+              </div>
+            </div>
+          </div>
+
+          <div class="svc-grid svc-grid-5">
+            {
+              implantServices.map((s) => (
+                <a class="svc-card compact" href={s.href} data-vs-arrow>
+                  <div class="svc-img">
+                    <Image
+                      src={s.img}
+                      alt={s.alt}
+                      widths={[420, 640, 900]}
+                      sizes="(max-width: 991px) 100vw, 33vw"
+                      style={s.objPos ? `object-position: ${s.objPos}` : undefined}
+                    />
+                  </div>
+                  <div class="svc-body">
+                    <p class="svc-desc">{s.desc}</p>
+                    <div class="svc-row-bot">
+                      <h3>{s.title}</h3>
+                      <ArrowBadge size="xl" variant="ghost-light" />
+                    </div>
+                  </div>
+                </a>
+              ))
+            }
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="everyday" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Everyday &amp; Same-Day</span>
+            <h2>When life happens, <em>we're here.</em></h2>
+            <p>
+              Six-month cleanings keep things quiet. The rest of life — a chipped tooth on a
+              Tuesday, a crown that came loose before a flight — gets a same-day chair. We hold
+              spots open every day for it.
+            </p>
+          </div>
+
+          <div class="svc-grid svc-grid-2">
+            {
+              everydayServices.map((s) => (
+                <a class="svc-card compact" href={s.href} data-vs-arrow>
+                  <div class="svc-img">
+                    <Image
+                      src={s.img}
+                      alt={s.alt}
+                      widths={[600, 900, 1200]}
+                      sizes="(max-width: 991px) 100vw, 50vw"
+                      style={s.objPos ? `object-position: ${s.objPos}` : undefined}
+                    />
+                  </div>
+                  <span class="svc-tag">{s.tag}</span>
+                  <div class="svc-body">
+                    <p class="svc-desc">{s.desc}</p>
+                    <div class="svc-row-bot">
+                      <h3>{s.title}</h3>
+                      <ArrowBadge size="xl" variant="ghost-light" />
+                    </div>
+                  </div>
+                </a>
+              ))
+            }
+          </div>
+        </div>
+      </section>
+
+      <section class="section alt" id="process" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">How it goes</span>
+            <h2>Three steps, <em>no surprises.</em></h2>
+            <p>
+              Every treatment plan moves through the same calm sequence — listen first, plan in
+              detail, then deliver. You see the finished smile on screen before we touch a tooth.
+            </p>
+          </div>
+
+          <ProcessStepGrid>
+            <ProcessStep num="01" tagline="Listen first." title="Discovery" label="Step One">
+              An unhurried conversation with Dr. Richardson — what you want changed, what you've
+              tried, what you live with day to day. Bring photos of smiles you admire if you have
+              them; useful reference, not prescription.
+            </ProcessStep>
+            <ProcessStep
+              num="02"
+              tagline="Calibrated to you."
+              title="Plan & Preview"
+              label="Step Two"
+            >
+              3D CBCT imaging, intra-oral scans, and Digital Smile Design preview your finished
+              result on screen — calibrated to your face, not a template. Adjust shape, shade, and
+              proportion before treatment begins.
+            </ProcessStep>
+            <ProcessStep
+              num="03"
+              tagline="Quiet, careful delivery."
+              title="Care & Follow-Up"
+              label="Step Three"
+            >
+              Treatment is delivered with the same precision shown in the preview — Yomi-guided
+              where it counts, hand-finished where it shows. Follow-up visits keep the result
+              calibrated for years.
+            </ProcessStep>
+          </ProcessStepGrid>
+        </div>
+      </section>
+
+      <section class="section" id="faq" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">FAQ</span>
+            <h2>Frequently asked questions <em>about our services.</em></h2>
+            <p>
+              Practical answers to the questions patients ask in the consultation chair. Anything
+              else, send us a few photos through the virtual consult and Dr. Richardson will record
+              a personal video reply.
+            </p>
+          </div>
+
+          <div class="faq-list">
+            {
+              faqs.map((f) => (
+                <details class="faq" open={f.open}>
+                  <summary>
+                    <>
+                      <h3>{f.q}</h3>
+                      <span class="icon" aria-hidden="true">
+                        +
+                      </span>
+                    </>
+                  </summary>
+                  <div class="answer" set:html={f.a} />
+                </details>
+              ))
+            }
+          </div>
+
+          <div class="cta-row">
+            <div class="cta-buttons">
+              <Button variant="sage" href="#virtualConsult" hoverLabel="Get a Video"
+                >Still Have Questions? Free Virtual Consult</Button
+              >
+              <Button variant="ghost" href={phoneHref} hoverLabel="Tap to Dial"
+                >Call {phoneLabel}</Button
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {
+        /* VirtualConsult mounts id="virtualConsult" — keeps the global footer
+        "Free Virtual Consult" link resolving here. */
+      }
+      <VirtualConsult eyebrow="Free virtual consultation">
+        <Fragment slot="headline">Free virtual <em>consultation.</em></Fragment>
+        <Fragment slot="body">
+          Taking the first step toward your smile has never been easier. Nothing to schedule — Dr.
+          Richardson personally records a custom video response for every consultation request.
+          Photos in, video out.
+        </Fragment>
+      </VirtualConsult>
+    </main>
+
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: new URL('/', Astro.site).href },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'Services',
+            item: new URL('/services/', Astro.site).href,
+          },
+        ],
+      })}
+    />
+
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        name: 'Vivid Smiles Dentistry — Services',
+        itemListElement: allServices.map((s, i) => ({
+          '@type': 'ListItem',
+          position: i + 1,
+          item: {
+            '@type': 'MedicalProcedure',
+            name: s.name,
+            url: new URL(s.url, Astro.site).href,
+            image: new URL(s.image, Astro.site).href,
+          },
+        })),
+      })}
+    />
+  </div>
+</BaseLayout>

@@ -1,0 +1,21 @@
+---
+/**
+ * Eyebrow — small uppercase pre-heading label.
+ *
+ * Variants:
+ *   - default: aligned-left muted text
+ *   - center: with hairline flankers (28px lines either side)
+ *
+ * Usage:
+ *   <Eyebrow>A practice built on care</Eyebrow>
+ *   <Eyebrow center>Your smile journey</Eyebrow>
+ */
+interface Props {
+  center?: boolean;
+  class?: string;
+}
+const { center = false, class: extra } = Astro.props;
+const cls = ["vs-eyebrow", center && "vs-center", extra].filter(Boolean).join(" ");
+---
+
+<span class={cls}><slot /></span>

@@ -1,0 +1,180 @@
+---
+/**
+ * BlogCard — tile used on the hub grid and the related-posts strip.
+ *
+ * Renders: hero image (astro:assets responsive), category badge, title, date, excerpt.
+ * The category badge is a sibling link, not a nested <a>, so the card itself is a single
+ * link to the post and the badge has its own /blog?category=X destination.
+ */
+
+import { Image } from "astro:assets";
+import type { BlogPost } from "../../lib/blog";
+import { categoryUrl, formatDate, postUrl } from "../../lib/blog";
+
+interface Props {
+  post: BlogPost;
+  /** "lazy" by default; pass "eager" for the first tile so LCP isn't blocked. */
+  loading?: "lazy" | "eager";
+}
+
+const { post, loading = "lazy" } = Astro.props;
+const { data } = post;
+---
+
+<article class="bc" data-category={data.category}>
+  <a class="bc-media" href={postUrl(post)} aria-label={`Read: ${data.title}`}>
+    <Image
+      src={data.heroImage}
+      alt={data.heroAlt}
+      widths={[420, 640, 840]}
+      sizes="(max-width: 600px) 100vw, (max-width: 991px) 50vw, 33vw"
+      loading={loading}
+    />
+    <span class="bc-zoom" aria-hidden="true">→</span>
+  </a>
+  <div class="bc-body">
+    <div class="bc-meta">
+      <a class="bc-cat" href={categoryUrl(data.category)}>{data.category}</a>
+      <span class="bc-dot" aria-hidden="true">·</span>
+      <time class="bc-date" datetime={data.date.toISOString()}>{formatDate(data.date)}</time>
+    </div>
+    <h3 class="bc-title">
+      <a href={postUrl(post)}>{data.title}</a>
+    </h3>
+    <p class="bc-excerpt">{data.description}</p>
+    <a class="bc-cta" href={postUrl(post)}>
+      Read article <span aria-hidden="true">→</span>
+    </a>
+  </div>
+</article>
+
+<style>
+  .bc {
+    display: flex;
+    flex-direction: column;
+    background: var(--vs-paper);
+    border-radius: var(--vs-r-lg);
+    overflow: hidden;
+    border: 1px solid var(--vs-line);
+    transition: transform 240ms var(--vs-ease), box-shadow 240ms var(--vs-ease);
+  }
+  .bc:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--vs-shadow);
+  }
+  .bc-media {
+    position: relative;
+    display: block;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    background: var(--vs-cream);
+  }
+  .bc-media :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 600ms var(--vs-ease);
+  }
+  .bc:hover .bc-media :global(img) {
+    transform: scale(1.04);
+  }
+  .bc-zoom {
+    position: absolute;
+    right: 16px;
+    bottom: 16px;
+    width: 36px;
+    height: 36px;
+    border-radius: 999px;
+    background: var(--vs-paper);
+    color: var(--vs-sage);
+    display: grid;
+    place-items: center;
+    font-family: var(--vs-font-display);
+    font-size: 16px;
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: opacity 200ms var(--vs-ease), transform 200ms var(--vs-ease);
+  }
+  .bc:hover .bc-zoom {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  .bc-body {
+    padding: 22px 24px 26px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+  }
+  .bc-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    font-family: var(--vs-font-body);
+    font-size: 11.5px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--vs-muted);
+  }
+  .bc-cat {
+    color: var(--vs-sage);
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    transition: color 200ms var(--vs-ease);
+  }
+  .bc-cat:hover {
+    color: var(--vs-sage-deep);
+  }
+  .bc-dot {
+    color: var(--vs-line);
+  }
+  .bc-date {
+    color: var(--vs-muted);
+  }
+  .bc-title {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    font-size: 22px;
+    line-height: 1.25;
+    letter-spacing: -0.012em;
+    color: var(--vs-ink);
+    margin: 2px 0 0;
+  }
+  .bc-title a {
+    color: inherit;
+    transition: color 200ms var(--vs-ease);
+  }
+  .bc-title a:hover {
+    color: var(--vs-sage);
+  }
+  .bc-excerpt {
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: var(--vs-ink-soft);
+    margin: 0;
+    /* Clamp at 3 lines to keep the grid even — fall back gracefully */
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .bc-cta {
+    margin-top: auto;
+    padding-top: 8px;
+    font-family: var(--vs-font-body);
+    font-weight: 500;
+    font-size: 13px;
+    letter-spacing: 0.04em;
+    color: var(--vs-sage);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: gap 200ms var(--vs-ease), color 200ms var(--vs-ease);
+  }
+  .bc-cta:hover {
+    color: var(--vs-sage-deep);
+    gap: 10px;
+  }
+</style>

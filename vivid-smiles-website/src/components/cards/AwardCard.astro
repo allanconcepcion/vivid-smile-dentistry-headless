@@ -1,0 +1,62 @@
+---
+/**
+ * AwardCard — paper-band 4-up. Year + title + short body. Lifts on hover.
+ *
+ * Usage:
+ *   <AwardCard year="2024" title="Top Dentist Colorado">
+ *     Voted by peers and patients via 5280 Magazine's annual survey.
+ *   </AwardCard>
+ */
+interface Props {
+  year: string;
+  title: string;
+  class?: string;
+}
+const { year, title, class: extra } = Astro.props;
+const cls = ["vs-award-card", extra].filter(Boolean).join(" ");
+---
+
+<div class={cls} data-vs-reveal>
+  <div class="vs-award-year">{year}</div>
+  <h3>{title}</h3>
+  <p><slot /></p>
+</div>
+
+<style is:global>
+  .vs-award-card {
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-md);
+    padding: 24px 28px;
+    background: var(--vs-paper);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition: transform 240ms ease, box-shadow 240ms ease, border-color 240ms ease;
+  }
+  .vs-award-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--vs-shadow);
+    border-color: var(--vs-sage);
+  }
+  .vs-award-year {
+    font-size: 10.5px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-muted);
+    font-weight: 500;
+  }
+  .vs-award-card h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: 17px;
+    color: var(--vs-ink);
+    letter-spacing: -0.005em;
+    margin: 0;
+  }
+  .vs-award-card p {
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: var(--vs-ink-soft);
+    margin: 0;
+  }
+</style>

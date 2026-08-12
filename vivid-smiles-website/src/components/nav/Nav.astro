@@ -1,0 +1,442 @@
+---
+/**
+ * Nav — global primary navigation. Frosted-glass sticky bar with three
+ * mega menus (About Us / Services / Patient Resources) and a mobile drawer.
+ *
+ * Mounted by BaseLayout.astro on every route. Active link is derived from
+ * `currentPath` (auto-passed as Astro.url.pathname) so pages don't need to
+ * declare it.
+ *
+ * Behaviors (open/close, hover intent, scroll-aware solid + hide, focus trap,
+ * ESC, body-scroll-lock) live in src/scripts/nav.js. The mega-card arrow
+ * micro-interaction is wired by animations.js via [data-vs-arrow].
+ *
+ * Parity: the top-level `items` array below must mirror the `sections` +
+ * Home/Contact leaves in MobileMenu.astro. No shared data source — change
+ * links here AND there in the same edit.
+ *
+ * Usage:
+ *   <Nav currentPath={Astro.url.pathname} />
+ */
+import { Image } from "astro:assets";
+import vsLogoNav from "../../assets/images/brand/vivid-logo-green.webp";
+import Button from "../Button.astro";
+import MegaAbout from "./MegaAbout.astro";
+import MegaServices from "./MegaServices.astro";
+import MegaResources from "./MegaResources.astro";
+import MobileMenu from "./MobileMenu.astro";
+import { phoneLabel, phoneHref, bookNowHref } from "../../data/contact";
+
+type ActiveLink = "home" | "about" | "services" | "resources" | "contact" | "none";
+
+interface Props {
+  currentPath?: string;
+  phone?: string;
+  ctaLabel?: string;
+  ctaHref?: string;
+}
+
+const {
+  currentPath = "/",
+  phone = phoneLabel,
+  ctaLabel = "Book Online",
+  ctaHref = bookNowHref,
+} = Astro.props;
+
+function deriveActive(path: string): ActiveLink {
+  const p = path.replace(/\/+$/, "/") || "/";
+  if (p === "/") return "home";
+  if (
+    p.startsWith("/about-us") ||
+    p.startsWith("/our-office") ||
+    p.startsWith("/smile-gallery")
+  )
+    return "about";
+  if (
+    p.startsWith("/services") ||
+    p.startsWith("/general-dentistry") ||
+    p.startsWith("/emergency-dentistry") ||
+    p.startsWith("/cosmetic-dentistry") ||
+    p.startsWith("/implant-dentistry")
+  )
+    return "services";
+  if (
+    p.startsWith("/new-patients") ||
+    p.startsWith("/referral-program") ||
+    p.startsWith("/patient-testimonials") ||
+    p.startsWith("/dental-membership-plan")
+  )
+    return "resources";
+  if (p.startsWith("/contact")) return "contact";
+  return "none";
+}
+
+const active = deriveActive(currentPath);
+
+const items: Array<{ id: ActiveLink; label: string; href: string; mega?: "about" | "services" | "resources" }> = [
+  { id: "home", label: "Home", href: "/" },
+  { id: "about", label: "About Us", href: "/about-us/", mega: "about" },
+  { id: "services", label: "Services", href: "/services/", mega: "services" },
+  { id: "resources", label: "Patient Resources", href: "/new-patients/", mega: "resources" },
+  { id: "contact", label: "Contact", href: "/contact/" },
+];
+
+---
+
+<header class="vs-nav-shell" data-vs-nav>
+  <nav class="nav" aria-label="Primary">
+    <div class="nav-inner">
+      <a class="logo" href="/" aria-label="Vivid Smiles — home">
+        <Image src={vsLogoNav} alt="Vivid Smiles" loading="eager" />
+      </a>
+
+      <ul class="nav-links" role="menubar">
+        {items.map((item) => (
+          <li class={["nav-li", item.mega && "has-mega"].filter(Boolean).join(" ")} data-nav-item={item.id}>
+            <a
+              class={["nav-item", active === item.id && "active"].filter(Boolean).join(" ")}
+              href={item.href}
+              role="menuitem"
+              aria-haspopup={item.mega ? "true" : undefined}
+              aria-expanded={item.mega ? "false" : undefined}
+              data-mega-trigger={item.mega ?? undefined}
+            >
+              {item.label}
+              {item.mega && <span class="caret" aria-hidden="true"></span>}
+            </a>
+          </li>
+        ))}
+      </ul>
+
+      <div class="nav-right">
+        <a class="nav-phone" href={phoneHref}>
+          <span class="nav-phone-dot" aria-hidden="true"></span>
+          {phone}
+        </a>
+        <span class="nav-cta-wrap">
+          <Button variant="sage" href={ctaHref} hoverLabel="Let's Talk">{ctaLabel}</Button>
+        </span>
+        <button
+          type="button"
+          class="nav-burger"
+          aria-label="Open navigation"
+          aria-expanded="false"
+          aria-controls="vs-mobile-menu"
+          data-mm-open
+        >
+          <span aria-hidden="true">
+            <span class="bar"></span>
+            <span class="bar"></span>
+          </span>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <div class="mega-wrap" data-mega-wrap aria-hidden="true">
+    <div class="mega-panel" data-mega-panel="about">
+      <MegaAbout />
+    </div>
+    <div class="mega-panel" data-mega-panel="services">
+      <MegaServices />
+    </div>
+    <div class="mega-panel" data-mega-panel="resources">
+      <MegaResources />
+    </div>
+  </div>
+
+  <MobileMenu phone={phone} ctaLabel={ctaLabel} ctaHref={ctaHref} />
+</header>
+
+<style is:global>
+  /* ---------- shell ---------- */
+  .vs-nav-shell {
+    position: sticky;
+    top: 0;
+    z-index: 80;
+  }
+
+  .vs-nav-shell .nav {
+    position: relative;
+    z-index: 80;
+    background: rgba(255, 255, 255, 0.72);
+    backdrop-filter: saturate(160%) blur(18px);
+    -webkit-backdrop-filter: saturate(160%) blur(18px);
+    border-bottom: 1px solid rgba(231, 228, 221, 0.8);
+    transition: background 0.3s ease, border-color 0.3s ease;
+  }
+  .vs-nav-shell.scrolled .nav {
+    background: rgba(255, 255, 255, 0.95);
+    border-bottom-color: var(--vs-line);
+  }
+
+  .vs-nav-shell .nav-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 40px;
+    max-width: 1400px;
+    margin: 0 auto;
+    gap: 32px;
+  }
+
+  .vs-nav-shell .logo {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    flex-shrink: 0;
+  }
+  .vs-nav-shell .logo img {
+    display: block;
+    height: 38px;
+    width: auto;
+  }
+
+  /* ---------- desktop links ---------- */
+  .vs-nav-shell .nav-links {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .vs-nav-shell .nav-li { position: relative; }
+  .vs-nav-shell .nav-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--vs-font-body);
+    font-size: 13px;
+    color: var(--vs-ink);
+    text-decoration: none;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    padding: 10px 18px;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: color var(--vs-dur-hover) ease, background var(--vs-dur-hover) ease;
+  }
+  .vs-nav-shell .nav-item:hover { color: var(--vs-sage); }
+  .vs-nav-shell .nav-item.active { color: var(--vs-sage); }
+  .vs-nav-shell .nav-li.open > .nav-item {
+    color: var(--vs-sage);
+    background: rgba(107, 122, 84, 0.08);
+  }
+  .vs-nav-shell .nav-item .caret {
+    width: 7px;
+    height: 7px;
+    display: inline-block;
+    border-right: 1.2px solid currentColor;
+    border-bottom: 1.2px solid currentColor;
+    transform: rotate(45deg) translate(-1px, -1px);
+    opacity: 0.55;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+  }
+  .vs-nav-shell .nav-li.open > .nav-item .caret {
+    transform: rotate(-135deg) translate(-1px, -1px);
+    opacity: 0.9;
+  }
+
+  /* ---------- right side ---------- */
+  .vs-nav-shell .nav-right {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .vs-nav-shell .nav-phone {
+    font-family: var(--vs-font-body);
+    font-size: 12px;
+    color: var(--vs-ink-soft);
+    letter-spacing: 0.08em;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: color 0.2s ease;
+  }
+  .vs-nav-shell .nav-phone:hover { color: var(--vs-sage); }
+  .vs-nav-shell .nav-phone-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--vs-pulse-live);
+    box-shadow: 0 0 0 3px rgba(var(--vs-pulse-live-rgb), 0.3);
+    animation: vs-pulse-nav 2.4s ease-in-out infinite;
+  }
+  /* Compact override for the design-system Button when it lives in the nav bar.
+     The Button keeps its dual-glyph badge + magnetic hover, just scaled down to
+     match the bar's vertical rhythm. */
+  .vs-nav-shell .nav-cta-wrap {
+    display: inline-flex;
+    align-items: center;
+  }
+  .vs-nav-shell .nav-cta-wrap .vs-btn {
+    gap: 10px;
+    padding: 6px 6px 6px 18px;
+    font-size: 13px;
+  }
+  .vs-nav-shell .nav-cta-wrap .vs-btn .btn-arrow {
+    width: 30px;
+    height: 30px;
+    font-size: 13px;
+  }
+
+  /* ---------- burger (mobile) ---------- */
+  .vs-nav-shell .nav-burger {
+    display: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--vs-line);
+    background: var(--vs-paper);
+    color: var(--vs-ink);
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+  .vs-nav-shell .nav-burger:hover {
+    background: var(--vs-sage);
+    color: var(--vs-paper);
+    border-color: var(--vs-sage);
+  }
+  .vs-nav-shell .nav-burger > span {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 4px;
+    width: 16px;
+    position: relative;
+  }
+  .vs-nav-shell .nav-burger .bar {
+    display: block;
+    height: 1.4px;
+    width: 100%;
+    background: currentColor;
+    transform-origin: 50% 50%;
+    transition: transform 0.32s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  /* Morph hamburger → X when the drawer is open. The burger is the only
+     close affordance now — the persistent nav bar IS the menu header. */
+  .vs-nav-shell .nav-burger[aria-expanded="true"] .bar:first-child {
+    transform: translateY(2.7px) rotate(45deg);
+  }
+  .vs-nav-shell .nav-burger[aria-expanded="true"] .bar:last-child {
+    transform: translateY(-2.7px) rotate(-45deg);
+  }
+
+  /* ---------- mega wrap (desktop) ---------- */
+  .vs-nav-shell .mega-wrap {
+    position: absolute;
+    left: 40px;
+    right: 40px;
+    top: calc(100% + 10px);
+    display: flex;
+    justify-content: center;
+    pointer-events: none;
+    z-index: 70;
+  }
+  .vs-nav-shell .mega-panel {
+    position: absolute;
+    top: 0;
+    width: 100%;
+    max-width: 1180px;
+    pointer-events: none;
+    visibility: hidden;
+    transition: visibility 0.25s ease;
+  }
+  .vs-nav-shell .mega-panel[data-open="true"] {
+    pointer-events: auto;
+    visibility: visible;
+  }
+  .vs-nav-shell .mega {
+    pointer-events: auto;
+    background: rgba(255, 255, 255, 0.68);
+    backdrop-filter: saturate(160%) blur(28px);
+    -webkit-backdrop-filter: saturate(160%) blur(28px);
+    border: 1px solid rgba(231, 228, 221, 0.7);
+    border-radius: 20px;
+    box-shadow: var(--vs-mega-shadow);
+    padding: 32px;
+    width: 100%;
+    position: relative;
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+  .vs-nav-shell .mega-panel[data-open="true"] .mega {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .vs-nav-shell .mega::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: 20px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, transparent 40%);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .vs-nav-shell .mega > * { position: relative; z-index: 1; }
+  .vs-nav-shell .mega-head {
+    font-family: var(--vs-font-body);
+    font-size: 10.5px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .vs-nav-shell .mega-head::before {
+    content: "";
+    width: 22px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+
+  /* Renamed from vs-pulse to avoid colliding with the canonical keyframe in
+     src/styles/animations.css and the differently-tuned copy in MobileMenu.astro
+     (both load via is:global). */
+  @keyframes vs-pulse-nav {
+    0%, 100% { box-shadow: 0 0 0 4px rgba(var(--vs-pulse-halo-rgb, var(--vs-pulse-live-rgb)), 0.22); }
+    50% { box-shadow: 0 0 0 8px rgba(var(--vs-pulse-halo-rgb, var(--vs-pulse-live-rgb)), 0); }
+  }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 991px) {
+    .vs-nav-shell .nav-inner {
+      padding: 14px 22px;
+      gap: 12px;
+    }
+    .vs-nav-shell .nav-links { display: none; }
+    .vs-nav-shell .nav-phone { display: none; }
+    .vs-nav-shell .nav-cta-wrap .vs-btn {
+      padding: 5px 5px 5px 14px;
+      font-size: 12px;
+      gap: 8px;
+    }
+    .vs-nav-shell .nav-cta-wrap .vs-btn .btn-arrow {
+      width: 26px;
+      height: 26px;
+    }
+    .vs-nav-shell .nav-burger { display: inline-flex; }
+    .vs-nav-shell .mega-wrap { display: none; }
+  }
+
+  @media (max-width: 479px) {
+    .vs-nav-shell .nav-cta-wrap { display: none; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .vs-nav-shell .nav,
+    .vs-nav-shell .mega-panel,
+    .vs-nav-shell .nav-phone-dot,
+    .vs-nav-shell .nav-burger .bar {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+</style>

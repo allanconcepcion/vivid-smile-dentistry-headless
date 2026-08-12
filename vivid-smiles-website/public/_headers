@@ -1,0 +1,16 @@
+# Long-cache hashed assets and video.
+# Astro copies public/_headers to dist/_headers at build time.
+
+# Sitewide security headers. Applied to every page served from the build.
+# CSP is intentionally omitted: GTM injects further tags at runtime, so an
+# enforcing policy would risk breaking analytics/booking/embeds and need upkeep
+# on every new marketing tag.
+/*
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
+  X-Frame-Options: SAMEORIGIN
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+
+/_assets/*
+  Cache-Control: public, max-age=31536000, immutable
+  Accept-Ranges: bytes

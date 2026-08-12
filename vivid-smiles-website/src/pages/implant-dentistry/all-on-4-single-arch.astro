@@ -1,0 +1,896 @@
+---
+/**
+ * All-on-4 Single Arch Implants — Vivid Smiles Dentistry, Parker CO.
+ * Page-scoped styles: src/styles/pages/all-on-4-single-arch.css (.aos4 wrapper).
+ */
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Button from '../../components/Button.astro';
+import FinalBand from '../../components/FinalBand.astro';
+import PricingTiers from '../../components/PricingTiers.astro';
+import VirtualConsult from '../../components/VirtualConsult.astro';
+import { phoneHref, phoneLabel, bookNowHref, directionsHref } from '../../data/contact';
+import { getSmiles } from '../../lib/smiles';
+import '../../styles/pages/all-on-4-single-arch.css';
+
+import heroImg from '../../assets/images/people/real/woman-glasses-cream-blazer.webp';
+// "What is All-on-4" — a real full-arch restoration on a lab model (not a
+// procedure photo). A full arch of teeth on a gingival base is what the
+// treatment delivers, so it reads as the definition without claiming a case.
+import whatImg from '../../assets/images/procedures/full-arch-restoration-model.webp';
+// Robotics section — keep the authentic Dr. Bryce Yomi-guided procedure shot.
+// This IS the robotics tech and matches the section heading exactly.
+import roboticsImg from '../../assets/images/procedures/dr-richardson-performing-yomi-guided-implant-surgery.webp';
+// Candidacy section — real patient portrait, outdoors in the Colorado
+// foothills. Distinct from the hero portrait so no one person appears twice
+// on the page; the alt describes the photograph, never a treatment.
+import candidacyImg from '../../assets/images/people/real/woman-mountain-portrait.webp';
+
+// Track doubled for seamless marquee loop.
+const galleryTiles = getSmiles();
+const galleryTrack = [...galleryTiles, ...galleryTiles];
+
+const tocLinks = [
+  { href: '#why', label: 'Why Vivid Smiles' },
+  { href: '#what', label: 'What They Are' },
+  { href: '#robotics', label: 'Robotic Placement' },
+  { href: '#process', label: 'Same-Day Procedure' },
+  { href: '#compare', label: 'Comparison' },
+  { href: '#candidacy', label: 'Candidacy' },
+  { href: '#living', label: 'Daily Life' },
+  { href: '#cost', label: 'Cost & Financing' },
+  { href: '#faq', label: 'FAQ' },
+];
+
+const whyCards = [
+  {
+    num: '01',
+    title: 'Robotic implant placement',
+    body: 'The practice uses robotic implant placement guided by CBCT digital planning, a combination that no other Parker provider offers.',
+  },
+  {
+    num: '02',
+    title: 'Implant Pathway credentials',
+    body: "Dr. Bryce Richardson brings 600+ hours of advanced surgical training and a staff-level position at Implant Pathway, one of the country's most selective implant training institutions, to every All-on-4 case at Vivid Smiles.",
+  },
+  {
+    num: '03',
+    title: 'Parker resident · 300+ reviews',
+    body: 'Dr. Richardson is a Parker resident with over 300 five-star Google reviews.',
+  },
+  {
+    num: '04',
+    title: 'Team-dentist clinical background',
+    body: "Dr. Richardson's clinical background includes serving as team dentist for Indiana University basketball; an experience that reinforces his focus on function, precision, and recovery.",
+  },
+];
+
+const processSteps = [
+  {
+    tag: 'Step One',
+    num: '01',
+    title: 'Sedation',
+    body: 'IV or oral sedation is administered; you are comfortable and largely unaware throughout.',
+  },
+  {
+    tag: 'Step Two',
+    num: '02',
+    title: 'Extractions',
+    body: 'Remaining failing teeth in the arch are removed during the same appointment.',
+  },
+  {
+    tag: 'Step Three',
+    num: '03',
+    title: 'Implant placement',
+    body: 'All four implants are placed per the pre-planned robotic protocol; surgical time is two to three hours.',
+  },
+  {
+    tag: 'Step Four',
+    num: '04',
+    title: 'Temporary prosthesis',
+    body: 'A fixed bridge is attached, so you go home with functional teeth on day one.',
+  },
+  {
+    tag: 'Step Five',
+    num: '05',
+    title: 'Soft-food recovery',
+    body: 'Swelling and mild soreness resolve within days; soft foods protect the implants during osseointegration (the healing and bone-fusing period that follows).',
+  },
+];
+
+const livingCards = [
+  {
+    num: '01',
+    title: 'Eating',
+    body: 'Most foods, including steak, are possible once healing is complete. Initially, cut dense foods into smaller pieces. There are no permanent dietary restrictions beyond habits that would damage natural teeth.',
+  },
+  {
+    num: '02',
+    title: 'Food debris',
+    body: 'Small gaps exist around the abutments (the connectors between implants and the bridge) and require daily cleaning, but food does not pack under the prosthesis the way it does under removable dentures.',
+  },
+  {
+    num: '03',
+    title: 'Cleaning',
+    body: 'Brush twice daily and use a water flosser or floss threaders around each abutment to clear plaque below the gumline.',
+  },
+  {
+    num: '04',
+    title: 'Professional visits',
+    body: 'Cleanings every 3-6 months allow our team at Vivid Smiles to remove calculus in areas home care cannot reach and monitor bone levels around each implant.',
+    stat: 'Every 3–6 months',
+  },
+];
+
+const alternatives = [
+  {
+    tag: 'Alternative',
+    title: 'All-on-6',
+    body: 'Six implants instead of four, recommended when bone density supports it and additional foundation redundancy is clinically advantageous.',
+  },
+  {
+    tag: 'Alternative',
+    title: 'Implant-supported dentures',
+    body: 'A removable prosthesis that clips onto two to four implants, offering more stability than traditional dentures at a lower cost than All-on-4, though bite function and daily maintenance differ.',
+  },
+  {
+    tag: 'Alternative',
+    title: 'Individual implants',
+    body: 'The best choice when only a few teeth are missing; All-on-4 becomes appropriate when most or all arch teeth are compromised.',
+  },
+];
+
+const keyStats: [string, string][] = [
+  ['4', 'Implants Per Arch'],
+  ['10–12', 'Teeth Restored'],
+  ['Same-Day', 'Functional Teeth'],
+  ['20+ yrs', 'Implant Lifespan'],
+];
+
+const archConfigs = [
+  {
+    tag: 'Upper Arch',
+    title: 'Less dense bone, posterior angulation',
+    body: 'Upper arch bone is less dense, so posterior angulation is critical for stability.',
+  },
+  {
+    tag: 'Lower Arch',
+    title: 'Navigating the inferior alveolar nerve',
+    body: 'Lower arch cases must navigate the inferior alveolar nerve running through the mandible.',
+  },
+];
+
+const faqs = [
+  {
+    q: 'What is the downside of All-on-4 dental implants?',
+    a: 'The main tradeoffs are cost, a three-to-six-month healing period before final teeth are placed, and an irreversible surgical commitment. Heavy smokers and patients with uncontrolled systemic conditions also face reduced implant success rates, which is why candidacy evaluation is thorough before a treatment begins.',
+    open: true,
+  },
+  {
+    q: 'Can you eat steak with All-on-4 implants?',
+    a: 'Once osseointegration is complete, you can eat steak and most other foods without restriction. Cutting dense proteins into smaller pieces is a sensible early habit, but there are no permanent dietary limitations beyond what applies to natural teeth.',
+  },
+  {
+    q: 'What is a full-arch on 4 implants?',
+    a: 'A full-arch on 4 implants means every tooth in one jaw, upper or lower, is replaced using four titanium implants as the foundation for a fixed bridge. Two rear implants are angled to maximize bone contact without requiring the posterior bone volume that is commonly the first to resorb.',
+  },
+  {
+    q: 'How much do All-on-4 implants cost?',
+    a: 'Single-arch All-on-4 ranges from $15,000 to $30,000 depending on materials, sedation type, and whether extractions are needed. A free consultation with imaging at Vivid Smiles provides the accurate, case-specific number.',
+  },
+  {
+    q: 'What is better than All-on-4 implants?',
+    a: 'All-on-6 offers additional foundation support when bone density makes a wider implant spread clinically advantageous. Individual implants are the appropriate choice when only a few teeth are missing.',
+  },
+  {
+    q: 'Does food get stuck under All-on-4 dental implants?',
+    a: 'Debris accumulates around the abutments and requires daily cleaning, but food does not pack under the prosthesis the way it does under removable dentures. A water flosser used daily clears the areas a standard toothbrush cannot reach.',
+  },
+  {
+    q: 'Can I get All-on-4 if I have diabetes or other health conditions?',
+    a: 'Controlled diabetes does not automatically disqualify a patient, though healing is monitored more closely. Uncontrolled diabetes, bone-affecting autoimmune conditions, and heavy smoking meaningfully reduce implant success rates, and Dr. Richardson addresses these factors directly during evaluation.',
+  },
+  {
+    q: 'How long do All-on-4 implants last?',
+    a: 'The titanium implants can last 20 or more years with proper care; the prosthesis bridge needs replacement after 10 to 15 years, depending on the material and wear. Zirconia outlasts acrylic under heavy biting forces, which is one reason material selection during treatment planning affects long-term outcomes.',
+  },
+];
+---
+
+<BaseLayout
+  title="All-on-4 Single Arch Implants in Parker, CO | Vivid Smiles Dentistry"
+  description="All-on-4 single arch implants in Parker, CO with Dr. Bryce Richardson — robotic placement, CBCT planning, same-day function for one jaw. Free consultation."
+>
+  <div class="aos4">
+    {/* ---------- BREADCRUMB ---------- */}
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <div class="crumbs-inner">
+        <a href="/">Home</a>
+        <span class="sep">/</span>
+        <a href="/services/">Services</a>
+        <span class="sep">/</span>
+        <a href="/implant-dentistry/">Implant Dentistry</a>
+        <span class="sep">/</span>
+        <span class="here">All-on-4 Single Arch Implants</span>
+      </div>
+    </nav>
+
+    <main id="main">
+      {/* ---------- HERO ---------- */}
+      <header class="hero" data-vs-reveal-batch>
+        <div class="wrap hero-inner">
+          <div class="hero-copy">
+            <span class="eyebrow">Implant Dentistry · Parker, CO</span>
+            <h1 data-vs-reveal-lines>All-on-4 Single Arch Implants <em>in Parker, Colorado</em></h1>
+            <p class="hero-sub">
+              All-on-4 single arch implants replace every tooth in one jaw, upper or lower, using
+              four strategically placed titanium implants, and you leave the same day with a fixed,
+              functional set of teeth. Unlike full-mouth treatment, single-arch All-on-4 targets one
+              jaw, which means lower cost, a shorter procedure, and a focused treatment plan. Below
+              is what the procedure involves, how robotic technology at Vivid Smiles Dentistry sets
+              these outcomes apart, and what to expect from surgery through the final teeth.
+            </p>
+            <div class="hero-actions">
+              <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button
+              >
+              <Button variant="ghost-light" href="#consult" hoverLabel="Get a Video"
+                >Free Virtual Consult</Button
+              >
+              <div class="ratings">
+                <span class="stars" aria-hidden="true">★★★★★</span>
+                <span>5.0 · 300+ reviews</span>
+              </div>
+            </div>
+          </div>
+          <div class="hero-img" data-vs-parallax data-parallax="-30">
+            <Image
+              src={heroImg}
+              alt="Smiling woman photographed at the Vivid Smiles Dentistry office in Parker, CO"
+              widths={[600, 900, 1400]}
+              sizes="(max-width: 991px) 100vw, 50vw"
+            />
+          </div>
+        </div>
+      </header>
+
+      {/* ---------- KEYS — at-a-glance ---------- */}
+      <section
+        class="keys"
+        id="keys"
+        aria-label="All-on-4 single arch at a glance"
+        data-vs-reveal-batch
+      >
+        <div class="keys-grid">
+          <div class="keys-label">At a glance</div>
+          {
+            keyStats.map(([k, v]) => (
+              <div class="keys-item">
+                <>
+                  <div class="k">{k}</div>
+                  <div class="v">{v}</div>
+                </>
+              </div>
+            ))
+          }
+        </div>
+      </section>
+
+      {/* ---------- ON-THIS-PAGE TOC ---------- */}
+      <nav class="toc" id="toc" aria-label="On this page">
+        <div class="toc-inner">
+          <span class="toc-label">On this page</span>
+          <div class="toc-scroll">
+            <div class="toc-list">
+              {tocLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* ---------- WHY ---------- */}
+      <section class="section" id="why" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Why Vivid Smiles</span>
+            <h2>Why Choose Vivid Smiles <em>for All-on-4 in Parker, CO</em></h2>
+          </div>
+
+          <div class="why-grid">
+            {
+              whyCards.map((c) => (
+                <article class="why-card">
+                  <div class="num">{c.num}</div>
+                  <h3>{c.title}</h3>
+                  <p>{c.body}</p>
+                </article>
+              ))
+            }
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- WHAT (cream split + Upper/Lower 2-card sub-grid) ---------- */}
+      <section class="section alt" id="what" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="what-grid">
+            <div class="what-img" data-vs-parallax data-parallax="-25">
+              <Image
+                src={whatImg}
+                alt="Full-arch restoration on a dental model, held in a gloved hand"
+                widths={[500, 800, 1100]}
+                sizes="(max-width: 991px) 100vw, 50vw"
+              />
+            </div>
+            <div class="what-text">
+              <span class="eyebrow">Definition</span>
+              <h2>What Are <em>All-on-4 Single Arch Implants?</em></h2>
+              <div class="prose">
+                <p>
+                  All-on-4 single arch implants are a full-arch restoration that replaces all teeth
+                  in one jaw using four implants as the foundation for a fixed, non-removable
+                  prosthesis. Two implants are placed at the front; two are angled posteriorly at 30
+                  to 45 degrees. That angulation maximizes bone contact while clearing the sinus
+                  cavities and nerve structures, which is why grafting is not required in most
+                  cases. The result is a stable bridge of 10 to 12 replacement teeth.
+                </p>
+              </div>
+              <div class="cta-row left">
+                <div class="cta-buttons">
+                  <Button variant="light" href="#consult" hoverLabel="Get a Video"
+                    >Free Virtual Consult</Button
+                  >
+                  <Button variant="ghost-light" href="#robotics" hoverLabel="See How"
+                    >How It Works</Button
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="what-sub">
+            <div class="what-sub-head">
+              <span class="eyebrow">Upper vs. Lower</span>
+              <h3>Upper Arch vs. Lower Arch: Which One Do You Need?</h3>
+              <div class="prose">
+                <p>
+                  Treat the arch with the most failing or missing teeth first, or the one causing
+                  the greatest difficulty.
+                </p>
+              </div>
+            </div>
+            <div class="config-grid">
+              {
+                archConfigs.map((c) => (
+                  <article class="config-card">
+                    <span class="tag">{c.tag}</span>
+                    <h4>{c.title}</h4>
+                    <p>{c.body}</p>
+                  </article>
+                ))
+              }
+            </div>
+            <div class="what-sub-foot">
+              <p>
+                Most patients prioritize whichever arch is more compromised and evaluate adding the
+                second after healing. A CBCT scan provides Dr. Richardson with the three-dimensional
+                bone map that makes this determination accurate.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- ROBOTICS ---------- */}
+      <section class="section" id="robotics" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="robotics-grid">
+            <div class="robotics-img" data-vs-parallax data-parallax="-25">
+              <Image
+                src={roboticsImg}
+                alt="Dr. Bryce Richardson placing a dental implant with the Yomi robotic arm at Vivid Smiles Dentistry"
+                widths={[500, 800, 1100]}
+                sizes="(max-width: 991px) 100vw, 50vw"
+              />
+            </div>
+            <div class="robotics-text">
+              <span class="eyebrow">The Technology</span>
+              <h2>How Robotic All-on-4 Placement Works <em>at Vivid Smiles</em></h2>
+              <p class="robotics-prose">
+                Vivid Smiles uses robotic implant placement technology, a clinical differentiator
+                that no competitor offers. A CBCT scan captures a three-dimensional image of the
+                bone structure, including density, nerve location, and sinus proximity. Dr.
+                Richardson's planning software then maps the position, depth, and angle of each
+                implant before surgery begins, and the robotic system executes that plan with
+                submillimeter precision. Dr. Bryce Richardson trained at Implant Pathway, one of the
+                country's most selective implant training facilities. It defines the clinical
+                standards applied to every case.
+              </p>
+              <div class="robotics-callout">
+                <span class="label">Why four implants are enough</span>
+                <h4>Engineering, not shortcuts</h4>
+                <p>
+                  Four implants are sufficient because angled posterior placement increases
+                  bone-to-implant surface contact without requiring additional fixtures. The two
+                  front implants anchor upright; the two rear implants tilt at 30 to 45 degrees,
+                  engaging a longer section of denser bone without relying on posterior bone volume,
+                  which is the first to resorb after tooth loss. That spread of contact points
+                  distributes bite force across the arch, the way load-bearing columns distribute
+                  structural weight.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- PROCESS (sage, 5-step + Healing Timeline inline-cta) ---------- */}
+      <section class="section dark" id="process" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow light">Same-Day Procedure</span>
+            <h2>Same-Day Teeth: <em>What to Expect</em></h2>
+            <p>This sequence follows from the moment you arrive.</p>
+          </div>
+
+          <div class="process-grid">
+            {
+              processSteps.map((s) => (
+                <div class="process-card">
+                  <span class="step-tag">{s.tag}</span>
+                  <div class="num">{s.num}</div>
+                  <h3>{s.title}</h3>
+                  <p>{s.body}</p>
+                </div>
+              ))
+            }
+          </div>
+
+          <div class="inline-cta dark">
+            <div class="ic-text">
+              <strong>Healing timeline — from temporary to final teeth.</strong> Osseointegration takes
+              three to six months, during which soft foods are required and progress checkpoints confirm
+              the implants are integrating. Once healing is confirmed, Dr. Richardson takes digital impressions
+              and designs the final prosthesis: zirconia resists chipping and mimics natural enamel's
+              light transmission; acrylic is more easily adjusted but wears faster under heavy biting
+              forces. The final attachment includes bite refinement, and you leave with permanent teeth.
+            </div>
+            <div class="ic-buttons">
+              <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button
+              >
+              <Button variant="ghost-light" href={phoneHref} hoverLabel="Tap to Dial"
+                >Call {phoneLabel}</Button
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- COMPARE (paper, Single vs Full Mouth + 3-card Alternatives) ---------- */}
+      <section class="section" id="compare" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Comparison</span>
+            <h2>Single Arch vs. <em>Full Mouth Treatment</em></h2>
+            <p>
+              Single-arch All-on-4 treats one jaw; full-mouth treats both. Patients with healthy
+              teeth in one arch start with single-arch treatment.
+            </p>
+          </div>
+
+          <div class="compare">
+            <article class="compare-card featured">
+              <span class="ribbon">Our Specialty</span>
+              <span class="tag">Single Arch</span>
+              <h3>All-on-4 Single Arch</h3>
+              <ul class="compare-list">
+                <li><b>Scope —</b> treats one jaw, upper or lower.</li>
+                <li><b>Implants —</b> four strategically placed titanium implants.</li>
+                <li>
+                  <b>Investment —</b> lower cost, a shorter procedure, and a focused treatment plan.
+                </li>
+                <li>
+                  <b>Best for —</b> patients with healthy teeth in one arch start with single-arch treatment.
+                </li>
+              </ul>
+            </article>
+
+            <article class="compare-card">
+              <span class="tag">Full Mouth</span>
+              <h3>Full Mouth Treatment</h3>
+              <ul class="compare-list">
+                <li><b>Scope —</b> treats both jaws.</li>
+                <li><b>Implants —</b> roughly double the implants.</li>
+                <li>
+                  <b>Investment —</b> a longer procedure, and approximately twice the investment.
+                </li>
+                <li>
+                  <b>Best for —</b> those with two compromised arches may complete both in one surgical
+                  appointment or stage treatment based on budget and recovery goals.
+                </li>
+              </ul>
+            </article>
+          </div>
+
+          <div class="compare-sub">
+            <div class="compare-sub-head">
+              <span class="eyebrow">Alternatives</span>
+              <h3>Alternatives to All-on-4 Single Arch Implants</h3>
+              <div class="prose">
+                <p>
+                  All-on-4 is the ideal choice when most or all arch teeth are failing, but other
+                  options exist for different clinical situations.
+                </p>
+              </div>
+            </div>
+            <div class="alternatives-grid">
+              {
+                alternatives.map((a) => (
+                  <article class="config-card">
+                    <span class="tag">{a.tag}</span>
+                    <h4>{a.title}</h4>
+                    <p>{a.body}</p>
+                  </article>
+                ))
+              }
+            </div>
+          </div>
+
+          <div class="cta-row">
+            <div class="cta-buttons">
+              <Button variant="sage" href="#consult" hoverLabel="Get a Video"
+                >Free Virtual Consult</Button
+              >
+              <Button variant="ghost" href="#faq" hoverLabel="See Answers">Read FAQ</Button>
+            </div>
+            <span class="cta-note">No commitment · Personal video reply</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- CANDIDACY (cream, image+text + .candidacy-sub fallback) ---------- */}
+      <section class="section alt" id="candidacy" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="natural-grid">
+            <div class="natural-text">
+              <span class="eyebrow">Candidacy</span>
+              <h2>Who Is a Good Candidate <em>for Single Arch All-on-4?</em></h2>
+              <div class="natural-quote">
+                Ideal candidates have lost most or all teeth in one arch, retain sufficient bone
+                density, and are in good systemic health.
+              </div>
+              <ul class="candidate-list">
+                <li>
+                  <span class="marker">01</span>
+                  <span
+                    ><b>Reduced bone volume requirements —</b> The angled design reduces bone volume requirements
+                    compared to traditional implants.</span
+                  >
+                </li>
+                <li>
+                  <span class="marker">02</span>
+                  <span
+                    ><b>Active gum disease addressed first —</b> Active gum disease must be treated first.</span
+                  >
+                </li>
+                <li>
+                  <span class="marker">03</span>
+                  <span
+                    ><b>Health factors reviewed —</b> Heavy smokers face lower success rates, and systemic
+                    conditions like diabetes are reviewed.</span
+                  >
+                </li>
+                <li>
+                  <span class="marker">04</span>
+                  <span
+                    ><b>CBCT bone mapping —</b> A CBCT scan provides bone mapping that determines candidacy.</span
+                  >
+                </li>
+              </ul>
+            </div>
+            <div class="natural-img" data-vs-parallax data-parallax="-25">
+              <Image
+                src={candidacyImg}
+                alt="Smiling woman photographed outdoors in the Colorado foothills"
+                widths={[500, 800, 1100]}
+                sizes="(max-width: 991px) 100vw, 50vw"
+              />
+            </div>
+          </div>
+
+          <div class="candidacy-sub">
+            <span class="label">If you don't qualify yet</span>
+            <h3>What If You Don't Have Sufficient Bone?</h3>
+            <p>
+              Severe bone loss changes the treatment path. Options include <a
+                class="vs-link"
+                href="/implant-dentistry/bone-grafting/">bone grafting</a
+              > (adding material and waiting three to six months before implant placement), All-on-6 for
+              patients with moderate loss who benefit from additional implant support, or zygomatic implants
+              for the upper jaw, which anchor in the cheekbone. Dr. Richardson evaluates each case using
+              CBCT imaging and outlines every option before treatment begins.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- LIVING (paper, 4-card + Maintenance sub-callout) ---------- */}
+      <section class="section" id="living" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Daily Life</span>
+            <h2>Living with All-on-4: <em>Eating, Cleaning, and Daily Life</em></h2>
+            <p>After osseointegration, life with All-on-4 is closer to natural teeth.</p>
+          </div>
+
+          <div class="benefits-grid">
+            {
+              livingCards.map((c) => (
+                <article class="benefits-card">
+                  <div class="num">{c.num}</div>
+                  <h3>{c.title}</h3>
+                  <p>{c.body}</p>
+                  {c.stat && <div class="stat-line">{c.stat}</div>}
+                </article>
+              ))
+            }
+          </div>
+
+          <div class="candidacy-sub">
+            <span class="label">Maintenance & Longevity</span>
+            <h3>How Long All-on-4 Lasts</h3>
+            <p>
+              With consistent care, titanium implants can last 20 or more years because the fixture
+              bonds with living bone and essentially becomes part of the jaw. The prosthesis is a
+              separate consideration: acrylic bridges may need replacement after 10 to 15 years due
+              to wear; zirconia bridges hold up longer under heavy bite forces. Annual checkpoints
+              at Vivid Smiles include imaging to assess bone levels, bite evaluation, and prosthesis
+              inspection, so small issues are detected before they become significant.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- INVESTMENT (cream) ---------- */}
+      <section class="section alt" id="cost" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Cost & Financing</span>
+            <h2>All-on-4 Single Arch <em>Cost and Financing</em></h2>
+            <p>
+              Evaluating All-on-4 cost-per-tooth, rather than total investment, changes the frame:
+              you are replacing an entire arch with a permanent, fixed solution rather than paying
+              per individual implant. The long-term value includes restored function, preserved
+              bone, and the avoided cost of ongoing failing-tooth treatment.
+            </p>
+          </div>
+
+          <PricingTiers
+            tiers={[
+              {
+                name: 'Zirconia All-on-4 Single Arch',
+                priceQualifier: 'Starting at',
+                price: '$19,995',
+                priceSuffix: 'per arch',
+                tagline: 'Full-arch fixed teeth with a precision-milled zirconia prosthesis.',
+                bullets: [
+                  'Four implants per arch — robotic placement',
+                  'Same-day provisional teeth',
+                  'Precision-milled monolithic zirconia prosthesis',
+                  'Custom smile design with digital preview',
+                  'CBCT 3D surgical planning',
+                ],
+                ribbon: 'Most Common',
+                highlight: true,
+              },
+            ]}
+            financingNote="Every case has a unique anatomy that shifts the final number — a free consultation with CBCT imaging is the only way to get an accurate quote. Vivid Smiles offers in-house financing to spread treatment cost into monthly payments; Cherry, CareCredit, and Proceed Finance partners are reviewed during your consultation."
+          />
+
+          <div class="cta-row">
+            <div class="cta-buttons">
+              <Button variant="light" href="#consult" hoverLabel="Get a Video"
+                >Free Virtual Consult</Button
+              >
+              <Button variant="ghost-light" href={directionsHref} hoverLabel="Open Map"
+                >Get Directions</Button
+              >
+            </div>
+            <span class="cta-note">17167 Cedar Gulch Pkwy Ste 102 · Parker, CO</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- GALLERY ---------- */}
+      <section class="section dark" id="gallery">
+        <div class="wrap">
+          <div class="section-head" data-vs-reveal>
+            <span class="eyebrow light">Smile Gallery</span>
+            <h2>Finished smiles from <em>our chair.</em></h2>
+            <p>
+              A selection of finished cosmetic and restorative work from across the practice, not
+              All-on-4 cases specifically.
+            </p>
+          </div>
+        </div>
+
+        <div class="gallery-marquee" data-vs-marquee aria-label="Vivid Smiles smile gallery">
+          <div class="gallery-track" data-vs-marquee-track>
+            {
+              galleryTrack.map((t, i) => {
+                const isClone = i >= galleryTiles.length;
+                return (
+                  <div
+                    class="smile-tile"
+                    aria-hidden={isClone || undefined}
+                    inert={isClone || undefined}
+                  >
+                    <Image src={t.src} alt={t.alt} widths={[420, 640, 840]} sizes="420px" />
+                  </div>
+                );
+              })
+            }
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- FAQ (paper, 8 accordion items + closing pull-quote) ---------- */}
+      <section class="section" id="faq" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">FAQ</span>
+            <h2>Frequently Asked Questions About <em>All-on-4 Single Arch Implants</em></h2>
+          </div>
+
+          <div class="faq-list">
+            {
+              faqs.map((f) => (
+                <details class="faq" open={f.open}>
+                  <summary>
+                    <>
+                      <h3>{f.q}</h3>
+                      <span class="icon" aria-hidden="true">
+                        +
+                      </span>
+                    </>
+                  </summary>
+                  <div class="answer">{f.a}</div>
+                </details>
+              ))
+            }
+          </div>
+
+          <div class="pull">
+            <p>
+              All-on-4 single arch implants offer a same-day, fixed solution for patients who have
+              lost most or all teeth in one jaw, without the <a
+                class="vs-link"
+                href="/implant-dentistry/bone-grafting/">bone grafting</a
+              > requirements that traditional implants demand. Robotic placement, zirconia material options,
+              and honest candidacy evaluation are what separate predictable long-term outcomes.
+            </p>
+          </div>
+
+          <div class="cta-row">
+            <div class="cta-buttons">
+              <Button variant="sage" href="#consult" hoverLabel="Get a Video"
+                >Still Have Questions? Free Virtual Consult</Button
+              >
+              <Button variant="ghost" href={phoneHref} hoverLabel="Tap to Dial"
+                >Call {phoneLabel}</Button
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- VIRTUAL CONSULT ---------- */}
+      <VirtualConsult id="consult" eyebrow="Free All-on-4 consultation">
+        <Fragment slot="headline">Free All-on-4 <em>consultation.</em></Fragment>
+        <Fragment slot="body">
+          Vivid Smiles Dentistry in Parker, CO, brings Dr. Richardson's 600+ hours of surgical
+          training, Implant Pathway credentials, and robotic technology to deliver outcomes grounded
+          in precision planning. Schedule your free consultation below or call {phoneLabel} to learn which
+          arch treatment suits you.
+        </Fragment>
+      </VirtualConsult>
+
+      {/* ---------- CLOSING BAND ---------- */}
+      <FinalBand>
+        <p>
+          Dr. Bryce Richardson combines robotic precision with 600-plus hours of advanced surgical
+          training to deliver All-on-4 outcomes built to last decades.
+        </p>
+      </FinalBand>
+    </main>
+
+    <script>
+      import { initTocSpy } from '../../scripts/toc-spy';
+      initTocSpy('.aos4');
+    </script>
+
+    {/* JSON-LD: MedicalProcedure + FAQPage + BreadcrumbList */}
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'MedicalProcedure',
+        name: 'All-on-4 Single Arch Implants',
+        alternateName: [
+          'All-on-4 Dental Implants',
+          'Single Arch All-on-4',
+          'Full-Arch on 4 Implants',
+        ],
+        procedureType: 'https://schema.org/SurgicalProcedure',
+        bodyLocation: 'Jaw',
+        preparation:
+          'CBCT cone-beam scan to capture a three-dimensional image of the bone structure, including density, nerve location, and sinus proximity; planning software maps the position, depth, and angle of each implant before surgery begins.',
+        howPerformed:
+          'IV or oral sedation is administered; remaining failing teeth in the arch are removed; all four implants are placed per the pre-planned robotic protocol in two to three hours of surgical time; a fixed temporary bridge is attached the same day. After three to six months of osseointegration, the final prosthesis is fabricated and bite-refined.',
+        followup:
+          'Soft foods during osseointegration; brush twice daily and use a water flosser around each abutment; professional cleanings every 3-6 months; annual imaging to assess bone levels.',
+        performer: {
+          '@type': 'Dentist',
+          name: 'Dr. Bryce Richardson',
+          worksFor: {
+            '@type': 'Dentist',
+            name: 'Vivid Smiles Dentistry',
+            address: {
+              '@type': 'PostalAddress',
+              streetAddress: '17167 Cedar Gulch Pkwy Ste 102',
+              addressLocality: 'Parker',
+              addressRegion: 'CO',
+              postalCode: '80134',
+              addressCountry: 'US',
+            },
+            telephone: '+1-303-841-5313',
+          },
+        },
+      })}
+    />
+
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faqs.map((f) => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
+      })}
+    />
+
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: new URL('/', Astro.site).href },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'Services',
+            item: new URL('/services/', Astro.site).href,
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: 'Implant Dentistry',
+            item: new URL('/implant-dentistry/', Astro.site).href,
+          },
+          {
+            '@type': 'ListItem',
+            position: 4,
+            name: 'All-on-4 Single Arch Implants',
+            item: new URL('/implant-dentistry/all-on-4-single-arch/', Astro.site).href,
+          },
+        ],
+      })}
+    />
+  </div>
+</BaseLayout>

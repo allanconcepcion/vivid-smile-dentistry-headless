@@ -1,0 +1,20 @@
+# Editor / OS noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Astro build output and generated types
+dist/
+.astro/
+
+# Environment
+.env
+.env.production
+.env.local

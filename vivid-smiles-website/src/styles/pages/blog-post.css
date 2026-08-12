@@ -1,0 +1,400 @@
+/*
+ * Blog post — page-scoped styles under .blog-post.
+ *
+ * Mirrors the service-detail pattern (crumbs, hero, sticky TOC) so the visual
+ * grammar matches the rest of the site. The big difference is the body: the
+ * rendered markdown lives inside `.prose` and gets a long-form reading layout
+ * (line-height, max-measure, image rhythm) instead of the section-based
+ * structure of service pages.
+ */
+
+.blog-post {
+  --nav-h: 77px;
+  --toc-h: 60px;
+
+  --sage: var(--vs-sage);
+  --sage-deep: var(--vs-sage-deep);
+  --sage-soft: var(--vs-sage-soft);
+  --cream: var(--vs-cream);
+  --paper: var(--vs-paper);
+  --ink: var(--vs-ink);
+  --ink-soft: var(--vs-ink-soft);
+  --muted: var(--vs-muted);
+  --line: var(--vs-line);
+}
+
+.blog-post .wrap {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+@media (max-width: 600px) {
+  .blog-post .wrap {
+    padding: 0 22px;
+  }
+}
+
+/* Article-title `.here` — shows the live post title instead of an all-caps
+   crumb label, so we override text-transform + size + ellipsis. Background +
+   color are owned by src/styles/components/crumbs.css. */
+.blog-post .crumbs .here {
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 12.5px;
+  max-width: 50ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 600px) {
+  .blog-post .crumbs .here { max-width: 30ch; }
+}
+
+/* ---------- POST HERO ---------- */
+.blog-post .post-hero {
+  background: var(--cream);
+  padding: 60px 0 50px;
+}
+.blog-post .post-hero-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+.blog-post .post-hero-cat {
+  font-family: var(--vs-font-body);
+  font-size: 11.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  font-weight: 500;
+  color: var(--sage);
+  padding: 6px 14px;
+  border: 1px solid var(--sage);
+  border-radius: 999px;
+  background: transparent;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+.blog-post .post-hero-cat:hover {
+  background: var(--sage);
+  color: var(--paper);
+}
+.blog-post .post-h1 {
+  font-family: var(--vs-font-display);
+  font-weight: 300;
+  font-size: clamp(36px, 5.4vw, 64px);
+  line-height: 1.08;
+  letter-spacing: -0.022em;
+  color: var(--sage);
+  margin: 0 0 24px;
+  max-width: 22ch;
+}
+.blog-post .post-h1 em {
+  font-style: italic;
+  color: var(--sage-soft);
+  font-weight: 300;
+}
+.blog-post .post-hero-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  flex-wrap: wrap;
+  padding-bottom: 36px;
+  border-bottom: 1px solid var(--line);
+}
+.blog-post .post-hero-share {
+  display: inline-flex;
+}
+@media (max-width: 600px) {
+  .blog-post .post-hero-share { display: none; }
+}
+.blog-post .post-hero-img {
+  margin-top: 40px;
+  border-radius: var(--vs-r-lg);
+  overflow: hidden;
+  box-shadow: var(--vs-shadow);
+  aspect-ratio: 16 / 9;
+  background: var(--vs-line);
+}
+.blog-post .post-hero-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ---------- TOC (sticky) ---------- */
+.blog-post .toc {
+  position: sticky;
+  top: var(--nav-h);
+  z-index: 40;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: saturate(140%) blur(10px);
+  -webkit-backdrop-filter: saturate(140%) blur(10px);
+  border-bottom: 1px solid var(--line);
+  padding: 10px 0;
+}
+.blog-post .toc-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.blog-post .toc-label {
+  font-size: 10.5px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--sage);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.blog-post .toc-label::before {
+  content: "";
+  width: 18px;
+  height: 1px;
+  background: var(--sage);
+}
+.blog-post .toc-scroll { flex: 1; overflow: hidden; position: relative; }
+.blog-post .toc-scroll::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.95));
+  pointer-events: none;
+}
+.blog-post .toc-list {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 4px 30px 4px 0;
+}
+.blog-post .toc-list::-webkit-scrollbar { display: none; }
+.blog-post .toc-list a {
+  flex-shrink: 0;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #fff;
+  letter-spacing: 0.02em;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+.blog-post .toc-list a:hover {
+  color: var(--sage);
+  border-color: var(--sage);
+  transform: translateY(-1px);
+}
+.blog-post .toc-list a.active {
+  background: var(--sage);
+  color: #fff;
+  border-color: var(--sage);
+}
+.blog-post .toc-list a.active:hover { color: #fff; }
+.blog-post .toc-list a[data-depth="3"] {
+  opacity: 0.78;
+  padding: 6px 12px;
+  font-size: 11.5px;
+}
+.blog-post .toc-list a[data-depth="3"].active { opacity: 1; }
+
+.blog-post .prose :is(h2, h3) {
+  scroll-margin-top: calc(var(--nav-h) + var(--toc-h) + 12px);
+}
+
+/* ---------- BODY (prose) ---------- */
+.blog-post .post-body-section {
+  background: var(--paper);
+  padding: 80px 0 40px;
+}
+.blog-post .prose {
+  max-width: 720px;
+  margin: 0 auto;
+  font-family: var(--vs-font-body);
+  font-size: 17px;
+  line-height: 1.78;
+  color: var(--ink-soft);
+}
+.blog-post .prose > * + * { margin-top: 1.1em; }
+.blog-post .prose h2 {
+  font-family: var(--vs-font-display);
+  font-weight: 400;
+  font-size: clamp(26px, 3vw, 34px);
+  line-height: 1.18;
+  letter-spacing: -0.018em;
+  color: var(--sage);
+  margin-top: 2.2em;
+  margin-bottom: 0.4em;
+}
+.blog-post .prose h2:first-child { margin-top: 0; }
+.blog-post .prose h3 {
+  font-family: var(--vs-font-display);
+  font-weight: 500;
+  font-size: clamp(20px, 2.1vw, 23px);
+  line-height: 1.3;
+  letter-spacing: -0.008em;
+  color: var(--ink);
+  margin-top: 1.8em;
+  margin-bottom: 0.4em;
+}
+.blog-post .prose h4 {
+  font-family: var(--vs-font-display);
+  font-weight: 500;
+  font-size: 18px;
+  color: var(--ink);
+  margin-top: 1.6em;
+  margin-bottom: 0.3em;
+}
+.blog-post .prose p {
+  margin: 0;
+}
+.blog-post .prose a {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--sage) 60%, transparent);
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+  transition: color 200ms ease, text-decoration-color 200ms ease;
+}
+.blog-post .prose a:hover {
+  color: var(--sage);
+  text-decoration-color: var(--sage);
+}
+.blog-post .prose ul,
+.blog-post .prose ol {
+  padding-left: 1.4em;
+  margin: 0;
+}
+.blog-post .prose ul { list-style: disc; }
+.blog-post .prose ol { list-style: decimal; }
+.blog-post .prose li + li { margin-top: 0.4em; }
+.blog-post .prose strong { color: var(--ink); font-weight: 600; }
+.blog-post .prose em { font-style: italic; }
+.blog-post .prose blockquote {
+  border-left: 3px solid var(--sage);
+  padding: 4px 0 4px 22px;
+  margin: 1.4em 0;
+  font-style: italic;
+  color: var(--ink);
+}
+.blog-post .prose hr {
+  border: 0;
+  border-top: 1px solid var(--line);
+  margin: 2.4em auto;
+  width: 60%;
+}
+.blog-post .prose img {
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--vs-r-md);
+  margin: 1.8em 0;
+  box-shadow: 0 16px 40px -20px rgba(40, 40, 30, 0.18);
+}
+.blog-post .prose code {
+  background: var(--cream);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 0.92em;
+  color: var(--ink);
+}
+
+/* Tables — Astro markdown emits a bare <table> with no wrapper, so the table
+   itself becomes the scroll container at narrow widths. 7-col comparison
+   tables overflow even at the 720px prose measure on desktop, so horizontal
+   scroll is the rule, not the exception. */
+.blog-post .prose table {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-collapse: collapse;
+  border-radius: var(--vs-r-md);
+  border: 1px solid var(--line);
+  margin: 1.8em 0;
+  font-size: 14.5px;
+  line-height: 1.5;
+  background: #fff;
+  box-shadow: 0 16px 40px -28px rgba(40, 40, 30, 0.18);
+}
+.blog-post .prose table thead {
+  background: var(--sage);
+  color: #fff;
+}
+.blog-post .prose table th {
+  font-family: var(--vs-font-display);
+  font-weight: 500;
+  text-align: left;
+  padding: 14px 18px;
+  letter-spacing: 0.01em;
+  border-bottom: 1px solid color-mix(in oklab, var(--sage-deep) 60%, transparent);
+  vertical-align: top;
+  white-space: nowrap;
+}
+.blog-post .prose table td {
+  padding: 14px 18px;
+  border-top: 1px solid var(--line);
+  vertical-align: top;
+  color: var(--ink-soft);
+}
+.blog-post .prose table tbody tr:first-child td {
+  border-top: 0;
+}
+.blog-post .prose table tbody tr:nth-child(even) td {
+  background: color-mix(in oklab, var(--cream) 60%, #fff);
+}
+.blog-post .prose table tbody tr td:first-child {
+  font-family: var(--vs-font-display);
+  font-weight: 500;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.blog-post .prose table strong {
+  color: var(--ink);
+}
+@media (max-width: 600px) {
+  .blog-post .prose table {
+    font-size: 13.5px;
+  }
+  .blog-post .prose table th,
+  .blog-post .prose table td {
+    padding: 12px 14px;
+  }
+}
+
+.blog-post .post-body-share {
+  max-width: 720px;
+  margin: 56px auto 0;
+  padding-top: 32px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: center;
+}
+
+/* ---------- Reveals — keep the section reveal but don't blanket-hide the prose itself ---------- */
+.blog-post [data-vs-reveal-batch] > * { will-change: transform, opacity; }
+
+/* ---------- 991-and-below: parallax/decoration off, layout tightens ---------- */
+@media (max-width: 991px) {
+  .blog-post .toc { padding: 8px 0; }
+  .blog-post .toc-inner { padding: 0 22px; gap: 12px; }
+  .blog-post .toc-label { display: none; }
+  .blog-post .post-hero { padding: 44px 0 30px; }
+  .blog-post .post-hero-img { aspect-ratio: 4 / 3; }
+}
+
+/* H2 base color → ink for sitewide split-color pattern.
+   Equal specificity (0,1,1) with the h1/h2/h3/h4 group rule above; comes later
+   in the cascade, so this wins for h2 only. h1/h3/h4 keep sage. Dark-band
+   `.section.alt h2 { color: #fff }` (0,2,1) still trumps. */
+.blog-post h2 { color: var(--vs-ink); }

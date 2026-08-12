@@ -1,0 +1,90 @@
+---
+/**
+ * ProcessStep — one step in a 3-col ProcessStepGrid.
+ *
+ * Usage:
+ *   <ProcessStep num="01" tagline="Listen & envision." title="Discovery" label="Step One">
+ *     Body…
+ *   </ProcessStep>
+ */
+interface Props {
+  num: string;
+  title: string;
+  tagline?: string;
+  label?: string;
+  class?: string;
+}
+const { num, title, tagline, label, class: extra } = Astro.props;
+const cls = ["vs-pstep", extra].filter(Boolean).join(" ");
+---
+
+<div class={cls}>
+  <div class="vs-pstep-num">{num}</div>
+  {tagline && <span class="vs-pstep-tagline">{tagline}</span>}
+  <h3>{title}</h3>
+  <p><slot /></p>
+  {label && <span class="vs-pstep-lbl">{label}</span>}
+</div>
+
+<style is:global>
+  .vs-pstep {
+    padding: 36px 32px;
+    border-right: 1px solid var(--vs-line);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    background: var(--vs-paper);
+    transition: background 0.3s ease;
+  }
+  .vs-pstep:hover {
+    background: var(--vs-cream);
+  }
+  .vs-pstep-num {
+    font-family: var(--vs-font-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: 56px;
+    color: var(--vs-sage-soft);
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+  }
+  .vs-pstep h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: 21px;
+    color: var(--vs-ink);
+    letter-spacing: -0.005em;
+    margin: 0;
+  }
+  .vs-pstep-tagline {
+    font-family: var(--vs-font-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: 16px;
+    color: var(--vs-sage);
+    line-height: 1.3;
+  }
+  .vs-pstep p {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--vs-ink-soft);
+    margin: 0;
+  }
+  .vs-pstep-lbl {
+    font-size: 10.5px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--vs-muted);
+    margin-top: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding-top: 16px;
+  }
+  .vs-pstep-lbl::before {
+    content: "";
+    width: 18px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+</style>

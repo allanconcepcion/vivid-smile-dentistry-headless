@@ -1,0 +1,635 @@
+/*
+ * Vivid Smiles — Smile Gallery page styles.
+ *
+ * The prototype is the IA + visual concept; this stylesheet maps it to the
+ * project's `--vs-*` tokens, the global Button + VirtualConsult components,
+ * and the `data-vs-reveal*` motion system.
+ *
+ * Page-scoped under .sgal so styles can't leak. Class names mirror the
+ * prototype where they map cleanly (.crumbs, .hero, .gallery-grid, .case-card,
+ * .lightbox); local aliases under .sgal resolve every color through
+ * `--vs-*` (no raw hex).
+ *
+ * The prototype's treatment filter bar and per-case body (service tag, case
+ * title, clinical summary) are intentionally absent — the catalog shows photos
+ * only, so nothing here ties a named procedure to an identifiable patient.
+ *
+ * forked from before-and-afters.css when the B&A catalog was retired
+ * in favour of a finished-work gallery. The `.ba-labels` Before/After overlay
+ * rules are deliberately gone — there is no before state to label. The original
+ * stylesheet is still live for the archived page at
+ * an archived copy, so edits here do NOT reach it.
+ *
+ * Reveals are wired by src/scripts/animations.js — these rules are layout,
+ * color, rhythm, hover-states only.
+ */
+
+.sgal {
+  /* Anchor scroll offset — must match the global Nav height. nav.js writes
+     the measured height into `--vs-nav-h` on :root at runtime; we read
+     through it here so in-page anchors land below the nav, including the
+     slightly-shorter mobile nav. Fallback covers SSR and the pre-hydration
+     paint. */
+  --nav-h: var(--vs-nav-h, 77px);
+
+  /* Local aliases mirror the .pveneers convention so prototype CSS reads
+     cleanly while resolving through the central token system. */
+  --sage: var(--vs-sage);
+  --sage-soft: var(--vs-sage-soft);
+  --cream: var(--vs-cream);
+  --paper: var(--vs-paper);
+  --ink: var(--vs-ink);
+  --ink-soft: var(--vs-ink-soft);
+  --muted: var(--vs-muted);
+  --line: var(--vs-line);
+  --shadow: 0 24px 60px -30px rgba(40, 40, 30, 0.25), 0 8px 20px -10px rgba(40, 40, 30, 0.08);
+  --r-lg: var(--vs-r-lg);
+  --r-xl: var(--vs-r-xl);
+  --f-display: var(--vs-font-display);
+  --f-body: var(--vs-font-body);
+}
+
+/* ---------- primitives (page-scoped) ---------- */
+.sgal .wrap {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+.sgal .eyebrow {
+  font-family: var(--f-body);
+  font-size: 12px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--sage);
+  font-weight: 500;
+}
+
+.sgal h1,
+.sgal h2,
+.sgal h3,
+.sgal h4 {
+  font-family: var(--f-display);
+  font-weight: 400;
+  color: var(--sage);
+  margin: 0;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+}
+.sgal h1 {
+  font-size: clamp(48px, 7vw, 92px);
+  font-weight: 300;
+  letter-spacing: -0.025em;
+}
+.sgal h1 em {
+  font-style: italic;
+  color: var(--sage-soft);
+  font-weight: 300;
+}
+.sgal h2 {
+  font-size: clamp(32px, 4.2vw, 54px);
+  font-weight: 400;
+  letter-spacing: -0.022em;
+}
+.sgal h2 em {
+  font-style: italic;
+  color: var(--sage-soft);
+  font-weight: 300;
+}
+.sgal h4 {
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: 0;
+}
+.sgal p {
+  margin: 0;
+  color: var(--ink-soft);
+}
+.sgal em {
+  font-style: italic;
+  color: var(--sage-soft);
+  font-weight: 300;
+}
+
+/* ---------- HERO ---------- */
+.sgal .hero {
+  position: relative;
+  background: var(--vs-charcoal-green);
+  padding: 80px 0 100px;
+  overflow: hidden;
+}
+.sgal .hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 900px 500px at 85% 15%, rgba(255, 255, 255, 0.06), transparent 60%),
+    radial-gradient(ellipse 700px 400px at 5% 95%, rgba(255, 255, 255, 0.04), transparent 60%);
+  pointer-events: none;
+}
+.sgal .hero-inner {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 70px;
+  align-items: center;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+.sgal .hero-copy .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--vs-eyebrow-on-sage);
+}
+.sgal .hero-copy .eyebrow::before {
+  content: '';
+  width: 28px;
+  height: 1px;
+  background: rgba(255, 255, 255, 0.6);
+}
+/* Smaller font + wider max-width than the service-page H1 — the gallery
+   heading is a flowing phrase ("Finished smiles, up close."), not a
+   tight 2-3-word service title, so 92px / 14ch wraps it into 3 awkward
+   single-word lines. The clamp here lets the heading fit on 1–2 lines
+   inside the hero copy column at every breakpoint. */
+.sgal .hero h1 {
+  margin: 22px 0 26px;
+  font-size: clamp(40px, 5.4vw, 76px);
+  max-width: 22ch;
+  color: #fff;
+}
+.sgal .hero h1 em {
+  color: var(--vs-eyebrow-on-sage);
+}
+.sgal .hero-sub {
+  max-width: 56ch;
+  font-size: 17px;
+  line-height: 1.75;
+  color: rgba(255, 255, 255, 0.85);
+}
+.sgal .hero-actions {
+  margin-top: 36px;
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.sgal .hero-actions .ratings {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-left: 18px;
+  border-left: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.75);
+  letter-spacing: 0.04em;
+}
+.sgal .hero-actions .stars {
+  color: var(--vs-eyebrow-on-sage);
+  letter-spacing: 0.12em;
+}
+
+/* Hero image — single 4/5 portrait frame, mirrors .pveneers .hero-img.
+   No collage, no inset, no stamp — just one photo. */
+.sgal .hero-img {
+  aspect-ratio: 4 / 5;
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.sgal .hero-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.6s ease;
+}
+.sgal .hero-img:hover img {
+  transform: scale(1.02);
+}
+
+/* ---------- SECTIONS (band system) ---------- */
+.sgal .section {
+  padding: 110px 0;
+}
+
+.sgal .section-head {
+  max-width: 760px;
+  margin: 0 auto 56px;
+  text-align: center;
+}
+.sgal .section-head .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+}
+.sgal .section-head .eyebrow::before,
+.sgal .section-head .eyebrow::after {
+  content: '';
+  width: 28px;
+  height: 1px;
+  background: var(--sage);
+}
+.sgal .section-head h2 {
+  margin: 22px 0 22px;
+}
+.sgal .section-head p {
+  font-size: 17px;
+  line-height: 1.7;
+  max-width: 60ch;
+  margin: 0 auto;
+}
+
+/* Anchored-section scroll offset — the global Nav sits fixed at the top, so
+   any in-page anchor (#consult etc.) needs to land below it. */
+.sgal section[id] {
+  scroll-margin-top: calc(var(--nav-h) + 24px);
+}
+
+/* ---------- GALLERY META (count + legend strip above the grid) ---------- */
+.sgal .gallery-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+  padding-bottom: 22px;
+  margin-bottom: 30px;
+  border-bottom: 1px solid var(--line);
+}
+.sgal .gallery-meta .count {
+  font-family: var(--f-body);
+  font-size: 13px;
+  color: var(--ink-soft);
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+.sgal .gallery-meta .count b {
+  font-family: var(--f-display);
+  font-size: 28px;
+  color: var(--sage);
+  font-weight: 400;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+.sgal .gallery-meta .count small {
+  font-size: 10.5px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.sgal .gallery-meta .legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.sgal .gallery-meta .legend .dot {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.sgal .gallery-meta .legend .dot::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--sage);
+  box-shadow: 0 0 0 3px rgba(107, 122, 84, 0.15);
+}
+
+/* ---------- GALLERY GRID + CASE CARDS ---------- */
+.sgal .gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 30px;
+}
+.sgal .case-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  transition:
+    transform 0.35s ease,
+    box-shadow 0.35s ease,
+    border-color 0.35s ease,
+    opacity 0.35s ease;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  text-align: left;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  width: 100%;
+}
+.sgal .case-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow);
+  border-color: rgba(107, 122, 84, 0.32);
+}
+.sgal .case-card:focus-visible {
+  outline: 3px solid var(--sage);
+  outline-offset: 3px;
+}
+.sgal .case-pic {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--cream);
+}
+.sgal .case-pic img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.6s ease;
+}
+.sgal .case-card:hover .case-pic img {
+  transform: scale(1.03);
+}
+.sgal .case-pic .zoom {
+  position: absolute;
+  right: 14px;
+  top: 14px;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  border: 1px solid var(--line);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sage);
+  font-family: var(--f-display);
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease;
+}
+.sgal .case-card:hover .case-pic .zoom {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Disclosure — small print under the gallery */
+.sgal .disclosure {
+  max-width: 760px;
+  margin: 30px auto 0;
+  text-align: center;
+  font-size: 12.5px;
+  line-height: 1.6;
+  /* Was var(--muted) (#7d7d78) ~4.0:1 on cream — borderline AA. --vs-ink-soft
+   * lifts contrast to ~8:1 so the 12.5px text comfortably passes. */
+  color: var(--vs-ink-soft);
+  letter-spacing: 0.02em;
+}
+
+/* ---------- LIGHTBOX MODAL ---------- */
+.sgal .lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(20, 20, 18, 0.85);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 50px 40px;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+}
+.sgal .lightbox.show {
+  display: flex;
+  opacity: 1;
+}
+.sgal .lightbox-card {
+  background: #fff;
+  border-radius: var(--r-lg);
+  width: 100%;
+  max-width: 1080px;
+  max-height: 88vh;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+  box-shadow: 0 30px 80px -20px rgba(0, 0, 0, 0.5);
+  transform: translateY(8px) scale(0.98);
+  transition: transform 0.3s ease;
+}
+.sgal .lightbox.show .lightbox-card {
+  transform: translateY(0) scale(1);
+}
+.sgal .lightbox-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 22px 28px;
+  border-bottom: 1px solid var(--line);
+}
+.sgal .lightbox-head .head-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+.sgal .lightbox-head .case-no {
+  font-size: 10.5px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 500;
+}
+.sgal .lightbox-close {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    transform 0.2s ease;
+  font-family: var(--f-body);
+  flex-shrink: 0;
+}
+.sgal .lightbox-close:hover {
+  background: var(--sage);
+  color: #fff;
+  border-color: var(--sage);
+  transform: rotate(90deg);
+}
+.sgal .lightbox-img {
+  background: var(--cream);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sgal .lightbox-img img {
+  width: 100%;
+  max-height: 60vh;
+  object-fit: contain;
+  display: block;
+}
+.sgal .lightbox-foot {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 18px 28px;
+  background: var(--cream);
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  line-height: 1.6;
+  color: var(--ink-soft);
+  letter-spacing: 0.01em;
+  gap: 20px;
+}
+.sgal .lightbox-foot .nav-pair {
+  display: inline-flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.sgal .lightbox-foot .nav-pair button {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: #fff;
+  font-family: var(--f-body);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  color: var(--ink);
+  cursor: pointer;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.sgal .lightbox-foot .nav-pair button:hover {
+  color: var(--sage);
+  border-color: var(--sage);
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 1100px) {
+  .sgal .hero-inner {
+    grid-template-columns: 1fr;
+    gap: 50px;
+  }
+  .sgal .hero-img {
+    max-width: 540px;
+    margin: 0 auto;
+    width: 100%;
+  }
+  .sgal .gallery-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 22px;
+  }
+}
+
+@media (max-width: 991px) {
+  .sgal .section {
+    padding: 80px 0;
+  }
+}
+
+@media (max-width: 780px) {
+  .sgal .wrap,
+  .sgal .hero {
+    padding: 50px 0 70px;
+  }
+  .sgal .hero-inner {
+    padding: 0 22px;
+  }
+  .sgal .section {
+    padding: 60px 0;
+  }
+  .sgal .gallery-grid {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .sgal .gallery-meta {
+    padding-bottom: 16px;
+    margin-bottom: 22px;
+  }
+  .sgal .lightbox {
+    padding: 16px;
+  }
+  .sgal .lightbox-head {
+    padding: 16px 18px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .sgal .lightbox-head .head-meta {
+    gap: 10px;
+  }
+  .sgal .lightbox-foot {
+    padding: 14px 18px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  .sgal .lightbox-foot .nav-pair {
+    width: 100%;
+  }
+  .sgal .lightbox-foot .nav-pair button {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .sgal .hero h1 {
+    max-width: none;
+  }
+  .sgal .hero-actions .ratings {
+    padding-left: 0;
+    border-left: 0;
+    margin-top: 4px;
+  }
+}
+
+/* ---------- Reduced-motion safety ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .sgal .case-card,
+  .sgal .case-pic img,
+  .sgal .hero-img img,
+  .sgal .lightbox,
+  .sgal .lightbox-card,
+  .sgal .lightbox-close,
+  .sgal .case-pic .zoom,
+  .sgal .lightbox-foot .nav-pair button {
+    transition: none !important;
+  }
+}
+
+/* H2 base color → ink for sitewide split-color pattern.
+   Equal specificity (0,1,1) with the h1/h2/h3/h4 group rule above; comes later
+   in the cascade, so this wins for h2 only. h1/h3/h4 keep sage. The dark-band
+   overrides that used to trump this were dropped with the unused band rules. */
+.sgal h2 {
+  color: var(--vs-ink);
+}

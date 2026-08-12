@@ -1,0 +1,833 @@
+---
+/**
+ * Full Mouth Dental Implants — Vivid Smiles Dentistry, Parker CO.
+ * Page-scoped styles: src/styles/pages/full-mouth-dental-implants.css (.fmdi wrapper).
+ *
+ * Recipe: All-on-4 single-arch template, namespace .fmdi, copy mapped
+ * verbatim from the SEO brief. Adaptations vs. the source recipe:
+ *   - "What" cream split has NO sub-grid (the brief's only definition-level copy is
+ *     a single short paragraph; the original Upper-vs-Lower split has no analog).
+ *   - "Benefits" paper grid is a 4-card mapping of the verbatim
+ *     "How Full Mouth Implants Differ from Traditional Dentures" bullets,
+ *     replacing the all-on-4 "Living" (Eating/Cleaning/etc.) cards since the
+ *     brief has no daily-life copy.
+ *   - "Compare" sub-grid is 2 alternatives instead of 3 (the brief lists 4
+ *     options total; 2 occupy the head-to-head, 2 occupy the sub).
+ *   - 6 FAQs (vs. 8 in all-on-4) per brief.
+ */
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Button from '../../components/Button.astro';
+import FinalBand from '../../components/FinalBand.astro';
+import VirtualConsult from '../../components/VirtualConsult.astro';
+import PricingTiers from '../../components/PricingTiers.astro';
+import { phoneHref, phoneLabel, bookNowHref } from '../../data/contact';
+import { getSmiles } from '../../lib/smiles';
+import '../../styles/pages/full-mouth-dental-implants.css';
+
+import heroImg from '../../assets/images/people/real/woman-office-portrait.webp';
+// "What is full-mouth implants" — a real full-arch restoration on a lab
+// model: the whole-arch prosthesis this page is about, shown as an object
+// rather than as a patient's result.
+import whatImg from '../../assets/images/procedures/full-arch-restoration-model.webp';
+// Robotics section — keep the authentic Dr. Bryce Yomi-guided procedure.
+import roboticsImg from '../../assets/images/procedures/dr-richardson-performing-yomi-guided-implant-surgery.webp';
+// Candidacy — lifestyle patient portrait.
+import candidacyImg from '../../assets/images/people/real/woman-lakeside-seated.webp';
+
+// Track doubled for seamless marquee loop.
+const galleryTiles = getSmiles();
+const galleryTrack = [...galleryTiles, ...galleryTiles];
+
+const tocLinks = [
+  { href: '#why', label: 'Why Vivid Smiles' },
+  { href: '#what', label: 'What They Are' },
+  { href: '#robotics', label: 'Robotic Placement' },
+  { href: '#process', label: 'Recovery Timeline' },
+  { href: '#compare', label: 'Comparison' },
+  { href: '#candidacy', label: 'Candidacy' },
+  { href: '#benefits', label: 'Benefits' },
+  { href: '#cost', label: 'Cost & Financing' },
+  { href: '#faq', label: 'FAQ' },
+];
+
+const whyCards = [
+  {
+    num: '01',
+    title: 'Implant Pathway · 600+ hours',
+    body: 'Dr. Richardson was part of the staff at Implant Pathway, accumulating 600+ hours of surgical training. That places him in a small tier of general dentists at this level.',
+  },
+  {
+    num: '02',
+    title: 'Robotic-guided placement',
+    body: 'Robotic-assisted surgery improves placement accuracy to within fractions of a millimeter, which matters most in full arch cases where four to six implants must support a bridge and placement errors compound across the arch.',
+  },
+  {
+    num: '03',
+    title: 'In-house milling & 3D printing',
+    body: 'His in-house lab includes milling units and 3D printers for prosthetic fabrication, keeping quality control with the surgeon throughout.',
+  },
+  {
+    num: '04',
+    title: '300+ reviews · Parker roots',
+    body: 'With over 300 five-star Google reviews and deep Parker roots, he brings destination-level full arch expertise to a neighborhood practice.',
+  },
+];
+
+const processSteps = [
+  {
+    tag: 'Days 1 to 3',
+    num: '01',
+    title: 'Peak swelling & comfort care',
+    body: 'Swelling and mild discomfort peak within the first 48 hours; prescribed medication and soft foods manage symptoms.',
+  },
+  {
+    tag: 'Days 4 to 14',
+    num: '02',
+    title: 'Swelling resolves',
+    body: 'Swelling resolves and the temporary prosthesis allows normal appearance and basic function during early healing.',
+  },
+  {
+    tag: 'Months 1 to 3',
+    num: '03',
+    title: 'Osseointegration begins',
+    body: 'Osseointegration progresses as bone bonds to the implant surface; follow-up appointments confirm healing is on track.',
+  },
+  {
+    tag: 'Months 3 to 6',
+    num: '04',
+    title: 'Final fabrication',
+    body: 'Osseointegration is confirmed through imaging; final impressions and in-house prosthetic fabrication begin.',
+  },
+  {
+    tag: 'Final restoration',
+    num: '05',
+    title: 'Permanent bridge placed',
+    body: 'The permanent bridge is placed and adjusted for bite and comfort, completing treatment.',
+  },
+];
+
+const benefitCards = [
+  {
+    num: '01',
+    title: 'Bone preservation',
+    body: 'Implants transfer chewing forces into the jawbone, preventing the resorption that dentures accelerate.',
+  },
+  {
+    num: '02',
+    title: 'Stability',
+    body: 'The bridge is fixed to the implants; no adhesive, shifting, or daily removal.',
+  },
+  {
+    num: '03',
+    title: 'Diet',
+    body: 'No food restrictions; full arch implant patients eat normally, including hard and chewy foods.',
+  },
+  {
+    num: '04',
+    title: 'Facial structure',
+    body: 'The jaw retains its density, so the face maintains its shape rather than developing the sunken look common in long-term denture wearers.',
+  },
+];
+
+const alternatives = [
+  {
+    tag: 'Alternative',
+    title: 'Implant-supported overdentures',
+    body: 'More stable than conventional dentures with two to four implant attachments, but still removable and do not stop bone loss.',
+  },
+  {
+    tag: 'Alternative',
+    title: 'Individual implants per tooth',
+    body: 'Clinically appropriate for isolated losses; impractical and overly complex for full arch tooth loss.',
+  },
+];
+
+const keyStats: [string, string][] = [
+  ['4–6', 'Implants Per Arch'],
+  ['Same-Day', 'Temporary Teeth'],
+  ['4–9 mo', 'Treatment Time'],
+  ['20+ yrs', 'Prosthetic Bridge'],
+];
+
+const faqs = [
+  {
+    q: 'How long do full mouth dental implants last?',
+    a: 'Titanium implant posts are designed to be a lifetime solution with consistent hygiene and routine dental care. The prosthetic bridge lasts 15 to 20+ years before evaluation is needed, depending on material and wear.',
+    open: true,
+  },
+  {
+    q: 'Are full mouth dental implants painful?',
+    a: 'Surgery is performed under local anesthesia; sedation is available for patients who prefer added comfort. Most individuals report improvement in discomfort within 48 to 72 hours after surgery.',
+  },
+  {
+    q: 'How long does the full mouth implant process take?',
+    a: 'Consultation to final restoration ranges from 4-9 months, depending on whether preparatory procedures are needed. Patients who qualify for immediate loading receive temporary teeth on the day of surgery.',
+  },
+  {
+    q: 'What are full mouth dental implants made of?',
+    a: 'Implant posts are titanium, which bonds to bone through osseointegration. The prosthetic bridge is fabricated from zirconia or acrylic; both are milled and finished in-house at Vivid Smiles.',
+  },
+  {
+    q: 'What is the difference between All-on-4 and full mouth implants?',
+    a: `<a class="vs-link" href="/implant-dentistry/all-on-4-single-arch/">All-on-4</a> is a technique using four angled implants per arch to support a full bridge, often without <a class="vs-link" href="/implant-dentistry/bone-grafting/">bone grafting</a>. All-on-X refers to the same approach using four, five, or six implants based on bone anatomy.`,
+  },
+  {
+    q: 'How do I care for full mouth dental implants?',
+    a: 'Daily brushing, flossing or water flosser use, and routine hygiene appointments maintain the gum tissue around implants, which is the primary vulnerability for long-term implant health. The prosthetic bridge itself cannot decay.',
+  },
+];
+---
+
+<BaseLayout
+  title="Full Mouth Dental Implants in Parker, CO | Vivid Smiles Dentistry"
+  description="Full mouth dental implants in Parker, CO with Dr. Bryce Richardson — robotic placement, CBCT planning, four-to-six titanium implants per arch with a fixed bridge. Free consultation."
+>
+  <div class="fmdi">
+    {/* ---------- BREADCRUMB ---------- */}
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <div class="crumbs-inner">
+        <a href="/">Home</a>
+        <span class="sep">/</span>
+        <a href="/services/">Services</a>
+        <span class="sep">/</span>
+        <a href="/implant-dentistry/">Implant Dentistry</a>
+        <span class="sep">/</span>
+        <span class="here">Full Mouth Dental Implants</span>
+      </div>
+    </nav>
+
+    <main id="main">
+      {/* ---------- HERO ---------- */}
+      <header class="hero" data-vs-reveal-batch>
+        <div class="wrap hero-inner">
+          <div class="hero-copy">
+            <span class="eyebrow">Implant Dentistry · Parker, CO</span>
+            <h1 data-vs-reveal-lines>Full Mouth Dental Implants <em>in Parker, Colorado</em></h1>
+            <p class="hero-sub">
+              Full mouth dental implants replace an entire arch with a fixed, non-removable
+              prosthesis supported by four to six titanium implants fused to the jaw. They function
+              like natural teeth and preserve the bone that traditional dentures allow to erode.
+              Below is what the procedure involves, who qualifies, and what to expect at Vivid
+              Smiles Dentistry.
+            </p>
+            <div class="hero-actions">
+              <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button
+              >
+              <Button variant="ghost-light" href="#consult" hoverLabel="Get a Video"
+                >Free Virtual Consult</Button
+              >
+              <div class="ratings">
+                <span class="stars" aria-hidden="true">★★★★★</span>
+                <span>5.0 · 300+ reviews</span>
+              </div>
+            </div>
+          </div>
+          <div class="hero-img" data-vs-parallax data-parallax="-30">
+            <Image
+              src={heroImg}
+              alt="Smiling woman photographed inside the Vivid Smiles Dentistry office in Parker, CO"
+              widths={[600, 900, 1400]}
+              sizes="(max-width: 991px) 100vw, 50vw"
+            />
+          </div>
+        </div>
+      </header>
+
+      {/* ---------- KEYS — at-a-glance ---------- */}
+      <section
+        class="keys"
+        id="keys"
+        aria-label="Full mouth dental implants at a glance"
+        data-vs-reveal-batch
+      >
+        <div class="keys-grid">
+          <div class="keys-label">At a glance</div>
+          {
+            keyStats.map(([k, v]) => (
+              <div class="keys-item">
+                <>
+                  <div class="k">{k}</div>
+                  <div class="v">{v}</div>
+                </>
+              </div>
+            ))
+          }
+        </div>
+      </section>
+
+      {/* ---------- ON-THIS-PAGE TOC ---------- */}
+      <nav class="toc" id="toc" aria-label="On this page">
+        <div class="toc-inner">
+          <span class="toc-label">On this page</span>
+          <div class="toc-scroll">
+            <div class="toc-list">
+              {tocLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* ---------- WHY (paper, 4-card grid) ---------- */}
+      <section class="section" id="why" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Why Vivid Smiles</span>
+            <h2>Why Choose Dr. Bryce Richardson <em>for Full Mouth Implants</em></h2>
+          </div>
+
+          <div class="why-grid">
+            {
+              whyCards.map((c) => (
+                <article class="why-card">
+                  <div class="num">{c.num}</div>
+                  <h3>{c.title}</h3>
+                  <p>{c.body}</p>
+                </article>
+              ))
+            }
+          </div>
+        </div>
+      </section>
+
+      {
+        /* ---------- WHAT (cream split, no sub-grid — single-paragraph definition only) ---------- */
+      }
+      <section class="section alt" id="what" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="what-grid">
+            <div class="what-img" data-vs-parallax data-parallax="-25">
+              <Image
+                src={whatImg}
+                alt="Full-arch restoration on a dental model, held in a gloved hand"
+                widths={[500, 800, 1100]}
+                sizes="(max-width: 991px) 100vw, 50vw"
+              />
+            </div>
+            <div class="what-text">
+              <span class="eyebrow">Definition</span>
+              <h2>What Are <em>Full Mouth Dental Implants?</em></h2>
+              <div class="prose">
+                <p>
+                  Full mouth dental implants use four to six titanium roots per arch to support a
+                  fixed, non-removable bridge that replaces every tooth in that arch. This differs
+                  from <a class="vs-link" href="/implant-dentistry/single-tooth-dental-implants/"
+                    >single-tooth implants</a
+                  > or removable overdentures.
+                </p>
+              </div>
+              <div class="cta-row left">
+                <div class="cta-buttons">
+                  <Button variant="light" href="#consult" hoverLabel="Get a Video"
+                    >Free Virtual Consult</Button
+                  >
+                  <Button variant="ghost-light" href="#robotics" hoverLabel="See How"
+                    >How It Works</Button
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- ROBOTICS (paper, with same-day callout) ---------- */}
+      <section class="section" id="robotics" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="robotics-grid">
+            <div class="robotics-img" data-vs-parallax data-parallax="-25">
+              <Image
+                src={roboticsImg}
+                alt="Dr. Bryce Richardson placing a dental implant with the Yomi robotic arm at Vivid Smiles Dentistry"
+                widths={[500, 800, 1100]}
+                sizes="(max-width: 991px) 100vw, 50vw"
+              />
+            </div>
+            <div class="robotics-text">
+              <span class="eyebrow">The Vivid Smile Approach</span>
+              <h2>Robotic Implant Placement: <em>Precision Technology</em></h2>
+              <p class="robotics-prose">
+                The Vivid Smile full-arch approach at Vivid Smiles Dentistry combines detailed 3D
+                imaging through the final restoration with robotic-guided surgery and in-house
+                prosthetic fabrication. Each phase is predictable and communicated before it begins.
+                Robotic-assisted surgery improves placement accuracy to within fractions of a
+                millimeter, which matters most in full arch cases where four to six implants must
+                support a bridge and placement errors compound across the arch. Dr. Richardson
+                completed staff-level training at Implant Pathway, one of the country's most
+                selective implant programs.
+              </p>
+              <div class="robotics-callout">
+                <span class="label">Same-day teeth</span>
+                <h4>Can You Get Teeth the Same Day?</h4>
+                <p>
+                  Many full arch patients receive a temporary prosthesis the same day as surgery.
+                  The same-day restoration is a well-fitting temporary; the permanent bridge follows
+                  after osseointegration is confirmed. Qualification depends on bone density and
+                  implant stability achieved at surgery, both evaluated during your initial
+                  consultation with Dr. Richardson.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {
+        /* ---------- PROCESS (sage, 5-step recovery timeline + Advanced-Technology inline-cta) ---------- */
+      }
+      <section class="section dark" id="process" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow light">Recovery Timeline</span>
+            <h2>What to Expect <em>During Recovery</em></h2>
+            <p>Full arch recovery follows a predictable timeline.</p>
+          </div>
+
+          <div class="process-grid">
+            {
+              processSteps.map((s) => (
+                <div class="process-card">
+                  <span class="step-tag">{s.tag}</span>
+                  <div class="num">{s.num}</div>
+                  <h3>{s.title}</h3>
+                  <p>{s.body}</p>
+                </div>
+              ))
+            }
+          </div>
+
+          <div class="inline-cta dark">
+            <div class="ic-text">
+              <strong>Advanced technology at Vivid Smiles.</strong> CBCT imaging maps nerve locations,
+              bone quality, and implant trajectories before surgery begins, and digital smile design lets
+              patients preview the result before committing to treatment. In-house milling and 3D printing
+              produce prosthetic components, reducing appointments and keeping quality control with Dr.
+              Richardson throughout the process.
+            </div>
+            <div class="ic-buttons">
+              <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button
+              >
+              <Button variant="ghost-light" href={phoneHref} hoverLabel="Tap to Dial"
+                >Call {phoneLabel}</Button
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- COMPARE (paper, 1 featured + 1 main + 2-alt sub-grid) ---------- */}
+      <section class="section" id="compare" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Comparison</span>
+            <h2>Full Mouth Implants <em>vs Other Tooth Replacement Options</em></h2>
+            <p>
+              Full-arch implants are a comprehensive solution for extensive tooth loss; the
+              following is how they compare to the alternatives.
+            </p>
+          </div>
+
+          <div class="compare">
+            <article class="compare-card featured">
+              <span class="ribbon">Our Specialty</span>
+              <span class="tag">Full Arch Implants</span>
+              <h3>Full Arch Implants (All-on-4 / All-on-X)</h3>
+              <ul class="compare-list">
+                <li>
+                  <b>Profile —</b> Fixed, bone-anchored, and designed for patients missing most or all
+                  teeth in an arch.
+                </li>
+                <li>
+                  <b>Implants —</b> Four to six titanium roots per arch supporting a non-removable bridge.
+                </li>
+                <li>
+                  <b>Bone —</b> Transfers chewing forces into the jawbone, preventing the resorption that
+                  dentures accelerate.
+                </li>
+                <li>
+                  <b>Lifestyle —</b> No adhesive, shifting, or daily removal; no food restrictions once
+                  healed.
+                </li>
+              </ul>
+            </article>
+
+            <article class="compare-card">
+              <span class="tag">Traditional Dentures</span>
+              <h3>Traditional Dentures</h3>
+              <ul class="compare-list">
+                <li>
+                  <b>Profile —</b> Removable, lower upfront cost, but permit ongoing bone resorption and
+                  deteriorate in fit as the jaw changes shape.
+                </li>
+                <li>
+                  <b>Bone —</b> Stay on top of the gums and allow the jawbone beneath them to shrink.
+                </li>
+                <li><b>Stability —</b> Require adhesive or daily removal and refitting.</li>
+                <li>
+                  <b>Lifestyle —</b> Restrict the diet and accelerate the sunken facial look common in
+                  long-term denture wearers.
+                </li>
+              </ul>
+            </article>
+          </div>
+
+          <div class="compare-sub">
+            <div class="compare-sub-head">
+              <span class="eyebrow">Alternatives</span>
+              <h3>Other Tooth-Replacement Options</h3>
+              <div class="prose">
+                <p>
+                  Full-arch implants are the right call when most or all teeth in an arch are gone,
+                  but other approaches fit different clinical pictures.
+                </p>
+              </div>
+            </div>
+            <div class="alternatives-grid">
+              {
+                alternatives.map((a) => (
+                  <article class="config-card">
+                    <span class="tag">{a.tag}</span>
+                    <h4>{a.title}</h4>
+                    <p>{a.body}</p>
+                  </article>
+                ))
+              }
+            </div>
+          </div>
+
+          <div class="cta-row">
+            <div class="cta-buttons">
+              <Button variant="sage" href="#consult" hoverLabel="Get a Video"
+                >Free Virtual Consult</Button
+              >
+              <Button variant="ghost" href="#faq" hoverLabel="See Answers">Read FAQ</Button>
+            </div>
+            <span class="cta-note">No commitment · Personal video reply</span>
+          </div>
+        </div>
+      </section>
+
+      {
+        /* ---------- CANDIDACY (cream, image+text + "What If You Have Bone Loss?" sub) ---------- */
+      }
+      <section class="section alt" id="candidacy" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="natural-grid">
+            <div class="natural-text">
+              <span class="eyebrow">Candidacy</span>
+              <h2>Who Is a Candidate <em>for Full Mouth Implants?</em></h2>
+              <div class="natural-quote">
+                Full arch implants are for individuals missing most or all teeth in one or both
+                arches, including those with severe decay, advanced gum disease, or long-term
+                denture wearers seeking a permanent alternative.
+              </div>
+              <ul class="candidate-list">
+                <li>
+                  <span class="marker">01</span>
+                  <span
+                    ><b>Missing most or all teeth in an arch —</b> the procedure replaces every tooth
+                    in one or both jaws with a fixed bridge.</span
+                  >
+                </li>
+                <li>
+                  <span class="marker">02</span>
+                  <span
+                    ><b>Severe decay or advanced gum disease —</b> failing teeth across the arch are removed
+                    during the same surgical visit.</span
+                  >
+                </li>
+                <li>
+                  <span class="marker">03</span>
+                  <span
+                    ><b>Long-term denture wearers —</b> patients seeking a permanent alternative to removable
+                    prosthetics.</span
+                  >
+                </li>
+                <li>
+                  <span class="marker">04</span>
+                  <span
+                    ><b>Most situations are treatable —</b> with the correct preparation, candidacy is
+                    more inclusive than most patients expect.</span
+                  >
+                </li>
+              </ul>
+            </div>
+            <div class="natural-img" data-vs-parallax data-parallax="-25">
+              <Image
+                src={candidacyImg}
+                alt="Woman seated in tall grass above a Colorado lake"
+                widths={[500, 800, 1100]}
+                sizes="(max-width: 991px) 100vw, 50vw"
+              />
+            </div>
+          </div>
+
+          <div class="candidacy-sub">
+            <span class="label">If you have reduced bone</span>
+            <h3>What If You Have Bone Loss?</h3>
+            <p>
+              Bone loss changes the surgical approach, not the outcome. Moderate deficiency is
+              addressed with grafting before implant placement; patients with severely diminished
+              volume may qualify for zygomatic implants, which anchor in the cheekbone and bypass
+              grafting. Candidacy is determined through CBCT imaging, so every treatment plan is
+              built on actual bone anatomy.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {
+        /* ---------- BENEFITS (paper, 4-card — replaces all-on-4 "Living"; maps the
+        verbatim Implants-vs-Dentures differences) ---------- */
+      }
+      <section class="section" id="benefits" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Benefits</span>
+            <h2>How Full Mouth Implants Differ <em>from Traditional Dentures</em></h2>
+            <p>
+              Dentures stay on top of the gums and allow the jawbone beneath them to shrink;
+              implants stop that process by functioning as replacement roots. The practical
+              differences are significant.
+            </p>
+          </div>
+
+          <div class="benefits-grid">
+            {
+              benefitCards.map((c) => (
+                <article class="benefits-card">
+                  <div class="num">{c.num}</div>
+                  <h3>{c.title}</h3>
+                  <p>{c.body}</p>
+                </article>
+              ))
+            }
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- INVESTMENT (cream) ---------- */}
+      <section class="section alt" id="cost" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Cost &amp; Financing</span>
+            <h2>Full Mouth Dental Implant Cost <em>in Parker, CO</em></h2>
+            <p>
+              Full-arch implant pricing depends on case complexity, prosthetic material, and any
+              preparatory procedures. The long-term value comes from eliminating decades of denture
+              expenses and replacement cycles.
+            </p>
+          </div>
+
+          <PricingTiers
+            tiers={[
+              {
+                name: 'Full Mouth Dental Implants',
+                priceQualifier: 'Starting at',
+                price: '$19,995',
+                priceSuffix: 'per arch',
+                tagline: 'Full-arch fixed teeth — single arch or full mouth.',
+                bullets: [
+                  'Robotic implant placement per arch',
+                  'Zirconia or acrylic prosthetic options',
+                  'CBCT-planned with preparatory procedures included',
+                  'PPO insurance benefits reviewed up front',
+                  'In-house and third-party financing available',
+                ],
+                highlight: true,
+                ribbon: 'Most Common',
+              },
+            ]}
+            financingNote="Every case has a unique anatomy and material profile — a free consultation with CBCT imaging is the only way to get an accurate quote. Vivid Smiles works with third-party financing partners to spread the investment across monthly payments; patients without insurance can also enroll in the Vivid Smiles dental membership plan."
+          />
+        </div>
+      </section>
+
+      {/* ---------- GALLERY ---------- */}
+      <section class="section dark" id="gallery">
+        <div class="wrap">
+          <div class="section-head" data-vs-reveal>
+            <span class="eyebrow light">Smile Gallery</span>
+            <h2>Finished smiles from <em>our chair.</em></h2>
+            <p>
+              A selection of finished cosmetic and restorative work from across the practice, not
+              full-mouth implant cases specifically.
+            </p>
+          </div>
+        </div>
+
+        <div class="gallery-marquee" data-vs-marquee aria-label="Vivid Smiles smile gallery">
+          <div class="gallery-track" data-vs-marquee-track>
+            {
+              galleryTrack.map((t, i) => {
+                const isClone = i >= galleryTiles.length;
+                return (
+                  <div
+                    class="smile-tile"
+                    aria-hidden={isClone || undefined}
+                    inert={isClone || undefined}
+                  >
+                    <Image src={t.src} alt={t.alt} widths={[420, 640, 840]} sizes="420px" />
+                  </div>
+                );
+              })
+            }
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- FAQ (paper, 6 accordion items + closing pull-quote) ---------- */}
+      <section class="section" id="faq" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">FAQ</span>
+            <h2>Frequently Asked Questions <em>About Full Mouth Implants</em></h2>
+          </div>
+
+          <div class="faq-list">
+            {
+              faqs.map((f) => (
+                <details class="faq" open={f.open}>
+                  <summary>
+                    <>
+                      <h3>{f.q}</h3>
+                      <span class="icon" aria-hidden="true">
+                        +
+                      </span>
+                    </>
+                  </summary>
+                  <div class="answer" set:html={f.a} />
+                </details>
+              ))
+            }
+          </div>
+
+          <div class="pull">
+            <p>
+              Full arch implant outcomes depend on surgical precision, planning depth, and
+              prosthetic quality; Vivid Smiles Dentistry is built to deliver on all three.
+            </p>
+          </div>
+
+          <div class="cta-row">
+            <div class="cta-buttons">
+              <Button variant="sage" href="#consult" hoverLabel="Get a Video"
+                >Still Have Questions? Free Virtual Consult</Button
+              >
+              <Button variant="ghost" href={phoneHref} hoverLabel="Tap to Dial"
+                >Call {phoneLabel}</Button
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- VIRTUAL CONSULT ---------- */}
+      <VirtualConsult id="consult" eyebrow="Free full mouth implant consultation">
+        <Fragment slot="headline">Free full mouth implant <em>consultation.</em></Fragment>
+        <Fragment slot="body">
+          Vivid Smiles Dentistry in Parker, CO, brings Dr. Richardson's 600+ hours of surgical
+          training, Implant Pathway credentials, and robotic technology to deliver outcomes grounded
+          in precision planning. Schedule your free consultation below or call {phoneLabel} to learn whether
+          full-mouth implants are the right path for you.
+        </Fragment>
+      </VirtualConsult>
+
+      {/* ---------- CLOSING BAND ---------- */}
+      <FinalBand>
+        <p>
+          Dr. Richardson's staff training at Implant Pathway, robotic placement technology, and
+          in-house lab capabilities give Parker-area clients access to our
+          <a href="/services/"> full range of dental services</a> at a level found only at specialized
+          surgical centers.
+        </p>
+      </FinalBand>
+    </main>
+  </div>
+</BaseLayout>
+
+<script>
+  import { initTocSpy } from '../../scripts/toc-spy';
+  initTocSpy('.fmdi');
+</script>
+
+{/* JSON-LD: MedicalProcedure + FAQPage + BreadcrumbList */}
+<script
+  type="application/ld+json"
+  is:inline
+  set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'MedicalProcedure',
+    name: 'Full Mouth Dental Implants',
+    alternateName: ['Full Arch Dental Implants', 'Full-Mouth Implants', 'All-on-X Implants'],
+    procedureType: 'https://schema.org/SurgicalProcedure',
+    bodyLocation: 'Jaw',
+    preparation:
+      'CBCT cone-beam imaging maps nerve locations, bone quality, and implant trajectories before surgery begins; digital smile design previews the final restoration; planning software maps the position, depth, and angle of each implant before robotic surgery.',
+    howPerformed:
+      'Four to six titanium implants are placed per arch under local anesthesia or sedation, using robotic-guided surgery for sub-millimeter precision. Many patients receive a temporary fixed prosthesis the same day. After three to six months of osseointegration, the final zirconia or acrylic bridge is fabricated in-house and bite-refined.',
+    followup:
+      'Soft foods during osseointegration; daily brushing, water flosser or floss threaders around each abutment; routine hygiene appointments to maintain gum tissue health around implants; annual imaging to assess bone levels.',
+    performer: {
+      '@type': 'Dentist',
+      name: 'Dr. Bryce Richardson',
+      worksFor: {
+        '@type': 'Dentist',
+        name: 'Vivid Smiles Dentistry',
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: '17167 Cedar Gulch Pkwy Ste 102',
+          addressLocality: 'Parker',
+          addressRegion: 'CO',
+          postalCode: '80134',
+          addressCountry: 'US',
+        },
+        telephone: '+1-303-841-5313',
+      },
+    },
+  })}
+/>
+
+<script
+  type="application/ld+json"
+  is:inline
+  set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqs.map((f) => ({
+      '@type': 'Question',
+      name: f.q,
+      acceptedAnswer: { '@type': 'Answer', text: f.a },
+    })),
+  })}
+/>
+
+<script
+  type="application/ld+json"
+  is:inline
+  set:html={JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: new URL('/', Astro.site).href },
+      {
+        '@type': 'ListItem',
+        position: 2,
+        name: 'Services',
+        item: new URL('/services/', Astro.site).href,
+      },
+      {
+        '@type': 'ListItem',
+        position: 3,
+        name: 'Implant Dentistry',
+        item: new URL('/implant-dentistry/', Astro.site).href,
+      },
+      {
+        '@type': 'ListItem',
+        position: 4,
+        name: 'Full Mouth Dental Implants',
+        item: new URL('/implant-dentistry/full-mouth-dental-implants/', Astro.site).href,
+      },
+    ],
+  })}
+/>

@@ -1,0 +1,742 @@
+---
+import { Image } from "astro:assets";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Button from "../../components/Button.astro";
+import ArrowBadge from "../../components/ArrowBadge.astro";
+import PricingTiers from "../../components/PricingTiers.astro";
+import VirtualConsult from "../../components/VirtualConsult.astro";
+import FinalBand from "../../components/FinalBand.astro";
+import {
+  phoneHref,
+  phoneLabel,
+  phoneE164,
+  bookNowHref,
+  addressStreet,
+  addressCity,
+  addressState,
+  addressZip,
+  addressLine,
+  directionsHref,
+} from "../../data/contact";
+import "../../styles/pages/implant-dentistry.css";
+
+// Hero — authentic Dr. Bryce Yomi-guided implant procedure in the actual
+// Vivid Smiles operatory. Real practice photography, far stronger than the
+// previous yomi-equipment-and-screens shot which read as pure equipment
+// marketing without showing the actual practice.
+// TODO: consider an editorial lifestyle hero (mature couple at
+// dinner — Phase-2 prompt #2) if the page wants a non-clinical mood instead.
+import imgHero from "../../assets/images/procedures/implant-prosthesis-underside.webp";
+// "What Are Dental Implants" — the hero already carries the real Yomi-arm
+// procedure shot, so this slot uses a real patient portrait instead of a
+// second clinical frame. (Its alt used to describe a Yomi planning system
+// that the image had not shown for two revisions.)
+import imgWhat from "../../assets/images/people/real/woman-glasses-cream-blazer.webp";
+// Formal portrait for the doctor feature — Bryce only (SEO copy doesn't name Dr. Annie on this page).
+import imgDrBryce from "../../assets/images/team/dr-bryce-richardson.webp";
+
+// Service-tile imagery. No longer 1:1 with the /services/ hub — full-mouth and
+// bone-grafting use different real portraits here so the same face doesn't
+// front the same service on two pages. Tiles whose subject is a procedure or
+// a prosthesis use real clinical/lab photography rather than a patient face,
+// which also keeps a real person from appearing to front a treatment they
+// may not have had.
+import imgSingleTooth from "../../assets/images/procedures/implant-prosthesis-arch-detail.webp";
+import imgFullMouth from "../../assets/images/people/real/woman-colorado-lakeside.webp";
+import imgAllOn4 from "../../assets/images/people/real/man-bearded-natural-smile.webp";
+import imgBoneGrafting from "../../assets/images/people/real/woman-office-portrait.webp";
+import imgSinusLift from "../../assets/images/facility/operating-room.webp";
+
+const services = [
+  {
+    href: "/implant-dentistry/single-tooth-dental-implants/",
+    img: imgSingleTooth,
+    alt: "Close-up of an implant-supported restoration on a dental model",
+    title: "Single Tooth Implants",
+    desc: "Replace one missing tooth without altering adjacent teeth. Includes consultation, full-mouth X-ray, computer-guided placement, abutment, and same-day in-house crown fabrication.",
+  },
+  {
+    href: "/implant-dentistry/full-mouth-dental-implants/",
+    img: imgFullMouth,
+    alt: "Smiling woman seated beside a Colorado mountain lake",
+    title: "Full Mouth Implants",
+    desc: "Comprehensive full-arch implant restoration using multiple implants per jaw for added stability and a precision-fit prosthesis.",
+  },
+  {
+    href: "/implant-dentistry/all-on-4-single-arch/",
+    img: imgAllOn4,
+    alt: "Smiling man photographed at the Vivid Smiles Dentistry neon smile wall in Parker, CO",
+    title: "All-on-4 Single Arch",
+    desc: "Fixed-arch restoration replacing every tooth in one jaw on four titanium implants — with same-day provisional teeth and a precision-milled zirconia prosthesis.",
+  },
+  {
+    href: "/implant-dentistry/bone-grafting/",
+    img: imgBoneGrafting,
+    alt: "Smiling woman photographed inside the Vivid Smiles Dentistry office in Parker, CO",
+    title: "Bone Grafting",
+    desc: "Rebuilds the implant site for patients with bone loss; material placed and a three-to-six-month healing window before implant placement.",
+  },
+  {
+    href: "/implant-dentistry/sinus-lift/",
+    img: imgSinusLift,
+    alt: "A treatment room at Vivid Smiles Dentistry in Parker, CO",
+    title: "Sinus Lift",
+    desc: "Addresses limited bone height in the upper jaw by adding material to the sinus floor, supporting upper-jaw implant placement when CBCT shows insufficient volume.",
+  },
+];
+
+const tocLinks = [
+  { href: "#why",        label: "Why Vivid Smiles" },
+  { href: "#what",       label: "What They Are" },
+  { href: "#solutions",  label: "Solutions" },
+  { href: "#compare",    label: "Compare Options" },
+  { href: "#process",    label: "Process" },
+  { href: "#technology", label: "Technology" },
+  { href: "#doctors",    label: "Your Dentist" },
+  { href: "#candidacy",  label: "Candidacy" },
+  { href: "#area",       label: "Parker Location" },
+  { href: "#faq",        label: "FAQ" },
+];
+
+// Three priced solutions. All-on-4 highlighted as the centerpiece.
+// Pricing per the user's direct override:
+//   • Single Tooth: $3,995/tooth (was $2,995 in the SEO brief)
+//   • Full Mouth: $19,995/arch (SEO brief said "priced at consultation"; now published)
+//   • All-on-4: $19,995/arch with zirconia included (no separate +$4,000 upgrade
+//     per the single-tier convention; SEO brief said $14,995 + upgrade)
+// Implant-Retained Denture is intentionally absent — it's no longer a featured
+// service (the page was retired; the tier was dropped at the
+// user's request in this revision pass).
+const pricingTiers = [
+  {
+    name: "Single Tooth Dental Implant",
+    priceQualifier: "All-inclusive",
+    price: "$3,995",
+    priceSuffix: "per tooth",
+    tagline: "One missing tooth replaced without altering adjacent teeth.",
+    bullets: [
+      "Consultation + full-mouth X-ray",
+      "Computer-guided implant placement",
+      "Titanium implant + abutment",
+      "Same-day in-house crown fabrication",
+    ],
+  },
+  {
+    name: "Full Mouth Dental Implants",
+    priceQualifier: "All-inclusive",
+    price: "$19,995",
+    priceSuffix: "per arch",
+    tagline: "Multi-implant full-arch restoration for comprehensive cases.",
+    bullets: [
+      "Multi-implant arch foundation",
+      "Custom-designed prosthesis",
+      "CBCT 3D surgical planning",
+      "In-house fabrication & restoration",
+    ],
+  },
+  {
+    name: "All-on-4 Single Arch",
+    priceQualifier: "Starting at",
+    price: "$19,995",
+    priceSuffix: "per arch · zirconia included",
+    tagline: "Fixed full-arch restoration on four implants with precision-milled monolithic zirconia.",
+    bullets: [
+      "Four titanium implants — robotic placement",
+      "Same-day provisional teeth",
+      "Precision-milled monolithic zirconia prosthesis",
+      "Custom smile design with digital preview",
+      "CBCT 3D surgical planning",
+    ],
+    ribbon: "Most Common",
+    highlight: true,
+  },
+];
+
+const pricingFinancingNote =
+  "Implant-supported bridges for multiple adjacent missing teeth are also available; pricing is determined by the number of implants and span of the restoration, and confirmed at consultation. Financing is available through Proceed Finance, CareCredit, and Cherry Financing. Uninsured clients may benefit from the Vivid Smiles in-house dental membership plan.";
+
+// Compare cards — implants vs bridges vs dentures, sage band, implants featured.
+const compareCards = [
+  {
+    featured: true,
+    ribbon: "Recommended",
+    tag: "Permanent",
+    title: "Dental Implants",
+    items: [
+      "<b>Replace root + crown —</b> the only option that functions at the root level.",
+      "<b>Preserve jawbone</b> through root-level stimulation.",
+      "<b>No alteration</b> of adjacent healthy teeth.",
+      "<b>Can last a lifetime</b> with proper care.",
+    ],
+  },
+  {
+    tag: "Alternative",
+    title: "Traditional Bridges",
+    items: [
+      "<b>Fill the visible gap</b> only — no root-level replacement.",
+      "<b>Require grinding</b> healthy adjacent teeth as anchors.",
+      "<b>Do not prevent</b> bone loss beneath the missing tooth site.",
+      "<b>Need replacement</b> within 10 to 15 years.",
+    ],
+  },
+  {
+    tag: "Alternative",
+    title: "Removable Dentures",
+    items: [
+      "<b>Do not anchor</b> into bone.",
+      "<b>Cause slippage</b> and often require adhesive.",
+      "<b>Accelerate jawbone resorption</b> over time.",
+      "<b>Implant-supported variants</b> eliminate both problems.",
+    ],
+  },
+];
+
+// Four-phase process protocol from SEO copy.
+const processSteps = [
+  { n: "01", t: "Consultation & 3D Planning",  p: "CBCT imaging maps bone volume and anatomy; Dr. Richardson builds a digital placement plan with precise implant coordinates before any surgical work begins.", lbl: "Step One" },
+  { n: "02", t: "Surgical Placement",          p: "Robotic guidance executes the pre-planned position. Sedation options are available, and most patients find post-operative discomfort manageable with over-the-counter medication.", lbl: "Step Two" },
+  { n: "03", t: "Osseointegration",            p: "The implant fuses with the jawbone over 3–6 months. Temporary teeth are available for visible sites during this healing phase.", lbl: "Step Three" },
+  { n: "04", t: "Final Restoration",           p: "A custom crown, bridge, or arch prosthetic is fabricated using digital scanning and in-house milling, then secured to the implant.", lbl: "Step Four" },
+];
+
+// Six tech cards — extracted from "Dental Implant Technology and Parker Location".
+const technology = [
+  { n: "01", h: "CBCT 3D imaging",            p: "Cone beam computed tomography maps bone volume, density, and anatomy — the three-dimensional view that informs every implant placement.", foot: "Imaging" },
+  { n: "02", h: "Robotic surgical guidance",  p: "Submillimeter-precision execution of the pre-planned implant protocol, reducing operative time and tissue disruption versus freehand placement.", foot: "Surgery" },
+  { n: "03", h: "Digital scanning",           p: "Captures the arch in 3D for restoration design — no conventional impressions, more accurate prosthesis fit.", foot: "Scanning" },
+  { n: "04", h: "In-house milling",           p: "Same-visit crowns when clinical conditions support immediate restoration, removing the lab round-trip from the timeline.", foot: "Fabrication" },
+  { n: "05", h: "3D-printed surgical guides", p: "Patient-specific stents for complex placements, fabricated in-office from the digital plan.", foot: "Planning" },
+  { n: "06", h: "One roof, one provider",     p: "Consultation, surgical placement, and final restoration all happen with Dr. Richardson — no referral handoff to outside oral surgeons.", foot: "Continuity" },
+];
+
+// Candidacy ledger — 4 rows pulled from "Am I a Candidate" copy.
+const ledger = [
+  { n: "1", h: "Healthy adults of any age",  p: "No maximum age limit — candidacy is determined by bone density, gum health, and systemic health rather than age.",     tag: "Age-Neutral" },
+  { n: "2", h: "Sufficient bone density",    p: "Evaluated with CBCT imaging; bone loss can be addressed with bone grafting or a sinus lift when needed.",                tag: "CBCT" },
+  { n: "3", h: "Healthy gum tissue",         p: "Active gum disease is treated first — the tissue around the implant must support long-term success.",                    tag: "Periodontal" },
+  { n: "4", h: "Stable systemic health",     p: "Well-controlled conditions such as diabetes do not disqualify a candidate; uncontrolled conditions are reviewed first.", tag: "Systemic OK" },
+];
+
+// Six FAQs verbatim from SEO copy. set:html lets inline <a class="vs-link">
+// render on the answers that benefit from internal linking.
+const faqs = [
+  {
+    q: "How long do dental implants last?",
+    a: "With proper care, the titanium implant post is designed to last a lifetime; the crown needs replacement after 15 to 25 years, depending on wear. Consistent hygiene, regular professional cleanings, and protecting the implant from heavy grinding preserve long-term success.",
+    open: true,
+  },
+  {
+    q: "Do dental implants hurt?",
+    a: "Most patients find the procedure comfortable, especially with sedation options. Post-surgical soreness resolves within a few days and is manageable with over-the-counter medication.",
+  },
+  {
+    q: "Can I get dental implants in one day?",
+    a: `Qualifying full-arch cases may receive <a class="vs-link" href="/implant-dentistry/all-on-4-single-arch/">same-day temporary teeth</a> soon after surgery. Single implants require a three-to-six-month osseointegration period before the final crown is secured.`,
+  },
+  {
+    q: "What is the success rate of dental implants?",
+    a: "Implants have a documented long-term success rate of approximately 95 to 98 percent when placed in adequate bone. Dr. Richardson's robotic placement and CBCT-based planning are designed to support those outcomes.",
+  },
+  {
+    q: "How do I care for dental implants?",
+    a: "Implants are maintained like natural teeth: brush twice daily, floss around the post, and attend professional cleanings every six months. The surrounding gum tissue requires consistent care to prevent peri-implantitis (infection of the tissue and bone around the implant).",
+  },
+  {
+    q: "Will my insurance cover dental implants?",
+    a: `Coverage varies by plan; most policies cover crown restoration even when surgical placement is excluded. Our team verifies your benefits before treatment begins and assists with filing to maximize what your plan will reimburse. For uninsured clients, the in-house <a class="vs-link" href="/dental-membership-plan/">membership plan</a> is an alternative.`,
+  },
+];
+---
+
+<BaseLayout
+  title="Dental Implants in Parker, CO | Vivid Smiles Dentistry"
+  description="Advanced dental implants in Parker, CO with Dr. Bryce Richardson. Robotic placement, CBCT planning, in-house surgery + restoration. Single tooth from $3,995, full mouth and All-on-4 from $19,995/arch. 600+ hours of surgical training, 300+ five-star reviews."
+>
+  <div class="impd">
+
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <div class="crumbs-inner">
+        <a href="/">Home</a>
+        <span class="sep">/</span>
+        <a href="/services/">Services</a>
+        <span class="sep">/</span>
+        <span class="here">Implant Dentistry</span>
+      </div>
+    </nav>
+
+    <main id="main">
+
+    <header class="hero" data-vs-reveal-batch>
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <span class="eyebrow">Implant Dentistry · Parker, CO</span>
+          <h1 data-vs-reveal-lines>Advanced dental implants <em>in Parker, Colorado.</em></h1>
+          <p class="hero-sub">
+            Dental implants are the only tooth replacement that functions at the root level — preserving the
+            jawbone and restoring full biting strength. Unlike bridges or dentures, implants fuse with the bone,
+            making them a permanent solution rather than a prosthetic one. At Vivid Smiles Dentistry, Dr. Bryce
+            Richardson places and restores implants entirely in-house with robotic guidance and full digital
+            fabrication capability.
+          </p>
+          <div class="hero-actions">
+            <Button variant="sage" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button>
+            <Button variant="ghost" href="#consult" hoverLabel="Get a Video">Free Virtual Consult</Button>
+            <div class="ratings">
+              <span class="stars" aria-hidden="true">★★★★★</span>
+              <span>5.0 · 300+ reviews</span>
+            </div>
+          </div>
+        </div>
+        <div class="hero-stack">
+          <div class="hero-primary" data-vs-parallax data-parallax="-25">
+            <Image
+              src={imgHero}
+              alt="An implant-supported restoration held on a dental model"
+              widths={[540, 800, 1080]}
+              sizes="(max-width: 991px) 100vw, 540px"
+              loading="eager"
+              fetchpriority="high"
+            />
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <nav class="toc" id="toc" aria-label="On this page">
+      <div class="toc-inner">
+        <span class="toc-label">On this page</span>
+        <div class="toc-scroll">
+          <div class="toc-list">
+            {tocLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <section class="section alt" id="why" data-vs-reveal-batch>
+      <div class="why-grid">
+        <div class="why-copy">
+          <span class="eyebrow">Why Parker chooses us</span>
+          <h2>Why choose Vivid Smiles <em>for dental implants in Parker.</em></h2>
+          <p>
+            Most practices offering implants refer patients to outside oral surgeons for the surgical phase,
+            splitting care across two providers. At Vivid Smiles Dentistry, Dr. Bryce Richardson places and
+            restores implants entirely in-house, combining elite surgical credentials with robotic guidance and
+            full digital fabrication capability.
+          </p>
+          <h3>Robotic-precision implant placement</h3>
+          <p>
+            Robotic-guided implant placement delivers submillimeter precision that freehand technique cannot
+            consistently replicate. Using CBCT imaging (cone beam computed tomography, a 3D scan mapping bone
+            volume, density, and anatomy), Dr. Richardson designs a digital placement plan before any surgery
+            begins — robotic guidance executes that plan on the day of the procedure.
+          </p>
+          <Button variant="ghost" href="#doctors" hoverLabel="See Bio">Meet Dr. Bryce Richardson</Button>
+        </div>
+
+        <div class="why-stats">
+          <div class="stat-card">
+            <div class="stat-num">600<em>+</em></div>
+            <div class="stat-label">Hours of Surgical Training</div>
+            <p class="stat-detail">Specialized esthetic and surgical training, including a staff position at Implant Pathway — one of the country's most respected implant education programs.</p>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num">300<em>+</em></div>
+            <div class="stat-label">Five-Star Google Reviews</div>
+            <p class="stat-detail"><span class="stars" aria-hidden="true">★★★★★</span> &nbsp;Consistent feedback: precision, comfort, and natural-looking results.</p>
+          </div>
+          <div class="stat-card">
+            <div class="stat-num">0</div>
+            <div class="stat-label">Outside Referrals</div>
+            <p class="stat-detail">Surgical placement and final restoration both happen here — Dr. Richardson handles every phase from CBCT planning to crown delivery.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="what" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="what-grid">
+          <div class="what-img" data-vs-parallax data-parallax="-25">
+            <Image
+              src={imgWhat}
+              alt="Smiling woman photographed at the Vivid Smiles Dentistry office in Parker, CO"
+              widths={[500, 800, 1100]}
+              sizes="(max-width: 991px) 100vw, 50vw"
+            />
+          </div>
+          <div class="what-text">
+            <span class="eyebrow">What they are</span>
+            <h2>What are <em>dental implants?</em></h2>
+            <p>
+              Dental implants are small titanium posts placed into the jawbone to replace missing tooth roots.
+              The post undergoes osseointegration — bone fuses with the titanium, creating a stable root-level
+              anchor — over several months of healing. A custom crown, bridge, or prosthetic attaches on top to
+              restore the visible tooth.
+            </p>
+            <p>
+              Because implants work at the root level, they stimulate bone activity and prevent the jawbone
+              deterioration that follows tooth loss. Bridges and dentures cannot accomplish this.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="solutions" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Solutions &amp; pricing</span>
+          <h2>Dental implant <em>solutions and pricing.</em></h2>
+          <p>Vivid Smiles publishes all-inclusive pricing for every implant solution, so you know what to budget before your consultation.</p>
+        </div>
+
+        <PricingTiers tiers={pricingTiers} financingNote={pricingFinancingNote} />
+
+        <div class="svc-grid">
+          {services.map((s) => (
+            <a class="svc-card compact" href={s.href} data-vs-arrow>
+              <div class="svc-img">
+                <Image
+                  src={s.img}
+                  alt={s.alt}
+                  widths={[420, 640, 900]}
+                  sizes="(max-width: 640px) 100vw, (max-width: 1100px) 50vw, 33vw"
+                />
+              </div>
+              <div class="svc-body">
+                <p class="svc-desc">{s.desc}</p>
+                <div class="svc-row-bot">
+                  <h3>{s.title}</h3>
+                  <ArrowBadge size="xl" variant="ghost-light" />
+                </div>
+              </div>
+            </a>
+          ))}
+        </div>
+
+        <p class="svc-outro">
+          Cases involving complex bone loss or zygomatic anchoring are evaluated case-by-case during your consultation. The in-house <a class="vs-link" href="/dental-membership-plan/">membership plan</a> is available for uninsured clients.
+        </p>
+      </div>
+    </section>
+
+    <section class="section dark" id="compare" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow light">Vs other options</span>
+          <h2>Dental implants vs <em>other tooth replacement options.</em></h2>
+          <p>Dental implants outperform bridges and dentures across all long-term outcome measures: bone preservation, stability, function, and lifespan.</p>
+        </div>
+
+        <div class="compare-grid">
+          {compareCards.map((c) => (
+            <article class:list={["compare-card", c.featured && "featured"]}>
+              {c.ribbon && <span class="ribbon">{c.ribbon}</span>}
+              <span class="tag">{c.tag}</span>
+              <h3>{c.title}</h3>
+              <ul>
+                {c.items.map((it) => <li set:html={it}></li>)}
+              </ul>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="process" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">What to expect</span>
+          <h2>The dental implant process <em>at Vivid Smiles.</em></h2>
+          <p>Every implant case at Vivid Smiles follows a structured four-phase protocol.</p>
+        </div>
+
+        <div class="pgrid-card" data-vs-reveal>
+          <div class="pgrid-4">
+            {processSteps.map((s) => (
+              <div class="pstep">
+                <div class="pstep-num">{s.n}</div>
+                <h3>{s.t}</h3>
+                <p>{s.p}</p>
+                <span class="pstep-lbl">{s.lbl}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="technology" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Advanced technology · Parker</span>
+          <h2>Dental implant technology <em>and Parker location.</em></h2>
+          <p>Vivid Smiles Dentistry operates a complete implant technology environment in the Parker area. Every case includes CBCT 3D imaging, robotic surgical guidance, digital scanning, in-house milling, and 3D-printed surgical guides for complex placements.</p>
+        </div>
+
+        <div class="tech-grid">
+          {technology.map((t) => (
+            <div class="tech-card">
+              <div class="tech-num">{t.n}</div>
+              <h4>{t.h}</h4>
+              <p>{t.p}</p>
+              <span class="tech-foot">{t.foot}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="doctors" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Your dentist</span>
+          <h2>Dr. Richardson's implant <em>training and experience.</em></h2>
+        </div>
+
+        <article class="doctor doctor--feature">
+          <div class="doctor-portrait">
+            <span class="doctor-pill">Founder · Surgical &amp; Restorative</span>
+            <Image
+              src={imgDrBryce}
+              alt="Dr. Bryce Richardson, founder of Vivid Smiles Dentistry and lead implant surgeon"
+              widths={[420, 640, 880]}
+              sizes="(max-width: 991px) 100vw, 50vw"
+            />
+          </div>
+
+          <div class="doctor-stack">
+            <div class="doctor-bio doctor-bio--lead">
+              <span class="eyebrow">Dr. Bryce Richardson, DDS</span>
+              <h3>600-plus hours of training. <em>Implant Pathway</em> credentials.</h3>
+              <p>
+                Dr. Bryce Richardson holds 600-plus hours of specialized surgical training and has served on
+                staff at Implant Pathway, one of the country's most respected implant education programs. He
+                handles both surgical placement and the final restoration in-house, eliminating the referral
+                handoff that most local practices require for implant cases.
+              </p>
+              <p>
+                Dr. Richardson earned his Doctor of Dental Surgery from Indiana University School of Dentistry,
+                graduating at the top of his class clinically. He is a Parker resident serving patients from
+                Parker, Castle Rock, Highlands Ranch, Lone Tree, and across Douglas County.
+              </p>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section dark" id="candidacy" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow light">Am I a candidate?</span>
+          <h2>Am I a candidate <em>for dental implants?</em></h2>
+          <p>Most healthy adults qualify for dental implants. Candidacy is determined by bone density, gum health, and systemic health rather than age.</p>
+        </div>
+
+        <div class="cand-grid">
+          <div class="cand-copy">
+            <h3>Most healthy adults qualify</h3>
+            <p>
+              Dr. Richardson evaluates every patient with CBCT imaging to assess available bone and identify the
+              best approach for that case. Patients with bone loss are not disqualified: <a class="vs-link" href="/implant-dentistry/bone-grafting/">bone grafting</a>
+              rebuilds the implant site, and a <a class="vs-link" href="/implant-dentistry/sinus-lift/">sinus lift</a> addresses limited bone height in the upper jaw.
+            </p>
+            <h3>Conditions reviewed, not gatekept</h3>
+            <p>
+              Well-controlled conditions such as diabetes do not disqualify a candidate, and there is no maximum
+              age limit. Heavy smokers and uncontrolled systemic conditions face reduced implant success rates —
+              these factors are reviewed honestly during evaluation.
+            </p>
+            <div class="cand-actions">
+              <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book a Free Consultation</Button>
+              <Button variant="outline-light" href="/dental-membership-plan/" hoverLabel="See Plan">See Membership Plan</Button>
+            </div>
+          </div>
+
+          <aside class="ledger" aria-label="Signs you're a candidate for dental implants">
+            <header class="ledger-head">
+              <span class="eyebrow light">Signs you're a candidate</span>
+              <h4>Candidacy is health-based, not age-based.</h4>
+            </header>
+            {ledger.map((row) => (
+              <div class="ledger-row">
+                <span class="ledger-num">{row.n}</span>
+                <div>
+                  <h5>{row.h}</h5>
+                  <p>{row.p}</p>
+                </div>
+                <span class="ledger-tag">{row.tag}</span>
+              </div>
+            ))}
+          </aside>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="area" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="area">
+          <div class="area-copy">
+            <span class="eyebrow">Service area</span>
+            <h2>Serving Parker, <em>Castle Rock &amp; Douglas County.</em></h2>
+            <p>
+              Vivid Smiles Dentistry is located at {addressStreet}, in {addressCity}, with consultation, surgical
+              placement, and final restoration all happening under one roof with one provider.
+            </p>
+            <p>
+              Dr. Richardson is a Parker resident serving patients from Parker, Castle Rock, Highlands Ranch,
+              Lone Tree, and across Douglas County. The full implant workflow — CBCT planning, robotic
+              placement, digital scanning, and in-house milling — runs entirely from this office.
+            </p>
+            <p class="area-address-line">
+              <b>{addressStreet}</b><br />
+              {addressCity}, {addressState} {addressZip} · <a class="vs-link" href={phoneHref}>{phoneLabel}</a>
+            </p>
+            <div class="area-actions">
+              <Button variant="sage" href={directionsHref} hoverLabel="Open Maps">Get Directions</Button>
+              <Button variant="ghost" href="/contact/" hoverLabel="Reach Us">Contact Us</Button>
+            </div>
+          </div>
+          <div class="area-map" aria-label="Map showing Vivid Smiles Dentistry">
+            <iframe
+              src={`https://maps.google.com/maps?q=${encodeURIComponent(addressLine)}&output=embed`}
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              title={`Map showing Vivid Smiles Dentistry at ${addressLine}`}
+            ></iframe>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section alt" id="faq" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">FAQ</span>
+          <h2>Frequently asked questions <em>about dental implants.</em></h2>
+          <p>Practical answers patients ask in the consultation chair. Anything else, send a few photos through the <a class="vs-link" href="#consult">virtual consult</a> and Dr. Richardson will record a personal video reply.</p>
+        </div>
+
+        <div class="faq-list">
+          {faqs.map((f) => (
+            <details class="faq" open={f.open}>
+              <summary><h3>{f.q}</h3><span class="icon" aria-hidden="true">+</span></summary>
+              <div class="answer" set:html={f.a} />
+            </details>
+          ))}
+        </div>
+
+        <div class="cta-row">
+          <div class="cta-buttons">
+            <Button variant="light" href="#consult" hoverLabel="Get a Video">Still Have Questions? Free Virtual Consult</Button>
+            <Button variant="ghost-light" href={phoneHref} hoverLabel="Tap to Dial">Call {phoneLabel}</Button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="closing" data-vs-reveal>
+      <div class="wrap">
+        <div class="closing-inner">
+          <span class="eyebrow">A permanent investment</span>
+          <h2>Schedule your dental implant <em>consultation in Parker.</em></h2>
+          <p>
+            Dental implants are a permanent investment in function and long-term oral health, and the clinical
+            skill and technology behind them determine whether that investment holds for a lifetime. Knowing
+            your candidacy, timeline, and total cost starts with a single consultation.
+          </p>
+          <p class="outro">
+            Call <a class="vs-link" href={phoneHref}>{phoneLabel}</a> or <a class="vs-link" href={bookNowHref} target="_blank" rel="noopener noreferrer">book online</a> to schedule your consultation at {addressStreet}, {addressCity}, {addressState}.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <VirtualConsult id="consult" eyebrow="Free dental implant consultation">
+      <Fragment slot="headline">Free dental implant <em>consultation.</em></Fragment>
+      <Fragment slot="body">
+        Considering implants? Send a few photos and Dr. Richardson personally records a custom video response
+        with candidacy assessment, treatment options, and next steps. Photos in, video out — no commitments.
+      </Fragment>
+    </VirtualConsult>
+
+    <FinalBand>
+      <p>
+        Vivid Smiles Dentistry in Parker offers robotic-guided placement and in-house surgical + restorative
+        care, backed by 600-plus hours of advanced training and 300+ five-star Google reviews.
+      </p>
+    </FinalBand>
+
+    </main>
+
+    <script>
+      import { initTocSpy } from "../../scripts/toc-spy";
+      initTocSpy(".impd");
+    </script>
+
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Service",
+      "name": "Implant Dentistry",
+      "serviceType": "Dental Implant Services",
+      "description": "Advanced dental implants in Parker, CO — robotic placement, CBCT planning, in-house surgical and restorative care. Single tooth implants, full mouth, All-on-4 single arch, bone grafting, and sinus lifts, all under one provider.",
+      "areaServed": [
+        { "@type": "AdministrativeArea", "name": "Douglas County, Colorado" },
+        { "@type": "City", "name": "Parker, CO" },
+        { "@type": "City", "name": "Castle Rock, CO" },
+        { "@type": "City", "name": "Lone Tree, CO" },
+        { "@type": "City", "name": "Highlands Ranch, CO" },
+      ],
+      "provider": {
+        "@type": "Dentist",
+        "name": "Vivid Smiles Dentistry",
+        "url": new URL("/", Astro.site).href,
+        "telephone": phoneE164,
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": addressStreet,
+          "addressLocality": addressCity,
+          "addressRegion": addressState,
+          "postalCode": addressZip,
+          "addressCountry": "US",
+        },
+      },
+      "hasOfferCatalog": {
+        "@type": "OfferCatalog",
+        "name": "Dental Implant Services",
+        "itemListElement": services.map((s) => ({
+          "@type": "Offer",
+          "itemOffered": {
+            "@type": "MedicalProcedure",
+            "name": s.title,
+            "url": new URL(s.href, Astro.site).href,
+            "image": new URL(s.img.src, Astro.site).href,
+          },
+        })),
+      },
+    })} />
+
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": faqs.map((f) => ({
+        "@type": "Question",
+        "name": f.q,
+        "acceptedAnswer": { "@type": "Answer", "text": f.a },
+      })),
+    })} />
+
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home",              "item": new URL("/", Astro.site).href },
+        { "@type": "ListItem", "position": 2, "name": "Services",          "item": new URL("/services/", Astro.site).href },
+        { "@type": "ListItem", "position": 3, "name": "Implant Dentistry", "item": new URL("/implant-dentistry/", Astro.site).href },
+      ],
+    })} />
+
+  </div>
+</BaseLayout>

@@ -1,0 +1,483 @@
+/* Vivid Smiles — Contact page styles. Page-scoped under .contact. Layout,
+   color, rhythm only — reveals are wired in src/scripts/animations.js.
+
+    (band facelift) — adopted the rhythm:
+   • hero → paper (replaces cream)
+   • #reach → sage-pale via `.section.dark` (replaces paper)
+   • #visit → charcoal-green via `.section.alt` (replaces full-bleed sage `.section.dark`)
+   • #faq → paper (unchanged)
+   • final band → paper (replaces cream-warm)
+   Aliases for the new tokens keep raw hex out of selectors. */
+
+.contact {
+  --nav-h: 77px;
+
+  /* Local aliases — every alias maps to a `--vs-*` token; never raw hex. */
+  --sage: var(--vs-sage);
+  --sage-deep: var(--vs-sage-deep);
+  --sage-soft: var(--vs-sage-soft);
+  --sage-pale: var(--vs-sage-pale);
+  --charcoal-green: var(--vs-charcoal-green);
+  --eyebrow-on-sage: var(--vs-eyebrow-on-sage);
+  --cream: var(--vs-cream);
+  --cream-warm: var(--vs-cream-warm);
+  --paper: var(--vs-paper);
+  --ink: var(--vs-ink);
+  --ink-soft: var(--vs-ink-soft);
+  --muted: var(--vs-muted);
+  --line: var(--vs-line);
+  --shadow: 0 24px 60px -30px rgba(40, 40, 30, 0.25), 0 8px 20px -10px rgba(40, 40, 30, 0.08);
+  --shadow-lg: var(--vs-shadow-lg);
+  --r-sm: var(--vs-r-sm);
+  --r-md: var(--vs-r-md);
+  --r-lg: var(--vs-r-lg);
+  --r-xl: var(--vs-r-xl);
+  --f-display: var(--vs-font-display);
+  --f-body: var(--vs-font-body);
+}
+
+/* ---------- primitives ---------- */
+.contact .wrap { max-width: 1240px; margin: 0 auto; padding: 0 40px; }
+
+.contact .eyebrow {
+  font-family: var(--f-body);
+  font-size: 12px; letter-spacing: 0.28em; text-transform: uppercase;
+  color: var(--sage); font-weight: 500;
+}
+.contact .eyebrow.light { color: var(--vs-eyebrow-on-sage); }
+
+.contact h1, .contact h2, .contact h3, .contact h4 {
+  font-family: var(--f-display); font-weight: 400; color: var(--sage);
+  margin: 0; line-height: 1.1; letter-spacing: -0.015em;
+}
+.contact h1 { font-size: clamp(44px, 6.4vw, 84px); font-weight: 300; letter-spacing: -0.025em; }
+.contact h1 em { font-style: italic; color: var(--sage-soft); font-weight: 300; }
+.contact h2 { font-size: clamp(32px, 4.2vw, 54px); font-weight: 400; letter-spacing: -0.022em; }
+.contact h2 em { font-style: italic; color: var(--sage-soft); font-weight: 300; }
+.contact h3 { font-size: clamp(20px, 2vw, 26px); font-weight: 500; color: var(--ink); }
+.contact h4 { font-size: 17px; font-weight: 500; color: var(--ink); letter-spacing: 0; }
+.contact p { margin: 0; color: var(--ink-soft); }
+
+/* Anchored sections sit clear of the global nav when jumped to. */
+.contact section[id],
+.contact header[id] { scroll-margin-top: calc(var(--nav-h) + 12px); }
+
+/* ---------- HERO (paper) — copy + Contact Typeform ----------
+   Two-column grid; the form gets the slightly larger column so the iframe
+   has horizontal room for input fields. The hero copy is tight on purpose —
+   the form is the act, not the prose. Facelift: cream → paper,
+   matching the sitewide post-v43 convention (our-office, new-patients,
+   about-us). The sage radials carry the warmth that cream used to provide. */
+.contact .hero {
+  position: relative;
+  background: var(--paper);
+  padding: 70px 0 90px;
+  overflow: hidden;
+}
+.contact .hero::before {
+  content: ""; position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 900px 500px at 85% 15%, rgba(107, 122, 84, 0.10), transparent 60%),
+    radial-gradient(ellipse 700px 400px at 5% 95%, rgba(107, 122, 84, 0.08), transparent 60%);
+  pointer-events: none;
+}
+.contact .hero-inner {
+  position: relative;
+  display: grid; grid-template-columns: 1fr 1.1fr;
+  gap: 60px; align-items: center;
+  max-width: 1240px; margin: 0 auto; padding: 0 40px;
+}
+.contact .hero-copy { padding: 20px 0; }
+.contact .hero-copy .eyebrow { display: inline-flex; align-items: center; gap: 14px; }
+.contact .hero-copy .eyebrow::before {
+  content: ""; width: 28px; height: 1px; background: var(--sage);
+}
+.contact .hero h1 { margin: 22px 0 24px; max-width: 14ch; }
+.contact .hero-sub {
+  max-width: 48ch; font-size: 16.5px; line-height: 1.7; color: var(--ink-soft);
+}
+.contact .hero-actions {
+  margin-top: 32px;
+  display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+}
+.contact .hero-actions .reply-note {
+  display: flex; align-items: center; gap: 10px;
+  padding-left: 18px;
+  border-left: 1px solid var(--line);
+  font-size: 12px; color: var(--muted); letter-spacing: 0.04em;
+}
+.contact .hero-actions .reply-note .dot {
+  width: 7px; height: 7px; border-radius: 50%; background: var(--vs-pulse-live);
+  box-shadow: 0 0 0 4px rgba(var(--vs-pulse-live-rgb), 0.25);
+}
+
+.contact .hero-form {
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  /* Typeform's step 1 carries the question + 3 input fields + Next button —
+     a tight 620px container forced internal scroll. Clamp to viewport height
+     so the form gets all the breathing room it needs on tall displays
+     without ballooning past usable on shorter ones. The 760px floor is
+     enough for step 1 to fit; 88vh is enough on a 16:9 1080p viewport
+     for everything to sit comfortably. */
+  min-height: clamp(760px, 88vh, 880px);
+  background: #fff;
+  position: relative;
+}
+.contact .hero-form > div[data-tf-live],
+.contact .hero-form > div[data-tf-live] iframe {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  border: 0;
+}
+/* Loading state shown while the Typeform script resolves the embed. The
+   placeholder sits at the same dimensions as the iframe, so layout is stable.
+   When the iframe inserts itself, it covers the loading state. */
+.contact .hero-form .tf-loading {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 14px;
+  color: var(--muted);
+  font-size: 13px; letter-spacing: 0.18em; text-transform: uppercase;
+  pointer-events: none;
+}
+.contact .hero-form .tf-loading .spinner {
+  width: 28px; height: 28px; border-radius: 50%;
+  border: 2px solid var(--line);
+  border-top-color: var(--sage);
+  animation: contact-spin 1s linear infinite;
+}
+@keyframes contact-spin { to { transform: rotate(360deg); } }
+
+/* ---------- SECTIONS (band system) ----------
+   canonical band classes (matches our-office, new-patients,
+   about-us, etc.):
+     • `.section.alt`  = charcoal-green dark band (white text)
+     • `.section.dark` = sage-pale light band (ink text, deep-sage italic em)
+   The pre-v43 contact page used `.section.dark` as deep-sage with white
+   text; that treatment is gone — `#visit` migrated to `.section.alt`. */
+.contact .section { padding: 110px 0; }
+
+.contact .section.alt { background: var(--charcoal-green); color: #fff; }
+.contact .section.alt h2,
+.contact .section.alt h3,
+.contact .section.alt h4 { color: #fff; }
+.contact .section.alt p { color: rgba(255, 255, 255, 0.85); }
+.contact .section.alt em { color: var(--eyebrow-on-sage); }
+
+.contact .section.dark { background: var(--sage-pale); color: var(--ink); }
+.contact .section.dark h2,
+.contact .section.dark h3,
+.contact .section.dark h4 { color: var(--ink); }
+.contact .section.dark h2 em { color: var(--sage); }
+.contact .section.dark p { color: var(--ink-soft); }
+.contact .section.dark .eyebrow { color: var(--ink-soft); }
+.contact .section.dark .eyebrow::before,
+.contact .section.dark .eyebrow::after { background: var(--ink-soft); }
+
+.contact .section-head {
+  max-width: 760px; margin: 0 auto 64px;
+  text-align: center;
+}
+.contact .section-head .eyebrow {
+  display: inline-flex; align-items: center; gap: 14px;
+}
+.contact .section-head .eyebrow::before,
+.contact .section-head .eyebrow::after {
+  content: ""; width: 28px; height: 1px; background: var(--sage);
+}
+.contact .section.alt .section-head .eyebrow::before,
+.contact .section.alt .section-head .eyebrow::after {
+  background: rgba(255, 255, 255, 0.6);
+}
+.contact .section.dark .section-head .eyebrow::before,
+.contact .section.dark .section-head .eyebrow::after {
+  background: var(--ink-soft);
+}
+.contact .section-head h2 { margin: 22px 0 22px; }
+.contact .section-head p {
+  font-size: 17px; line-height: 1.7; max-width: 60ch; margin: 0 auto;
+}
+
+/* ---------- CONTACT GRID — 4 ways to reach (sage-pale) ----------
+   All four cards are visually identical so the grid reads as four equal
+   alternatives. Differentiation comes from the icon and label, not the
+   background. Icons are Font Awesome solid. : band moved from
+   paper to sage-pale via `.section.dark` — white cards still pop against
+   the washed-green ground. */
+.contact .contact-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 22px;
+}
+.contact .contact-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  padding: 32px 28px 30px;
+  display: flex; flex-direction: column; gap: 14px;
+  text-decoration: none;
+  color: inherit;
+  position: relative;
+  min-height: 260px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.contact .contact-card:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow);
+  border-color: var(--sage-soft);
+}
+.contact .contact-card .ic {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  background: var(--cream);
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--sage);
+  font-size: 18px; line-height: 1;
+  margin-bottom: 6px;
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.3s ease;
+}
+.contact .contact-card .ic i { line-height: 1; }
+.contact .contact-card:hover .ic {
+  background: var(--sage); color: #fff; border-color: var(--sage);
+  transform: scale(1.06);
+}
+.contact .contact-card .kicker {
+  font-size: 10.5px; letter-spacing: 0.26em; text-transform: uppercase;
+  color: var(--sage); font-weight: 500;
+}
+.contact .contact-card h3 {
+  font-family: var(--f-display); font-weight: 500; font-size: 22px;
+  color: var(--ink); letter-spacing: -0.005em; line-height: 1.2;
+  word-break: break-word;
+}
+.contact .contact-card p {
+  font-size: 14.5px; line-height: 1.65; color: var(--ink-soft);
+  margin-top: auto;
+}
+/* Card position only — the badge owns its own shape, color, and hover swap
+   (canonical knock-up + swap from animations.js wireArrowSwap). */
+.contact .contact-card .vs-arrow.contact-card-arrow {
+  position: absolute; top: 28px; right: 28px;
+}
+
+/* ---------- LOCATION + HOURS (charcoal-green) ----------
+   Two-column band: address + hours card on left, embedded Google Map on
+   right. The card gets larger body text per the page's "easy to read"
+   feedback — vals at 18px, hours table in body font. : full-bleed
+   sage → charcoal-green via the canonical `.section.alt` band class. */
+.contact .location-grid {
+  display: grid; grid-template-columns: 1fr 1fr;
+  gap: 80px; align-items: stretch;
+}
+.contact .location-copy .eyebrow {
+  display: inline-flex; align-items: center; gap: 14px;
+  color: var(--vs-eyebrow-on-sage);
+}
+.contact .location-copy .eyebrow::before {
+  content: ""; width: 28px; height: 1px; background: rgba(255, 255, 255, 0.6);
+}
+.contact .location-copy h2 { margin: 22px 0 24px; max-width: 14ch; }
+.contact .location-copy h2 em { color: var(--vs-eyebrow-on-sage); }
+.contact .location-copy .lede {
+  font-size: 16.5px; line-height: 1.75; max-width: 50ch;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.contact .location-card {
+  margin-top: 32px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: var(--r-lg);
+  padding: 32px 32px 28px;
+  display: grid; gap: 26px;
+}
+.contact .location-card .row {
+  display: grid; grid-template-columns: 36px 1fr;
+  gap: 20px; align-items: start;
+}
+.contact .location-card .row + .row {
+  padding-top: 22px;
+  border-top: 1px solid rgba(255, 255, 255, 0.14);
+}
+.contact .location-card .ic {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.32);
+  color: rgba(255, 255, 255, 0.92);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 15px; line-height: 1;
+  margin-top: 1px;
+}
+.contact .location-card .ic i { line-height: 1; }
+.contact .location-card .row > div .label {
+  display: block; font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6); font-weight: 500;
+  margin-bottom: 6px;
+}
+.contact .location-card .row > div .val,
+.contact .location-card .row > div a {
+  font-family: var(--f-display); font-size: 18.5px; color: #fff;
+  letter-spacing: -0.005em; text-decoration: none;
+  line-height: 1.4;
+}
+.contact .location-card .row > div a { transition: color 0.2s ease; }
+.contact .location-card .row > div a:hover { color: var(--vs-eyebrow-on-sage); }
+
+/* Hours table — body font, body sizing. Day labels were previously eyebrow-style
+   (uppercase, wide letter-spacing); now they read as normal body weight, with
+   the times sized for legibility. */
+.contact .hours-table {
+  display: grid; gap: 8px;
+  margin-top: 4px;
+}
+.contact .hours-table .day-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  gap: 16px;
+  font-family: var(--f-body);
+  font-size: 15.5px; color: rgba(255, 255, 255, 0.92);
+  letter-spacing: 0;
+  font-weight: 400;
+}
+.contact .hours-table .day-row .day {
+  font-family: var(--f-body);
+  font-size: 14px;
+  letter-spacing: 0;
+  text-transform: none;
+  color: rgba(255, 255, 255, 0.68);
+  font-weight: 500;
+}
+.contact .hours-table .day-row.closed .hrs { color: rgba(255, 255, 255, 0.4); }
+
+.contact .location-actions {
+  margin-top: 28px;
+  display: flex; gap: 14px; flex-wrap: wrap;
+}
+
+/* Embedded Google Map — fills the right column, lazy-loaded. The iframe
+   has its own internal styling we can't override; we frame it with our
+   token-driven radius + shadow. Aspect ratio matches the previous image
+   frame so the band height stays consistent. */
+.contact .location-map-wrap {
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow-lg);
+  background: var(--ink);
+  aspect-ratio: 4 / 5;
+  width: 100%;
+}
+.contact .location-map {
+  width: 100%; height: 100%;
+  border: 0;
+  display: block;
+}
+
+/* ---------- FAQ (paper) ---------- */
+.contact .faq-list {
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  max-width: 920px; margin: 0 auto;
+  background: #fff;
+}
+.contact .faq { border-bottom: 1px solid var(--line); }
+.contact .faq:last-child { border-bottom: 0; }
+.contact .faq summary {
+  padding: 28px 32px;
+  cursor: pointer;
+  list-style: none;
+  display: grid; grid-template-columns: 1fr 28px; gap: 24px;
+  align-items: center;
+  transition: background 0.2s ease;
+}
+.contact .faq summary::-webkit-details-marker { display: none; }
+.contact .faq summary h3 {
+  font-family: var(--f-display); font-weight: 500; font-size: 20px;
+  color: var(--ink); letter-spacing: -0.005em;
+  transition: color 0.2s ease;
+  margin: 0;
+}
+.contact .faq[open] summary h3 { color: var(--sage); }
+.contact .faq[open] { background: var(--cream); }
+.contact .faq summary:hover h3 { color: var(--sage); }
+.contact .faq summary .icon {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  display: inline-flex; align-items: center; justify-content: center;
+  color: var(--sage);
+  font-family: var(--f-display); font-size: 16px; line-height: 1;
+  transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+}
+.contact .faq[open] summary .icon {
+  background: var(--sage); color: #fff; border-color: var(--sage);
+  transform: rotate(45deg);
+}
+.contact .faq .answer {
+  padding: 0 32px 28px;
+  font-size: 15.5px; line-height: 1.8; color: var(--ink-soft);
+  max-width: 70ch;
+}
+.contact .faq .answer a { color: var(--sage); text-decoration: underline; text-underline-offset: 3px; }
+.contact .faq .answer a:hover { color: var(--sage-deep); }
+
+/* The pre-footer band is now the global `<FinalBand>` component (emits
+   `.vs-final-band` with its own scoped CSS). The legacy `.contact
+   .final-band` ruleset that used to live here was dead code after the
+   component was introduced — removed during the facelift. */
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 1100px) {
+  .contact .hero-inner { grid-template-columns: 1fr; gap: 50px; }
+  .contact .hero-form { min-height: clamp(720px, 90vh, 860px); border-radius: var(--r-lg); max-width: 600px; }
+  .contact .contact-grid { grid-template-columns: repeat(2, 1fr); }
+  .contact .location-grid { grid-template-columns: 1fr; gap: 50px; }
+  .contact .location-copy h2 { max-width: none; }
+  .contact .location-map-wrap { max-width: 600px; }
+}
+
+@media (max-width: 780px) {
+  .contact .wrap { padding: 0 22px; }
+  .contact .hero { padding: 40px 0 60px; }
+  .contact .hero-inner { padding: 0 22px; }
+  .contact .hero-actions .reply-note {
+    padding-left: 0; border-left: 0;
+    padding-top: 14px;
+    border-top: 1px solid var(--line);
+    width: 100%;
+  }
+  .contact .section { padding: 70px 0; }
+  .contact .section-head { margin-bottom: 44px; }
+  .contact .contact-grid { grid-template-columns: 1fr; gap: 16px; }
+  .contact .contact-card { min-height: 0; padding: 28px 24px; }
+  .contact .contact-card .vs-arrow.contact-card-arrow { top: 24px; right: 24px; }
+  .contact .contact-card .ic { width: 44px; height: 44px; font-size: 17px; }
+  .contact .location-card { padding: 26px 22px; }
+  .contact .faq summary { padding: 22px 24px; }
+  .contact .faq summary h3 { font-size: 17px; }
+  .contact .faq .answer { padding: 0 24px 22px; }
+}
+
+@media (max-width: 480px) {
+  .contact .hero h1 { max-width: none; }
+  .contact .hero-actions { gap: 10px; }
+  .contact .location-card .row { grid-template-columns: 32px 1fr; gap: 14px; }
+  .contact .location-card .ic { width: 32px; height: 32px; font-size: 13px; }
+  .contact .location-card .row > div .val,
+  .contact .location-card .row > div a { font-size: 16.5px; }
+}
+
+/* ---------- Reduced-motion safety ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .contact .contact-card,
+  .contact .contact-card .ic,
+  .contact .faq summary,
+  .contact .faq summary .icon { transition: none; }
+  .contact .hero-form .tf-loading .spinner { animation: none; border-top-color: var(--line); }
+}
+
+/* H2 base color → ink for sitewide split-color pattern.
+   Equal specificity (0,1,1) with the h1/h2/h3/h4 group rule above; comes later
+   in the cascade, so this wins for h2 only. h1/h3/h4 keep sage. Dark-band
+   `.section.alt h2 { color: #fff }` (0,2,1) still trumps. */
+.contact h2 { color: var(--vs-ink); }

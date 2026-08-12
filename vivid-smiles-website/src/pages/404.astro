@@ -1,0 +1,118 @@
+---
+/**
+ * 404 — page not found. Astro auto-routes this file for any unmatched URL
+ * during static build. Point the host's not-found handling at it.
+ *
+ * Structurally mirrors src/pages/thank-you.astro — the closest
+ * precedent for a small, noindex'd destination page that lives outside the
+ * main nav taxonomy: full-bleed hero → recovery cards → FinalBand.
+ *
+ * Tone is recovery-first: the job isn't apology, it's three obvious places
+ * the visitor can go next, plus a booking CTA in case that's what they were
+ * after. Excluded from the sitemap in astro.config.mjs and noindex'd in
+ * markup so search engines don't surface the error route.
+ */
+import { Image } from "astro:assets";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import FinalBand from "../components/FinalBand.astro";
+import ArrowBadge from "../components/ArrowBadge.astro";
+import "../styles/pages/404.css";
+
+import heroBg from "../assets/images/facility/neon-smile-sign-detail.webp";
+
+const explore = [
+  {
+    label: "Cosmetic dentistry",
+    title: "Veneers, whitening, and smile design.",
+    body: "The full cosmetic menu — porcelain veneers, composite bonding, professional whitening, and full smile makeovers.",
+    href: "/cosmetic-dentistry/",
+  },
+  {
+    label: "Implant dentistry",
+    title: "Implants and full-mouth restoration.",
+    body: "Single-tooth implants, All-On-4, full-mouth implants, and bone grafting with Yomi-guided precision.",
+    href: "/implant-dentistry/",
+  },
+  {
+    label: "Smile gallery",
+    title: "Finished smiles from our chair.",
+    body: "Photos of real Vivid Smiles patients: veneers, implants, whitening, alignment, and full-mouth work.",
+    href: "/smile-gallery/",
+  },
+];
+---
+
+<BaseLayout
+  title="Page not found — Vivid Smiles Dentistry"
+  description="That page didn't lead anywhere — but you're one click from the part of the site you were looking for."
+  noindex={true}
+>
+  <div class="f404">
+
+    <main id="main">
+
+      {/* ---------- HERO (full-bleed neon-smile photo) ----------
+           data-vs-reveal-batch is on .wrap (content only), NOT on
+           <section class="hero">. Keeping it on the section would pre-hide the
+           LCP <Image> + .hero-scrim via animations.css [data-anim] and
+           slide-animate them on reveal — defeating fetchpriority="high" and
+           introducing a 1.4s jank on the LCP element. Widths trimmed to the
+           source's 1600px ceiling so Astro doesn't emit clamped/duplicate
+           srcset entries. */}
+      <section class="hero">
+        <Image
+          class="hero-bg"
+          src={heroBg}
+          alt="Neon smiley face sign at the entrance to the Vivid Smiles practice"
+          widths={[768, 1280, 1600]}
+          sizes="100vw"
+          loading="eager"
+          fetchpriority="high"
+        />
+        <div class="hero-scrim" aria-hidden="true"></div>
+        <div class="wrap" data-vs-reveal-batch>
+          <span class="code-404" aria-hidden="true">404</span>
+          <span class="eyebrow">Page not found</span>
+          <h1 data-vs-reveal-lines>We lost our place. <em>Let's find yours.</em></h1>
+          <p class="lede">
+            That link didn't lead anywhere — but you're one click from the part of the site
+            you were looking for.
+          </p>
+        </div>
+      </section>
+
+      {/* ---------- WHERE TO GO (cream) ---------- */}
+      <section class="section explore-section" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head center">
+            <span class="eyebrow">Try one of these</span>
+            <h2>A few places <em>worth a look.</em></h2>
+            <p>
+              The most popular corners of the site — chances are one of these is where you
+              were headed.
+            </p>
+          </div>
+          <div class="explore">
+            {explore.map((card) => (
+              <a class="explore-card" href={card.href} data-vs-arrow data-vs-reveal>
+                <span class="label">{card.label}</span>
+                <h3>{card.title}</h3>
+                <p>{card.body}</p>
+                <ArrowBadge size="lg" variant="ghost-line" />
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- FINAL BAND (paper) ---------- */}
+      <FinalBand eyebrow="Trying to book a visit?">
+        <p>
+          Our front desk can help you find a time — same-day appointments are often
+          available.
+        </p>
+      </FinalBand>
+
+    </main>
+  </div>
+</BaseLayout>

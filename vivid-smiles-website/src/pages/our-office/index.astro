@@ -1,0 +1,418 @@
+---
+import { Image } from "astro:assets";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Button from "../../components/Button.astro";
+import ImageFrame from "../../components/ImageFrame.astro";
+import VirtualConsult from "../../components/VirtualConsult.astro";
+import {
+  phoneHref,
+  phoneLabel,
+  phoneE164,
+  bookNowHref,
+  directionsHref,
+  addressStreet,
+  addressCity,
+  addressState,
+  addressZip,
+  addressLine,
+  emailAddress,
+  emailHref,
+} from "../../data/contact";
+import { officeHours, openingHoursSpecification } from "../../data/hours";
+import "../../styles/pages/our-office.css";
+
+import heroPrimary from "../../assets/images/facility/waiting-room-lounge-with-neon-smile.webp";
+import heroInset from "../../assets/images/facility/entry-doors-with-vivid-logos.webp";
+
+// Portrait sources (bentoB, bentoC) intentionally placed in 1×2 vertical cells
+// in the bento grid so they crop cleanly instead of squashing.
+import bentoA from "../../assets/images/facility/reception-desk-and-front-office.webp";
+import bentoB from "../../assets/images/facility/operating-room.webp";
+import bentoC from "../../assets/images/facility/neon-smile-sign-detail.webp";
+import bentoD from "../../assets/images/team/drs-richardson-and-westermeier-neon.webp";
+import bentoE from "../../assets/images/people/real/patient-at-reception-check-in.webp";
+
+import techPrimary from "../../assets/images/procedures/dr-richardson-performing-yomi-guided-implant-surgery.webp";
+import techInset from "../../assets/images/procedures/hygienist-polishing-teeth.webp";
+
+// `output=embed` avoids needing a Google Maps API key.
+const mapEmbedSrc = `https://maps.google.com/maps?q=${encodeURIComponent(addressLine)}&output=embed`;
+
+const expectTiles = [
+  {
+    icon: "fa-solid fa-square-parking",
+    title: "Free on-site parking",
+    body: "Directly in front of the building. Accessible spaces nearest the entrance.",
+  },
+  {
+    icon: "fa-solid fa-door-open",
+    title: "Ground-floor entrance",
+    body: "Single-suite practice on the ground floor — no stairs to navigate.",
+  },
+  {
+    icon: "fa-solid fa-spa",
+    title: "Calm, modern interior",
+    body: "Designed to feel more like a wellness studio than a dental clinic.",
+  },
+  {
+    icon: "fa-solid fa-star",
+    title: "300+ five-star reviews",
+    body: "From patients across Parker and beyond — locally and from out of state.",
+  },
+];
+
+const faqs = [
+  {
+    q: "Where do I park?",
+    a: "There is free, on-site parking directly in front of the building at 17167 Cedar Gulch Pkwy, Suite 102. Accessible spaces are nearest the entrance. Our suite is on the ground floor — no stairs.",
+    open: true,
+  },
+  {
+    q: "Is the office accessible?",
+    a: "Yes — our suite is on the ground floor with no stairs to navigate. Accessible parking spaces sit nearest the entrance, and our doorways and operatory hallways are wide enough to move through comfortably.",
+  },
+  {
+    q: "What does the office feel like inside?",
+    a: "Calm, modern, and unhurried — designed to feel more like a wellness studio than a dental clinic. Our lounge features a neon Vivid Smiles sign and natural light from the storefront windows.",
+  },
+  {
+    q: "What should I bring to my first visit?",
+    a: 'A photo ID, your insurance card if you have one, and a list of any medications you take. <a href="/new-patients/">Our new-patients page</a> has the full first-visit guide, including what to expect during the consultation.',
+  },
+];
+
+const description =
+  "Tour our Parker, CO dental office. Free on-site parking, ground-floor entrance, a calm modern interior, and Yomi robotic-assisted implant surgery. 300+ five-star reviews.";
+---
+
+<BaseLayout
+  title="Our Office in Parker, CO | Vivid Smiles Dentistry"
+  description={description}
+>
+  <div class="vs-office">
+
+    {/* ---------- BREADCRUMB ---------- */}
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <div class="crumbs-inner">
+        <a href="/">Home</a>
+        <span class="sep">/</span>
+        <a href="/about-us/">About Us</a>
+        <span class="sep">/</span>
+        <span class="here">Our Office</span>
+      </div>
+    </nav>
+
+    <main id="main">
+
+    {/* ---------- HERO (paper) — copy + ImageFrame (neon sign + entry doors) ---------- */}
+    <header class="hero" data-vs-reveal-batch>
+      <div class="wrap hero-inner">
+
+        <div class="hero-copy">
+          <span class="eyebrow">Our Office · Parker, CO</span>
+          <h1 data-vs-reveal-lines>
+            Step inside our <em>Parker office.</em>
+          </h1>
+          <p class="hero-sub">
+            Our practice is on Cedar Gulch Parkway in Parker — a calm, modern interior
+            designed to feel more like a wellness studio than a dental clinic, with
+            free parking right out front and a ground-floor entrance.
+          </p>
+          <div class="hero-actions">
+            <Button variant="sage" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button>
+            <Button variant="ghost" href={directionsHref} hoverLabel="Open Map">Get Directions</Button>
+            <div class="ratings">
+              <span class="stars" aria-hidden="true">★★★★★</span>
+              <span>5.0 · 300+ reviews</span>
+            </div>
+          </div>
+        </div>
+
+        <ImageFrame
+          primary={{ src: heroPrimary, alt: "Waiting room lounge at Vivid Smiles Dentistry in Parker, CO" }}
+          inset={{ src: heroInset, alt: "Entry doors with Vivid Smiles Dentistry logo at our Parker, CO office" }}
+        />
+
+      </div>
+    </header>
+
+    {/* ---------- BENTO GALLERY (cream) — curated facility tour ---------- */}
+    <section class="section alt" id="tour" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head center">
+          <span class="eyebrow">A Look Inside</span>
+          <h2>Calm, modern, <em>unhurried.</em></h2>
+          <p>
+            A few moments from our Parker office — the entry, the lounge, the
+            operatories, and the front-desk team who'll greet you on arrival.
+          </p>
+        </div>
+
+        <div class="bento">
+          <div class="bento-tile tile-a">
+            <Image
+              src={bentoA}
+              alt="Reception desk and front office area at Vivid Smiles"
+              widths={[480, 720, 960, 1280]}
+              sizes="(max-width: 640px) 100vw, (max-width: 991px) 60vw, 50vw"
+            />
+          </div>
+          <div class="bento-tile tile-b">
+            <Image
+              src={bentoB}
+              alt="Operatory at Vivid Smiles Dentistry, Parker, CO"
+              widths={[260, 420, 560]}
+              sizes="(max-width: 640px) 100vw, 22vw"
+            />
+          </div>
+          <div class="bento-tile tile-c">
+            <Image
+              src={bentoC}
+              alt="Neon Vivid Smiles sign glowing softly in the waiting lounge"
+              widths={[260, 420, 560]}
+              sizes="(max-width: 640px) 100vw, 22vw"
+            />
+          </div>
+          <div class="bento-tile tile-d">
+            <Image
+              src={bentoD}
+              alt="Dr. Bryce Richardson and Dr. Annelise Westermeier in the Vivid Smiles hallway"
+              widths={[480, 720, 960]}
+              sizes="(max-width: 640px) 100vw, 50vw"
+            />
+          </div>
+          <div class="bento-tile tile-e">
+            <Image
+              src={bentoE}
+              alt="A patient being welcomed at the reception desk"
+              widths={[480, 720, 960]}
+              sizes="(max-width: 640px) 100vw, 50vw"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- TECH + EQUIPMENT (sage) — Yomi + intra-oral scanning ---------- */}
+    <section class="section dark" id="technology" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="tech-grid">
+          <div class="tech-copy">
+            <span class="eyebrow light">Technology in the Room</span>
+            <h2>Modern tools, <em>safer outcomes.</em></h2>
+            <p class="lede">
+              Dr. Bryce Richardson is one of the few certified Yomi robotic
+              surgeons in the country — providing safer, cutting-edge implant
+              procedures in Colorado. Every operatory is set up for digital
+              dentistry start to finish: low-radiation digital x-rays, intra-oral
+              scanning instead of goopy impressions, and chairside design tools
+              that let you preview a smile before any treatment begins.
+            </p>
+
+            <ul class="tech-list">
+              <li>
+                <span class="tech-pill">Yomi Robotic Surgery</span>
+                <p>Robot-assisted implant placement with sub-millimeter precision.</p>
+              </li>
+              <li>
+                <span class="tech-pill">Intra-Oral Scanning</span>
+                <p>Digital 3D scans replace traditional dental impressions — fast and comfortable.</p>
+              </li>
+              <li>
+                <span class="tech-pill">Digital Smile Design</span>
+                <p>Preview your smile transformation on-screen before any work begins.</p>
+              </li>
+              <li>
+                <span class="tech-pill">Same-Day Crowns</span>
+                <p>Design, mill, and place a porcelain crown in a single visit.</p>
+              </li>
+            </ul>
+
+            <div class="tech-actions">
+              <Button variant="light" href="/cosmetic-dentistry/" hoverLabel="See How">Cosmetic Dentistry</Button>
+              <Button variant="outline-light" href="/implant-dentistry/" hoverLabel="See How">Implant Dentistry</Button>
+            </div>
+          </div>
+
+          <ImageFrame
+            primary={{ src: techPrimary, alt: "Dr. Bryce Richardson placing a dental implant with the Yomi robotic arm at Vivid Smiles Dentistry" }}
+            inset={{ src: techInset, alt: "Hygienist polishing a patient's teeth chairside" }}
+          />
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- WHAT TO EXPECT (paper) — 4-tile arrival-experience strip ---------- */}
+    <section class="section" id="expect" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head center">
+          <span class="eyebrow">When You Arrive</span>
+          <h2>Small things that <em>make the visit easier.</em></h2>
+        </div>
+
+        <div class="expect-grid">
+          {expectTiles.map((t) => (
+            <div class="expect-tile">
+              <span class="expect-ic" aria-hidden="true"><i class={t.icon}></i></span>
+              <h3>{t.title}</h3>
+              <p>{t.body}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- LOCATION + HOURS + MAP (cream) ----------
+         Mirrors the /contact/ band — two-column: location card (address,
+         phone, email, hours table) + iframe map. Re-themed for the cream
+         background; same data sources. */}
+    <section class="section alt" id="visit" aria-label="Visit our office">
+      <div class="wrap">
+        <div class="location-grid">
+          <div class="location-copy" data-vs-reveal-batch>
+            <span class="eyebrow">Visit · Hours · Directions</span>
+            <h2>How to <em>find us.</em></h2>
+            <p class="lede">
+              On Cedar Gulch Parkway in Parker, Colorado — a few minutes off Parker Road,
+              with free parking directly in front of the building.
+            </p>
+
+            <div class="location-card">
+              <div class="row">
+                <span class="ic" aria-hidden="true"><i class="fa-solid fa-location-dot"></i></span>
+                <div>
+                  <span class="label">Address</span>
+                  <span class="val">{addressStreet}<br>{addressCity}, {addressState} {addressZip}</span>
+                </div>
+              </div>
+
+              <div class="row">
+                <span class="ic" aria-hidden="true"><i class="fa-solid fa-phone"></i></span>
+                <div>
+                  <span class="label">Phone</span>
+                  <a href={phoneHref}>{phoneLabel}</a>
+                </div>
+              </div>
+
+              <div class="row">
+                <span class="ic" aria-hidden="true"><i class="fa-solid fa-envelope"></i></span>
+                <div>
+                  <span class="label">Email</span>
+                  <a href={emailHref}>{emailAddress}</a>
+                </div>
+              </div>
+
+              <div class="row">
+                <span class="ic" aria-hidden="true"><i class="fa-solid fa-clock"></i></span>
+                <div>
+                  <span class="label">Hours</span>
+                  <div class="hours-table">
+                    {officeHours.map((r) => (
+                      <div class:list={["day-row", !r.opens && "closed"]}>
+                        <span class="day">{r.label}</span>
+                        <span class="hrs">{r.hoursLong}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="location-actions">
+              <Button variant="light" href={directionsHref} hoverLabel="Open Map">Get Directions</Button>
+              <Button variant="ghost-light" href={phoneHref} hoverLabel="Tap to Dial">Call {phoneLabel}</Button>
+            </div>
+          </div>
+
+          <div class="location-map-wrap" data-vs-reveal>
+            <iframe
+              class="location-map"
+              src={mapEmbedSrc}
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              title={`Map showing Vivid Smiles Dentistry at ${addressLine}`}
+            ></iframe>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- FAQ (sage dark) — native details/summary ---------- */}
+    <section class="section dark" id="faq" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head center">
+          <span class="eyebrow light">Office FAQ</span>
+          <h2>A few <em>quick answers.</em></h2>
+        </div>
+
+        <div class="faq-list">
+          {faqs.map((f) => (
+            <details class="faq" open={f.open}>
+              <summary><h3>{f.q}</h3><span class="icon" aria-hidden="true">+</span></summary>
+              <div class="answer" set:html={f.a} />
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- CLOSING — VirtualConsult (cream default) ---------- */}
+    <VirtualConsult id="consult" eyebrow="Plan your first visit">
+      <Fragment slot="headline">Plan your <em>first visit.</em></Fragment>
+      <Fragment slot="body">
+        Book online, give us a call, or send a quick virtual consult with a photo
+        or two — whatever's easiest. Our team will take it from there.
+      </Fragment>
+    </VirtualConsult>
+
+    </main>
+
+    {/* JSON-LD — Dentist (LocalBusiness subtype), BreadcrumbList, FAQPage.
+        Pattern matches /contact/ for consistency; openingHoursSpecification +
+        address pull from src/data/hours.ts and src/data/contact.ts. */}
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Dentist",
+      "name": "Vivid Smiles Dentistry",
+      "image": new URL("/apple-touch-icon.png", Astro.site).href,
+      "url": new URL("/our-office/", Astro.site).href,
+      "telephone": phoneE164,
+      "email": emailAddress,
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": addressStreet,
+        "addressLocality": addressCity,
+        "addressRegion": addressState,
+        "postalCode": addressZip,
+        "addressCountry": "US"
+      },
+      "openingHoursSpecification": openingHoursSpecification,
+      "priceRange": "$$",
+      "areaServed": ["Parker, CO", "Castle Rock, CO", "Lone Tree, CO"]
+    })} />
+
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home",       "item": new URL("/", Astro.site).href },
+        { "@type": "ListItem", "position": 2, "name": "About Us",   "item": new URL("/about-us/", Astro.site).href },
+        { "@type": "ListItem", "position": 3, "name": "Our Office", "item": new URL("/our-office/", Astro.site).href }
+      ]
+    })} />
+
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": faqs.map((f) => ({
+        "@type": "Question",
+        "name": f.q,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": f.a.replace(/<[^>]+>/g, "")
+        }
+      }))
+    })} />
+
+  </div>
+</BaseLayout>

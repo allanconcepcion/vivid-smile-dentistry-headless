@@ -1,0 +1,254 @@
+/*
+ * Vivid Smiles — 404 page styles.
+ *
+ * Mirrors thank-you.css primitives: namespaced under `.f404` so styles can't
+ * leak; same hero + .section + .section-head + .explore-card vocabulary.
+ *
+ * Rhythm: full-bleed neon-smile hero → cream "where to go" → paper FinalBand
+ * closer. Differs from thank-you in skipping the charcoal-green dark band:
+ * a 404 is already error-state, so the page reads lighter end-to-end.
+ */
+
+.f404 {
+  --sage: var(--vs-sage);
+  --sage-deep: var(--vs-sage-deep);
+  --sage-soft: var(--vs-sage-soft);
+  --cream: var(--vs-cream);
+  --paper: var(--vs-paper);
+  --ink: var(--vs-ink);
+  --ink-soft: var(--vs-ink-soft);
+  --muted: var(--vs-muted);
+  --line: var(--vs-line);
+  --shadow: var(--vs-shadow);
+  --shadow-lg: var(--vs-shadow-lg);
+  --r-md: var(--vs-r-md);
+  --r-lg: var(--vs-r-lg);
+  --r-xl: var(--vs-r-xl);
+  --f-display: var(--vs-font-display);
+  --f-body: var(--vs-font-body);
+}
+
+/* ---------- primitives ---------- */
+.f404 .wrap { max-width: 1240px; margin: 0 auto; padding: 0 40px; }
+
+.f404 .eyebrow {
+  font-family: var(--f-body); font-size: 11.5px; font-weight: 500;
+  letter-spacing: 0.28em; text-transform: uppercase;
+  color: var(--sage);
+  display: inline-flex; align-items: center; gap: 14px;
+}
+.f404 .eyebrow::before {
+  content: "";
+  width: 28px; height: 1px; background: var(--sage);
+}
+/* Symmetric right-dash on centered eyebrows (hero + .section-head.center). */
+.f404 .hero .eyebrow::after,
+.f404 .section-head.center .eyebrow::after {
+  content: "";
+  width: 28px; height: 1px; background: var(--sage);
+}
+
+.f404 h1, .f404 h2, .f404 h3 { color: var(--ink); margin: 0; }
+.f404 h1 {
+  font-family: var(--f-display); font-weight: 300;
+  font-size: clamp(48px, 6.8vw, 86px); line-height: 1.04;
+  letter-spacing: -0.02em; color: var(--sage); text-wrap: pretty;
+}
+.f404 h1 em { font-style: italic; color: var(--sage-soft); font-weight: inherit; }
+.f404 h2 {
+  font-family: var(--f-display); font-weight: 400;
+  font-size: clamp(32px, 4.2vw, 54px); line-height: 1.1;
+  letter-spacing: -0.015em; color: var(--ink); text-wrap: pretty;
+}
+.f404 h2 em { font-style: italic; color: var(--sage-soft); font-weight: inherit; }
+.f404 h3 {
+  font-family: var(--f-display); font-weight: 500;
+  font-size: 20px; line-height: 1.3; letter-spacing: 0;
+}
+.f404 p { color: var(--ink-soft); }
+
+/* Section bands. No .section.alt on this page — the hero already carries the
+   dark moment, so the body stays cream → paper for a calmer recovery feel. */
+.f404 .section { padding: clamp(80px, 9vw, 120px) 0; }
+
+.f404 .section-head { max-width: 720px; }
+.f404 .section-head.center {
+  text-align: center; margin-inline: auto;
+}
+.f404 .section-head.center p { margin-left: auto; margin-right: auto; }
+.f404 .section-head .eyebrow { margin-bottom: 22px; }
+.f404 .section-head h2 { margin: 4px 0 0; }
+.f404 .section-head p {
+  font-family: var(--f-body); font-size: 16px; line-height: 1.7;
+  max-width: 56ch; margin: 18px 0 0;
+}
+
+/* ---------- HERO (full-bleed neon-smile photo) ----------
+   <Image> renders an absolutely-positioned <img> beneath the .hero-scrim
+   gradient. The image is the LCP candidate (loading="eager" +
+   fetchpriority="high" in markup); the scrim handles legibility for the
+   white H1 + lede over the photo. The source photo is already dark
+   (black wall + bright neon smile), so the scrim is lighter than
+   thank-you's to keep the smile visible. */
+.f404 .hero {
+  position: relative;
+  isolation: isolate;
+  padding: clamp(120px, 14vw, 180px) 0 clamp(80px, 10vw, 120px);
+  min-height: clamp(560px, 78vh, 760px);
+  display: grid;
+  /* minmax(0, 1fr) keeps the grid track from growing to min-content width when
+     the H1 has long words at large display sizes — without this the hero
+     overflows horizontally at 390 because the implicit `1fr` track defaults
+     to `minmax(auto, 1fr)` and `auto` lets content push the track wider than
+     the viewport. */
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+  text-align: center;
+  color: #fff;
+  overflow: hidden;
+  background: #0d0f0c;
+}
+.f404 .hero .hero-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  z-index: -2;
+}
+/* Center-weighted scrim — the source is already very dark on the left
+   (where the neon smile lives) so the gradient stays lighter than
+   thank-you's, and pulls more from the right (bright glass door area)
+   for legibility under the lede. */
+.f404 .hero .hero-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(13, 15, 12, 0.50) 0%,
+      rgba(13, 15, 12, 0.72) 50%,
+      rgba(13, 15, 12, 0.55) 100%
+    );
+}
+.f404 .hero .wrap {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 880px;
+  min-width: 0;
+}
+.f404 .hero .code-404 {
+  display: block;
+  font-family: var(--f-display);
+  font-weight: 200;
+  font-size: clamp(140px, 22vw, 280px);
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  color: #fff;
+  text-shadow: 0 2px 32px rgba(0, 0, 0, 0.55);
+  margin: 0 0 18px;
+}
+.f404 .hero .eyebrow {
+  color: var(--vs-eyebrow-on-sage);
+  margin: 0 auto 18px;
+}
+.f404 .hero .eyebrow::before,
+.f404 .hero .eyebrow::after { background: rgba(255, 255, 255, 0.6); }
+.f404 .hero h1 {
+  color: #fff;
+  font-size: clamp(26px, 2.6vw, 36px);
+  line-height: 1.2;
+  font-weight: 400;
+  max-width: 28ch;
+  margin: 0 auto;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.45);
+}
+.f404 .hero h1 em { color: var(--vs-eyebrow-on-sage); }
+.f404 .hero .lede {
+  font-family: var(--f-body);
+  font-size: clamp(16px, 1.4vw, 18px);
+  line-height: 1.65;
+  color: rgba(255, 255, 255, 0.92);
+  max-width: 56ch;
+  margin: 28px auto 0;
+}
+
+/* ---------- WHERE TO GO (cream) ---------- */
+.f404 .explore-section {
+  background: var(--cream);
+}
+.f404 .explore-section .section-head { margin: 0 auto 56px; }
+
+.f404 .explore {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 22px;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+.f404 .explore-card {
+  position: relative;
+  display: grid;
+  gap: 14px;
+  padding: 34px 30px;
+  background: var(--paper);
+  border-radius: var(--r-lg);
+  text-decoration: none;
+  color: var(--ink);
+  transition: transform 0.32s var(--vs-ease), box-shadow 0.32s var(--vs-ease);
+  border: 1px solid transparent;
+}
+.f404 .explore-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+}
+.f404 .explore-card .label {
+  font-family: var(--f-body);
+  font-size: 11.5px; font-weight: 500;
+  letter-spacing: 0.28em; text-transform: uppercase;
+  color: var(--sage);
+}
+.f404 .explore-card h3 {
+  font-family: var(--f-display); font-weight: 400;
+  font-size: 26px; line-height: 1.15;
+  color: var(--ink);
+  letter-spacing: -0.012em;
+  max-width: 14ch;
+}
+.f404 .explore-card p {
+  font-family: var(--f-body);
+  font-size: 14.5px; line-height: 1.65;
+  color: var(--ink-soft);
+  margin: 0;
+}
+/* Arrow badge: canonical <ArrowBadge variant="ghost-line" size="lg"> wired
+   to GSAP's wireArrowSwap via the parent's [data-vs-arrow] attribute. */
+.f404 .explore-card .vs-arrow { margin-top: 6px; }
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 991px) {
+  .f404 .explore {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    max-width: 560px;
+  }
+  .f404 .explore-card { padding: 30px 26px; }
+}
+
+@media (max-width: 600px) {
+  .f404 .wrap { padding: 0 22px; }
+  .f404 .hero { padding: clamp(96px, 24vw, 130px) 0 64px; }
+  /* H1 tightens at mobile — at 48px display the brand-grammar italic split
+     ("Let's find yours.") needs a narrower wrap to keep the breakpoint near
+     the natural phrase boundary instead of forcing each word group onto
+     its own ragged line. */
+  .f404 .hero .code-404 { font-size: clamp(120px, 36vw, 180px); margin-bottom: 14px; }
+  .f404 .hero h1 { font-size: clamp(22px, 5.4vw, 26px); max-width: 26ch; }
+  .f404 .hero .lede { font-size: 15px; }
+  .f404 .explore-section { padding: 72px 0; }
+  .f404 .section-head { text-align: left; margin-left: 0; margin-right: 0; }
+  .f404 .section-head.center { text-align: center; }
+}

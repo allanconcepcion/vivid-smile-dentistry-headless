@@ -1,0 +1,25 @@
+# Editor / OS noise
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+.vscode/
+.idea/
+
+# Node
+node_modules/
+npm-debug.log*
+
+# Astro build output and generated types
+dist/
+.astro/
+
+# Environment — WP_GRAPHQL_ENDPOINT differs per environment.
+# .env.example is committed; .env is not.
+.env
+.env.production
+.env.local
+
+# Preserved git history of the original vivid-smiles-website clone, kept so the
+# pre-conversion history stays recoverable. Not part of this repo.
+.original-git-backup/

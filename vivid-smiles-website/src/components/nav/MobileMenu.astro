@@ -1,0 +1,490 @@
+---
+/**
+ * MobileMenu — drop-down drawer that reveals downward from the bottom of the
+ * sticky nav bar at ≤991px. The .vs-nav-shell <header> is the single, always-
+ * mounted header; this drawer renders below it and clip-path-reveals when the
+ * burger is tapped (the burger morphs into an X in place — same element, no
+ * duplicate header).
+ *
+ * Three top-level items expose accordion panels: About Us, Services, Patient
+ * Resources. Inside the Services panel, all four main services (Cosmetic,
+ * General, Implant, Emergency) render as inline section headers — each a tap
+ * target to its hub — for visual parity. Cosmetic + Implant additionally render
+ * their child pages flat below the header. No nested accordion.
+ *
+ * The reveal timeline (clip-path inset + [data-mm-stagger] item fade-up),
+ * --vs-nav-h measurement, body scroll lock, ESC, focus trap, and the single-
+ * level [data-mm-toggle] accordion handler all live in src/scripts/nav.js.
+ *
+ * Parity: the `sections` array + Home/Contact leaves below must mirror the
+ * desktop nav — Nav.astro `items` for top-level, MegaAbout/MegaServices/
+ * MegaResources for each section's links (including MegaResources' feature
+ * card, which surfaces here as a flat row). No shared data source — change
+ * links here AND in the matching desktop file in the same edit.
+ */
+
+import { phoneLabel, phoneHref, bookNowHref } from "../../data/contact";
+import Button from "../Button.astro";
+
+interface Props {
+  phone?: string;
+  ctaLabel?: string;
+  ctaHref?: string;
+}
+
+const {
+  phone = phoneLabel,
+  ctaLabel = "Book Online",
+  ctaHref = bookNowHref,
+} = Astro.props;
+
+type Leaf = { label: string; href: string };
+type Branch = { label: string; href: string; icon?: string; children: Leaf[] };
+type Item = Leaf | Branch;
+const isBranch = (i: Item): i is Branch => "children" in i && Array.isArray((i as Branch).children);
+
+/**
+ * Tasteful line icons for the four main service categories. Single-path SVGs
+ * sized to a 24x24 viewBox; sage-soft by default, sage on hover (handled by
+ * .mm-sub-icon styling). currentColor inheritance keeps token discipline.
+ */
+const ICON_TOOTH =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3a4 4 0 0 0-4 4c0 1.7.7 3 1.4 4.4.6 1.2.8 2.4 1.1 4 .3 1.8.7 3.6 2 3.6.9 0 1.4-1 1.8-2.5l.5-2c.3-1 .7-1.5 1.4-1.5s1.1.5 1.4 1.5l.5 2c.4 1.5.9 2.5 1.8 2.5 1.3 0 1.7-1.8 2-3.6.3-1.6.5-2.8 1.1-4C19.3 10 20 8.7 20 7a4 4 0 0 0-4-4c-.9 0-1.6.4-2.2.9-.4.4-.7.6-1.3.6s-.9-.2-1.3-.6C9.6 3.4 8.9 3 8 3Z"/></svg>';
+const ICON_PULSE =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 12h4l2-6 4 12 2-6h6"/></svg>';
+const ICON_SPARKLE =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l2 7 7 2-7 2-2 7-2-7-7-2 7-2z"/></svg>';
+const ICON_CROWN =
+  '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9l4 3 4-7 4 7 4-3v9H4z"/></svg>';
+
+interface Section {
+  id: string;
+  label: string;
+  href: string;
+  items: Item[];
+}
+
+const sections: Section[] = [
+  {
+    id: "about",
+    label: "About Us",
+    href: "/about-us/",
+    items: [
+      { label: "About Us", href: "/about-us/" },
+      { label: "Meet the Team", href: "/about-us/#team" },
+      { label: "Our Office", href: "/our-office/" },
+      { label: "Smile Gallery", href: "/smile-gallery/" },
+    ],
+  },
+  {
+    id: "services",
+    label: "Services",
+    href: "/services/",
+    items: [
+      { label: "General Dentistry", href: "/general-dentistry/", icon: ICON_TOOTH, children: [] },
+      { label: "Emergency Dentistry", href: "/emergency-dentistry/", icon: ICON_PULSE, children: [] },
+      {
+        label: "Cosmetic Dentistry",
+        href: "/cosmetic-dentistry/",
+        icon: ICON_SPARKLE,
+        children: [
+          { label: "Smile Makeover", href: "/cosmetic-dentistry/smile-makeover/" },
+          { label: "Porcelain Veneers", href: "/cosmetic-dentistry/porcelain-veneers/" },
+          { label: "Clear Aligners", href: "/cosmetic-dentistry/clear-aligners/" },
+          { label: "Teeth Whitening", href: "/cosmetic-dentistry/teeth-whitening/" },
+          { label: "Gum Contouring", href: "/cosmetic-dentistry/gum-contouring/" },
+          { label: "Full Mouth Rehabilitation", href: "/cosmetic-dentistry/full-mouth-rehabilitation/" },
+        ],
+      },
+      {
+        label: "Implant Dentistry",
+        href: "/implant-dentistry/",
+        icon: ICON_CROWN,
+        children: [
+          { label: "Single Tooth Dental Implants", href: "/implant-dentistry/single-tooth-dental-implants/" },
+          { label: "Full Mouth Dental Implants", href: "/implant-dentistry/full-mouth-dental-implants/" },
+          { label: "All-on-4 Single Arch", href: "/implant-dentistry/all-on-4-single-arch/" },
+          { label: "Bone Grafting", href: "/implant-dentistry/bone-grafting/" },
+          { label: "Sinus Lift", href: "/implant-dentistry/sinus-lift/" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "resources",
+    label: "Patient Resources",
+    href: "/new-patients/",
+    items: [
+      { label: "New Patients", href: "/new-patients/" },
+      { label: "Blog", href: "/blog/" },
+      { label: "Referral Program", href: "/referral-program/" },
+      { label: "Patient Testimonials", href: "/patient-testimonials/" },
+      { label: "Membership Plan", href: "/dental-membership-plan/" },
+    ],
+  },
+];
+---
+
+<aside
+  id="vs-mobile-menu"
+  class="vs-mobile-menu"
+  role="dialog"
+  aria-modal="true"
+  aria-label="Site navigation"
+  aria-hidden="true"
+  hidden
+>
+  <div class="mm-inner">
+    <div class="mm-body">
+      <a class="mm-item mm-leaf" href="/" data-mm-stagger>Home</a>
+
+      {sections.map((section) => (
+        <div class="mm-group" data-mm-group={section.id} data-mm-stagger>
+          <button
+            type="button"
+            class="mm-item mm-toggle"
+            aria-expanded="false"
+            aria-controls={`mm-sub-${section.id}`}
+            data-mm-toggle
+          >
+            <span>{section.label}</span>
+            <span class="mm-chev" aria-hidden="true">+</span>
+          </button>
+          <div class="mm-sub" id={`mm-sub-${section.id}`}>
+            {section.items.map((item) => (
+              isBranch(item) ? (
+                <>
+                  <a class="mm-sub-link mm-sub-section-head" href={item.href}>
+                    <span class="mm-sub-head-label">
+                      {item.icon && <span class="mm-sub-icon" set:html={item.icon} />}
+                      <span>{item.label}</span>
+                    </span>
+                    <span aria-hidden="true">→</span>
+                  </a>
+                  {item.children.map((child) => (
+                    <a class="mm-sub-link mm-sub-deep" href={child.href}>
+                      {child.label}
+                      <span aria-hidden="true">→</span>
+                    </a>
+                  ))}
+                </>
+              ) : (
+                <a class="mm-sub-link" href={item.href}>
+                  {item.label}
+                  <span aria-hidden="true">→</span>
+                </a>
+              )
+            ))}
+          </div>
+        </div>
+      ))}
+
+      <a class="mm-item mm-leaf" href="/contact/" data-mm-stagger>Contact</a>
+    </div>
+
+    <div class="mm-foot" data-mm-stagger>
+      <div class="mm-foot-eyebrow">Get in touch</div>
+      <a class="mm-phone" href={phoneHref}>
+        <span class="mm-phone-dot" aria-hidden="true"></span>
+        {phone}
+      </a>
+      <div class="mm-foot-actions">
+        <Button variant="light" href={ctaHref}>{ctaLabel}</Button>
+        <Button variant="outline-light" href={phoneHref}>Call now</Button>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<style is:global>
+  .vs-mobile-menu {
+    /* Drawer drops down from the nav bar's bottom edge. --vs-nav-h is set on
+       :root by nav.js after the nav lays out (and on resize). Below the nav
+       (z: 80) so the persistent header always sits on top. clip-path is the
+       reveal — managed by the GSAP timeline in nav.js. */
+    position: fixed;
+    top: var(--vs-nav-h, 70px);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 70;
+    background: var(--vs-paper);
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    clip-path: inset(0 0 100% 0);
+    box-shadow: 0 30px 80px -40px rgba(42, 42, 40, 0.25);
+  }
+  .vs-mobile-menu .mm-inner {
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 18px 22px 24px;
+    background: linear-gradient(180deg, var(--vs-paper) 0%, var(--vs-cream) 100%);
+  }
+
+  .vs-mobile-menu .mm-body {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .vs-mobile-menu .mm-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 18px 4px;
+    border-bottom: 1px solid var(--vs-line);
+    text-decoration: none;
+    font-family: var(--vs-font-display);
+    font-size: 24px;
+    font-weight: 400;
+    color: var(--vs-ink);
+    letter-spacing: -0.01em;
+    background: transparent;
+    border-left: 0;
+    border-right: 0;
+    border-top: 0;
+    cursor: pointer;
+    text-align: left;
+  }
+  .vs-mobile-menu .mm-item:hover { color: var(--vs-sage); }
+  .vs-mobile-menu .mm-item.active { color: var(--vs-sage); }
+
+  .vs-mobile-menu .mm-chev {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: 1px solid var(--vs-line);
+    color: var(--vs-sage);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--vs-font-display);
+    font-size: 18px;
+    background: var(--vs-paper);
+    transition: transform 0.3s ease, background 0.25s ease, color 0.25s ease, border-color 0.25s ease;
+  }
+  .vs-mobile-menu .mm-toggle[aria-expanded="true"] .mm-chev {
+    transform: rotate(45deg);
+    background: var(--vs-sage);
+    color: var(--vs-paper);
+    border-color: var(--vs-sage);
+  }
+
+  /* Top-level accordion panel */
+  .vs-mobile-menu .mm-sub {
+    display: flex;
+    flex-direction: column;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .vs-mobile-menu .mm-toggle[aria-expanded="true"] + .mm-sub {
+    /* Services panel renders all main services + cosmetic/implant children
+       flat — needs to be tall enough for the longest panel (~900px). */
+    max-height: 1800px;
+  }
+
+  .vs-mobile-menu .mm-sub-link {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 12px 14px;
+    margin: 2px 4px;
+    font-family: var(--vs-font-body);
+    font-size: 14px;
+    color: var(--vs-ink-soft);
+    text-decoration: none;
+    border-radius: 8px;
+    transition: background 0.2s ease, color 0.2s ease;
+    background: transparent;
+    border: 0;
+    text-align: left;
+    cursor: pointer;
+  }
+  .vs-mobile-menu .mm-sub-link:hover {
+    background: rgba(107, 122, 84, 0.08);
+    color: var(--vs-sage);
+  }
+  .vs-mobile-menu .mm-sub-link.mm-sub-parent {
+    color: var(--vs-sage);
+    font-weight: 500;
+    text-transform: capitalize;
+  }
+  .vs-mobile-menu .mm-sub-link > span:first-child {
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    opacity: 1;
+  }
+  .vs-mobile-menu .mm-sub-link > span:last-child {
+    font-family: var(--vs-font-display);
+    font-size: 14px;
+    color: inherit;
+    opacity: 0.6;
+  }
+
+  /* Inline section header — every main service (General, Emergency, Cosmetic,
+     Implant) inside Services. Tap target navigates to the hub; children (when
+     present) render flat below it. Symmetric padding so the top divider sits
+     visually centered between the previous text and this one. */
+  .vs-mobile-menu .mm-sub-link.mm-sub-section-head {
+    margin: 0 4px;
+    padding: 14px 14px;
+    border-top: 1px solid var(--vs-line);
+    border-radius: 0;
+    font-family: var(--vs-font-display);
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--vs-ink);
+    background: transparent;
+  }
+  /* First section-head sits flush against the toggle button's bottom border —
+     suppress the duplicate divider so they merge into a single line. */
+  .vs-mobile-menu .mm-sub > .mm-sub-section-head:first-child {
+    border-top: 0;
+  }
+
+  /* Icon + label group inside each section-head. The wrapper becomes a flex
+     row so the SVG sits to the left of the label text with a tasteful gap. */
+  .vs-mobile-menu .mm-sub-link.mm-sub-section-head > .mm-sub-head-label {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-family: inherit;
+    font-size: inherit;
+    color: inherit;
+    opacity: 1;
+  }
+  .vs-mobile-menu .mm-sub-icon {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--vs-sage-soft);
+    transition: color var(--vs-dur-hover, 200ms) var(--vs-ease, ease);
+  }
+  .vs-mobile-menu .mm-sub-icon svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .vs-mobile-menu .mm-sub-link.mm-sub-section-head:hover .mm-sub-icon {
+    color: var(--vs-sage);
+  }
+  .vs-mobile-menu .mm-sub-link.mm-sub-section-head:hover {
+    background: transparent;
+    color: var(--vs-sage);
+  }
+  .vs-mobile-menu .mm-sub-link.mm-sub-section-head > span:last-child {
+    font-size: 16px;
+    color: var(--vs-sage);
+    opacity: 0.55;
+  }
+
+  /* Children of a section header — slightly indented and de-emphasized. */
+  .vs-mobile-menu .mm-sub-link.mm-sub-deep {
+    margin-left: 12px;
+    padding-left: 16px;
+    border-left: 1px solid var(--vs-line);
+    border-radius: 0 8px 8px 0;
+    font-size: 13.5px;
+    color: var(--vs-ink-soft);
+  }
+
+  .vs-mobile-menu .mm-foot {
+    margin-top: 28px;
+    padding: 22px;
+    border-radius: 18px;
+    background: var(--vs-sage);
+    color: var(--vs-paper);
+    position: relative;
+    overflow: hidden;
+  }
+  .vs-mobile-menu .mm-foot::before {
+    content: "";
+    position: absolute;
+    right: -40px;
+    top: -40px;
+    width: 140px;
+    height: 140px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .vs-mobile-menu .mm-foot-eyebrow {
+    font-family: var(--vs-font-body);
+    font-size: 10px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-eyebrow-on-sage);
+    font-weight: 500;
+  }
+  .vs-mobile-menu .mm-phone {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+    font-family: var(--vs-font-display);
+    font-size: 22px;
+    color: var(--vs-paper);
+    letter-spacing: 0.04em;
+    text-decoration: none;
+  }
+  .vs-mobile-menu .mm-phone-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--vs-pulse-live);
+    box-shadow: 0 0 0 4px rgba(var(--vs-pulse-live-rgb), 0.3);
+    animation: vs-pulse-mobile 2s ease-in-out infinite;
+  }
+  .vs-mobile-menu .mm-foot-actions {
+    margin-top: 18px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+  .vs-mobile-menu .mm-foot-actions .vs-btn {
+    width: 100%;
+    justify-content: space-between;
+    padding: 10px 10px 10px 18px;
+    font-size: 13px;
+    gap: 10px;
+  }
+  .vs-mobile-menu .mm-foot-actions .vs-btn .btn-label {
+    white-space: nowrap;
+  }
+  .vs-mobile-menu .mm-foot-actions .vs-btn .btn-arrow {
+    width: 32px;
+    height: 32px;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  /* Renamed from vs-pulse to avoid colliding with the canonical keyframe in
+     src/styles/animations.css and the Nav copy (all load via is:global). */
+  @keyframes vs-pulse-mobile {
+    0%, 100% { box-shadow: 0 0 0 4px rgba(var(--vs-pulse-live-rgb), 0.3); }
+    50% { box-shadow: 0 0 0 8px rgba(var(--vs-pulse-live-rgb), 0); }
+  }
+
+  /* Lock body scroll while drawer is open */
+  body.vs-nav-locked {
+    overflow: hidden;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .vs-mobile-menu,
+    .vs-mobile-menu .mm-chev,
+    .vs-mobile-menu .mm-sub,
+    .vs-mobile-menu .mm-phone-dot {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+</style>

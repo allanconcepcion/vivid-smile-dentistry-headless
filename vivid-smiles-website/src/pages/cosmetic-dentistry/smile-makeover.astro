@@ -1,0 +1,704 @@
+---
+/**
+ * Smile Makeover — Vivid Smiles Dentistry, Parker CO.
+ *
+ * Built from SEO-locked markdown copy (no prototype) using porcelain-veneers
+ * as the structural template. Section order
+ * mirrors veneers 1:1 with four documented adaptations:
+ *
+ *   1. KEYS — at-a-glance stats are tagline-derived from the body copy
+ *      (custom plans / 600+ hrs / digital preview / 300+ reviews), not
+ *      verbatim — same precedent as veneers, FMR.
+ *   2. #issues — new 5-up `.issues-grid` + `.issues-card` pattern carrying
+ *      the source MD's "Common Issues a Smile Makeover Can Address" five
+ *      bullets verbatim. Page-local; lift to a shared component if a third
+ *      page adopts it (the .why-3up + the .why-4up follow
+ *      the same convention).
+ *   3. #process — uses veneers' `.natural-grid` (text + image + pull-quote)
+ *      on a sage `.section.dark` band, with the gum-contouring repaint
+ *      (cream-on-sage natural-quote with translucent borders) applied. The
+ *      pull-quote is lifted verbatim from the source MD.
+ *   4. The smile-gallery marquee is **embedded inside the #results
+ *      section** (cream band) rather than living on its own sage `#gallery`
+ *      band — the #results heading is what points patients at real cases, so
+ *      the photos live where the heading promises them. The marquee pulls the
+ *      shared finished-smile set from `src/assets/images/smiles/`, which is
+ *      generic to the practice rather than makeover-specific; drop
+ *      smile-makeover photography into that folder to swap it. One
+ *      structural consequence: this page has only one sage band (#process)
+ *      where veneers has two (#process, #gallery).
+ *
+ * Page-scoped styles: src/styles/pages/smile-makeover.css
+ * Buttons + scroll reveals wired by src/scripts/animations.js (data-vs-arrow / data-vs-reveal*).
+ *
+ * Global <Nav /> + <Footer /> are mounted by BaseLayout — this page renders
+ * only its own content, starting with an inline breadcrumb under the global nav.
+ */
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Button from '../../components/Button.astro';
+import FinalBand from '../../components/FinalBand.astro';
+import VirtualConsult from '../../components/VirtualConsult.astro';
+import {
+  phoneHref,
+  phoneLabel,
+  phoneE164,
+  bookNowHref,
+  addressStreet,
+  addressCity,
+  addressState,
+  addressZip,
+} from '../../data/contact';
+import '../../styles/pages/smile-makeover.css';
+
+import heroImg from '../../assets/images/people/real/woman-blonde-studio-portrait.webp';
+// "What is a smile makeover" — finished-smile macro, three-quarter angle.
+import whatImg from '../../assets/images/procedures/finished-veneers-tilted-black.webp';
+// "The process" — editorial finished-smile macro.
+import editorialImg from '../../assets/images/procedures/berry-lip-smile-tilted.webp';
+
+// Gallery pulls dynamically from the central smiles/ folder.
+import { getSmiles } from '../../lib/smiles';
+const galleryTiles = getSmiles();
+const galleryTrack = [...galleryTiles, ...galleryTiles];
+
+const tocLinks = [
+  { href: '#what', label: 'What It Is' },
+  { href: '#issues', label: 'Common Issues' },
+  { href: '#process', label: 'The Process' },
+  { href: '#options', label: 'Treatment Options' },
+  { href: '#why-us', label: 'Why Vivid Smiles' },
+  { href: '#cost', label: 'Timeline & Cost' },
+  { href: '#results', label: 'Real Results' },
+  { href: '#faq', label: 'FAQ' },
+];
+
+const issuesList = [
+  'Severe staining that no longer responds to whitening',
+  'Chipped, cracked, or worn-down teeth',
+  'Uneven tooth length, shape, or spacing',
+  'Gaps or minor crowding',
+  'Disproportionate tooth-to-gum ratio (gummy smile)',
+];
+
+const faqs = [
+  {
+    q: 'How long does a smile makeover take?',
+    a: `Timeline depends on the treatments involved in your plan. Veneer-focused makeovers can often be completed in two to three visits over three to four weeks; plans that include <a class="vs-link" href="/cosmetic-dentistry/clear-aligners/">Invisalign alignment</a> may take six to twelve months.`,
+    open: true,
+  },
+  {
+    q: 'Will my veneers look natural or fake?',
+    a: "Natural-looking results are Dr. Richardson's primary focus on every case. Veneer color, shape, and translucency are customized to complement your facial features, skin tone, and personal preferences, and digital smile design lets you preview and refine your outcome before treatment begins.",
+  },
+  {
+    q: 'Are veneers permanent?',
+    a: 'Traditional veneers involve minimal enamel preparation and are considered permanent, typically lasting 20+ years with proper care. No-prep veneers preserve natural tooth structure completely and may be reversible when the clinical situation allows.',
+  },
+  {
+    q: 'How much does a smile makeover cost?',
+    a: 'Investment varies based on the treatments included in your personalized plan. During the consultation, Dr. Richardson provides transparent pricing and discusses financing options; the practice also offers a dental membership plan that can reduce costs for uninsured patients.',
+  },
+  {
+    q: 'Can a smile makeover fix my crooked teeth?',
+    a: `Yes. Depending on severity, crooked teeth can be addressed with <a class="vs-link" href="/cosmetic-dentistry/clear-aligners/">Invisalign clear aligners</a>, <a class="vs-link" href="/cosmetic-dentistry/porcelain-veneers/">porcelain veneers</a> that create the appearance of straight teeth, or a combination of both. Dr. Richardson recommends the approach that produces the most stable, natural-looking result for your situation.`,
+  },
+  {
+    q: 'Do I need to replace all my teeth for a smile makeover?',
+    a: 'No. Smile makeovers are fully customized, and treatment is focused only on the teeth that show when you smile and speak. Some patients address only their front six to eight upper teeth; others work on both upper and lower arches.',
+  },
+  {
+    q: 'Is cosmetic dentistry covered by insurance?',
+    a: 'Most cosmetic procedures are considered elective and are not covered by dental insurance. If a treatment also addresses a functional concern, such as a cracked or broken tooth, partial coverage may apply. Vivid Smiles discusses financing and the in-house membership plan during every consultation.',
+  },
+];
+---
+
+<BaseLayout
+  title="Smile Makeover in Parker, CO | Vivid Smiles Dentistry"
+  description="Custom smile makeovers in Parker, CO with Dr. Bryce Richardson. Combine porcelain veneers, Invisalign, and whitening with digital smile design to preview your results before any treatment begins."
+>
+  <div class="smilemakeover">
+    {/* ---------- BREADCRUMB ---------- */}
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <div class="crumbs-inner">
+        <a href="/">Home</a>
+        <span class="sep">/</span>
+        <a href="/services/">Services</a>
+        <span class="sep">/</span>
+        <a href="/cosmetic-dentistry/">Cosmetic Dentistry</a>
+        <span class="sep">/</span>
+        <span class="here">Smile Makeover</span>
+      </div>
+    </nav>
+
+    <main id="main">
+      {/* ---------- HERO ---------- */}
+      <header class="hero" data-vs-reveal-batch>
+        <div class="wrap hero-inner">
+          <div class="hero-copy">
+            <span class="eyebrow">Cosmetic Dentistry · Parker, CO</span>
+            <h1 data-vs-reveal-lines>
+              Transform Your Smile with a <em>Custom Smile Makeover in Parker, CO</em>
+            </h1>
+            <p class="hero-sub">
+              A smile makeover combines two or more cosmetic treatments into one coordinated plan,
+              designed to address your specific aesthetic concerns all at once rather than one
+              procedure at a time. Unlike a single-service approach, it starts with the outcome you
+              want and works backward to build the right treatment path. Here is what that process
+              looks like at Vivid Smiles Dentistry, and what separates results that look natural
+              from results that look obvious.
+            </p>
+            <div class="hero-actions">
+              <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button
+              >
+              <Button variant="ghost-light" href="#consult" hoverLabel="Get a Video"
+                >Free Virtual Consult</Button
+              >
+              <div class="ratings">
+                <span class="stars" aria-hidden="true">★★★★★</span>
+                <span>5.0 · 300+ reviews</span>
+              </div>
+            </div>
+          </div>
+          <div class="hero-img" data-vs-parallax data-parallax="-30">
+            <Image
+              src={heroImg}
+              alt="Smiling woman photographed against a dark studio background"
+              widths={[600, 900, 1400]}
+              sizes="(max-width: 991px) 100vw, 50vw"
+            />
+          </div>
+        </div>
+      </header>
+
+      {/* ---------- KEYS — at-a-glance ---------- */}
+      <section class="keys" id="keys" aria-label="Smile makeovers at a glance" data-vs-reveal-batch>
+        <div class="keys-grid">
+          <div class="keys-label">At a glance</div>
+          <div class="keys-item">
+            <div class="k">Custom</div><div class="v">Treatment Plans</div>
+          </div>
+          <div class="keys-item">
+            <div class="k">600+ hrs</div><div class="v">Esthetic Training</div>
+          </div>
+          <div class="keys-item">
+            <div class="k">Digital Preview</div><div class="v">Before You Commit</div>
+          </div>
+          <div class="keys-item">
+            <div class="k">300+</div><div class="v">Five-Star Reviews</div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- ON-THIS-PAGE TOC ---------- */}
+      <nav class="toc" id="toc" aria-label="On this page">
+        <div class="toc-inner">
+          <span class="toc-label">On this page</span>
+          <div class="toc-scroll">
+            <div class="toc-list">
+              {tocLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* ---------- WHAT (paper) ---------- */}
+      <section class="section" id="what" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="what-grid">
+            <div class="what-img" data-vs-parallax data-parallax="-25">
+              <Image
+                src={whatImg}
+                alt="Close-up of a smile at a three-quarter angle against black"
+                widths={[500, 800, 1100]}
+                sizes="(max-width: 991px) 100vw, 50vw"
+              />
+            </div>
+            <div class="what-text">
+              <span class="eyebrow">Definition</span>
+              <h2>What Is a <em>Smile Makeover?</em></h2>
+              <div class="prose">
+                <p>
+                  A smile makeover is a customized plan that combines cosmetic dental treatments to
+                  improve multiple aspects of your smile in one coordinated process. The distinction
+                  from a single procedure is the intent: rather than starting with a treatment and
+                  seeing what changes, you start with the outcome and build toward it.
+                </p>
+              </div>
+              <div class="cta-row left">
+                <div class="cta-buttons">
+                  <Button variant="sage" href="#consult" hoverLabel="Get a Video"
+                    >Free Virtual Consult</Button
+                  >
+                  <Button variant="ghost" href="#options" hoverLabel="See Options"
+                    >Treatment Options</Button
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- ISSUES (cream) ---------- */}
+      <section class="section alt" id="issues" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Common Issues</span>
+            <h2>Common Issues a <em>Smile Makeover Can Address</em></h2>
+            <p>
+              A smile makeover is built for patients managing more than one concern at once. Common
+              issues include:
+            </p>
+          </div>
+
+          <div class="issues-grid">
+            {
+              issuesList.map((label, i) => (
+                <article class="issues-card">
+                  <div class="num">{String(i + 1).padStart(2, '0')}</div>
+                  <div class="label">{label}</div>
+                </article>
+              ))
+            }
+          </div>
+        </div>
+      </section>
+
+      {
+        /* ---------- PROCESS (sage) — natural-grid pattern on a dark band,
+         with the gum-contouring cream-on-sage repaint of .natural-quote. */
+      }
+      <section class="section dark" id="process" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="natural-grid">
+            <div class="natural-text">
+              <span class="eyebrow light">The Process</span>
+              <h2>Our Smile Makeover Process: <em>Digital Design to Final Result</em></h2>
+              <div class="natural-quote">
+                You should see exactly what your results will look like before any treatment begins.
+              </div>
+              <div class="prose">
+                <p>
+                  The Vivid Smiles process is built around one principle: you should see exactly
+                  what your results will look like before any treatment begins. That transparency
+                  runs from the first consultation through every step of the plan.
+                </p>
+                <h3 class="process-sub">Preview Your New Smile Before You Commit</h3>
+                <p>
+                  Digital smile design at Vivid Smiles maps your new smile onto your actual face
+                  using advanced imaging software, giving you a realistic, personalized preview
+                  before any work starts. This is not a generic approximation: it is a treatment
+                  roadmap built from your facial dimensions, tooth proportions, and cosmetic goals.
+                  You and Dr. Richardson refine the design together until the preview reflects
+                  exactly what you want, removing the guesswork that has historically been the
+                  biggest barrier to investing in cosmetic dentistry.
+                </p>
+              </div>
+            </div>
+            <div class="natural-img" data-vs-parallax data-parallax="-25">
+              <Image
+                src={editorialImg}
+                alt="Editorial close-up of a smile with berry lipstick"
+                widths={[500, 800, 1100]}
+                sizes="(max-width: 991px) 100vw, 50vw"
+              />
+            </div>
+          </div>
+
+          <div class="inline-cta dark">
+            <div class="ic-text">
+              Ready to see your preview? <em>Book online and we'll take it from here.</em>
+            </div>
+            <div class="ic-buttons">
+              <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button
+              >
+              <Button variant="ghost-light" href={phoneHref} hoverLabel="Tap to Dial"
+                >Call {phoneLabel}</Button
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {
+        /* ---------- OPTIONS (paper) — featured Veneers (full-width row 1) +
+         three secondary options (row 2). Each card is a whole-clickable link
+         to its service page via the stretched-link pattern. */
+      }
+      <section class="section" id="options" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Treatment Options</span>
+            <h2>Treatment Options in Your <em>Custom Smile Makeover</em></h2>
+            <p>
+              Smile makeovers draw from a range of procedures combined to fit your specific goals.
+              Dr. Richardson determines the right mix during your consultation.
+            </p>
+          </div>
+
+          <div class="compare">
+            <article class="compare-card featured">
+              <a
+                class="compare-card__stretch"
+                href="/cosmetic-dentistry/porcelain-veneers/"
+                aria-label="Learn more about Porcelain Veneers"></a>
+              <span class="ribbon">Centerpiece</span>
+              <span class="tag">Most Common Foundation</span>
+              <h3>Porcelain Veneers</h3>
+              <p>
+                Porcelain veneers (thin custom shells bonded to the front of teeth) are Dr.
+                Richardson's specialty and the most common centerpiece of a smile makeover plan.
+                Vivid Smiles offers three prep levels:
+              </p>
+              <ul class="prep-list">
+                <li>
+                  <strong>Traditional veneers:</strong> Minimal enamel removal; considered permanent;
+                  20+ year lifespan
+                </li>
+                <li>
+                  <strong>Minimal-prep veneers:</strong> Less enamel reduction while preserving more natural
+                  tooth structure
+                </li>
+                <li>
+                  <strong>No-prep veneers:</strong> No enamel removal; reversible when candidacy allows
+                </li>
+              </ul>
+              <p>
+                Color, shape, and translucency are customized to your facial features, skin tone,
+                and preferences. The goal is results that enhance your existing smile, not overwrite
+                it.
+              </p>
+            </article>
+            <article class="compare-card">
+              <a
+                class="compare-card__stretch"
+                href="/cosmetic-dentistry/clear-aligners/"
+                aria-label="Learn more about Invisalign and clear aligners"></a>
+              <span class="tag">Alignment</span>
+              <h3>Invisalign and Orthodontic Alignment</h3>
+              <p>
+                Correcting tooth position before placing veneers typically produces cleaner,
+                longer-lasting results. Vivid Smiles offers Invisalign either as a preparatory step
+                or as a standalone cosmetic solution for patients whose primary concern is
+                alignment.
+              </p>
+            </article>
+            <article class="compare-card">
+              <a
+                class="compare-card__stretch"
+                href="/cosmetic-dentistry/teeth-whitening/"
+                aria-label="Learn more about Teeth Whitening"></a>
+              <span class="tag">Brightening</span>
+              <h3>Teeth Whitening</h3>
+              <p>
+                Professional KOR whitening reaches shades not achievable with at-home products and
+                can serve as a standalone solution or a prep step before veneers, delivering results
+                that hold for years rather than weeks.
+              </p>
+            </article>
+          </div>
+
+          <div class="cta-row">
+            <div class="cta-buttons">
+              <Button variant="sage" href="#consult" hoverLabel="Get a Video"
+                >Free Virtual Consult</Button
+              >
+              <Button variant="ghost" href="#faq" hoverLabel="See Answers">Read FAQ</Button>
+            </div>
+            <span class="cta-note">No commitment · Personal video reply</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- WHY-US (cream) — 2-card why-grid */}
+      <section class="section alt" id="why-us" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Why Vivid Smiles</span>
+            <h2>Why Patients Choose Vivid Smiles <em>for Smile Makeovers</em></h2>
+            <p>
+              Choosing a cosmetic dentist means trusting someone with results you'll live with every
+              day. At Vivid Smiles, Dr. Bryce Richardson personally guides every smile makeover —
+              from the first consultation through final placement — with the cosmetic training and
+              natural-results philosophy that shape every decision along the way.
+            </p>
+          </div>
+
+          <div class="why-grid">
+            <article class="why-card">
+              <div class="num">01</div>
+              <h3>Dr. Bryce Richardson's Cosmetic Dentistry Expertise</h3>
+              <p>
+                Dr. Richardson earned his DDS from Indiana University School of Dentistry, graduated
+                at the top of his class clinically, and has completed 600+ hours of specialized
+                esthetic and surgical training. He served on staff at Implant Pathway, one of the
+                country's most respected implant training facilities, and is a Parker resident and
+                active community member. His approach is consistent across every case: enhance your
+                natural features rather than replace them, working toward Vivid Smiles' goal of
+                becoming Colorado's leading cosmetic dental destination.
+              </p>
+            </article>
+
+            <article class="why-card">
+              <div class="num">02</div>
+              <h3>Advanced Technology for Predictable Results</h3>
+              <p>
+                Digital scanning eliminates traditional impressions, and in-house milling units and
+                3D printers reduce wait time on custom restorations. CBCT 3D imaging provides a
+                complete diagnostic picture before treatment begins, and digital smile design
+                connects the full technology stack to a preview you can see and refine. Every tool
+                at Vivid Smiles is selected for what it does for the patient: less time waiting,
+                more confidence in the outcome.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- COST (paper) — lasting-card with timeline stat + cost prose */}
+      <section class="section" id="cost" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Investment</span>
+            <h2>What to Expect: Smile Makeover <em>Timeline and Investment</em></h2>
+          </div>
+
+          <div class="lasting-card">
+            <div class="lasting-stat">
+              <div class="big">2 visits<em>– 12 mo</em></div>
+              <div class="label">Custom timeline based on your plan</div>
+            </div>
+            <div class="lasting-body">
+              <p>
+                Smile makeover timelines depend on which treatments are included. Veneer-focused
+                plans are typically completed in two to three visits over three to four weeks;
+                makeovers that incorporate Invisalign alignment may span six to twelve months. Dr.
+                Richardson provides a detailed, personalized timeline during the consultation based
+                on your specific goals.
+              </p>
+              <p>
+                For investment, cost reflects the scope of your plan. Vivid Smiles provides
+                transparent pricing and discusses financing options at the consultation, so there
+                are no surprises after you commit. Patients who are uninsured or looking for
+                additional cost flexibility may benefit from the practice's in-house dental
+                membership plan. Most cosmetic procedures are considered elective and are not
+                covered by dental insurance, though treatments that address both cosmetic and
+                functional concerns may qualify for partial coverage.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- RESULTS (cream) ---------- */}
+      <section class="section alt" id="results">
+        <div class="wrap">
+          <div class="section-head" data-vs-reveal>
+            <span class="eyebrow">Real Results</span>
+            <h2>Real Patient Results: <em>Finished Smile Makeovers</em></h2>
+            <p>
+              Vivid Smiles keeps a smile gallery of finished cases from real patients, and 300+
+              five-star Google reviews consistently describe results that look natural rather than
+              overdone. Reviewing real cases before your consultation gives you a concrete reference
+              point for discussing your own goals and helps set realistic expectations for what your
+              specific plan can achieve.
+            </p>
+            <div class="cta-row">
+              <div class="cta-buttons">
+                <Button variant="light" href="/smile-gallery/" hoverLabel="Open Gallery"
+                  >View the Smile Gallery</Button
+                >
+                <Button
+                  variant="ghost-light"
+                  href="/patient-testimonials/"
+                  hoverLabel="Read Stories">Patient Stories</Button
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="gallery-marquee" data-vs-marquee aria-label="Vivid Smiles smile gallery">
+          <div class="gallery-track" data-vs-marquee-track>
+            {
+              galleryTrack.map((t, i) => {
+                const isClone = i >= galleryTiles.length;
+                return (
+                  <div
+                    class="smile-tile"
+                    aria-hidden={isClone || undefined}
+                    inert={isClone || undefined}
+                  >
+                    <Image src={t.src} alt={t.alt} widths={[420, 640, 840]} sizes="420px" />
+                  </div>
+                );
+              })
+            }
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- FAQ (paper) — native details/summary, zero JS ---------- */}
+      <section class="section" id="faq" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">FAQ</span>
+            <h2>Frequently Asked Questions <em>About Smile Makeovers</em></h2>
+          </div>
+
+          <div class="faq-list">
+            {
+              faqs.map((f) => (
+                <details class="faq" open={f.open}>
+                  <summary>
+                    <>
+                      <h3>{f.q}</h3>
+                      <span class="icon" aria-hidden="true">
+                        +
+                      </span>
+                    </>
+                  </summary>
+                  <div class="answer" set:html={f.a} />
+                </details>
+              ))
+            }
+          </div>
+
+          <div class="pull">
+            <p>The goal is results that enhance your existing smile, not overwrite it.</p>
+          </div>
+
+          <div class="cta-row">
+            <div class="cta-buttons">
+              <Button variant="sage" href="#consult" hoverLabel="Get a Video"
+                >Still Have Questions? Free Virtual Consult</Button
+              >
+              <Button variant="ghost" href={phoneHref} hoverLabel="Tap to Dial"
+                >Call {phoneLabel}</Button
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {
+        /* ---------- VIRTUAL CONSULT — body slot carries the source MD's
+         italicized closing lead-in paragraph verbatim. */
+      }
+      <VirtualConsult id="consult" eyebrow="Free smile makeover consultation">
+        <Fragment slot="headline">Free smile makeover <em>consultation.</em></Fragment>
+        <Fragment slot="body">
+          If you have spent years wanting to fix your smile, the next step is a consultation, not a
+          commitment. At Vivid Smiles Dentistry, Dr. Richardson starts every smile makeover with a
+          comprehensive analysis and a digital preview so you can see exactly what your results will
+          look like before any treatment begins.
+        </Fragment>
+      </VirtualConsult>
+
+      {/* ---------- CLOSING BAND ---------- */}
+      <FinalBand>
+        <p>
+          Vivid Smiles is located in Parker, CO and has earned 300+ five-star Google reviews from
+          patients who wanted natural, lasting results and got them.
+        </p>
+      </FinalBand>
+    </main>
+
+    <script>
+      import { initTocSpy } from '../../scripts/toc-spy';
+      initTocSpy('.smilemakeover');
+    </script>
+
+    {/* JSON-LD structured data — service-page trio matching veneers / FMR. */}
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'MedicalProcedure',
+        name: 'Smile Makeover',
+        alternateName: [
+          'Cosmetic Smile Design',
+          'Custom Smile Makeover',
+          'Cosmetic Dentistry Plan',
+        ],
+        procedureType: 'https://schema.org/SurgicalProcedure',
+        bodyLocation: 'Teeth',
+        preparation:
+          'Comprehensive cosmetic analysis and a digital smile design preview before any treatment begins; specific preparation depends on the combination of procedures (veneers, Invisalign, whitening, bonding) included in the plan.',
+        howPerformed:
+          'Two or more cosmetic dental treatments are sequenced into a single coordinated plan. Most plans include porcelain veneers as the centerpiece and may add Invisalign alignment, professional whitening, and dental bonding as needed. Color, shape, and translucency are customized using digital smile design and refined with the patient before fabrication and placement.',
+        followup:
+          'Routine brushing, flossing, and dental visits; a nightguard is recommended for bruxism patients to protect veneers and other restorations.',
+        performer: {
+          '@type': 'Dentist',
+          name: 'Dr. Bryce Richardson',
+          worksFor: {
+            '@type': 'Dentist',
+            name: 'Vivid Smiles Dentistry',
+            address: {
+              '@type': 'PostalAddress',
+              streetAddress: addressStreet,
+              addressLocality: addressCity,
+              addressRegion: addressState,
+              postalCode: addressZip,
+              addressCountry: 'US',
+            },
+            telephone: phoneE164,
+          },
+        },
+      })}
+    />
+
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faqs.map((f) => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
+      })}
+    />
+
+    {
+      /* Breadcrumb URLs source the host from astro.config.mjs `site` and use
+        real site routes (matching the visible breadcrumb above). Trailing
+        slashes required because the site is configured `trailingSlash: 'always'`. */
+    }
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: new URL('/', Astro.site).href },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'Services',
+            item: new URL('/services/', Astro.site).href,
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: 'Cosmetic Dentistry',
+            item: new URL('/cosmetic-dentistry/', Astro.site).href,
+          },
+          {
+            '@type': 'ListItem',
+            position: 4,
+            name: 'Smile Makeover',
+            item: new URL('/cosmetic-dentistry/smile-makeover/', Astro.site).href,
+          },
+        ],
+      })}
+    />
+  </div>
+</BaseLayout>

@@ -1,0 +1,297 @@
+/*
+ * Vivid Smiles — Terms & Conditions page styles.
+ *
+ * Wrapper class: .terms
+ * Layout: full-width paper band with a two-column inner grid — a sticky
+ * vertical TOC sidebar on the left, prose on the right. Identical structure
+ * to /privacy-policy/, namespace-swapped (.privacy → .terms, .priv-* →
+ * .terms-*); the privacy page's `.priv-callout-lead` / `.priv-callout-list` /
+ * `.priv-mobile-notice` / `.priv-meta` blocks are dropped because the terms
+ * doc doesn't use those inline emphases.
+ *
+ * Companion page: src/pages/terms-conditions/index.astro.
+ *
+ * Reveals (data-vs-reveal) are wired by src/scripts/animations.js — this file
+ * is layout, color, and rhythm only.
+ */
+
+.terms {
+  --sage: var(--vs-sage);
+  --sage-deep: var(--vs-sage-deep);
+  --sage-soft: var(--vs-sage-soft);
+  --cream: var(--vs-cream);
+  --paper: var(--vs-paper);
+  --ink: var(--vs-ink);
+  --ink-soft: var(--vs-ink-soft);
+  --muted: var(--vs-muted);
+  --line: var(--vs-line);
+  --r-md: var(--vs-r-md);
+  --r-lg: var(--vs-r-lg);
+  --f-display: var(--vs-font-display);
+  --f-body: var(--vs-font-body);
+
+  /* Global nav height — read at runtime by the inline scroll-spy and used by
+     the scroll-margin-top calc below so TOC clicks land sections just under
+     the nav, not behind it. */
+  --nav-h: 77px;
+
+  background: var(--paper);
+}
+
+/* ---------- primitives (page-scoped) ---------- */
+.terms .wrap {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+.terms h1, .terms h2, .terms h3 {
+  font-family: var(--f-display);
+  color: var(--sage);
+  margin: 0;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+.terms p { margin: 0; color: var(--ink-soft); }
+
+/* Anchor scroll offset — clear the global nav when a TOC anchor is clicked. */
+.terms section[id] {
+  scroll-margin-top: calc(var(--nav-h) + 24px);
+}
+
+/* ---------- HERO ---------- */
+.terms .terms-hero {
+  background: var(--cream);
+  padding: 80px 0 70px;
+}
+.terms .terms-hero .vs-h1 {
+  margin: 18px 0 22px;
+  max-width: 18ch;
+  font-size: clamp(40px, 6vw, 72px);
+}
+.terms .terms-hero .vs-lede {
+  max-width: 64ch;
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+/* ---------- BODY GRID ---------- */
+.terms .terms-body { padding: 80px 0 90px; }
+.terms .terms-grid {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 80px;
+  align-items: start;
+}
+
+/* ---------- TOC (sticky sidebar) ---------- */
+.terms .terms-toc {
+  position: sticky;
+  top: calc(var(--nav-h) + 28px);
+  align-self: start;
+  /* Cap so a long TOC scrolls internally rather than running off the page. */
+  max-height: calc(100vh - var(--nav-h) - 56px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  padding-right: 8px;
+}
+.terms .terms-toc-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--f-body);
+  font-size: 10.5px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--sage);
+  font-weight: 500;
+  margin-bottom: 18px;
+}
+.terms .terms-toc-label::before {
+  content: "";
+  width: 22px;
+  height: 1px;
+  background: var(--sage);
+}
+.terms .terms-toc-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-left: 1px solid var(--line);
+}
+.terms .terms-toc-list a {
+  display: block;
+  padding: 8px 0 8px 16px;
+  margin-left: -1px;
+  border-left: 1px solid transparent;
+  font-family: var(--f-body);
+  font-size: 13.5px;
+  line-height: 1.4;
+  color: var(--ink-soft);
+  text-decoration: none;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+.terms .terms-toc-list a:hover {
+  color: var(--sage);
+}
+.terms .terms-toc-list a.active {
+  color: var(--sage);
+  border-left-color: var(--sage);
+  font-weight: 500;
+}
+
+/* ---------- PROSE COLUMN ---------- */
+.terms .terms-prose {
+  max-width: 70ch;
+}
+.terms .terms-prose > section {
+  padding-block: 28px;
+  border-bottom: 1px solid var(--line);
+}
+.terms .terms-prose > section:first-child { padding-top: 0; }
+.terms .terms-prose > section:last-child  { border-bottom: 0; }
+
+.terms .terms-prose h2.vs-h3 {
+  font-size: clamp(22px, 2.4vw, 28px);
+  color: var(--sage);
+  font-weight: 500;
+  margin: 0 0 16px;
+  letter-spacing: -0.005em;
+}
+.terms .terms-prose h3.terms-sub {
+  font-family: var(--f-body);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--sage-deep, var(--sage));
+  margin: 22px 0 10px;
+}
+.terms .terms-prose p {
+  font-family: var(--f-body);
+  font-size: 15.5px;
+  line-height: 1.75;
+  color: var(--ink-soft);
+  margin-top: 12px;
+}
+.terms .terms-prose p:first-child,
+.terms .terms-prose h3.terms-sub + p {
+  margin-top: 0;
+}
+
+/* Inline bullet lists ("Goods availability", "(i) You have the legal right…", etc.) */
+.terms .terms-defs {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.terms .terms-defs li {
+  position: relative;
+  padding-left: 22px;
+  font-family: var(--f-body);
+  font-size: 15.5px;
+  line-height: 1.7;
+  color: var(--ink-soft);
+}
+.terms .terms-defs li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.7em;
+  width: 12px;
+  height: 1px;
+  background: var(--sage);
+  opacity: 0.6;
+}
+.terms .terms-defs li strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* ---------- DEFINITION LIST (Section 1.B) ---------- */
+.terms .terms-dl {
+  margin: 14px 0 0;
+  display: grid;
+  grid-template-columns: minmax(180px, 240px) 1fr;
+  gap: 14px 28px;
+  align-items: baseline;
+}
+.terms .terms-dl dt {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: 15px;
+  color: var(--sage);
+  letter-spacing: -0.005em;
+}
+.terms .terms-dl dd {
+  margin: 0;
+  font-family: var(--f-body);
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--ink-soft);
+}
+
+/* ---------- CLOSING CONTACT ---------- */
+.terms .terms-contact {
+  text-align: left;
+}
+.terms .terms-contact p {
+  font-family: var(--f-display);
+  font-weight: 300;
+  font-size: clamp(18px, 2vw, 22px);
+  color: var(--ink);
+  line-height: 1.5;
+  letter-spacing: -0.005em;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 991px) {
+  .terms .wrap { padding: 0 28px; }
+  .terms .terms-hero { padding: 56px 0 48px; }
+  .terms .terms-hero .vs-h1 { font-size: clamp(36px, 8vw, 56px); }
+  .terms .terms-body { padding: 56px 0 64px; }
+
+  .terms .terms-grid {
+    grid-template-columns: 1fr;
+    gap: 36px;
+  }
+  .terms .terms-toc {
+    position: static;
+    max-height: none;
+    overflow-y: visible;
+    padding: 22px 24px;
+    border: 1px solid var(--line);
+    background: var(--cream);
+    border-radius: var(--r-lg);
+  }
+  .terms .terms-toc-list { border-left: 0; gap: 0; }
+  .terms .terms-toc-list li { border-top: 1px solid rgba(0, 0, 0, 0.06); }
+  .terms .terms-toc-list li:first-child { border-top: 0; }
+  .terms .terms-toc-list a { padding: 10px 0; margin-left: 0; }
+  .terms .terms-toc-list a.active { border-left-color: transparent; }
+  .terms .terms-prose { max-width: none; }
+  .terms .terms-dl {
+    grid-template-columns: 1fr;
+    gap: 4px 0;
+  }
+  .terms .terms-dl dt {
+    margin-top: 12px;
+  }
+  .terms .terms-dl dt:first-child { margin-top: 0; }
+}
+
+@media (max-width: 479px) {
+  .terms .wrap { padding: 0 20px; }
+}
+
+/* H2 base color → ink for sitewide split-color pattern.
+   Equal specificity (0,1,1) with the h1/h2/h3/h4 group rule above; comes later
+   in the cascade, so this wins for h2 only. h1/h3/h4 keep sage. Dark-band
+   `.section.alt h2 { color: #fff }` (0,2,1) still trumps. */
+.terms h2 { color: var(--vs-ink); }

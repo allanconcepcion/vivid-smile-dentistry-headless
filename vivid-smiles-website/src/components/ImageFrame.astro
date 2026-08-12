@@ -1,0 +1,85 @@
+---
+/**
+ * ImageFrame — primary 4:5 portrait + offset inset.
+ *
+ *   .vs-ph-a (top-left, 80% × 90%, --vs-r-xl, --vs-shadow)
+ *   .vs-ph-b (bottom-right, 55% × 60%, --vs-r-lg, --vs-shadow)
+ *
+ * Inset gets parallax on desktop via [data-vs-parallax]; opt out with the
+ * `noParallax` prop (sets data-vs-no-parallax).
+ *
+ * Pass the imported asset itself, NOT `.src`. This used to take a bare URL
+ * string and render a raw <img>, which meant every frame shipped its source
+ * at full resolution into a box that never exceeds ~562 CSS px — /about-us/
+ * alone was sending ~157KB more than it could use. Going through
+ * `astro:assets` gives these frames a srcset like everywhere else.
+ *
+ * Measured slot widths (1440 / 768 / 390): primary 409 / 562 / 268,
+ * inset 281 / 386 / 185 — the `widths` below cover those at DPR2.
+ *
+ * Usage:
+ *   import portrait from "../assets/images/team/dr-x.webp";
+ *   <ImageFrame
+ *     primary={{ src: portrait, alt: "Smiling patient" }}
+ *     inset={{ src: room, alt: "Clinical room" }}
+ *   />
+ *
+ *   Without images yet (placeholder mode):
+ *   <ImageFrame primary={{ alt: "primary" }} inset={{ alt: "inset" }} />
+ */
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+
+interface Img {
+  src?: ImageMetadata;
+  alt: string;
+}
+
+interface Props {
+  primary: Img;
+  inset: Img;
+  noParallax?: boolean;
+  class?: string;
+}
+
+const { primary, inset, noParallax = false, class: extra } = Astro.props;
+const cls = ['vs-frame', extra].filter(Boolean).join(' ');
+---
+
+<div class={cls} data-vs-reveal>
+  <div class="vs-ph-a">
+    {
+      primary.src ? (
+        <Image
+          src={primary.src}
+          alt={primary.alt}
+          widths={[400, 560, 820, 1124]}
+          sizes="(max-width: 991px) 80vw, 30vw"
+          loading="lazy"
+        />
+      ) : (
+        <div class="vs-img-placeholder">{primary.alt || 'primary 4×5'}</div>
+      )
+    }
+  </div>
+  <div
+    class="vs-ph-b"
+    data-vs-parallax
+    data-parallax="-40"
+    data-vs-no-parallax={noParallax ? '' : null}
+  >
+    {
+      inset.src ? (
+        <Image
+          src={inset.src}
+          alt={inset.alt}
+          widths={[280, 400, 560, 772]}
+          sizes="(max-width: 991px) 55vw, 20vw"
+          loading="lazy"
+        />
+      ) : (
+        <div class="vs-img-placeholder">{inset.alt || 'inset'}</div>
+      )
+    }
+  </div>
+</div>

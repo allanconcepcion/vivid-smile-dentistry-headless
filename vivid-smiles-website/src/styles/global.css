@@ -1,0 +1,755 @@
+/*
+ * Vivid Smiles — global resets + base typography + reusable utilities.
+ * Uses tokens from tokens.css. Mirrors the design system reference.
+ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  margin: 0;
+  font-family: var(--vs-font-body);
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.65;
+  color: var(--vs-ink-soft);
+  background-color: var(--vs-paper);
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Inline body-copy link — opt-in via class so structural anchors
+   (nav, buttons, cards) still inherit and stay un-underlined. */
+.vs-link {
+  color: var(--vs-ink);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--vs-sage) 60%, transparent);
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: 1px;
+  transition: color 200ms ease, text-decoration-color 200ms ease;
+}
+.vs-link:hover,
+.vs-link:focus-visible {
+  color: var(--vs-sage);
+  text-decoration-color: var(--vs-sage);
+}
+.vs-band-sage .vs-link {
+  color: var(--vs-paper);
+  text-decoration-color: rgba(255, 255, 255, 0.55);
+}
+.vs-band-sage .vs-link:hover,
+.vs-band-sage .vs-link:focus-visible {
+  color: var(--vs-cream);
+  text-decoration-color: var(--vs-cream);
+}
+
+/* ── Charcoal-green band .vs-link override ───────────────────────────
+   mirror of the Button.astro charcoal override. The default
+   `.vs-link` uses ink, which is invisible against `--vs-charcoal-green`.
+   Flip to `--vs-eyebrow-on-sage` (cream-tinted) inside any charcoal band.
+   Selector list mirrors `Button.astro` § Charcoal-green band override. */
+:is(
+  .services .section.alt,
+  .fmrehab .section.alt,
+  .gdent .section.alt,
+  .bna .section.alt,
+  .vs-office .section.alt,
+  .np .section.alt,
+  .singletooth .section.alt,
+  .rp .section.alt,
+  .caligners .section.alt,
+  .aus .section.alt,
+  .fmdi .section.alt,
+  .emerg .section.alt,
+  .bgraft .section.alt,
+  .aos4 .section.alt,
+  .cdent .section.alt,
+  .impd .section.alt,
+  .smilemakeover .section.alt,
+  .pveneers .section.alt,
+  .sinuslift .section.alt,
+  .gcontouring .section.alt,
+  .contact .section.alt,
+  .home .trust-card,
+  .home .process,
+  .home .stories,
+  .patient-testimonials .stories,
+  .cdlp-case--cream,
+  .caligners .hero,
+  .pveneers .hero,
+  .gcontouring .hero,
+  .smilemakeover .hero,
+  .fmrehab .hero,
+  .singletooth .hero,
+  .aos4 .hero,
+  .bgraft .hero,
+  .sinuslift .hero,
+  .fmdi .hero,
+  .bna .hero,
+  .vs-smile-gallery.bg-charcoal
+) .vs-link {
+  color: var(--vs-eyebrow-on-sage);
+  text-decoration-color: rgba(232, 234, 216, 0.5);
+}
+:is(
+  .services .section.alt,
+  .fmrehab .section.alt,
+  .gdent .section.alt,
+  .bna .section.alt,
+  .vs-office .section.alt,
+  .np .section.alt,
+  .singletooth .section.alt,
+  .rp .section.alt,
+  .caligners .section.alt,
+  .aus .section.alt,
+  .fmdi .section.alt,
+  .emerg .section.alt,
+  .bgraft .section.alt,
+  .aos4 .section.alt,
+  .cdent .section.alt,
+  .impd .section.alt,
+  .smilemakeover .section.alt,
+  .pveneers .section.alt,
+  .sinuslift .section.alt,
+  .gcontouring .section.alt,
+  .contact .section.alt,
+  .home .trust-card,
+  .home .process,
+  .home .stories,
+  .patient-testimonials .stories,
+  .cdlp-case--cream,
+  .caligners .hero,
+  .pveneers .hero,
+  .gcontouring .hero,
+  .smilemakeover .hero,
+  .fmrehab .hero,
+  .singletooth .hero,
+  .aos4 .hero,
+  .bgraft .hero,
+  .sinuslift .hero,
+  .fmdi .hero,
+  .bna .hero,
+  .vs-smile-gallery.bg-charcoal
+) .vs-link:hover,
+:is(
+  .services .section.alt,
+  .fmrehab .section.alt,
+  .gdent .section.alt,
+  .bna .section.alt,
+  .vs-office .section.alt,
+  .np .section.alt,
+  .singletooth .section.alt,
+  .rp .section.alt,
+  .caligners .section.alt,
+  .aus .section.alt,
+  .fmdi .section.alt,
+  .emerg .section.alt,
+  .bgraft .section.alt,
+  .aos4 .section.alt,
+  .cdent .section.alt,
+  .impd .section.alt,
+  .smilemakeover .section.alt,
+  .pveneers .section.alt,
+  .sinuslift .section.alt,
+  .gcontouring .section.alt,
+  .contact .section.alt,
+  .home .trust-card,
+  .home .process,
+  .home .stories,
+  .patient-testimonials .stories,
+  .cdlp-case--cream,
+  .caligners .hero,
+  .pveneers .hero,
+  .gcontouring .hero,
+  .smilemakeover .hero,
+  .fmrehab .hero,
+  .singletooth .hero,
+  .aos4 .hero,
+  .bgraft .hero,
+  .sinuslift .hero,
+  .fmdi .hero,
+  .bna .hero,
+  .vs-smile-gallery.bg-charcoal
+) .vs-link:focus-visible {
+  color: #fff;
+  text-decoration-color: #fff;
+}
+
+/* ──  — sitewide white-card text-color rescue ─────────────────
+   Per-page rules like `.<ns> .section.alt p { color: rgba(255,255,255,.85) }`
+   and `.<ns> .section.alt h1-h4 { color: #fff }` sit at specificity (0,3,1)
+   because `.section.alt` is a compound class selector. When a white card
+   (background: var(--vs-paper)) renders INSIDE `.section.alt` or
+   `.vs-band-sage`, those rules cascade in and paint the card's text
+   white-on-white. This regression has been flagged repeatedly.
+
+   The override below re-asserts ink colors inside known white-card
+   containers. Specificity is forced to (0,5,1) via the doubled-class trick
+   inside each `:is` member (e.g. `.stat-card.stat-card`), so it wins over
+   every per-page (0,3,1) rule regardless of source order or namespace.
+
+   `.vs-pricing-tier--highlight` is intentionally excluded — sage card with
+   white text is by design (PricingTiers centerpiece tier).
+
+   To extend: add the new white-card class (with `.X.X` dupe) to all three
+   `:is` card-lists below. Sage-on-X variants get a modifier and a `:not`
+   exclusion just like `--highlight`. */
+:is(.section.alt, .vs-band-sage) :is(
+  .stat-card.stat-card,
+  .tech-card.tech-card,
+  .pgrid-card.pgrid-card,
+  .faq-list.faq-list,
+  .why-card.why-card,
+  .why-4up-card.why-4up-card,
+  .candidacy-sub.candidacy-sub,
+  .config-card.config-card,
+  .cause-card.cause-card,
+  .robotics-callout.robotics-callout,
+  .reward-card.reward-card,
+  .vs-cred-badge.vs-cred-badge,
+  .compare-card.compare-card.featured,
+  .vs-pricing-tier.vs-pricing-tier:not(.vs-pricing-tier--highlight)
+) :is(h1, h2, h3, h4) {
+  color: var(--vs-ink);
+}
+
+:is(.section.alt, .vs-band-sage) :is(
+  .stat-card.stat-card,
+  .tech-card.tech-card,
+  .pgrid-card.pgrid-card,
+  .faq-list.faq-list,
+  .why-card.why-card,
+  .why-4up-card.why-4up-card,
+  .candidacy-sub.candidacy-sub,
+  .config-card.config-card,
+  .cause-card.cause-card,
+  .robotics-callout.robotics-callout,
+  .reward-card.reward-card,
+  .vs-cred-badge.vs-cred-badge,
+  .compare-card.compare-card.featured,
+  .vs-pricing-tier.vs-pricing-tier:not(.vs-pricing-tier--highlight)
+) :is(p, li) {
+  color: var(--vs-ink-soft);
+}
+
+:is(.section.alt, .vs-band-sage) :is(
+  .stat-card.stat-card,
+  .tech-card.tech-card,
+  .pgrid-card.pgrid-card,
+  .faq-list.faq-list,
+  .why-card.why-card,
+  .why-4up-card.why-4up-card,
+  .candidacy-sub.candidacy-sub,
+  .config-card.config-card,
+  .cause-card.cause-card,
+  .robotics-callout.robotics-callout,
+  .reward-card.reward-card,
+  .vs-cred-badge.vs-cred-badge,
+  .compare-card.compare-card.featured,
+  .vs-pricing-tier.vs-pricing-tier:not(.vs-pricing-tier--highlight)
+) em {
+  color: var(--vs-sage-soft);
+}
+
+/* extend the white-card rescue to `.vs-link`.
+   Inline links inside white cards inherit the charcoal-band override at
+   lines 67–189 above (`.section.alt .vs-link { color: var(--vs-eyebrow-on-sage) }`),
+   which makes them invisible on white card backgrounds. Re-assert ink + the
+   default sage underline. Doubled-class trick mirrors specificity.
+
+   Outer band-host `:is` list MIRRORS the charcoal `.vs-link`
+   override (lines 67–104). Any host listed there can also wrap a white-card
+   class — so each must rescue too. Keep these lists in lockstep. */
+:is(
+  .services .section.alt,
+  .fmrehab .section.alt,
+  .gdent .section.alt,
+  .bna .section.alt,
+  .vs-office .section.alt,
+  .np .section.alt,
+  .singletooth .section.alt,
+  .rp .section.alt,
+  .caligners .section.alt,
+  .aus .section.alt,
+  .fmdi .section.alt,
+  .emerg .section.alt,
+  .bgraft .section.alt,
+  .aos4 .section.alt,
+  .cdent .section.alt,
+  .impd .section.alt,
+  .smilemakeover .section.alt,
+  .pveneers .section.alt,
+  .sinuslift .section.alt,
+  .gcontouring .section.alt,
+  .contact .section.alt,
+  .home .trust-card,
+  .home .process,
+  .home .stories,
+  .patient-testimonials .stories,
+  .cdlp-case--cream,
+  .caligners .hero,
+  .pveneers .hero,
+  .gcontouring .hero,
+  .smilemakeover .hero,
+  .fmrehab .hero,
+  .singletooth .hero,
+  .aos4 .hero,
+  .bgraft .hero,
+  .sinuslift .hero,
+  .fmdi .hero,
+  .bna .hero,
+  .vs-smile-gallery.bg-charcoal,
+  .vs-band-sage
+) :is(
+  .stat-card.stat-card,
+  .tech-card.tech-card,
+  .pgrid-card.pgrid-card,
+  .faq-list.faq-list,
+  .why-card.why-card,
+  .why-4up-card.why-4up-card,
+  .candidacy-sub.candidacy-sub,
+  .config-card.config-card,
+  .cause-card.cause-card,
+  .robotics-callout.robotics-callout,
+  .reward-card.reward-card,
+  .vs-cred-badge.vs-cred-badge,
+  .compare-card.compare-card.featured,
+  .vs-pricing-tier.vs-pricing-tier:not(.vs-pricing-tier--highlight)
+) .vs-link {
+  color: var(--vs-ink);
+  text-decoration-color: color-mix(in oklab, var(--vs-sage) 60%, transparent);
+}
+:is(
+  .services .section.alt,
+  .fmrehab .section.alt,
+  .gdent .section.alt,
+  .bna .section.alt,
+  .vs-office .section.alt,
+  .np .section.alt,
+  .singletooth .section.alt,
+  .rp .section.alt,
+  .caligners .section.alt,
+  .aus .section.alt,
+  .fmdi .section.alt,
+  .emerg .section.alt,
+  .bgraft .section.alt,
+  .aos4 .section.alt,
+  .cdent .section.alt,
+  .impd .section.alt,
+  .smilemakeover .section.alt,
+  .pveneers .section.alt,
+  .sinuslift .section.alt,
+  .gcontouring .section.alt,
+  .contact .section.alt,
+  .home .trust-card,
+  .home .process,
+  .home .stories,
+  .patient-testimonials .stories,
+  .cdlp-case--cream,
+  .caligners .hero,
+  .pveneers .hero,
+  .gcontouring .hero,
+  .smilemakeover .hero,
+  .fmrehab .hero,
+  .singletooth .hero,
+  .aos4 .hero,
+  .bgraft .hero,
+  .sinuslift .hero,
+  .fmdi .hero,
+  .bna .hero,
+  .vs-smile-gallery.bg-charcoal,
+  .vs-band-sage
+) :is(
+  .stat-card.stat-card,
+  .tech-card.tech-card,
+  .pgrid-card.pgrid-card,
+  .faq-list.faq-list,
+  .why-card.why-card,
+  .why-4up-card.why-4up-card,
+  .candidacy-sub.candidacy-sub,
+  .config-card.config-card,
+  .cause-card.cause-card,
+  .robotics-callout.robotics-callout,
+  .reward-card.reward-card,
+  .vs-cred-badge.vs-cred-badge,
+  .compare-card.compare-card.featured,
+  .vs-pricing-tier.vs-pricing-tier:not(.vs-pricing-tier--highlight)
+) .vs-link:hover,
+:is(
+  .services .section.alt,
+  .fmrehab .section.alt,
+  .gdent .section.alt,
+  .bna .section.alt,
+  .vs-office .section.alt,
+  .np .section.alt,
+  .singletooth .section.alt,
+  .rp .section.alt,
+  .caligners .section.alt,
+  .aus .section.alt,
+  .fmdi .section.alt,
+  .emerg .section.alt,
+  .bgraft .section.alt,
+  .aos4 .section.alt,
+  .cdent .section.alt,
+  .impd .section.alt,
+  .smilemakeover .section.alt,
+  .pveneers .section.alt,
+  .sinuslift .section.alt,
+  .gcontouring .section.alt,
+  .contact .section.alt,
+  .home .trust-card,
+  .home .process,
+  .home .stories,
+  .patient-testimonials .stories,
+  .cdlp-case--cream,
+  .caligners .hero,
+  .pveneers .hero,
+  .gcontouring .hero,
+  .smilemakeover .hero,
+  .fmrehab .hero,
+  .singletooth .hero,
+  .aos4 .hero,
+  .bgraft .hero,
+  .sinuslift .hero,
+  .fmdi .hero,
+  .bna .hero,
+  .vs-smile-gallery.bg-charcoal,
+  .vs-band-sage
+) :is(
+  .stat-card.stat-card,
+  .tech-card.tech-card,
+  .pgrid-card.pgrid-card,
+  .faq-list.faq-list,
+  .why-card.why-card,
+  .why-4up-card.why-4up-card,
+  .candidacy-sub.candidacy-sub,
+  .config-card.config-card,
+  .cause-card.cause-card,
+  .robotics-callout.robotics-callout,
+  .reward-card.reward-card,
+  .vs-cred-badge.vs-cred-badge,
+  .compare-card.compare-card.featured,
+  .vs-pricing-tier.vs-pricing-tier:not(.vs-pricing-tier--highlight)
+) .vs-link:focus-visible {
+  color: var(--vs-sage);
+  text-decoration-color: var(--vs-sage);
+}
+
+img,
+picture,
+video,
+svg {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+ul,
+ol {
+  margin: 0;
+  padding: 0;
+}
+
+/* === Typography classes (apply to elements directly, not via h1/h2/h3 to avoid SEO coupling) === */
+
+.vs-h1 {
+  font-family: var(--vs-font-display);
+  font-weight: 300;
+  font-size: var(--vs-h1-size);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--vs-sage);
+  margin: 0;
+}
+
+.vs-h2 {
+  font-family: var(--vs-font-display);
+  font-weight: 400;
+  font-size: var(--vs-h2-size);
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  color: var(--vs-ink);
+  margin: 0;
+}
+.vs-band-sage .vs-h2 { color: var(--vs-paper); }
+
+.vs-h3 {
+  font-family: var(--vs-font-display);
+  font-weight: 500;
+  font-size: var(--vs-h3-size);
+  line-height: 1.3;
+  color: var(--vs-sage);
+  margin: 0;
+}
+
+.vs-display-num {
+  font-family: var(--vs-font-display);
+  font-weight: 300;
+  font-size: var(--vs-display-num-size);
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--vs-sage);
+}
+
+.vs-lede {
+  font-family: var(--vs-font-body);
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 1.55;
+  color: var(--vs-ink-soft);
+}
+
+.vs-body-text {
+  font-family: var(--vs-font-body);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.65;
+  color: var(--vs-ink-soft);
+}
+
+/* Italic emphasis word — H1/H2 only, single instance per heading */
+.vs-italic-word {
+  font-style: italic;
+  color: var(--vs-sage-soft);
+  font-weight: inherit;
+}
+.vs-band-sage .vs-italic-word {
+  color: var(--vs-cream);
+}
+
+/* === Eyebrow === */
+
+.vs-eyebrow {
+  font-family: var(--vs-font-body);
+  font-weight: 500;
+  font-size: 12px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--vs-muted);
+}
+.vs-eyebrow.vs-center {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--vs-sage);
+}
+.vs-eyebrow.vs-center::before,
+.vs-eyebrow.vs-center::after {
+  content: "";
+  width: 28px;
+  height: 1px;
+  background: var(--vs-sage);
+}
+.vs-band-sage .vs-eyebrow {
+  color: rgba(255, 255, 255, 0.7);
+}
+.vs-band-sage .vs-eyebrow.vs-center {
+  color: rgba(255, 255, 255, 0.85);
+}
+.vs-band-sage .vs-eyebrow.vs-center::before,
+.vs-band-sage .vs-eyebrow.vs-center::after {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+/* === Skip link — visible only when focused === */
+.vs-skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 1000;
+  background: var(--vs-sage);
+  color: var(--vs-paper);
+  font-family: var(--vs-font-display);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 10px 16px;
+  border-radius: var(--vs-r-md);
+  text-decoration: none;
+  transform: translateY(-200%);
+  transition: transform 200ms ease;
+}
+.vs-skip-link:focus {
+  transform: translateY(0);
+  outline: 2px solid var(--vs-paper);
+  outline-offset: 2px;
+}
+
+/* === Container utility — used by every band === */
+.vs-container {
+  max-width: var(--vs-container-max);
+  margin-inline: auto;
+  padding-inline: 40px;
+}
+
+@media (max-width: 991px) {
+  .vs-container {
+    padding-inline: 32px;
+  }
+}
+
+@media (max-width: 479px) {
+  .vs-container {
+    padding-inline: 20px;
+  }
+}
+
+/* === Bands === */
+.vs-band-paper {
+  background-color: var(--vs-paper);
+}
+.vs-band-cream {
+  background-color: var(--vs-cream);
+}
+.vs-band-sage {
+  background-color: var(--vs-sage);
+  color: var(--vs-paper);
+}
+.vs-band-sage .vs-h1,
+.vs-band-sage .vs-h2,
+.vs-band-sage .vs-h3 {
+  color: var(--vs-paper);
+}
+.vs-band-sage .vs-lede,
+.vs-band-sage .vs-body-text {
+  color: rgba(255, 255, 255, 0.84);
+}
+
+/* Pad every section consistently */
+section {
+  padding-block: var(--vs-section-pad);
+}
+
+/* === Section intro triad — eyebrow → H2 → lede → button === */
+.vs-intro-triad {
+  display: grid;
+  gap: 18px;
+  max-width: 860px;
+}
+.vs-intro-triad .vs-lede {
+  max-width: 60ch;
+}
+
+/* === Image frame — primary + offset inset, 4:5 portrait === */
+.vs-frame {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 5;
+}
+.vs-frame .vs-ph-a {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 80%;
+  height: 90%;
+  z-index: 1;
+  border-radius: var(--vs-r-xl);
+  overflow: hidden;
+  box-shadow: var(--vs-shadow);
+}
+.vs-frame .vs-ph-b {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 55%;
+  height: 60%;
+  z-index: 2;
+  border-radius: var(--vs-r-lg);
+  overflow: hidden;
+  box-shadow: var(--vs-shadow);
+}
+.vs-frame img,
+.vs-frame .vs-img-placeholder {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.vs-frame .vs-img-placeholder {
+  background: repeating-linear-gradient(
+    -45deg,
+    #e8e5de 0,
+    #e8e5de 2px,
+    #f0ede6 2px,
+    #f0ede6 12px
+  );
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: ui-monospace, monospace;
+  font-size: 11px;
+  color: var(--vs-muted);
+  text-align: center;
+  padding: 12px;
+  line-height: 1.4;
+}
+.vs-frame .vs-ph-a img {
+  transition: transform var(--vs-dur-image) ease;
+}
+.vs-frame:hover .vs-ph-a img {
+  transform: scale(1.02);
+}
+
+/* === Grid utilities (shared across cards) === */
+.vs-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+}
+.vs-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 24px;
+}
+.vs-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+}
+@media (max-width: 991px) {
+  .vs-grid-3,
+  .vs-grid-4 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 600px) {
+  .vs-grid-2,
+  .vs-grid-3,
+  .vs-grid-4 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Cross-origin Typeform iframes swallow wheel events. While the page is
+   actively scrolling (Lenis's own class, or our wheel-state class set in
+   src/scripts/lenis.js), the iframe is pointer-events:none so wheels pass
+   through. Single rule keyed on [data-vs-lenis-passthrough] — every form
+   wrapper that needs this opts in by setting the attribute. */
+html.lenis-scrolling [data-vs-lenis-passthrough] iframe,
+html.lenis-scrolling [data-vs-lenis-passthrough] > div[data-tf-live],
+html.vs-wheel-active [data-vs-lenis-passthrough] iframe,
+html.vs-wheel-active [data-vs-lenis-passthrough] > div[data-tf-live] {
+  pointer-events: none;
+}

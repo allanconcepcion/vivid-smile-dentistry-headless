@@ -1,0 +1,309 @@
+---
+import { Image, getImage } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Button from '../../components/Button.astro';
+import VirtualConsult from '../../components/VirtualConsult.astro';
+import { bookNowHref } from '../../data/contact';
+import { smiles } from '../../lib/smiles';
+import '../../styles/pages/smile-gallery.css';
+
+// Editorial pick, deliberately NOT from smiles/. That folder auto-publishes
+// into the grid below, so a hero drawn from it would put the same photograph
+// on this page twice.
+import heroImg from '../../assets/images/procedures/smile-three-quarter-glossy-lip.webp';
+
+/*
+ * Photo-only catalog of finished work. Tiles deliberately carry NO treatment
+ * metadata — no service label, case title, or clinical summary — so nothing on
+ * this page ties a named procedure to an identifiable patient. The page renders
+ * straight off the central loader, which means a new webp dropped into
+ * src/assets/images/smiles/ appears here and in every marquee with no per-page
+ * list to keep in sync. Order is the numeric filename prefix, so sequencing is
+ * changed by renaming a file rather than by editing this page.
+ *
+ * replaces the /before-and-afters/ catalog, which is parked unrouted
+ * at an archived copy pending new before/after pairs.
+ */
+const cases = smiles.map((s, i) => ({ ...s, num: String(i + 1).padStart(2, '0') }));
+
+// Lightbox-resolution derivative — fetched on click. The card grid uses
+// 420/640/840-wide variants; opening the lightbox without this would refetch
+// the unoptimized original (~2-3 MB per click).
+const lightboxSrcs = await Promise.all(
+  cases.map((c) => getImage({ src: c.src, width: 1280, format: 'webp' }).then((g) => g.src)),
+);
+---
+
+<BaseLayout
+  title="Smile Gallery — Vivid Smiles Dentistry · Parker, CO"
+  description="Finished smiles from Dr. Bryce Richardson at Vivid Smiles Dentistry in Parker, CO. Porcelain veneers, smile makeovers and full-arch restorations, photographed up close."
+>
+  <div class="sgal">
+    {/* ---------- BREADCRUMB ---------- */}
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <div class="crumbs-inner">
+        <a href="/">Home</a>
+        <span class="sep">/</span>
+        <a href="/about-us/">About Us</a>
+        <span class="sep">/</span>
+        <span class="here">Smile Gallery</span>
+      </div>
+    </nav>
+
+    <main id="main">
+      {/* ---------- HERO ---------- */}
+      <header class="hero" data-vs-reveal-batch>
+        <div class="hero-inner">
+          <div class="hero-copy">
+            <span class="eyebrow">Smile Gallery · Real Patients</span>
+            <h1 data-vs-reveal-lines>
+              Finished smiles, <em class="vs-italic-word">up close.</em>
+            </h1>
+            <p class="hero-sub">
+              A working portfolio of the cosmetic and restorative work that leaves Dr. Bryce
+              Richardson's chair. Every smile here belongs to a Vivid Smiles patient, photographed
+              in our Parker office.
+            </p>
+            <div class="hero-actions">
+              <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button
+              >
+              <Button variant="ghost-light" href="#consult" hoverLabel="Get a Video"
+                >Free Virtual Consult</Button
+              >
+              <div class="ratings">
+                <span class="stars" aria-hidden="true">★★★★★</span>
+                <span>5.0 · 300+ reviews</span>
+              </div>
+            </div>
+          </div>
+          <div class="hero-img" data-vs-reveal>
+            <Image
+              src={heroImg}
+              alt="Close-up photograph of a Vivid Smiles patient smiling, three-quarter view"
+              widths={[600, 900, 1300]}
+              sizes="(max-width: 991px) 100vw, 45vw"
+              loading="eager"
+              fetchpriority="high"
+            />
+          </div>
+        </div>
+      </header>
+
+      {/* ---------- GALLERY ---------- */}
+      <section class="section" id="gallery">
+        <div class="wrap">
+          <div class="section-head" data-vs-reveal>
+            <span class="eyebrow">The Portfolio</span>
+            <h2>Every smile, built like <em>a signature piece.</em></h2>
+            <p>
+              These are the smiles we have made, up close and unhurried, the way they look when the
+              work is done. Click any photo to see it full-size.
+            </p>
+          </div>
+
+          <div class="gallery-meta" data-vs-reveal>
+            <div class="count">
+              <b>{cases.length}</b>
+              <small>Smiles shown</small>
+            </div>
+            <div class="legend">
+              <span class="dot">By Dr. Bryce Richardson</span>
+            </div>
+          </div>
+
+          <div class="gallery-grid" id="galleryGrid" data-vs-reveal-batch>
+            {
+              cases.map((c, i) => (
+                <button
+                  class="case-card"
+                  type="button"
+                  data-case={c.num}
+                  data-img={lightboxSrcs[i]}
+                  aria-label={`Open photo ${c.num} full size`}
+                >
+                  <div class="case-pic">
+                    <Image
+                      src={c.src}
+                      alt={c.alt}
+                      widths={[420, 640, 840]}
+                      sizes="(max-width: 780px) 100vw, (max-width: 1100px) 50vw, 33vw"
+                      loading="lazy"
+                    />
+                    <span class="zoom" aria-hidden="true">
+                      ＋
+                    </span>
+                  </div>
+                </button>
+              ))
+            }
+          </div>
+
+          <p class="disclosure">
+            Individual results vary. Treatment recommendations always follow an in-person
+            consultation and clinical exam.
+          </p>
+        </div>
+      </section>
+
+      {/* ---------- VIRTUAL CONSULT — closing conversion ---------- */}
+      <VirtualConsult id="consult" eyebrow="Begin Your Case" background="cream">
+        <Fragment slot="headline">Your smile <em>could be next.</em></Fragment>
+        <Fragment slot="body">
+          Every smile in the gallery above started with one conversation. Skip the office visit and
+          Dr. Richardson personally records a custom video reviewing your smile, the changes you're
+          imagining, and what's possible, all from photos you submit below.
+        </Fragment>
+      </VirtualConsult>
+    </main>
+
+    {/* ---------- LIGHTBOX MODAL — populated dynamically by the script below ---------- */}
+    <div
+      class="lightbox"
+      id="lightbox"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="lbCaseNo"
+      aria-hidden="true"
+    >
+      <div class="lightbox-card">
+        <div class="lightbox-head">
+          <div class="head-meta">
+            <span class="case-no" id="lbCaseNo">Smile 01</span>
+          </div>
+          <button class="lightbox-close" id="lbClose" aria-label="Close" type="button">✕</button>
+        </div>
+        <div class="lightbox-img">
+          <img id="lbImg" src="" alt="Close-up photograph of a Vivid Smiles patient smiling" />
+        </div>
+        <div class="lightbox-foot">
+          <div class="nav-pair">
+            <button id="lbPrev" type="button">← Prev</button>
+            <button id="lbNext" type="button">Next →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {/* ---------- LIGHTBOX SCRIPT ---------- */}
+    <script>
+      (function () {
+        const grid = document.getElementById('galleryGrid');
+        if (!grid) return;
+        const cards = Array.from(grid.querySelectorAll<HTMLButtonElement>('.case-card'));
+
+        const lb = document.getElementById('lightbox');
+        const lbImg = document.getElementById('lbImg') as HTMLImageElement | null;
+        const lbCaseNo = document.getElementById('lbCaseNo');
+        const lbClose = document.getElementById('lbClose');
+        const lbPrev = document.getElementById('lbPrev');
+        const lbNext = document.getElementById('lbNext');
+        if (!lb || !lbImg || !lbCaseNo || !lbClose || !lbPrev || !lbNext) return;
+
+        let currentIdx = 0;
+        let lastFocus: HTMLElement | null = null;
+
+        function renderCase() {
+          if (!cards.length) return;
+          const card = cards[currentIdx];
+          const d = card.dataset;
+          lbImg!.src = d.img || '';
+          // Reuse the tile's own alt so the lightbox never asserts a treatment
+          // about an identifiable patient.
+          lbImg!.alt =
+            card.querySelector('img')?.alt ||
+            'Close-up photograph of a Vivid Smiles patient smiling';
+          lbCaseNo!.textContent = 'Smile ' + (d.case || '');
+        }
+
+        function openCase(card: HTMLButtonElement) {
+          currentIdx = Math.max(0, cards.indexOf(card));
+          renderCase();
+          lastFocus = document.activeElement as HTMLElement | null;
+          lb!.classList.add('show');
+          // aria-modal alone does not stop Tab reaching the covered page —
+          // without this the 9 grid buttons behind the overlay stay focusable.
+          document.querySelectorAll('main, nav.crumbs').forEach((el) => el.setAttribute('inert', ''));
+          lb!.setAttribute('aria-hidden', 'false');
+          document.body.style.overflow = 'hidden';
+          requestAnimationFrame(() => lbClose!.focus());
+        }
+
+        function closeLb() {
+          lb!.classList.remove('show');
+          document.querySelectorAll('main, nav.crumbs').forEach((el) => el.removeAttribute('inert'));
+          lb!.setAttribute('aria-hidden', 'true');
+          document.body.style.overflow = '';
+          lastFocus?.focus();
+        }
+
+        function step(n: number) {
+          if (!cards.length) return;
+          currentIdx = (currentIdx + n + cards.length) % cards.length;
+          renderCase();
+        }
+
+        cards.forEach((card) => {
+          card.addEventListener('click', () => openCase(card));
+        });
+
+        lbClose.addEventListener('click', closeLb);
+        lbPrev.addEventListener('click', () => step(-1));
+        lbNext.addEventListener('click', () => step(1));
+        lb.addEventListener('click', (e) => {
+          if (e.target === lb) closeLb();
+        });
+        document.addEventListener('keydown', (e) => {
+          if (!lb!.classList.contains('show')) return;
+          if (e.key === 'Escape') closeLb();
+          else if (e.key === 'ArrowRight') step(1);
+          else if (e.key === 'ArrowLeft') step(-1);
+        });
+      })();
+    </script>
+
+    {/* ---------- JSON-LD: BreadcrumbList ---------- */}
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: new URL('/', Astro.site).href },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'About Us',
+            item: new URL('/about-us/', Astro.site).href,
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: 'Smile Gallery',
+            item: new URL('/smile-gallery/', Astro.site).href,
+          },
+        ],
+      })}
+    />
+
+    {/* ---------- JSON-LD: ImageGallery ---------- */}
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'ImageGallery',
+        name: 'Vivid Smiles Dentistry — Smile Gallery',
+        description:
+          'Finished smiles from Dr. Bryce Richardson at Vivid Smiles Dentistry in Parker, CO.',
+        url: new URL('/smile-gallery/', Astro.site).href,
+        image: cases.map((c) => ({
+          '@type': 'ImageObject',
+          contentUrl: new URL(c.src.src, Astro.site).href,
+          caption: c.alt,
+          creditText: 'Dr. Bryce Richardson, Vivid Smiles Dentistry',
+        })),
+      })}
+    />
+  </div>
+</BaseLayout>

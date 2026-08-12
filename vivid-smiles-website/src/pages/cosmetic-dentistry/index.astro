@@ -1,0 +1,894 @@
+---
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Button from '../../components/Button.astro';
+import ArrowBadge from '../../components/ArrowBadge.astro';
+import VirtualConsult from '../../components/VirtualConsult.astro';
+import FinalBand from '../../components/FinalBand.astro';
+import { getSmiles } from '../../lib/smiles';
+import {
+  phoneHref,
+  phoneLabel,
+  phoneE164,
+  bookNowHref,
+  addressStreet,
+  addressCity,
+  addressState,
+  addressZip,
+  addressLine,
+  directionsHref,
+} from '../../data/contact';
+import '../../styles/pages/cosmetic-dentistry.css';
+
+// Hero — Ann Marie Muscarello veneer-makeover portrait.
+import imgHero from '../../assets/images/people/real/woman-neon-smile-portrait.webp';
+// DSD section image — a finished-smile macro standing in for the outcome that
+// digital smile design previews before treatment.
+import imgDsd from '../../assets/images/procedures/smile-macro-tilted-warm.webp';
+// Formal Dr. Bryce portrait used in the doctor-feature section below — that's
+// a legitimate doctor slot, file stays in place.
+import imgDrBryce from '../../assets/images/team/dr-bryce-richardson.webp';
+// Pre-cropped headshot of Dr. Annie for the inline thumbnail beside the
+// "Also at the practice" eyebrow. Squarish source means object-fit: cover
+// alone does the right thing — no CSS zoom hacks needed.
+import imgDrAnnie from '../../assets/images/team/dr-annie-thumbnail.webp';
+
+import imgVeneers from '../../assets/images/procedures/veneer-application-brush-front-closeup.webp';
+import imgAligners from '../../assets/images/people/generated/clear-aligners.webp';
+import imgWhitening from '../../assets/images/people/real/man-bearded-natural-smile.webp';
+import imgGum from '../../assets/images/procedures/smile-macro-front-view.webp';
+import imgMakeover from '../../assets/images/people/real/woman-radiant-smile-green-dress.webp';
+import imgFullMouth from '../../assets/images/procedures/implant-prosthesis-arch-detail.webp';
+
+// Duplicate the track for seamless CSS infinite scroll.
+const galleryTiles = getSmiles();
+const galleryTrack = [...galleryTiles, ...galleryTiles];
+
+const services = [
+  {
+    href: '/cosmetic-dentistry/porcelain-veneers/',
+    img: imgVeneers,
+    alt: 'Close-up of a porcelain veneer being placed',
+    title: 'Porcelain Veneers',
+    desc: 'Custom porcelain shells (coverings bonded to the front of teeth) that correct hue, shape, size, and minor alignment. Options range from traditional to no-prep, with varying levels of permanence.',
+  },
+  {
+    href: '/cosmetic-dentistry/clear-aligners/',
+    img: imgAligners,
+    alt: 'Clear aligner trays',
+    title: 'Clear Aligners',
+    desc: 'Straighten teeth using a series of removable trays. A strong option when alignment is the primary concern and the patient wants a reversible, non-invasive path.',
+  },
+  {
+    href: '/cosmetic-dentistry/teeth-whitening/',
+    img: imgWhitening,
+    alt: 'Smiling man photographed at the Vivid Smiles Dentistry neon smile wall in Parker, CO',
+    title: 'Teeth Whitening',
+    desc: 'Professional-grade whitening that delivers results that over-the-counter products cannot match, with in-office and take-home options for ongoing maintenance.',
+  },
+  {
+    href: '/cosmetic-dentistry/gum-contouring/',
+    img: imgGum,
+    alt: 'Front-on close-up of a smile showing the gumline and tooth proportions',
+    title: 'Gum Contouring',
+    desc: 'Reshapes an uneven or excessive gumline to improve smile symmetry.',
+  },
+  {
+    href: '/cosmetic-dentistry/smile-makeover/',
+    img: imgMakeover,
+    alt: 'Smiling woman in a green dress photographed at the Vivid Smiles Dentistry neon smile wall in Parker, CO',
+    title: 'Smile Makeover',
+    desc: 'Combine two or more treatments into a plan so every element complements the others and the result is cohesive.',
+  },
+  {
+    href: '/cosmetic-dentistry/full-mouth-rehabilitation/',
+    img: imgFullMouth,
+    alt: 'Close-up of an implant-supported restoration on a dental model',
+    title: 'Full Mouth Rehabilitation',
+    desc: 'For patients with significant functional and aesthetic concerns, we develop a treatment plan that addresses structure and appearance.',
+  },
+];
+
+const tocLinks = [
+  { href: '#why', label: 'Why Vivid Smiles' },
+  { href: '#services', label: 'Treatments' },
+  { href: '#technology', label: 'Technology' },
+  { href: '#doctors', label: 'Your Dentists' },
+  { href: '#process', label: 'Process' },
+  { href: '#results', label: 'Results' },
+  { href: '#candidacy', label: 'Is It For You?' },
+  { href: '#faq', label: 'FAQ' },
+];
+
+const technology = [
+  {
+    n: '01',
+    h: 'Digital scanners',
+    p: 'Replace traditional impressions with precise 3D tooth maps used for veneer fabrication, aligner fitting, and smile design.',
+    foot: 'Scanning',
+  },
+  {
+    n: '02',
+    h: 'In-house milling units',
+    p: 'Fabricate select restorations in the office, reducing lab turnaround and extra appointments.',
+    foot: 'Fabrication',
+  },
+  {
+    n: '03',
+    h: '3D printers',
+    p: 'Support model creation and treatment planning with speed and precision.',
+    foot: 'Planning',
+  },
+  {
+    n: '04',
+    h: 'CBCT imaging',
+    p: 'Cone beam computed tomography provides three-dimensional views of teeth, roots, and bone for comprehensive diagnosis and planning.',
+    foot: 'Diagnosis',
+  },
+  {
+    n: '05',
+    h: 'Robotic implant placement',
+    p: `Available for patients requiring <a class="vs-link" href="/implant-dentistry/">implant-supported restorations</a> as part of a comprehensive smile plan.`,
+    foot: 'Implants',
+  },
+  {
+    n: '06',
+    h: 'Preview before you commit',
+    p: 'Every cosmetic plan is reviewed on screen — adjust shape, shade, and proportion before any treatment begins.',
+    foot: 'Smile design',
+  },
+];
+
+const processSteps = [
+  {
+    n: '01',
+    t: 'Consultation',
+    p: 'We discuss your goals and concerns; no commitments required.',
+    lbl: 'Step One',
+  },
+  {
+    n: '02',
+    t: 'Digital imaging & smile design',
+    p: 'We scan your teeth and build a 3D preview of the planned outcome.',
+    lbl: 'Step Two',
+  },
+  {
+    n: '03',
+    t: 'Review & approval',
+    p: 'You analyze the result, request changes, and confirm the plan before preparation begins.',
+    lbl: 'Step Three',
+  },
+  {
+    n: '04',
+    t: 'Preparation (if needed)',
+    p: 'Some treatments require minimal tooth preparation; others, like clear aligners and whitening, involve none.',
+    lbl: 'Step Four',
+  },
+  {
+    n: '05',
+    t: 'Fabrication or fitting',
+    p: 'Select restorations are milled in-house for faster turnaround, while others are crafted by our lab partners.',
+    lbl: 'Step Five',
+  },
+  {
+    n: '06',
+    t: 'Placement & follow-up',
+    p: 'Treatment is completed and adjusted for fit and comfort, with a follow-up scheduled to confirm lasting satisfaction.',
+    lbl: 'Step Six',
+  },
+];
+
+const ledger = [
+  {
+    n: '1',
+    h: 'Deeply discolored teeth',
+    p: 'No longer responding to whitening alone.',
+    tag: 'Whitening · Veneers',
+  },
+  {
+    n: '2',
+    h: 'Chipped or worn enamel',
+    p: 'From age, grinding, or wear; restorations restore the edges.',
+    tag: 'Veneers',
+  },
+  {
+    n: '3',
+    h: 'Minor gaps or crowding',
+    p: 'Could call for orthodontics or a no-prep cosmetic plan.',
+    tag: 'Aligners',
+  },
+  {
+    n: '4',
+    h: 'Teeth that look older',
+    p: 'Yellowing, flattening, or asymmetry built up over time.',
+    tag: 'Makeover',
+  },
+];
+
+// FAQ data — 8 questions, verbatim from approved SEO copy.
+// `a` values use HTML so set:html can render embedded <a class="vs-link"> anchors
+//. Composite bonding intentionally not enumerated in FAQ #1
+// to stay consistent with dropping its tile from the services grid above.
+const faqs = [
+  {
+    q: 'What is cosmetic dentistry?',
+    a: `Cosmetic dentistry covers a treatment focused on improving the appearance of your teeth, gums, or smile. Common services include <a class="vs-link" href="/cosmetic-dentistry/porcelain-veneers/">porcelain veneers</a>, <a class="vs-link" href="/cosmetic-dentistry/teeth-whitening/">teeth whitening</a>, <a class="vs-link" href="/cosmetic-dentistry/gum-contouring/">gum contouring</a>, <a class="vs-link" href="/cosmetic-dentistry/clear-aligners/">clear aligners</a>, and <a class="vs-link" href="/cosmetic-dentistry/smile-makeover/">smile makeovers</a>.`,
+    open: true,
+  },
+  {
+    q: 'Which cosmetic treatment is best for me?',
+    a: 'The right treatment depends on what you want to change and how significant a commitment you want to make. A consultation at Vivid Smiles walks through every option and matches the approach to your goals, timeline, and budget.',
+  },
+  {
+    q: 'Is cosmetic dentistry covered by insurance?',
+    a: 'Most cosmetic treatments are elective and are not covered. Procedures that restore damaged teeth, such as bonding or crowns, may qualify for partial coverage; we help clients understand their benefits during the consultation.',
+  },
+  {
+    q: 'Are cosmetic dental treatments permanent?',
+    a: `It depends on the treatment. <a class="vs-link" href="/cosmetic-dentistry/porcelain-veneers/">Porcelain veneers</a> and crowns are permanent; <a class="vs-link" href="/cosmetic-dentistry/clear-aligners/">clear aligners</a> and <a class="vs-link" href="/cosmetic-dentistry/teeth-whitening/">whitening</a> are not. We explain the commitment level for every option before a treatment begins.`,
+  },
+  {
+    q: 'How much does cosmetic dentistry cost?',
+    a: `Costs vary by treatment type, the number of teeth involved, and case complexity. We provide an estimate at your consultation and discuss financing options at that time — including our in-house <a class="vs-link" href="/dental-membership-plan/">membership plan</a> for patients without insurance.`,
+  },
+  {
+    q: 'Will cosmetic dental work look natural?',
+    a: 'Our approach focuses on enhancing your existing features rather than replacing them. Every patient reviews a digital preview before work begins, so the result is approved before treatment starts.',
+  },
+  {
+    q: 'How long do cosmetic results last?',
+    a: 'Longevity depends on the treatment and how well it is maintained. Porcelain restorations last 20+ years; whitening requires periodic touch-ups; aligners produce permanent movement once treatment is complete. Regular professional maintenance extends the lifespan of all cosmetic work.',
+  },
+  {
+    q: 'What is digital smile design?',
+    a: 'Digital smile design is a planning process that uses 3D scanning and design software to display a visual model of the outcome. It is available for a wide range of cosmetic treatments at Vivid Smiles, not just veneers.',
+  },
+];
+---
+
+<BaseLayout
+  title="Cosmetic Dentistry in Parker, CO | Vivid Smiles Dentistry"
+  description="Cosmetic dentistry in Parker, CO with Dr. Bryce Richardson. Porcelain veneers, clear aligners, teeth whitening, smile makeovers, gum contouring, and full-mouth rehabilitation — 600+ hours of specialized training and 300+ five-star Google reviews."
+>
+  <div class="cdent">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <div class="crumbs-inner">
+        <a href="/">Home</a>
+        <span class="sep">/</span>
+        <a href="/services/">Services</a>
+        <span class="sep">/</span>
+        <span class="here">Cosmetic Dentistry</span>
+      </div>
+    </nav>
+
+    <main id="main">
+      <header class="hero" data-vs-reveal-batch>
+        <div class="hero-inner">
+          <div class="hero-copy">
+            <span class="eyebrow">Cosmetic Dentistry · Parker, CO</span>
+            <h1 data-vs-reveal-lines>
+              Parker, Colorado's <em>cosmetic dentistry destination.</em>
+            </h1>
+            <p class="hero-sub">
+              If you've spent years hiding your smile, cosmetic dentistry at Vivid Smiles Dentistry
+              in Parker offers a clear path to changing that. Dr. Bryce Richardson and Dr. Annelise
+              Westermeier provide a full range of cosmetic treatments — from porcelain veneers and
+              clear aligners to smile makeovers and gum contouring — with 600+ hours of specialized
+              training and the technology to preview results before treatment begins.
+            </p>
+            <div class="hero-actions">
+              <Button variant="sage" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button>
+              <Button variant="ghost" href="#consult" hoverLabel="Get a Video"
+                >Free Virtual Consult</Button
+              >
+              <div class="ratings">
+                <span class="stars" aria-hidden="true">★★★★★</span>
+                <span>5.0 · 300+ reviews</span>
+              </div>
+            </div>
+          </div>
+          <div class="hero-stack">
+            <div class="hero-primary" data-vs-parallax data-parallax="-25">
+              <Image
+                src={imgHero}
+                alt="Smiling woman photographed at the Vivid Smiles Dentistry neon smile wall in Parker, CO"
+                widths={[500, 750, 1000]}
+                sizes="(max-width: 991px) 100vw, 540px"
+                loading="eager"
+                fetchpriority="high"
+              />
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <nav class="toc" id="toc" aria-label="On this page">
+        <div class="toc-inner">
+          <span class="toc-label">On this page</span>
+          <div class="toc-scroll">
+            <div class="toc-list">
+              {tocLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <section class="section alt" id="why" data-vs-reveal-batch>
+        <div class="why-grid">
+          <div class="why-copy">
+            <span class="eyebrow">Why Parker chooses us</span>
+            <h2>Credentials that <em>are verifiable.</em></h2>
+            <p>
+              Vivid Smiles has become Parker's cosmetic dentistry preference because every
+              credential is verifiable. Dr. Richardson graduated at the top of his class from
+              Indiana University School of Dentistry, completed 600+ hours of specialized esthetic
+              and surgical training, and was part of the staff at Implant Pathway, one of the
+              country's most respected training programs. He also served as team dentist for Indiana
+              University's men's and women's basketball programs and lives in Parker as an active
+              community member.
+            </p>
+            <p>
+              The practice holds a 5-star rating with over 300 Google reviews, and consistent
+              feedback on three issues: a welcoming environment, advanced technology, and natural
+              results. Our approach to every cosmetic case is the same: the outcome should enhance
+              the features you have.
+            </p>
+            <Button variant="ghost" href="/about-us/" hoverLabel="See Bio"
+              >Meet Dr. Bryce Richardson</Button
+            >
+          </div>
+
+          <div class="why-stats">
+            <div class="stat-card">
+              <div class="stat-num">600<em>+</em></div>
+              <div class="stat-label">Hours of Specialized Training</div>
+              <p class="stat-detail">
+                Esthetic and surgical training completed by Dr. Bryce Richardson, including Implant
+                Pathway.
+              </p>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num">300<em>+</em></div>
+              <div class="stat-label">Five-Star Google Reviews</div>
+              <p class="stat-detail">
+                <span class="stars" aria-hidden="true">★★★★★</span> &nbsp;Consistent feedback: welcoming,
+                advanced, natural results.
+              </p>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num">1<em>st</em></div>
+              <div class="stat-label">Class Rank · Indiana U. SODM</div>
+              <p class="stat-detail">
+                Graduated at the top of his class clinically; former team dentist for Indiana
+                University basketball.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="services" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Treatments</span>
+            <h2>Cosmetic dentistry services <em>at Vivid Smiles.</em></h2>
+            <p>
+              Vivid Smiles offers a full suite of cosmetic treatments, and the ideal one depends on
+              what you want to change and how significant a commitment you want to make. Here is
+              what we provide.
+            </p>
+          </div>
+
+          <div class="svc-grid">
+            {
+              services.map((s) => (
+                <a class="svc-card compact" href={s.href} data-vs-arrow>
+                  <div class="svc-img">
+                    <Image
+                      src={s.img}
+                      alt={s.alt}
+                      widths={[420, 640, 900]}
+                      sizes="(max-width: 640px) 100vw, (max-width: 1100px) 50vw, 33vw"
+                    />
+                  </div>
+                  <div class="svc-body">
+                    <p class="svc-desc">{s.desc}</p>
+                    <div class="svc-row-bot">
+                      <h3>{s.title}</h3>
+                      <ArrowBadge size="xl" variant="ghost-light" />
+                    </div>
+                  </div>
+                </a>
+              ))
+            }
+          </div>
+
+          <p class="svc-outro">
+            Many of our <a class="vs-link" href="/general-dentistry/">general dentistry</a> patients experience
+            our approach to care and later return for cosmetic treatment. The pathway is always open,
+            with no pressure to pursue more.
+          </p>
+        </div>
+      </section>
+
+      <section class="section dark" id="technology" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow light">Advanced technology · Parker</span>
+            <h2>Better outcomes, <em>fewer appointments.</em></h2>
+            <p>
+              The technology at Vivid Smiles enables better outcomes and fewer appointments. Each
+              tool serves a specific clinical purpose.
+            </p>
+          </div>
+
+          <div class="tech-grid">
+            {
+              technology.map((t) => (
+                <div class="tech-card">
+                  <div class="tech-num">{t.n}</div>
+                  <h4>{t.h}</h4>
+                  <p set:html={t.p} />
+                  <span class="tech-foot">{t.foot}</span>
+                </div>
+              ))
+            }
+          </div>
+
+          <div class="dsd">
+            <div class="dsd-copy">
+              <span class="eyebrow light">Digital Smile Design</span>
+              <h3>Preview your results <em>before you commit.</em></h3>
+              <p>
+                Digital smile design lets you see and approve your new smile before any treatment
+                begins. Using advanced digital scanners, we build a precise 3D model of your teeth
+                and layer in the planned changes against your actual facial proportions. You review
+                the result, request adjustments, and move forward only when it looks right. This
+                capability applies across cosmetic treatments and directly answers the question most
+                patients have: "What if I don't like the result?"
+              </p>
+            </div>
+            <div class="dsd-visual" data-vs-parallax data-parallax="-30">
+              <span class="dsd-tag">Approve before we begin</span>
+              <Image
+                src={imgDsd}
+                alt="Close-up of a smile at a three-quarter angle in warm light"
+                widths={[500, 800, 1100]}
+                sizes="(max-width: 991px) 100vw, 50vw"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="doctors" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Your dentist</span>
+            <h2>Meet Dr. Bryce Richardson — <em>education, training &amp; expertise.</em></h2>
+          </div>
+
+          <article class="doctor doctor--feature">
+            <div class="doctor-portrait">
+              <span class="doctor-pill">Founder · Cosmetic &amp; Implants</span>
+              <Image
+                src={imgDrBryce}
+                alt="Dr. Bryce Richardson, founder of Vivid Smiles Dentistry"
+                widths={[420, 640, 880]}
+                sizes="(max-width: 991px) 100vw, 50vw"
+              />
+            </div>
+
+            <div class="doctor-stack">
+              <div class="doctor-bio doctor-bio--lead">
+                <span class="eyebrow">Dr. Bryce Richardson, DDS</span>
+                <h3>Top of his class — <em>and his hometown.</em></h3>
+                <p>
+                  Dr. Bryce Richardson earned his Doctor of Dental Surgery from Indiana University
+                  School of Dentistry, graduating at the top of his class clinically. He completed
+                  600+ hours of specialized esthetic and surgical training and served on staff at
+                  Implant Pathway, a nationally recognized program. He is also a Parker resident and
+                  former team dentist for Indiana University's men's and women's basketball
+                  programs.
+                </p>
+              </div>
+
+              <div class="doctor-rule" aria-hidden="true"></div>
+
+              <aside class="doctor-bio doctor-bio--secondary" aria-label="Also at the practice">
+                <div class="doctor-secondary-head">
+                  <div class="doctor-thumb">
+                    <Image
+                      src={imgDrAnnie}
+                      alt="Dr. Annelise Westermeier, known to patients as Dr. Annie"
+                      widths={[120, 200]}
+                      sizes="(max-width: 991px) 48px, 56px"
+                    />
+                  </div>
+                  <span class="eyebrow">Also at the practice</span>
+                </div>
+                <p>
+                  Joining Dr. Richardson is Dr. Annelise Westermeier, known to patients as Dr.
+                  Annie. A fourth-generation dentist, she earned her degree from the University at
+                  Buffalo School of Dental Medicine and completed her Advanced Education in General
+                  Dentistry at Virginia Commonwealth University. Her holistic approach and focus on
+                  patient comfort complement Dr. Richardson's cosmetic expertise, giving patients
+                  comprehensive care under one roof.
+                </p>
+              </aside>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section alt" id="process" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">What to expect</span>
+            <h2>The cosmetic dentistry process <em>at Vivid Smiles.</em></h2>
+            <p>The process at Vivid Smiles is patient-led from the first visit forward.</p>
+          </div>
+
+          <div class="pgrid-card" data-vs-reveal>
+            <div class="pgrid-6">
+              {
+                processSteps.map((s) => (
+                  <div class="pstep">
+                    <div class="pstep-num">{s.n}</div>
+                    <h3>{s.t}</h3>
+                    <p>{s.p}</p>
+                    <span class="pstep-lbl">{s.lbl}</span>
+                  </div>
+                ))
+              }
+            </div>
+          </div>
+
+          <p class="process-outro">
+            Sedation options are available for individuals with dental anxiety, and our team makes
+            every step as comfortable as possible.
+          </p>
+        </div>
+      </section>
+
+      <section class="section" id="results" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="results-grid">
+            <div class="results-copy">
+              <span class="eyebrow">Genuine results</span>
+              <h2>Why Parker clients <em>love their new smiles.</em></h2>
+              <p>
+                Vivid Smiles holds a 5-star rating across over 300 Google reviews, and the feedback
+                is consistent: everyone feels welcome, the technology builds confidence throughout
+                the process, and the results look like their teeth at their best.
+              </p>
+              <p>
+                The ability to preview the outcome before committing is a detail that moves
+                undecided patients forward. Our reviews reflect a practice built around one
+                benchmark: outcomes you are proud to show, with confidence built before treatment
+                ever begins.
+              </p>
+              <div class="results-actions">
+                <Button variant="sage" href="/smile-gallery/" hoverLabel="Open Gallery"
+                  >See the Smile Gallery</Button
+                >
+                <Button variant="ghost" href="/patient-testimonials/" hoverLabel="Read Stories"
+                  >Read Patient Stories</Button
+                >
+              </div>
+            </div>
+
+            <div class="results-aside">
+              <span class="stars" aria-hidden="true">★★★★★</span>
+              <p class="quote">
+                "Outcomes you are proud to show, with confidence built before treatment ever
+                begins."
+              </p>
+              <span class="quote-attr">— Vivid Smiles · <b>300+ five-star reviews</b></span>
+            </div>
+          </div>
+        </div>
+
+        <div
+          class="gallery-marquee"
+          data-vs-marquee
+          aria-label="Vivid Smiles cosmetic dentistry smile gallery"
+        >
+          <div class="gallery-track" data-vs-marquee-track>
+            {
+              galleryTrack.map((t, i) => {
+                const isClone = i >= galleryTiles.length;
+                return (
+                  <div
+                    class="smile-tile"
+                    aria-hidden={isClone || undefined}
+                    inert={isClone || undefined}
+                  >
+                    <Image src={t.src} alt={t.alt} widths={[420, 640, 840]} sizes="380px" />
+                  </div>
+                );
+              })
+            }
+          </div>
+        </div>
+      </section>
+
+      <section class="section dark" id="candidacy" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow light">Is it for you?</span>
+            <h2>Does cosmetic dentistry <em>suit you?</em></h2>
+            <p>
+              Cosmetic dentistry fits anyone who has adjusted to a smile they aren't confident in:
+              covering their mouth in photos, holding back in professional settings, or postponing a
+              change.
+            </p>
+          </div>
+
+          <div class="cand-grid">
+            <div class="cand-copy">
+              <h3>Common candidates include</h3>
+              <p>
+                Individuals with deeply discolored teeth that no longer respond to whitening,
+                chipped or worn enamel, minor gaps or crowding that might entail orthodontics, or
+                teeth that look older.
+              </p>
+              <h3>Exploratory and judgment-free</h3>
+              <p>
+                A consultation at Vivid Smiles is exploratory and judgment-free. We explain what
+                each option involves and what the investment is before a treatment is planned. For
+                clients without insurance, an in-house
+                <a class="vs-link" href="/dental-membership-plan/">membership plan</a> is available, and
+                financing options can make treatment accessible regardless of timeline.
+              </p>
+              <div class="cand-actions">
+                <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk"
+                  >Book a Free Consultation</Button
+                >
+                <Button
+                  variant="outline-light"
+                  href="/dental-membership-plan/"
+                  hoverLabel="See Plan">See Membership Plan</Button
+                >
+              </div>
+            </div>
+
+            <aside class="ledger" aria-label="Common signs cosmetic dentistry is for you">
+              <header class="ledger-head">
+                <span class="eyebrow light">Signs this is for you</span>
+                <h4>If any of these resonate, a consult is the next step.</h4>
+              </header>
+              {
+                ledger.map((row) => (
+                  <div class="ledger-row">
+                    <span class="ledger-num">{row.n}</span>
+                    <div>
+                      <h5>{row.h}</h5>
+                      <p>{row.p}</p>
+                    </div>
+                    <span class="ledger-tag">{row.tag}</span>
+                  </div>
+                ))
+              }
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="area" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="area">
+            <div class="area-copy">
+              <span class="eyebrow">Service area</span>
+              <h2>Serving Parker, Stonegate, <em>The Pinery &amp; Douglas County.</em></h2>
+              <p>
+                Vivid Smiles Dentistry is located at {addressStreet}, in Parker, and serves patients
+                throughout Douglas County and the Denver metro.
+              </p>
+              <p>
+                Cosmetic patients visit us from Stonegate, The Pinery, Lone Tree, Castle Rock, and
+                Highlands Ranch, and from across Colorado to receive specialized care that most
+                general practices don't offer. Dr. Richardson is a Parker resident, which means the
+                community he serves is the one he lives in.
+              </p>
+              <p class="area-address-line">
+                <b>{addressStreet}</b><br />
+                {addressCity}, {addressState}
+                {addressZip} · <a class="vs-link" href={phoneHref}>{phoneLabel}</a>
+              </p>
+              <div class="area-actions">
+                <Button variant="sage" href={directionsHref} hoverLabel="Open Maps"
+                  >Get Directions</Button
+                >
+                <Button variant="ghost" href="/contact/" hoverLabel="Reach Us">Contact Us</Button>
+              </div>
+            </div>
+            <div class="area-map" aria-label="Map showing Vivid Smiles Dentistry">
+              <iframe
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(addressLine)}&output=embed`}
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                title={`Map showing Vivid Smiles Dentistry at ${addressLine}`}></iframe>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section alt" id="faq" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">FAQ</span>
+            <h2>Frequently asked questions about <em>cosmetic dentistry in Parker.</em></h2>
+            <p>
+              Practical answers patients ask in the consultation chair. Anything else, send a few
+              photos through the <a class="vs-link" href="#consult">virtual consult</a> and Dr. Richardson
+              will record a personal video reply.
+            </p>
+          </div>
+
+          <div class="faq-list">
+            {
+              faqs.map((f) => (
+                <details class="faq" open={f.open}>
+                  <summary>
+                    <>
+                      <h3>{f.q}</h3>
+                      <span class="icon" aria-hidden="true">
+                        +
+                      </span>
+                    </>
+                  </summary>
+                  <div class="answer" set:html={f.a} />
+                </details>
+              ))
+            }
+          </div>
+
+          <div class="cta-row">
+            <div class="cta-buttons">
+              <Button variant="light" href="#consult" hoverLabel="Get a Video"
+                >Still Have Questions? Free Virtual Consult</Button
+              >
+              <Button variant="ghost-light" href={phoneHref} hoverLabel="Tap to Dial"
+                >Call {phoneLabel}</Button
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="closing" data-vs-reveal>
+        <div class="wrap">
+          <div class="closing-inner">
+            <span class="eyebrow">A clear path forward</span>
+            <h3>
+              From conservative treatments to <em>smile makeovers</em> — the best path depends on your
+              goals.
+            </h3>
+            <p>
+              Cosmetic dentistry offers options for nearly every concern, from conservative
+              treatments like bonding and whitening to smile makeovers, with technology that lets
+              you examine results before committing.
+            </p>
+            <p class="outro">
+              Vivid Smiles Dentistry serves Parker, Douglas County, and patients across Colorado who
+              wish to move forward. Call <a class="vs-link" href={phoneHref}>{phoneLabel}</a> to schedule
+              a free consultation, or <a
+                class="vs-link"
+                href={bookNowHref}
+                target="_blank"
+                rel="noopener noreferrer">book online</a
+              >.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <VirtualConsult id="consult" eyebrow="Free cosmetic dentistry consultation">
+        <Fragment slot="headline">Free cosmetic dentistry <em>consultation.</em></Fragment>
+        <Fragment slot="body">
+          Taking the first step toward your smile has never been easier. Nothing to schedule — Dr.
+          Richardson personally records a custom video response for every consultation request.
+          Photos in, video out.
+        </Fragment>
+      </VirtualConsult>
+
+      <FinalBand>
+        <p>
+          Vivid Smiles is located in Parker, CO and has earned 300+ five-star Google reviews from
+          patients who wanted natural, lasting cosmetic results and got them.
+        </p>
+      </FinalBand>
+    </main>
+
+    <script>
+      import { initTocSpy } from '../../scripts/toc-spy';
+      initTocSpy('.cdent');
+    </script>
+
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'Service',
+        name: 'Cosmetic Dentistry',
+        serviceType: 'Cosmetic Dentistry',
+        description:
+          'Cosmetic dentistry in Parker, CO — porcelain veneers, clear aligners, teeth whitening, gum contouring, smile makeovers, and full-mouth rehabilitation, with digital smile design preview before treatment begins.',
+        areaServed: [
+          { '@type': 'AdministrativeArea', name: 'Douglas County, Colorado' },
+          { '@type': 'City', name: 'Parker, CO' },
+          { '@type': 'City', name: 'Castle Rock, CO' },
+          { '@type': 'City', name: 'Lone Tree, CO' },
+          { '@type': 'City', name: 'Highlands Ranch, CO' },
+        ],
+        provider: {
+          '@type': 'Dentist',
+          name: 'Vivid Smiles Dentistry',
+          url: new URL('/', Astro.site).href,
+          telephone: phoneE164,
+          address: {
+            '@type': 'PostalAddress',
+            streetAddress: addressStreet,
+            addressLocality: addressCity,
+            addressRegion: addressState,
+            postalCode: addressZip,
+            addressCountry: 'US',
+          },
+        },
+        hasOfferCatalog: {
+          '@type': 'OfferCatalog',
+          name: 'Cosmetic Dentistry Services',
+          itemListElement: services.map((s) => ({
+            '@type': 'Offer',
+            itemOffered: {
+              '@type': 'MedicalProcedure',
+              name: s.title,
+              url: new URL(s.href, Astro.site).href,
+              image: new URL(s.img.src, Astro.site).href,
+            },
+          })),
+        },
+      })}
+    />
+
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faqs.map((f) => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
+      })}
+    />
+
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: new URL('/', Astro.site).href },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'Services',
+            item: new URL('/services/', Astro.site).href,
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: 'Cosmetic Dentistry',
+            item: new URL('/cosmetic-dentistry/', Astro.site).href,
+          },
+        ],
+      })}
+    />
+  </div>
+</BaseLayout>

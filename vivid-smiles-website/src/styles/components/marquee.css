@@ -1,0 +1,86 @@
+/* ──────────────────────────────────────────────────────────────────────────
+ *  SWIPE-DRAGGABLE MARQUEE — shared structure + behavior (sitewide)
+ *
+ *  Every draggable gallery on the site runs through this one file: B&A photo
+ *  galleries, review/testimonial loops, and the cosmetic LP. Motion is driven
+ *  by GSAP in src/scripts/animations.js — initDraggableMarquee finds every
+ *  [data-vs-marquee] container, takes over its [data-vs-marquee-track] (adding
+ *  .is-gsap-marquee to kill the CSS keyframe), auto-scrolls it via gsap.ticker,
+ *  and lets the visitor grab + flick it with inertia.
+ *
+ *  ── The contract ───────────────────────────────────────────────────────────
+ *  Markup:  [data-vs-marquee]  (container)  →  [data-vs-marquee-track]  (flex
+ *           track holding a DOUBLED tile set for the seamless loop). The clone
+ *           half is wrapped in .vs-marquee-clone (display:contents) so it can be
+ *           hidden from assistive tech without adding a layout box. measureHalf
+ *           in animations.js assumes exactly two identical copies — a track that
+ *           forgets to double its content will loop at the wrong seam.
+ *
+ *  This file owns ALL the structure + behavior. Pages own ONLY their tile/card
+ *  SIZING plus a few per-page knobs, set as custom properties on the container:
+ *
+ *      --vs-marquee-gap     (default 28px)  gap between tiles
+ *      --vs-marquee-speed   (default 90s)   one-loop duration (pre-JS fallback)
+ *      --vs-marquee-pad     (default 0)     track padding (shadow breathing room)
+ *      --vs-marquee-fade    (default 5%)    edge-mask inset that hides the seam
+ *
+ *  Mounted by BaseLayout + LandingLayout.
+ *  ────────────────────────────────────────────────────────────────────── */
+
+[data-vs-marquee] {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+  cursor: grab;
+  /* Keep vertical page-scroll while Draggable (type:"x") owns horizontal — no
+     drag-vs-scroll conflict on touch. */
+  touch-action: pan-y;
+  user-select: none;
+  /* Edge fade hides the loop seam; --vs-marquee-fade tunes the inset. */
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 var(--vs-marquee-fade, 5%), #000 calc(100% - var(--vs-marquee-fade, 5%)), transparent);
+          mask-image: linear-gradient(90deg, transparent, #000 var(--vs-marquee-fade, 5%), #000 calc(100% - var(--vs-marquee-fade, 5%)), transparent);
+}
+[data-vs-marquee].is-dragging { cursor: grabbing; }
+
+/* Images never intercept the drag. */
+[data-vs-marquee] img { pointer-events: none; }
+
+[data-vs-marquee-track] {
+  display: flex;
+  gap: var(--vs-marquee-gap, 28px);
+  width: max-content;
+  padding: var(--vs-marquee-pad, 0);
+  /* Pre-JS / no-JS fallback loop. GSAP kills this once it takes over (below). */
+  animation: vs-marquee-scroll var(--vs-marquee-speed, 90s) linear infinite;
+  will-change: transform; /* track transforms continuously — promote to its own layer */
+}
+[data-vs-marquee]:hover [data-vs-marquee-track] { animation-play-state: paused; }
+
+/* When GSAP drives the loop, kill the CSS keyframe so the two never fight.
+   (attribute + class out-specifies the base track rule — no !important needed.) */
+[data-vs-marquee-track].is-gsap-marquee { animation: none; }
+
+@keyframes vs-marquee-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* The clone half of the doubled track — hidden from AT, generates no box so the
+   clones flow as direct track children (display:contents). */
+.vs-marquee-clone { display: contents; }
+
+/* Reduced motion: the JS never initializes, so fall back to a native horizontal
+   scroll-snap container (unlock horizontal touch panning) instead of a frozen
+   gallery. The > * snap-align targets each tile/card regardless of its class.
+   Equal-specificity to the base rules above, but later in source order, so it
+   wins cleanly — pages no longer declare competing track rules. */
+@media (prefers-reduced-motion: reduce) {
+  [data-vs-marquee] {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    touch-action: auto;
+  }
+  [data-vs-marquee-track] { animation: none; }
+  [data-vs-marquee-track] > * { scroll-snap-align: center; }
+}

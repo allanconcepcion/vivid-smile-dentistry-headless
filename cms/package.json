@@ -1,0 +1,19 @@
+{
+  "name": "vivid-smiles-cms",
+  "private": true,
+  "description": "Local headless WordPress instance backing the Vivid Smiles Astro site.",
+  "scripts": {
+    "start": "wp-env start && bash bin/setup.sh",
+    "start:only": "wp-env start",
+    "setup": "bash bin/setup.sh",
+    "import:reviews": "wp-env run cli wp eval-file wp-content/vs-import/bin/import-reviews.php",
+    "stop": "wp-env stop",
+    "destroy": "wp-env destroy",
+    "clean": "wp-env clean all",
+    "logs": "wp-env logs all",
+    "cli": "wp-env run cli wp"
+  },
+  "devDependencies": {
+    "@wordpress/env": "^10.30.0"
+  }
+}

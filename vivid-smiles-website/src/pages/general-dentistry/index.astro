@@ -1,0 +1,719 @@
+---
+/**
+ * General Dentistry — parent service hub.
+ *
+ * Replaces the placeholder. Built off the same parent-hub family as
+ * /cosmetic-dentistry/ and /implant-dentistry/ with two
+ * structural deviations from those siblings:
+ *
+ *   1. NO sub-page tile grid. General dentistry has no child detail pages, so
+ *      the linked services grid is dropped. The 4 service areas in the SEO
+ *      copy (Preventive · Restorative · Periodontal · Emergency) render as a
+ *      page-local `.svc-grid-4` of unlinked image-bg feature cards. Only the
+ *      Emergency card links out (to /emergency-dentistry/).
+ *   2. NEW sage band `#trust` between #gateway and #doctors using a centered
+ *      `.trust-quote` pull pattern — replaces the missing #results section that
+ *      the cosmetic and implant hubs have. General dentistry isn't a "results"
+ *      story; it's a "trust + consistency" story.
+ *
+ * SEO copy is used verbatim with two documented carry-forward deviations:
+ *   • The broken /emergency-dental-care-in-parker-co/ URL is rewritten to the
+ *     real route /emergency-dentistry/ (visible anchor text unchanged).
+ *   • FAQ #4's "325+ five-star Google reviews" is normalized to "300+" to
+ *     honor the standing memory rule and stay internally consistent with the
+ *     Why band's "over 300 five-star Google reviews" earlier on the same page.
+ *
+ * Doctor section uses the cosmetic-dentistry two-up pattern (Bryce lead +
+ * .doctor-rule hairline + Dr. Annie secondary aside with .doctor-thumb) per
+ * the third-follow-up rule: when SEO copy bills both doctors, use the
+ * two-up; when only the primary doctor is named, drop the secondary block.
+ * Here the copy bills both, so the secondary block stays.
+ */
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Button from '../../components/Button.astro';
+import VirtualConsult from '../../components/VirtualConsult.astro';
+import FinalBand from '../../components/FinalBand.astro';
+import {
+  phoneHref,
+  phoneLabel,
+  phoneE164,
+  bookNowHref,
+  addressStreet,
+  addressCity,
+  addressState,
+  addressZip,
+  addressLine,
+  directionsHref,
+} from '../../data/contact';
+import '../../styles/pages/general-dentistry.css';
+
+// Hero — a hygienist polishing a patient's teeth. A real chairside moment, so
+// the hub reads warm rather than clinical.
+import imgHero from '../../assets/images/procedures/hygienist-polishing-teeth.webp';
+
+// Doctors section — single duo photo (the same shot the about-us page uses
+// in its hero), since the SEO copy bills both doctors equally and this page's
+// design language is "two doctors, same weight" rather than "primary + aside".
+import imgDoctors from '../../assets/images/team/annie-and-bryce.webp';
+
+// #first-visit · 2-col image+copy. The practice entry doors — literally the
+// first thing a new patient sees. Chosen over waiting-room-portrait-view.webp,
+// which is only 768px wide and would upscale ~1.55x in this 557px slot at DPR2.
+import imgFirstVisit from '../../assets/images/facility/entry-doors-with-vivid-logos.webp';
+
+// #gateway · real portrait shot at the practice's neon smile wall. Describe the
+// photo, not a treatment — this subject also appears on /services/ and the home
+// page, and the labels must not contradict each other.
+import imgGateway from '../../assets/images/people/real/woman-neon-smile-portrait.webp';
+
+// Service-tile images — one distinct subject per tile, and none of them the
+// hero's photo.
+import imgPreventive from '../../assets/images/people/real/woman-blonde-warm-interior.webp';
+import imgRestorative from '../../assets/images/procedures/dr-rich-mid-procedure.webp';
+import imgPeriodontal from '../../assets/images/procedures/smile-macro-front-view.webp';
+import imgEmergency from '../../assets/images/procedures/same-day-emergency-dental-care.webp';
+
+// 4-up service feature cards (unlinked — general dentistry has no child
+// detail pages). Each card is an <article> with the full description always
+// visible (no hover-reveal — these aren't navigation tiles). The Emergency
+// card carries an inline <a class="vs-link"> to /emergency-dentistry/ inside
+// its description, which is the internal-link anchor for this page
+// (the SEO brief's /emergency-dental-care-in-parker-co/ URL doesn't exist;
+// visible anchor text stays verbatim per the plan).
+const services = [
+  {
+    img: imgPreventive,
+    alt: 'Smiling woman photographed in a warm interior setting',
+    title: 'Preventive Care & Cleanings',
+    descHtml:
+      'Regular cleanings, comprehensive exams, fluoride treatments, and sealants — every exam includes digital X-rays and CBCT imaging when indicated. Most clients benefit from a cleaning and exam every six months.',
+  },
+  {
+    img: imgRestorative,
+    alt: 'Dr. Bryce Richardson performing chairside restorative work',
+    title: 'Fillings, Crowns & Bridges',
+    descHtml:
+      'Tooth-hued composite fillings, same-day in-house-milled crowns (no temporary, no second appointment), and bridges that anchor to adjacent teeth to replace a missing tooth and prevent shifting.',
+  },
+  {
+    img: imgPeriodontal,
+    alt: 'Front-on close-up of a smile showing the gumline',
+    title: 'Periodontal Care',
+    descHtml:
+      "When gum disease is present, treatment includes scaling and root planing (a thorough cleaning below the gumline) followed by a customized maintenance schedule. Dr. Annie's holistic approach means gum health is never treated in isolation.",
+  },
+  {
+    img: imgEmergency,
+    alt: 'Same-day emergency dental care',
+    title: 'Emergency Dental Care',
+    href: '/emergency-dentistry/',
+    descHtml: `A broken tooth, severe pain, or dental infection requires same-day attention. Vivid Smiles prioritizes urgent cases and has the diagnostic technology to assess and treat quickly. <a class="vs-link" href="/emergency-dentistry/">Learn more about emergency dental care in Parker</a>.`,
+  },
+];
+
+const tocLinks = [
+  { href: '#why', label: 'Why Vivid Smiles' },
+  { href: '#services', label: 'Services' },
+  { href: '#first-visit', label: 'First Visit' },
+  { href: '#gateway', label: 'Cosmetic Pathway' },
+  { href: '#trust', label: 'Why Parker Trusts Us' },
+  { href: '#doctors', label: 'Your Dentists' },
+  { href: '#payment', label: 'Payment & Plan' },
+  { href: '#area', label: 'Parker Location' },
+  { href: '#faq', label: 'FAQ' },
+];
+
+// FAQs verbatim from the SEO copy. answers carry inline <a class="vs-link">
+// anchors where the copy linked out — rendered via set:html (pattern;
+// Google permits HTML in acceptedAnswer.text).
+// FAQ #4's "325+" was normalized to "300+" per the plan and the
+// project_review_count.md memory rule.
+const faqs = [
+  {
+    q: 'What services are included in general dentistry?',
+    a: 'General dentistry covers preventive care (cleanings, exams, X-rays), restorative treatment (fillings, crowns, bridges), periodontal care, oral cancer screenings, TMJ treatment, and emergency dentistry. Vivid Smiles provides all of these services in one location, so most patients never need a referral.',
+    open: true,
+  },
+  {
+    q: 'How often should I visit the dentist for a checkup?',
+    a: 'Most clients benefit from a professional cleaning and exam every 6 months. Patients with active gum disease, elevated cavity risk, or other ongoing concerns may need more frequent visits; Dr. Annie will recommend a schedule based on your oral health.',
+  },
+  {
+    q: 'Does Vivid Smiles Dentistry accept my dental insurance?',
+    a: `Vivid Smiles works with most major dental insurance plans; call the provider to verify your coverage before the appointment. Patients without dental insurance can enroll in our in-house <a class="vs-link" href="/dental-membership-plan/">membership plan</a> as an alternative.`,
+  },
+  {
+    q: 'What makes Vivid Smiles different from other Parker dentists?',
+    a: 'Advanced technology (CBCT imaging, digital scanners, same-day crowns), a dual-doctor model, 300+ five-star Google reviews, and local ownership set Vivid Smiles apart from corporate chains and single-doctor general practices. The combination of cosmetic expertise and comprehensive general care under one roof is uncommon in the area.',
+  },
+  {
+    q: 'Can I get cosmetic dentistry and general dentistry at the same practice?',
+    a: `Vivid Smiles offers general and <a class="vs-link" href="/cosmetic-dentistry/">cosmetic dentistry</a>, including veneers, Invisalign, and smile makeovers alongside routine care. Starting with general dentistry is a natural entry point for patients who may want cosmetic work with a team they already know and trust.`,
+  },
+];
+
+// JSON-LD hasOfferCatalog payload — enumerates the 4 service areas as
+// MedicalProcedure offers. Emergency carries a url; the rest don't (no child
+// detail pages exist for general-dentistry sub-services). Descriptions are
+// plain-text-stripped from the HTML in descHtml so the structured data is
+// machine-clean.
+const offerCatalog = services.map((s) => {
+  const procedure: Record<string, unknown> = {
+    '@type': 'MedicalProcedure',
+    name: s.title,
+    description: s.descHtml.replace(/<[^>]+>/g, ''),
+  };
+  if (s.href) procedure.url = new URL(s.href, Astro.site).href;
+  return { '@type': 'Offer', itemOffered: procedure };
+});
+---
+
+<BaseLayout
+  title="General Dentistry in Parker, CO | Vivid Smiles Dentistry"
+  description="Comprehensive general dentistry in Parker, CO at Vivid Smiles. Preventive care, same-day crowns, periodontal treatment, and emergency services — backed by a dual-doctor model with CBCT 3D imaging, in-house milling, and 300+ five-star reviews."
+>
+  <div class="gdent">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <div class="crumbs-inner">
+        <a href="/">Home</a>
+        <span class="sep">/</span>
+        <a href="/services/">Services</a>
+        <span class="sep">/</span>
+        <span class="here">General Dentistry</span>
+      </div>
+    </nav>
+
+    <main id="main">
+      <header class="hero" data-vs-reveal-batch>
+        <div class="hero-inner">
+          <div class="hero-copy">
+            <span class="eyebrow">General Dentistry · Parker, CO</span>
+            <h1 data-vs-reveal-lines>
+              Comprehensive general dentistry <em>for Parker, CO families.</em>
+            </h1>
+            <p class="hero-sub">
+              Vivid Smiles Dentistry provides general dentistry in Parker, covering preventive care,
+              same-day crowns, periodontal treatment, and emergency services all under one roof.
+              What separates the practice is a dual-doctor model backed by diagnostic technology,
+              including CBCT 3D imaging and in-house milling.
+            </p>
+            <div class="hero-actions">
+              <Button variant="sage" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button>
+              <Button variant="ghost" href="#consult" hoverLabel="Get a Video"
+                >Free Virtual Consult</Button
+              >
+              <div class="ratings">
+                <span class="stars" aria-hidden="true">★★★★★</span>
+                <span>5.0 · 300+ reviews</span>
+              </div>
+            </div>
+          </div>
+          <div class="hero-stack">
+            <div class="hero-primary" data-vs-parallax data-parallax="-25">
+              <Image
+                src={imgHero}
+                alt="Polishing a patient's teeth during a routine hygiene visit at Vivid Smiles Dentistry"
+                widths={[540, 800, 1080]}
+                sizes="(max-width: 991px) 100vw, 540px"
+                loading="eager"
+                fetchpriority="high"
+              />
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <nav class="toc" id="toc" aria-label="On this page">
+        <div class="toc-inner">
+          <span class="toc-label">On this page</span>
+          <div class="toc-scroll">
+            <div class="toc-list">
+              {tocLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      <section class="section alt" id="why" data-vs-reveal-batch>
+        <div class="why-grid">
+          <div class="why-copy">
+            <span class="eyebrow">Why Parker chooses us</span>
+            <h2>Technology-forward, <em>family-focused care.</em></h2>
+            <p>
+              Vivid Smiles Dentistry is a technology-forward, family-focused practice that offers
+              general and specialty care from a single trusted team. With over 300 five-star Google
+              reviews and <a class="vs-link" href="/services/">our full range of dental services</a
+              >, patients seldom need referrals.
+            </p>
+            <h3>Advanced technology for accurate, comfortable care</h3>
+            <p>
+              Vivid Smiles uses CBCT 3D imaging, digital scanners, in-house milling units, and 3D
+              printers to diagnose and treat with precision that traditional offices cannot match.
+              CBCT (cone-beam computed tomography) creates a three-dimensional image of teeth, jaw,
+              and bone structure, detecting issues that standard X-rays miss. Digital scanners
+              replace messy impression trays for crown prep, and in-house milling produces finished
+              restorations the same day: fewer appointments, more accurate treatment.
+            </p>
+            <Button variant="ghost" href="#doctors" hoverLabel="See Bios"
+              >Meet Dr. Bryce &amp; Dr. Annie</Button
+            >
+          </div>
+
+          <div class="why-stats">
+            <div class="stat-card">
+              <div class="stat-num">300<em>+</em></div>
+              <div class="stat-label">Five-Star Google Reviews</div>
+              <p class="stat-detail">
+                <span class="stars" aria-hidden="true">★★★★★</span> &nbsp;Welcoming environment, advanced
+                technology, clear explanations, care that feels personal.
+              </p>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num">600<em>+</em></div>
+              <div class="stat-label">Hours of Specialized Training</div>
+              <p class="stat-detail">
+                Esthetic and surgical training completed by Dr. Bryce Richardson, including Implant
+                Pathway.
+              </p>
+            </div>
+            <div class="stat-card">
+              <div class="stat-num">2</div>
+              <div class="stat-label">Doctors · Dual-Doctor Model</div>
+              <p class="stat-detail">
+                Dr. Bryce Richardson and Dr. Annie cover cosmetic, surgical, and general care under
+                one roof.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="services" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Services</span>
+            <h2>General dentistry services <em>at Vivid Smiles.</em></h2>
+            <p>
+              Vivid Smiles covers the full spectrum of general dental care, from routine cleanings
+              to advanced periodontal therapy and same-day emergency treatment. Every service is
+              backed by advanced diagnostics and delivered in the same welcoming, judgment-free
+              environment.
+            </p>
+          </div>
+
+          <div class="svc-grid-4">
+            {
+              services.map((s) => (
+                <article class="svc-feat">
+                  <div class="svc-feat-img">
+                    <Image
+                      src={s.img}
+                      alt={s.alt}
+                      widths={[300, 480, 640]}
+                      sizes="(max-width: 640px) 100vw, (max-width: 1100px) 50vw, 280px"
+                    />
+                  </div>
+                  <div class="svc-feat-body">
+                    <h3>{s.title}</h3>
+                    <p class="svc-feat-desc" set:html={s.descHtml} />
+                  </div>
+                </article>
+              ))
+            }
+          </div>
+        </div>
+      </section>
+
+      <section class="section alt" id="first-visit" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="what-grid">
+            <div class="what-img" data-vs-parallax data-parallax="-25">
+              <Image
+                src={imgFirstVisit}
+                alt="Entry doors at Vivid Smiles Dentistry in Parker, CO, etched with the practice logo"
+                widths={[560, 840, 1116]}
+                sizes="(max-width: 991px) 100vw, 50vw"
+              />
+            </div>
+            <div class="what-text">
+              <span class="eyebrow">First visit</span>
+              <h2>What to expect during your <em>first general dentistry visit.</em></h2>
+              <p>
+                During your first appointment, new patients receive a thorough exam, digital X-rays
+                or CBCT imaging if needed, an oral cancer screening, a gum health assessment, and a
+                conversation about findings and next steps.
+              </p>
+              <p>
+                Dr. Annie's approach ensures clients feel informed rather than overwhelmed, whether
+                they are returning to dental care after years away or managing an ongoing concern.
+                If cosmetic questions arise, digital smile design previews can be explored at the
+                same visit.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="gateway" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="what-grid what-grid--flip">
+            <div class="what-text">
+              <span class="eyebrow">Pathway forward</span>
+              <h2>General dentistry as a <em>gateway to cosmetic care.</em></h2>
+              <p>
+                Many clients arrive for a cleaning or a filling and leave thinking about what their
+                smile could be. Vivid Smiles offers general and <a
+                  class="vs-link"
+                  href="/cosmetic-dentistry/">cosmetic dentistry</a
+                > from the same team, using the same advanced technology.
+              </p>
+              <p>
+                Dr. Richardson's expertise in porcelain veneers, including no-prep and minimal-prep
+                options that preserve natural tooth structure, means the path from routine care to a
+                smile makeover is straightforward. Patients who experience our practice through
+                general dentistry already have a dependable team.
+              </p>
+              <div class="gateway-actions">
+                <Button variant="sage" href="/cosmetic-dentistry/" hoverLabel="See Treatments"
+                  >Explore Cosmetic Dentistry</Button
+                >
+                <Button variant="ghost" href="/smile-gallery/" hoverLabel="Open Gallery"
+                  >See the Smile Gallery</Button
+                >
+              </div>
+            </div>
+            <div class="what-img" data-vs-parallax data-parallax="-25">
+              <Image
+                src={imgGateway}
+                alt="Smiling woman photographed at the Vivid Smiles Dentistry neon smile wall in Parker, CO"
+                widths={[500, 800, 1100]}
+                sizes="(max-width: 991px) 100vw, 50vw"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section dark" id="trust" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="trust-quote">
+            <span class="eyebrow light">Why Parker trusts us</span>
+            <h2>Why Parker residents <em>trust Vivid Smiles Dentistry.</em></h2>
+            <p class="trust-body">
+              Vivid Smiles has earned over 300 five-star Google reviews built on consistent themes:
+              welcoming environment, advanced technology, clear explanations, and care that feels
+              personal. Dr. Richardson is a Parker resident who is invested in the community
+              long-term.
+            </p>
+            <p class="trust-body">
+              Patients describe treatment as <em>comfortable, unhurried, and honest</em> — straightforward
+              care recommendations from a practice that treats neighbors, not just patients.
+            </p>
+            <p class="trust-attr">
+              <span class="stars" aria-hidden="true">★★★★★</span>
+              <span>5.0 · 300+ Google reviews</span>
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="doctors" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Your dentists</span>
+            <h2>Meet Dr. Richardson <em>and Dr. Annie.</em></h2>
+          </div>
+
+          <article class="doctor doctor--feature">
+            <div class="doctor-portrait">
+              <span class="doctor-pill">Dr. Bryce &amp; Dr. Annie</span>
+              <Image
+                src={imgDoctors}
+                alt="Dr. Bryce Richardson and Dr. Annelise Westermeier (Dr. Annie) at Vivid Smiles Dentistry"
+                widths={[420, 640, 880, 1100]}
+                sizes="(max-width: 991px) 100vw, 50vw"
+              />
+            </div>
+
+            <div class="doctor-stack">
+              <div class="doctor-bio">
+                <span class="eyebrow">Dr. Bryce Richardson, DDS</span>
+                <h3>Indiana University trained. <em>Parker resident.</em></h3>
+                <p>
+                  Dr. Bryce Richardson, DDS, graduated from Indiana University School of Dentistry
+                  and completed 600+ hours of advanced esthetic and surgical training. A Parker
+                  resident and former team dentist for Indiana University basketball, he brings
+                  clinical precision and genuine local investment to every patient.
+                </p>
+              </div>
+
+              <div class="doctor-rule" aria-hidden="true"></div>
+
+              <div class="doctor-bio">
+                <span class="eyebrow">Dr. Annelise Westermeier · Dr. Annie</span>
+                <h3>Fourth-generation dentist. <em>General dentistry lead.</em></h3>
+                <p>
+                  Dr. Annelise Westermeier (Dr. Annie), a fourth-generation dentist with an AEGD
+                  residency from Virginia Commonwealth University, leads general dentistry with a
+                  holistic, patient-comfort-first approach. Together, they cover the full spectrum
+                  of dental care.
+                </p>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section alt" id="payment" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="pay-grid">
+            <div class="pay-copy">
+              <span class="eyebrow">Payment &amp; plans</span>
+              <h2>Flexible payment options <em>and dental membership plan.</em></h2>
+              <p>
+                Vivid Smiles works with most major dental insurance plans to help patients make the
+                most of their benefits. Patients without insurance can take advantage of our <a
+                  class="vs-link"
+                  href="/dental-membership-plan/">in-house dental membership plan</a
+                >, which covers preventive care and discounts on additional treatment for an annual
+                fee.
+              </p>
+              <p>
+                Financing is also available for larger restorative or cosmetic cases. Our team will
+                clarify every option before treatment begins.
+              </p>
+              <div class="pay-actions">
+                <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk"
+                  >Book Online</Button
+                >
+                <Button variant="ghost-light" href={phoneHref} hoverLabel="Tap to Dial"
+                  >Call {phoneLabel}</Button
+                >
+              </div>
+            </div>
+
+            <aside class="pay-card" aria-label="Vivid Smiles in-house dental membership plan">
+              <span class="pay-card-eyebrow">Membership plan</span>
+              <h3>No insurance? Use our <em>in-house plan.</em></h3>
+              <ul class="pay-list">
+                <li>
+                  <b>Preventive care covered</b> — cleanings, exams, and routine X-rays for the year.
+                </li>
+                <li><b>Discounted treatment</b> on restorative, cosmetic, and emergency work.</li>
+                <li><b>Single annual fee</b> — no claims, no waiting periods, no exclusions.</li>
+              </ul>
+              <div class="pay-card-actions">
+                <Button variant="ghost" href="/dental-membership-plan/" hoverLabel="See Plan"
+                  >See Membership Plan</Button
+                >
+              </div>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="area" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="area">
+            <div class="area-copy">
+              <span class="eyebrow">Service area</span>
+              <h2>Serving Parker &amp; <em>Douglas County.</em></h2>
+              <p>
+                Vivid Smiles Dentistry is located at {addressStreet}, in {addressCity}. Our practice
+                is accepting new patients for cleanings, exams, and same-day emergency appointments.
+              </p>
+              <p>
+                We see clients locally and from out of state who travel in for specialized care that
+                most general practices don't offer. Dr. Richardson is a Parker resident — the
+                community he serves is the one he lives in.
+              </p>
+              <p class="area-address-line">
+                <b>{addressStreet}</b><br />
+                {addressCity}, {addressState}
+                {addressZip} · <a class="vs-link" href={phoneHref}>{phoneLabel}</a>
+              </p>
+              <div class="area-actions">
+                <Button variant="sage" href={directionsHref} hoverLabel="Open Maps"
+                  >Get Directions</Button
+                >
+                <Button variant="ghost" href="/contact/" hoverLabel="Reach Us">Contact Us</Button>
+              </div>
+            </div>
+            <div class="area-map" aria-label="Map showing Vivid Smiles Dentistry">
+              <iframe
+                src={`https://maps.google.com/maps?q=${encodeURIComponent(addressLine)}&output=embed`}
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                title={`Map showing Vivid Smiles Dentistry at ${addressLine}`}></iframe>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section alt" id="faq" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">FAQ</span>
+            <h2>Frequently asked questions about <em>general dentistry in Parker, CO.</em></h2>
+            <p>
+              Practical answers patients ask in the consultation chair. Anything else, send a few
+              photos through the <a class="vs-link" href="#consult">virtual consult</a> and Dr. Richardson
+              will record a personal video reply.
+            </p>
+          </div>
+
+          <div class="faq-list">
+            {
+              faqs.map((f) => (
+                <details class="faq" open={f.open}>
+                  <summary>
+                    <>
+                      <h3>{f.q}</h3>
+                      <span class="icon" aria-hidden="true">
+                        +
+                      </span>
+                    </>
+                  </summary>
+                  <div class="answer" set:html={f.a} />
+                </details>
+              ))
+            }
+          </div>
+
+          <div class="cta-row">
+            <div class="cta-buttons">
+              <Button variant="light" href="#consult" hoverLabel="Get a Video"
+                >Still Have Questions? Free Virtual Consult</Button
+              >
+              <Button variant="ghost-light" href={phoneHref} hoverLabel="Tap to Dial"
+                >Call {phoneLabel}</Button
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="closing" data-vs-reveal>
+        <div class="wrap">
+          <div class="closing-inner">
+            <span class="eyebrow">A foundation for a healthy smile</span>
+            <h2>Schedule your general dentistry <em>appointment in Parker.</em></h2>
+            <p>
+              General dentistry is the foundation of a healthy smile. At Vivid Smiles Dentistry, it
+              is also the starting point — whether that means maintaining what you have or exploring
+              what cosmetic care could do.
+            </p>
+            <p class="outro">
+              Call <a class="vs-link" href={phoneHref}>{phoneLabel}</a> or <a
+                class="vs-link"
+                href={bookNowHref}
+                target="_blank"
+                rel="noopener noreferrer">book online</a
+              >
+              to schedule your appointment at {addressStreet}, {addressCity}, {addressState}.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <VirtualConsult id="consult" eyebrow="Free general dentistry consultation">
+        <Fragment slot="headline">Free general dentistry <em>consultation.</em></Fragment>
+        <Fragment slot="body">
+          New to the practice or returning after years away? Send a few photos and we'll record a
+          custom video response with findings, next steps, and a recommended visit cadence. Photos
+          in, video out — no commitments.
+        </Fragment>
+      </VirtualConsult>
+
+      <FinalBand>
+        <p>
+          Vivid Smiles Dentistry in Parker offers comprehensive general care from a dual-doctor team
+          backed by advanced diagnostic technology and 300+ five-star Google reviews.
+        </p>
+      </FinalBand>
+    </main>
+
+    <script>
+      import { initTocSpy } from '../../scripts/toc-spy';
+      initTocSpy('.gdent');
+    </script>
+
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'Service',
+        name: 'General Dentistry',
+        serviceType: 'General Dentistry',
+        description:
+          'Comprehensive general dentistry in Parker, CO — preventive care, restorative treatment (same-day crowns, fillings, bridges), periodontal care, and emergency dentistry, with CBCT 3D imaging, in-house milling, and a dual-doctor model.',
+        areaServed: [
+          { '@type': 'AdministrativeArea', name: 'Douglas County, Colorado' },
+          { '@type': 'City', name: 'Parker, CO' },
+          { '@type': 'City', name: 'Castle Rock, CO' },
+          { '@type': 'City', name: 'Lone Tree, CO' },
+          { '@type': 'City', name: 'Highlands Ranch, CO' },
+        ],
+        provider: {
+          '@type': 'Dentist',
+          name: 'Vivid Smiles Dentistry',
+          url: new URL('/', Astro.site).href,
+          telephone: phoneE164,
+          address: {
+            '@type': 'PostalAddress',
+            streetAddress: addressStreet,
+            addressLocality: addressCity,
+            addressRegion: addressState,
+            postalCode: addressZip,
+            addressCountry: 'US',
+          },
+        },
+        hasOfferCatalog: {
+          '@type': 'OfferCatalog',
+          name: 'General Dentistry Services',
+          itemListElement: offerCatalog,
+        },
+      })}
+    />
+
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faqs.map((f) => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
+      })}
+    />
+
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: new URL('/', Astro.site).href },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'Services',
+            item: new URL('/services/', Astro.site).href,
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: 'General Dentistry',
+            item: new URL('/general-dentistry/', Astro.site).href,
+          },
+        ],
+      })}
+    />
+  </div>
+</BaseLayout>

@@ -1,0 +1,457 @@
+/*
+ * Vivid Smiles — About Us page styles.
+ *
+ * Page-scoped under .aus so styles can't leak. Local aliases mirror the
+ * .pveneers / .bna convention so prototype CSS reads cleanly while resolving
+ * through the central `--vs-*` token system. Buttons live with the global
+ * <Button> component; reveal motion is wired by src/scripts/animations.js.
+ */
+
+.aus {
+  /* Local aliases — every alias resolves through a `--vs-*` token. */
+  --sage: var(--vs-sage);
+  --sage-deep: var(--vs-sage-deep);
+  --sage-soft: var(--vs-sage-soft);
+  --cream: var(--vs-cream);
+  --paper: var(--vs-paper);
+  --ink: var(--vs-ink);
+  --ink-soft: var(--vs-ink-soft);
+  --muted: var(--vs-muted);
+  --line: var(--vs-line);
+  --shadow: 0 24px 60px -30px rgba(40, 40, 30, 0.25), 0 8px 20px -10px rgba(40, 40, 30, 0.08);
+  --shadow-lg: var(--vs-shadow-lg);
+  --r-sm: var(--vs-r-sm);
+  --r-md: var(--vs-r-md);
+  --r-lg: var(--vs-r-lg);
+  --r-xl: var(--vs-r-xl);
+  --f-display: var(--vs-font-display);
+  --f-body: var(--vs-font-body);
+}
+
+/* ---------- primitives (page-scoped) ---------- */
+.aus .wrap { max-width: 1240px; margin: 0 auto; padding: 0 40px; }
+
+.aus h1, .aus h2, .aus h3, .aus h4 {
+  font-family: var(--f-display); font-weight: 400; color: var(--sage);
+  margin: 0; line-height: 1.1; letter-spacing: -0.015em;
+}
+.aus h1 { font-size: clamp(48px, 7vw, 92px); font-weight: 300; letter-spacing: -0.025em; }
+.aus h1 em { font-style: italic; color: var(--sage-soft); font-weight: 300; }
+.aus h2 { font-size: clamp(32px, 4.2vw, 54px); font-weight: 400; letter-spacing: -0.022em; }
+.aus h2 em { font-style: italic; color: var(--sage-soft); font-weight: 300; }
+.aus h3 { font-size: clamp(20px, 2vw, 26px); font-weight: 500; color: var(--ink); }
+.aus h4 { font-size: 17px; font-weight: 500; color: var(--ink); letter-spacing: 0; }
+.aus p { margin: 0; color: var(--ink-soft); }
+.aus em { font-style: italic; color: var(--sage-soft); font-weight: 300; }
+
+/* ---------- HERO (cream) ---------- */
+.aus .hero {
+  position: relative;
+  background: var(--cream);
+  padding: 80px 0 100px;
+  overflow: hidden;
+}
+.aus .hero::before {
+  content: ""; position: absolute; inset: 0;
+  background:
+    radial-gradient(ellipse 900px 500px at 85% 15%, rgba(107, 122, 84, 0.08), transparent 60%),
+    radial-gradient(ellipse 700px 400px at 5% 95%, rgba(107, 122, 84, 0.06), transparent 60%);
+  pointer-events: none;
+}
+.aus .hero-inner {
+  position: relative;
+  display: grid; grid-template-columns: 1.1fr 0.9fr;
+  gap: 70px; align-items: center;
+  max-width: 1240px; margin: 0 auto; padding: 0 40px;
+}
+.aus .hero-copy h1 { margin: 22px 0 26px; max-width: 14ch; }
+.aus .hero-sub {
+  max-width: 56ch; font-size: 17px; line-height: 1.75; color: var(--ink-soft);
+}
+.aus .hero-actions {
+  margin-top: 36px;
+  display: flex; gap: 14px; flex-wrap: wrap; align-items: center;
+}
+.aus .hero-actions .ratings {
+  display: flex; align-items: center; gap: 10px;
+  padding-left: 18px;
+  border-left: 1px solid var(--line);
+  font-size: 12px; color: var(--muted); letter-spacing: 0.04em;
+}
+.aus .hero-actions .stars {
+  color: var(--sage); letter-spacing: 0.12em;
+}
+.aus .hero-img {
+  position: relative;
+  aspect-ratio: 4/5;
+  box-shadow: var(--shadow);
+  border-radius: var(--r-xl);
+  overflow: hidden;
+}
+.aus .hero-img img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+.aus .hero-img .signature {
+  position: absolute; bottom: 22px; left: 24px;
+  font-family: var(--f-display); font-style: italic; color: #fff;
+  font-size: clamp(18px, 2vw, 22px); opacity: 0.96;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  letter-spacing: -0.01em;
+}
+
+/* ---------- SECTIONS ---------- */
+.aus .section { padding: 110px 0; }
+
+/* `.section.alt` (cream → charcoal-green) — used by #doctors + #credentials.
+   Headings/eyebrows/body all need explicit white-on-charcoal overrides. */
+.aus .section.alt { background: var(--vs-charcoal-green); }
+.aus .section.alt h1,
+.aus .section.alt h2,
+.aus .section.alt h3 { color: #fff; }
+.aus .section.alt h2 em,
+.aus .section.alt em { color: var(--vs-eyebrow-on-sage); }
+.aus .section.alt p { color: rgba(255, 255, 255, 0.85); }
+.aus .section.alt .eyebrow { color: var(--vs-eyebrow-on-sage); }
+.aus .section.alt .eyebrow::before,
+.aus .section.alt .eyebrow::after { background: rgba(255, 255, 255, 0.6); }
+
+/* `.section.dark` (sage → sage-pale) — used by #team (.vs-band-sage). Now a
+   light band, so headings/body must read dark. White-on-sage rules below are
+   intentionally NOT applied to .section.dark anymore. */
+.aus .section.dark { background: var(--vs-sage-pale); color: var(--vs-ink); }
+.aus .section.dark h1,
+.aus .section.dark h2,
+.aus .section.dark h3 { color: var(--vs-ink); }
+.aus .section.dark h2 em,
+.aus .section.dark em { color: var(--vs-sage); }
+.aus .section.dark p { color: var(--vs-ink-soft); }
+/* Match both legacy `.eyebrow` class and the `<Eyebrow>` component's
+   `.vs-eyebrow.vs-center` class — they coexist after. */
+.aus .section.dark :is(.eyebrow, .vs-eyebrow) { color: var(--vs-ink-soft); }
+.aus .section.dark :is(.eyebrow, .vs-eyebrow)::before,
+.aus .section.dark :is(.eyebrow, .vs-eyebrow)::after { background: var(--vs-ink-soft); }
+
+/* SectionIntro is centered via the `centered` prop; this just adds
+   bottom-margin for the section heading triad. */
+.aus .aus-section-head { margin: 0 auto 64px; max-width: 760px; }
+
+/* ---------- STORY (paper) ---------- */
+.aus .story-grid {
+  display: grid; grid-template-columns: 1fr 1.05fr;
+  gap: 80px; align-items: center;
+}
+.aus .story-img {
+  position: relative;
+  aspect-ratio: 4/5;
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.aus .story-img img { width: 100%; height: 100%; object-fit: cover; }
+.aus .story-img .badge {
+  position: absolute; left: 22px; top: 22px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(6px);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 7px 14px;
+  font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--sage); font-weight: 500;
+}
+.aus .story-text h2 { margin: 18px 0 26px; max-width: 16ch; }
+.aus .story-text p {
+  font-size: 16px; line-height: 1.85; max-width: 56ch;
+}
+.aus .story-text p + p { margin-top: 18px; }
+.aus .story-sig {
+  margin-top: 38px; padding-top: 30px;
+  border-top: 1px solid var(--line);
+  font-family: var(--f-display); font-style: italic; font-weight: 300;
+  font-size: 26px; color: var(--sage);
+  line-height: 1.35; letter-spacing: -0.005em;
+  max-width: 28ch;
+}
+.aus .story-sig small {
+  display: block; margin-top: 10px;
+  font-family: var(--f-body); font-style: normal;
+  font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* ---------- DOCTORS (cream) ----------
+   Alternating bios. The first grid is image-LEFT, the second uses
+   .image-right to flip the column order. ImageFrame is responsible for the
+   main + inset composition; we just give the surrounding row its layout. */
+.aus .doc-grid {
+  display: grid; grid-template-columns: 1fr 1.05fr;
+  gap: 80px; align-items: center;
+  margin-bottom: 110px;
+}
+.aus .doc-grid:last-of-type { margin-bottom: 0; }
+.aus .doc-grid.image-right { grid-template-columns: 1.05fr 1fr; }
+
+.aus .doc-copy h2 { margin-bottom: 14px; margin-top: 14px; }
+.aus .doc-copy .role {
+  font-family: var(--f-display); font-style: italic; font-weight: 300;
+  color: var(--sage-soft);
+  font-size: 18px; margin-bottom: 22px;
+  letter-spacing: -0.005em;
+}
+.aus .doc-copy .lead {
+  font-size: 17px; color: var(--ink); line-height: 1.6;
+}
+.aus .doc-copy .bio {
+  margin-top: 18px;
+  font-size: 15px; line-height: 1.8;
+}
+
+/* Charcoal-band overrides.
+   `.doc-copy .lead` / `.doc-copy .bio` selectors (0,3,1) outrank
+   `.section.alt p` (0,3,0), so we re-assert white text + a soft-sage role. */
+.aus .section.alt .doc-copy .role { color: var(--vs-eyebrow-on-sage); }
+.aus .section.alt .doc-copy .lead { color: #fff; }
+.aus .section.alt .doc-copy .bio { color: rgba(255, 255, 255, 0.85); }
+.aus .doc-credentials {
+  margin-top: 42px; padding-top: 34px;
+  border-top: 1px solid var(--line);
+  display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 28px;
+}
+.aus .doc-credentials .cred .k {
+  font-family: var(--f-display);
+  font-size: 36px; color: var(--sage);
+  line-height: 1; font-weight: 400; letter-spacing: -0.01em;
+}
+.aus .doc-credentials .cred .v {
+  font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 10px; line-height: 1.5;
+}
+/* Charcoal-band overrides (#doctors): credential numbers + labels need to
+   read against the dark band — soft-sage accents + a pale rule line. */
+.aus .section.alt .doc-credentials { border-top-color: rgba(255, 255, 255, 0.2); }
+.aus .section.alt .doc-credentials .cred .k { color: var(--vs-eyebrow-on-sage); }
+.aus .section.alt .doc-credentials .cred .v { color: rgba(255, 255, 255, 0.7); }
+.aus .doc-actions {
+  margin-top: 40px;
+  display: flex; gap: 14px; flex-wrap: wrap;
+}
+
+/* ---------- TEAM (sage) ----------
+   Support-staff roster on a sage band, rendered with paper cards that pop
+   against the dark backdrop. Section-level typography (eyebrow, h2 italic
+   accent, lede) is handled by `.vs-band-sage` in global.css; only the
+   group-title rhythm and card chrome live here. */
+.aus .aus-team-group { margin-bottom: 90px; }
+.aus .aus-team-group:last-child { margin-bottom: 0; }
+.aus .aus-team-group-title {
+  font-family: var(--f-display);
+  font-size: clamp(24px, 2.4vw, 30px);
+  font-weight: 400; line-height: 1; letter-spacing: -0.01em;
+  color: var(--vs-ink);
+  margin: 0 0 38px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+}
+.aus .aus-team-group-title em {
+  font-style: italic; font-weight: 300;
+  color: var(--vs-sage);
+}
+
+/* Per-tier column count — 3-member tiers use a normal 3-col grid; 2-member
+   tiers (Hygienists, Comfort Officers) use a 2-col grid capped at ~880px so
+   the row reads as full instead of leaving a glaring empty third cell. */
+.aus .aus-team-grid { display: grid; gap: 30px; }
+.aus .aus-team-grid-3 { grid-template-columns: repeat(3, 1fr); }
+.aus .aus-team-grid-2 {
+  grid-template-columns: repeat(2, 1fr);
+  max-width: 880px;
+  margin-inline: auto;
+}
+
+.aus .aus-team-card {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.aus .aus-team-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow);
+  border-color: rgba(107, 122, 84, 0.32);
+}
+@media (prefers-reduced-motion: reduce) {
+  .aus .aus-team-card { transition: none; }
+  .aus .aus-team-card:hover { transform: none; }
+}
+
+.aus .aus-team-pic {
+  aspect-ratio: 4 / 5;
+  background: var(--cream);
+  position: relative;
+  overflow: hidden;
+}
+.aus .aus-team-pic img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+}
+
+.aus .aus-team-body {
+  padding: 26px 24px;
+  display: flex; flex-direction: column; gap: 10px; flex: 1;
+}
+.aus .aus-team-role {
+  font-family: var(--f-body);
+  font-size: 10.5px; letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--sage); font-weight: 500;
+}
+.aus .aus-team-card h4 {
+  font-family: var(--f-display);
+  font-size: 24px; font-weight: 400;
+  color: var(--sage);
+  margin: 2px 0 6px;
+  letter-spacing: -0.01em; line-height: 1.1;
+}
+/* Card paragraph sizing — color now inherits ink-soft from the sage-pale
+   section override above. Kept as a sized rule for the bio rhythm. */
+.aus .section.dark .aus-team-card p {
+  font-size: 14px; line-height: 1.7;
+  color: var(--ink-soft);
+}
+
+/* ---------- TECHNOLOGY (paper) ---------- */
+.aus .tech-grid {
+  display: grid; grid-template-columns: 1.1fr 1fr;
+  gap: 80px; align-items: center;
+}
+.aus .tech-img {
+  position: relative;
+  aspect-ratio: 5/6;
+  border-radius: var(--r-xl);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+.aus .tech-img img { width: 100%; height: 100%; object-fit: cover; }
+.aus .tech-img .stamp {
+  position: absolute; left: 22px; top: 22px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--line);
+  border-radius: var(--r-md);
+  padding: 14px 18px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+.aus .tech-img .stamp b {
+  font-family: var(--f-display);
+  font-size: 22px; color: var(--sage);
+  display: block; line-height: 1; font-weight: 500;
+}
+.aus .tech-img .stamp small {
+  font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase;
+  color: var(--muted);
+}
+.aus .tech-text h2 { margin: 18px 0 26px; max-width: 16ch; }
+.aus .tech-text .lead {
+  font-size: 16.5px; line-height: 1.75; max-width: 50ch;
+}
+.aus .tech-list {
+  margin-top: 38px;
+  display: grid; gap: 0;
+}
+.aus .tech-item {
+  display: grid; grid-template-columns: 52px 1fr;
+  gap: 20px; align-items: start;
+  padding: 22px 0;
+  border-top: 1px solid var(--line);
+}
+.aus .tech-item:last-child { border-bottom: 1px solid var(--line); }
+.aus .tech-item .idx {
+  font-family: var(--f-display);
+  font-size: 22px; color: var(--sage);
+  padding-top: 2px; font-weight: 400;
+}
+.aus .tech-item h4 {
+  margin: 0 0 4px;
+  font-family: var(--f-body);
+  font-size: 15px; font-weight: 500;
+  color: var(--ink); letter-spacing: 0.02em;
+}
+.aus .tech-item p { font-size: 14px; }
+
+/* ---------- CREDENTIALS (cream) ---------- */
+.aus .creds-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
+}
+
+/* ---------- TESTIMONIALS (paper) — exact clone of the home-page section ----------
+   Mirrors `.home .testi*` rules in src/styles/pages/home.css so the about-us
+   testimonials marquee renders identically (edge-faded paper band, 90s scroll,
+   pause-on-hover, 380px cards, reduced-motion fallback to manual scroll-snap). */
+.aus .testi { padding: 140px 0; background: var(--paper); overflow: hidden; }
+.aus .testi-head { text-align: center; max-width: 760px; margin: 0 auto 60px; }
+/* Hairline-flanked eyebrow + h2 styles come from global.css (.vs-eyebrow.vs-center)
+   and the page-scoped h2 rules above. Only the testi-specific rhythm + stars row
+   live here. */
+.aus .testi-head h2 { margin: 22px 0 22px; }
+.aus .testi-head p { font-size: 17px; }
+.aus .testi-head .stars { margin-top: 18px; color: var(--sage); font-size: 18px; letter-spacing: 0.3em; }
+
+/* Testimonial marquee → <ReviewMarquee> (src/components/ReviewMarquee.astro). */
+.aus .testi-actions {
+  display: flex;
+  justify-content: center;
+  margin-top: 40px;
+}
+
+/* ---------- RESPONSIVE ---------- */
+@media (max-width: 1100px) {
+  .aus .hero-inner { grid-template-columns: 1fr; gap: 50px; }
+  .aus .hero-img { max-width: 540px; }
+  .aus .story-grid,
+  .aus .doc-grid,
+  .aus .doc-grid.image-right,
+  .aus .tech-grid {
+    grid-template-columns: 1fr;
+    gap: 50px;
+  }
+  /* When the doctor grid stacks, the image must always sit ABOVE the copy —
+     even in the .image-right variant where DOM order has copy first. */
+  .aus .doc-grid.image-right > .doc-copy { order: 2; }
+  .aus .doc-grid.image-right > .vs-frame { order: 1; }
+
+  .aus .story-img,
+  .aus .tech-img { max-width: 540px; margin: 0 auto; width: 100%; }
+
+  .aus .creds-grid { grid-template-columns: repeat(2, 1fr); }
+
+  .aus .aus-team-grid { gap: 24px; }
+  .aus .aus-team-grid-3 { grid-template-columns: repeat(2, 1fr); }
+  /* `.aus-team-grid-2` stays 2-col under its 880px cap (wrap shrinks naturally). */
+}
+
+@media (max-width: 780px) {
+  .aus .wrap { padding: 0 22px; }
+  .aus .hero { padding: 50px 0 70px; }
+  .aus .hero-inner { padding: 0 22px; }
+  .aus .section { padding: 70px 0; }
+  .aus .doc-grid { margin-bottom: 70px; }
+  .aus .doc-credentials { grid-template-columns: 1fr 1fr; gap: 22px; }
+  .aus .doc-credentials .cred .k { font-size: 30px; }
+  .aus .creds-grid { grid-template-columns: 1fr; }
+
+  .aus .aus-team-grid { gap: 20px; }
+  .aus .aus-team-grid-3,
+  .aus .aus-team-grid-2 { grid-template-columns: 1fr; max-width: none; }
+  .aus .aus-team-group { margin-bottom: 60px; }
+  .aus .aus-team-group-title { margin-bottom: 28px; padding-bottom: 14px; }
+
+  .aus .testi { padding: 80px 0; }
+}
+
+/* H2 base color → ink for sitewide split-color pattern.
+   Equal specificity (0,1,1) with the h1/h2/h3/h4 group rule above; comes later
+   in the cascade, so this wins for h2 only. h1/h3/h4 keep sage. Dark-band
+   `.section.alt h2 { color: #fff }` (0,2,1) still trumps. */
+.aus h2 { color: var(--vs-ink); }

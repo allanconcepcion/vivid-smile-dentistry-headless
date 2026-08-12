@@ -1,0 +1,1139 @@
+---
+/**
+ * Dental Membership Plan — Vivid Smiles Dentistry, Parker CO.
+ *
+ * In-house annual plan ($500/yr) — the destination for every service page's
+ * `.insurance-card` "membership plan for uninsured patients" reference.
+ *
+ * Page-scoped CSS lives in the co-located <style> block under .membership.
+ * Reveals/parallax wired by src/scripts/animations.js (data-vs-reveal*).
+ */
+import { Image } from "astro:assets";
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Button from "../../components/Button.astro";
+import FinalBand from "../../components/FinalBand.astro";
+import { phoneHref, phoneLabel, phoneE164 } from "../../data/contact";
+
+// Membership-specific NexHealth join URL — distinct from the site-wide
+// bookNowHref. The long query string is a Google-referral attribution token
+// (rwg_token / gei) the user supplied so click-source survives the redirect.
+const joinHref = "https://app.nexhealth.com/appt/vivid-smiles?gei=SNOCZ9DYI4iz0PEP4pGiwAE&hl=en-US&lid=135014&rwg_token=AJKvS9UCpCLqLfgKhJQnz7rWoeDCbQ7_4jB31UUUncy7-eeuYYpuTjjp2NDySX2gPYqlQfi7W1lrikNOJ7pN5SiEvTSWaWjcYQ%3D%3D";
+
+import heroImg from "../../assets/images/team/vivid-smiles-team-candid.webp";
+import step1Img from "../../assets/images/people/real/patient-at-reception-check-in.webp";
+import step2Img from "../../assets/images/procedures/hygienist-polishing-teeth.webp";
+import step3Img from "../../assets/images/facility/waiting-room-lounge-with-neon-smile.webp";
+
+const storyBullets = [
+  "2 cleanings & exams per year",
+  "2 fluoride treatments per year",
+  "Unlimited digital x-rays",
+  "Oral cancer screenings",
+  "15% off most other treatments",
+];
+
+const processSteps = [
+  {
+    num: "01",
+    tagline: "Sign up in minutes.",
+    title: "Enroll",
+    body: "Pay the annual fee online, over the phone with our front desk, or in person at the office. We process the membership on the spot. No medical questions, no underwriting, no waiting period.",
+    label: "Step One",
+    img: step1Img,
+    alt: "Front-desk team member at Vivid Smiles",
+  },
+  {
+    num: "02",
+    tagline: "Use it the same day.",
+    title: "Come in",
+    body: "Book your two yearly cleanings and exams — already paid for. For anything beyond preventive — fillings, veneers, Invisalign, implants — we apply the 15% member discount automatically at checkout. Nothing to file.",
+    label: "Step Two",
+    img: step2Img,
+    alt: "Hygienist polishing a patient's teeth during a cleaning",
+  },
+  {
+    num: "03",
+    tagline: "One renewal, once a year.",
+    title: "Renew",
+    body: "Twelve months later we send a reminder, you decide whether to renew, and if you do, everything starts again. No automatic charges without your confirmation. Cancel any time — unused months aren't billed.",
+    label: "Step Three",
+    img: step3Img,
+    alt: "The Vivid Smiles waiting lounge in Parker, CO",
+  },
+];
+
+const included = [
+  { title: "2 cleanings", note: "Standard prophylaxis with our hygienists" },
+  { title: "2 fluoride treatments", note: "In-office, applied at your cleanings" },
+  { title: "Unlimited digital x-rays", note: "As clinically indicated — no per-image fees" },
+  { title: "Oral cancer screenings", note: "Visual exam at each visit" },
+  { title: "Comprehensive exams", note: "Annual exam with Dr. Richardson" },
+  { title: "Complimentary consultations", note: "Second-opinion or treatment-plan reviews" },
+];
+
+const discounted = [
+  { title: "Invisalign & clear aligners", note: "Applied to the full case fee at checkout" },
+  { title: "Additional cleanings", note: "Periodontal maintenance & extras beyond the two included" },
+  { title: "All other treatments", note: "Fillings, crowns, veneers, whitening, implants, full-arch — at standard fee schedule" },
+  { title: "Emergency visits", note: "Same-day appointments aren't fully covered — but you get the member rate" },
+];
+
+const compareTiles = [
+  { emWord: "$0", body: "Waiting period. Benefits activate the same day you sign up — even if you're being seen later that afternoon." },
+  { emWord: "0",  body: "Annual maximum, claim forms, denials, or pre-approvals. We bill the practice directly." },
+  { emWord: "12", body: "Months of coverage from your enrollment date. Renewable annually, cancellable any time." },
+];
+
+const faqs = [
+  {
+    q: "How do I sign up?",
+    a: `Three ways — online via our enrollment form, over the phone with the front desk at <a class="vs-link" href="${phoneHref}">${phoneLabel}</a>, or in person on your next visit. Activation is immediate; if you'd booked treatment for the same afternoon, the member discount applies at checkout.`,
+    open: true,
+  },
+  {
+    q: "Is this insurance?",
+    a: "No. It's a direct membership agreement between you and Vivid Smiles Dentistry. There's no insurance company in the middle, no claim forms, no annual maximums, and no pre-approval process. It's not regulated as insurance because it isn't insurance — and that's why it can stay simple.",
+  },
+  {
+    q: "Is there a waiting period or pre-approval?",
+    a: "No to both. Your membership is active the moment you enroll, and there are no exclusions for pre-existing conditions, prior treatment, or specific procedures. The 15% member discount applies to whatever's clinically planned — including work scheduled the same day you sign up.",
+  },
+  {
+    q: "What happens if I have a dental emergency?",
+    a: `Emergency visits aren't covered in full, but you get the 15% member discount on the visit and any treatment that follows. We hold same-day spots open every day for emergencies — call us at <a class="vs-link" href="${phoneHref}">${phoneLabel}</a> and tell the front desk you're a member.`,
+  },
+  {
+    q: "Is there a family option?",
+    a: "Yes — family memberships are available at a reduced per-person rate for additional adults and children sharing a household. The front desk can quote the exact number for your situation in about a minute; the simplest path is to call or mention it at your next visit.",
+  },
+  {
+    q: "What's actually covered vs. discounted?",
+    a: "<b>Fully covered (no additional charge):</b> two cleanings and exams a year, two fluoride treatments, unlimited digital x-rays as clinically needed, oral cancer screenings, and complimentary consultations. <b>Discounted at 15%:</b> Invisalign and clear aligners, additional cleanings, fillings, crowns, veneers, whitening, implants, full-arch work, and emergency visits. The plan covers one adult; family pricing is available on request.",
+  },
+];
+---
+
+<BaseLayout
+  title="Dental Membership Plan in Parker, CO | Vivid Smiles Dentistry"
+  description="Flat $500/year. Two cleanings, exams, x-rays — and 15% off everything else. No insurance, no claims, no waiting period. Activate the same day at Vivid Smiles in Parker, CO."
+>
+  <div class="membership">
+
+    {/* ---------- BREADCRUMB ---------- */}
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <div class="crumbs-inner">
+        <a href="/">Home</a>
+        <span class="sep">/</span>
+        <a href="/new-patients/">Resources</a>
+        <span class="sep">/</span>
+        <span class="here">Dental Membership Plan</span>
+      </div>
+    </nav>
+
+    {/* ---------- HERO (paper) ---------- */}
+    <section class="hero vs-band-paper" data-vs-reveal-batch>
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <span class="vs-eyebrow">Membership Plan · Parker, CO</span>
+          <h1 class="vs-h1" data-vs-reveal-lines>
+            Year-round care, without insurance <em class="vs-italic-word">getting in the way.</em>
+          </h1>
+          <p class="vs-lede">
+            A flat $500 a year. Two cleanings, exams, x-rays — and 15% off everything
+            else we do, from Invisalign to implants. No claims to file, no waiting
+            periods, no pre-approvals. Built for the patients who'd rather work with
+            us directly.
+          </p>
+          <div class="hero-actions">
+            <Button variant="sage" href={joinHref} hoverLabel="Join Today">Join the Plan</Button>
+            <Button variant="ghost" href="#whats-included" hoverLabel="See Details">See What's Included</Button>
+          </div>
+          <div class="hero-ratings">
+            <span class="stars" aria-hidden="true">★★★★★</span>
+            <span>5.0 · 300+ Google reviews</span>
+          </div>
+        </div>
+
+        <div class="hero-stack" data-vs-parallax data-parallax="-25">
+          <div class="hero-primary">
+            <Image src={heroImg} alt="The Vivid Smiles Dentistry team" widths={[480, 720, 1080]} sizes="(max-width: 991px) 90vw, 540px" loading="eager" fetchpriority="high" />
+          </div>
+          <span class="hero-tag">The Vivid Smiles Team</span>
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- WHY (cream) — story copy + sticky at-a-glance card ---------- */}
+    <section class="vs-band-cream" id="story" data-vs-reveal-batch>
+      <div class="wrap story-grid">
+        <div class="story-copy">
+          <span class="vs-eyebrow">— Why we built it</span>
+          <h2 class="vs-h2">For the patients <em class="vs-italic-word">who'd rather skip the middleman.</em></h2>
+          <p>Most dental insurance was designed for an era that no longer exists. Annual maximums haven't moved in forty years. Cosmetic work — the reason a lot of our patients come to us — isn't covered at all. And the paperwork costs everyone time that could be spent on care.</p>
+          <p>The Vivid Smiles Membership Plan is the simplest answer we could come up with: a flat annual fee, your preventive care covered in full, and a meaningful discount on everything else. We see what's coming in the door — no pre-approvals to chase, no claim denials, no waiting period. You come in. We get to work.</p>
+          <p>It isn't insurance, and it isn't trying to be. It's a direct agreement between a patient and a practice, written in plain language and renewed once a year.</p>
+        </div>
+
+        <aside class="story-card" aria-label="Plan at a glance">
+          <span class="story-card__label">— At a glance</span>
+          <h3>Vivid Smiles <em>Membership</em></h3>
+          <div class="story-card__price">
+            $500<span class="story-card__cadence">/ year</span>
+          </div>
+          <p class="story-card__sub">One adult · <b>renews annually</b></p>
+          <ul>
+            {storyBullets.map((b) => <li>{b}</li>)}
+          </ul>
+          <a class="story-card__jump" href="#whats-included">
+            <span>Full breakdown</span>
+            <span class="vs-arrow-mini" aria-hidden="true">→</span>
+          </a>
+        </aside>
+      </div>
+    </section>
+
+    {/* ---------- HOW IT WORKS (paper) ---------- */}
+    <section class="vs-band-paper" id="how-it-works" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="intro-triad">
+          <span class="vs-eyebrow">— How it works</span>
+          <h2 class="vs-h2">Three steps, <em class="vs-italic-word">activated same day.</em></h2>
+          <p class="vs-lede">Sign up online, by phone, or in the office. There's no waiting period, no underwriting, no pre-approval. The benefits are usable the same day you enroll.</p>
+        </div>
+
+        <div class="pcard" data-vs-reveal>
+          <div class="pgrid">
+            {processSteps.map((s) => (
+              <div class="pstep">
+                <div class="pstep-head">
+                  <div class="pstep-num">{s.num}</div>
+                  <div class="pstep-thumb">
+                    <Image src={s.img} alt={s.alt} widths={[120, 200]} sizes="84px" />
+                  </div>
+                </div>
+                <span class="pstep-tagline">{s.tagline}</span>
+                <h3>{s.title}</h3>
+                <p>{s.body}</p>
+                <span class="pstep-lbl">{s.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- THE PLAN (sage) — centerpiece card + compare tiles ---------- */}
+    <section class="vs-band-sage" id="whats-included" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="intro-triad intro-triad--center">
+          <span class="vs-eyebrow vs-center">The plan</span>
+          <h2 class="vs-h2">One tier. <em class="vs-italic-word">No surprises.</em></h2>
+          <p class="vs-lede">We deliberately didn't build a four-tier menu. One plan, one number, written in plain English — so you can decide in two minutes whether it makes sense for you.</p>
+        </div>
+
+        <div class="plan" id="enroll">
+          <div class="plan-card" data-vs-reveal>
+            <div class="plan-left">
+              <span class="plan-eyebrow">Vivid Smiles Membership</span>
+              <h3 class="plan-title">A flat annual fee. <em>Everything else, simpler.</em></h3>
+              <p class="plan-sub">Direct agreement between you and the practice. No insurance, no claims, no third party.</p>
+
+              <div class="plan-price-block">
+                <div class="plan-price">
+                  <span class="dollar">$</span>500<span class="cadence">/ year, per adult</span>
+                </div>
+                <p class="plan-fineline">
+                  <b>Activates immediately</b> — no waiting period, no pre-approval. Family pricing available; ask the front desk for the per-additional-member rate.
+                </p>
+                <div class="plan-actions">
+                  <Button variant="sage" href={joinHref} hoverLabel="Join Today">Sign Up Now</Button>
+                  <Button variant="ghost" href={phoneHref} hoverLabel="Tap to Dial">Call {phoneLabel}</Button>
+                </div>
+              </div>
+            </div>
+
+            <div class="plan-right">
+              <div class="plan-col">
+                <p class="plan-col__sub">— Included in full</p>
+                <h4>Preventive care, 100% covered</h4>
+                <ul>
+                  {included.map((i) => (
+                    <li>
+                      <span class="glyph" aria-hidden="true">✓</span>
+                      <span>
+                        <b>{i.title}</b>
+                        <span class="item-note">{i.note}</span>
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              <div class="plan-col">
+                <p class="plan-col__sub">— Member discount</p>
+                <h4>15% off everything else</h4>
+                <ul>
+                  {discounted.map((i) => (
+                    <li>
+                      <span class="glyph glyph-pct" aria-hidden="true">15%</span>
+                      <span>
+                        <b>{i.title}</b>
+                        <span class="item-note">{i.note}</span>
+                      </span>
+                    </li>
+                  ))}
+                  <li class="plan-disclaimer">
+                    <span class="glyph glyph-info" aria-hidden="true">i</span>
+                    <span class="item-note item-note--strong">Discount applies to fees without insurance. Cannot be combined with insurance or other promotional offers.</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="plan-foot">
+              <div class="plan-foot__stat">
+                <span class="plan-foot__num">$500</span>
+                <span>covers your two cleanings, exams, x-rays, and screenings for the year — and unlocks the member rate on everything beyond.</span>
+              </div>
+              <Button variant="light" href={joinHref} hoverLabel="Enroll Today">Enroll Today</Button>
+            </div>
+          </div>
+
+          <ul class="compare" aria-label="Plan reassurance">
+            {compareTiles.map((t) => (
+              <li class="compare-tile">
+                <div class="compare-num"><em>{t.emWord}</em></div>
+                <p>{t.body}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- FAQ (paper) ---------- */}
+    <section class="vs-band-paper" id="faq" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head section-head--center">
+          <span class="vs-eyebrow vs-center">FAQ</span>
+          <h2 class="vs-h2">Questions we get <em class="vs-italic-word">most often.</em></h2>
+          <p class="vs-lede">
+            Practical answers about how the membership works in real life. Anything else, call us at <a class="vs-link" href={phoneHref}>{phoneLabel}</a> — we'll walk you through the numbers before you commit.
+          </p>
+        </div>
+
+        <div class="faq-list">
+          {faqs.map((f) => (
+            <details class="faq" open={f.open}>
+              <summary>
+                <h3>{f.q}</h3>
+                <span class="icon" aria-hidden="true">+</span>
+              </summary>
+              <div class="answer" set:html={f.a} />
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- FINAL BAND ---------- */}
+    <FinalBand eyebrow="Ready when you are" background="cream-warm">
+      <p>Join today and use the benefits this afternoon. No paperwork, no waiting period, no surprises.</p>
+    </FinalBand>
+
+    {/* ---------- JSON-LD ---------- */}
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Service",
+      "name": "Vivid Smiles Dental Membership Plan",
+      "serviceType": "Dental membership plan",
+      "description": "Flat $500/year in-house dental membership covering two cleanings, two fluoride treatments, unlimited digital x-rays, oral cancer screenings, comprehensive exams, and complimentary consultations — plus 15% off all other treatments.",
+      "provider": {
+        "@type": "Dentist",
+        "name": "Vivid Smiles Dentistry",
+        "address": {
+          "@type": "PostalAddress",
+          "streetAddress": "17167 Cedar Gulch Pkwy Ste 102",
+          "addressLocality": "Parker",
+          "addressRegion": "CO",
+          "postalCode": "80134",
+          "addressCountry": "US"
+        },
+        "telephone": phoneE164
+      },
+      "areaServed": { "@type": "City", "name": "Parker, CO" },
+      "offers": {
+        "@type": "Offer",
+        "price": "500",
+        "priceCurrency": "USD",
+        "category": "Annual membership",
+        "eligibleDuration": { "@type": "QuantitativeValue", "value": 12, "unitCode": "MON" },
+        "availability": "https://schema.org/InStock"
+      }
+    })} />
+
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": faqs.map((f) => ({
+        "@type": "Question",
+        "name": f.q,
+        "acceptedAnswer": { "@type": "Answer", "text": f.a }
+      }))
+    })} />
+
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home",                "item": new URL("/", Astro.site).href },
+        { "@type": "ListItem", "position": 2, "name": "Resources",           "item": new URL("/new-patients/", Astro.site).href },
+        { "@type": "ListItem", "position": 3, "name": "Dental Membership Plan", "item": new URL("/dental-membership-plan/", Astro.site).href }
+      ]
+    })} />
+  </div>
+</BaseLayout>
+
+<style>
+  /* Page-scoped, namespaced under .membership so no rule leaks. */
+
+  /* ---------- band swaps (page-scoped) ----------
+     Override the global .vs-band-cream / .vs-band-sage backgrounds on this
+     page only. Story (cream → charcoal) and The Plan (sage → sage-pale)
+     change tone; all text + decorative tints follow. Global rules untouched. */
+  .membership .vs-band-cream {
+    background-color: var(--vs-charcoal-green);
+    color: #fff;
+  }
+  .membership .vs-band-cream .vs-eyebrow { color: var(--vs-eyebrow-on-sage); }
+  .membership .vs-band-cream .vs-h1,
+  .membership .vs-band-cream .vs-h2,
+  .membership .vs-band-cream .vs-h3 { color: #fff; }
+  .membership .vs-band-cream .vs-italic-word,
+  .membership .vs-band-cream em { color: var(--vs-eyebrow-on-sage); }
+  .membership .vs-band-cream .vs-lede,
+  .membership .vs-band-cream p { color: rgba(255, 255, 255, 0.85); }
+
+  .membership .vs-band-sage {
+    background-color: var(--vs-sage-pale);
+    color: var(--vs-ink);
+  }
+  .membership .vs-band-sage .vs-eyebrow { color: var(--vs-ink-soft); }
+  .membership .vs-band-sage .vs-eyebrow.vs-center::before,
+  .membership .vs-band-sage .vs-eyebrow.vs-center::after {
+    background: var(--vs-ink-soft);
+  }
+  .membership .vs-band-sage .vs-h1,
+  .membership .vs-band-sage .vs-h2,
+  .membership .vs-band-sage .vs-h3 { color: var(--vs-ink); }
+  .membership .vs-band-sage .vs-italic-word,
+  .membership .vs-band-sage em { color: var(--vs-sage); }
+  .membership .vs-band-sage .vs-lede,
+  .membership .vs-band-sage .vs-body-text { color: var(--vs-ink-soft); }
+
+  /* ---------- Layout primitives ----------
+     Backgrounds come from .vs-band-paper / .vs-band-cream / .vs-band-sage on the
+     <section> elements (global cascade handles eyebrow/h2/lede recoloring on
+     sage). Section padding comes from the global `section { padding-block }`.
+     .wrap is the page-local container; matches .vs-container's behavior. */
+  .membership .wrap {
+    max-width: var(--vs-container-max);
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  .membership .intro-triad { display: grid; gap: 16px; max-width: 60ch; }
+  .membership .intro-triad .vs-h2 { margin-bottom: 8px; }
+  .membership .intro-triad .vs-lede { margin-bottom: 16px; }
+  .membership .intro-triad--center {
+    margin: 0 auto 56px;
+    max-width: 60ch;
+    text-align: center;
+    justify-items: center;
+  }
+  .membership .intro-triad--center .vs-h2,
+  .membership .intro-triad--center .vs-lede { margin-inline: auto; }
+
+  .membership .section-head--center {
+    max-width: 760px;
+    margin: 0 auto 56px;
+    text-align: center;
+  }
+  .membership .section-head--center .vs-h2 { margin: 22px auto; }
+  .membership .section-head--center .vs-lede { margin: 0 auto; max-width: 60ch; }
+
+  /* ---------- Hero ---------- */
+  .membership .hero {
+    background: var(--vs-paper);
+    padding: 96px 40px 96px;
+  }
+  .membership .hero-inner {
+    max-width: var(--vs-container-max);
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+  .membership .hero-copy { max-width: 56ch; }
+  .membership .hero-copy .vs-eyebrow { display: inline-block; margin-bottom: 18px; }
+  .membership .hero-copy .vs-h1 { margin: 0 0 24px; }
+  .membership .hero-copy .vs-lede { margin: 0 0 32px; }
+  .membership .hero-actions {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  .membership .hero-ratings {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--vs-ink-soft);
+  }
+  .membership .hero-ratings .stars { color: var(--vs-sage); letter-spacing: 0.06em; }
+
+  .membership .hero-stack {
+    position: relative;
+    aspect-ratio: 4/5;
+    width: 100%;
+    max-width: 540px;
+    margin-left: auto;
+  }
+  .membership .hero-primary {
+    position: absolute;
+    inset: 0;
+    border-radius: var(--vs-r-xl);
+    overflow: hidden;
+    box-shadow: var(--vs-shadow-lg, var(--vs-shadow));
+  }
+  .membership .hero-primary :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .membership .hero-tag {
+    position: absolute;
+    top: 24px;
+    left: 24px;
+    padding: 8px 16px;
+    background: rgba(255, 255, 255, 0.88);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 999px;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--vs-sage-deep);
+    font-weight: 500;
+  }
+
+  /* ---------- Story (cream) ---------- */
+  .membership .story-grid {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 88px;
+    align-items: start;
+  }
+  .membership .story-copy .vs-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    font-weight: 500;
+    margin-bottom: 22px;
+  }
+  .membership .story-copy .vs-eyebrow::before,
+  .membership .plan-eyebrow::before {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+  .membership .story-copy .vs-h2 { margin-bottom: 28px; max-width: 16ch; }
+  .membership .story-copy p {
+    font-size: 17px;
+    line-height: 1.75;
+    margin: 0 0 18px;
+    max-width: 52ch;
+  }
+  .membership .story-copy p:last-of-type { margin-bottom: 0; }
+
+  .membership .story-card {
+    background: var(--vs-paper);
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-xl);
+    padding: 40px 36px;
+    box-shadow: var(--vs-shadow);
+    position: sticky;
+    top: 110px;
+  }
+  .membership .story-card__label {
+    font-size: 11px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-muted);
+    font-weight: 500;
+    margin-bottom: 18px;
+    display: block;
+  }
+  .membership .story-card h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 300;
+    font-size: 32px;
+    color: var(--vs-sage);
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin: 0 0 6px;
+  }
+  .membership .story-card h3 em {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+  .membership .story-card__price {
+    font-family: var(--vs-font-display);
+    font-weight: 300;
+    font-size: 72px;
+    color: var(--vs-sage);
+    letter-spacing: -0.03em;
+    line-height: 1;
+    margin: 24px 0 4px;
+    display: inline-flex;
+    align-items: baseline;
+  }
+  .membership .story-card__cadence {
+    font-family: var(--vs-font-body);
+    font-size: 14px;
+    color: var(--vs-muted);
+    letter-spacing: 0.06em;
+    font-weight: 400;
+    margin-left: 8px;
+  }
+  /* Specificity bump (.story-card .story-card__sub = 0,3,0) so the page-level
+     .membership .vs-band-cream p (0,2,1) blanket charcoal-text rule doesn't
+     paint the at-a-glance "One adult · renews annually" line white-on-paper. */
+  .membership .story-card .story-card__sub {
+    font-size: 13px;
+    color: var(--vs-muted);
+    letter-spacing: 0.06em;
+    margin: 0 0 28px;
+  }
+  .membership .story-card .story-card__sub b { color: var(--vs-ink); font-weight: 500; }
+  .membership .story-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 28px;
+    display: grid;
+    gap: 12px;
+  }
+  .membership .story-card li {
+    display: grid;
+    grid-template-columns: 20px 1fr;
+    gap: 12px;
+    font-size: 14px;
+    color: var(--vs-ink-soft);
+    line-height: 1.5;
+    align-items: start;
+  }
+  .membership .story-card li::before {
+    content: "✓";
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--vs-cream-warm, var(--vs-cream));
+    border: 1px solid var(--vs-line);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    color: var(--vs-sage);
+    font-weight: 600;
+    margin-top: 3px;
+    flex-shrink: 0;
+  }
+  .membership .story-card__jump {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--vs-font-body);
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+  }
+  .membership .story-card__jump:hover { color: var(--vs-sage-deep); }
+  .membership .story-card__jump .vs-arrow-mini {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--vs-cream);
+    color: var(--vs-sage);
+    border: 1px solid var(--vs-line);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    transition: transform 0.25s ease, background 0.25s ease;
+  }
+  .membership .story-card__jump:hover .vs-arrow-mini {
+    transform: translateX(3px);
+    background: var(--vs-sage);
+    color: #fff;
+    border-color: var(--vs-sage);
+  }
+
+  /* ---------- Process card (3-step) ---------- */
+  .membership .pcard {
+    background: var(--vs-paper);
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-xl);
+    padding: 14px;
+    box-shadow: var(--vs-shadow);
+    margin-top: 56px;
+  }
+  .membership .pgrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border-radius: calc(var(--vs-r-xl) - 14px);
+    overflow: hidden;
+  }
+  .membership .pstep {
+    padding: 32px 30px 28px;
+    border-right: 1px solid var(--vs-line);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    background: var(--vs-paper);
+    transition: background 0.3s;
+    min-height: 320px;
+  }
+  .membership .pstep:last-child { border-right: 0; }
+  .membership .pstep:hover { background: var(--vs-cream); }
+  .membership .pstep-head {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 18px;
+    align-items: start;
+  }
+  .membership .pstep-num {
+    font-family: var(--vs-font-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: 56px;
+    color: var(--vs-sage-soft);
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+  }
+  .membership .pstep-thumb {
+    width: 84px;
+    height: 84px;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 12px 24px -10px rgba(28, 32, 24, 0.25);
+    flex-shrink: 0;
+  }
+  .membership .pstep-thumb :global(img) {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .membership .pstep-tagline {
+    font-family: var(--vs-font-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: 16px;
+    color: var(--vs-sage);
+    line-height: 1.3;
+  }
+  .membership .pstep h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: 21px;
+    color: var(--vs-ink);
+    letter-spacing: -0.005em;
+    margin: 0;
+  }
+  .membership .pstep p {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--vs-ink-soft);
+    margin: 0;
+  }
+  .membership .pstep-lbl {
+    font-size: 10.5px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--vs-muted);
+    margin-top: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding-top: 16px;
+    font-weight: 500;
+  }
+  .membership .pstep-lbl::before {
+    content: "";
+    width: 18px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+
+  /* ---------- Plan card centerpiece (sage section) ---------- */
+  .membership .plan {
+    position: relative;
+    margin: 0 auto;
+    max-width: 1100px;
+  }
+  .membership .plan-card {
+    background: var(--vs-paper);
+    border-radius: var(--vs-r-xl);
+    overflow: hidden;
+    box-shadow: var(--vs-shadow-lg, var(--vs-shadow));
+    display: grid;
+    grid-template-columns: 0.85fr 1.15fr;
+  }
+  .membership .plan-left {
+    padding: 56px 48px 48px;
+    background: var(--vs-cream);
+    border-right: 1px solid var(--vs-line);
+    display: flex;
+    flex-direction: column;
+  }
+  .membership .plan-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+  .membership .plan-title {
+    font-family: var(--vs-font-display);
+    font-weight: 300;
+    font-size: 38px;
+    color: var(--vs-sage);
+    letter-spacing: -0.015em;
+    line-height: 1.1;
+    margin: 0 0 6px;
+  }
+  .membership .plan-title em {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+  .membership .plan-sub {
+    font-size: 14px;
+    color: var(--vs-ink-soft);
+    margin: 0 0 32px;
+    max-width: 30ch;
+    line-height: 1.6;
+  }
+  .membership .plan-price-block {
+    margin-top: auto;
+    padding-top: 32px;
+    border-top: 1px solid var(--vs-line);
+  }
+  .membership .plan-price {
+    font-family: var(--vs-font-display);
+    font-weight: 300;
+    font-size: clamp(64px, 8vw, 92px);
+    color: var(--vs-sage);
+    letter-spacing: -0.035em;
+    line-height: 1;
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+  .membership .plan-price .dollar {
+    font-size: 0.45em;
+    font-weight: 400;
+    color: var(--vs-sage-soft);
+    transform: translateY(-0.4em);
+  }
+  .membership .plan-price .cadence {
+    font-family: var(--vs-font-body);
+    font-size: 14px;
+    color: var(--vs-muted);
+    letter-spacing: 0.06em;
+    font-weight: 400;
+    margin-left: 6px;
+    align-self: flex-end;
+    padding-bottom: 6px;
+  }
+  .membership .plan-fineline {
+    font-size: 12.5px;
+    color: var(--vs-muted);
+    margin: 14px 0 24px;
+    line-height: 1.65;
+  }
+  .membership .plan-fineline b { color: var(--vs-ink); font-weight: 500; }
+  .membership .plan-actions {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .membership .plan-right {
+    padding: 56px 48px 48px;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 36px;
+  }
+  .membership .plan-col h4 {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: 17px;
+    color: var(--vs-ink);
+    margin: 0 0 6px;
+    letter-spacing: -0.005em;
+  }
+  .membership .plan-col__sub {
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+    margin: 0 0 22px;
+  }
+  .membership .plan-col ul {
+    list-style: none;
+    padding: 0;
+    margin: 22px 0 0;
+    display: grid;
+    gap: 14px;
+  }
+  .membership .plan-col li {
+    display: grid;
+    grid-template-columns: 22px 1fr;
+    gap: 12px;
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: var(--vs-ink);
+    align-items: start;
+  }
+  .membership .plan-col .glyph {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--vs-cream);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    color: var(--vs-sage);
+    font-size: 11px;
+    font-weight: 600;
+    margin-top: 1px;
+    line-height: 1;
+  }
+  .membership .plan-col .glyph-pct {
+    background: var(--vs-sage);
+    color: #fff;
+    font-size: 9.5px;
+    letter-spacing: -0.02em;
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+  }
+  .membership .plan-col .glyph-info {
+    background: var(--vs-cream-warm, var(--vs-cream));
+    color: var(--vs-sage-deep);
+    font-size: 12px;
+    font-style: italic;
+  }
+  .membership .plan-col .item-note {
+    color: var(--vs-muted);
+    font-size: 12.5px;
+    display: block;
+    margin-top: 2px;
+  }
+  .membership .plan-col li b { color: var(--vs-ink); font-weight: 500; }
+  .membership .plan-disclaimer {
+    margin-top: 12px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--vs-line);
+  }
+  .membership .plan-col .item-note--strong {
+    color: var(--vs-muted);
+    font-size: 13.5px;
+    margin-top: 0;
+    line-height: 1.55;
+  }
+
+  .membership .plan-foot {
+    background: var(--vs-ink-deep);
+    color: rgba(255, 255, 255, 0.78);
+    padding: 22px 48px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 24px;
+    align-items: center;
+    font-size: 13px;
+    line-height: 1.55;
+    grid-column: 1 / -1;
+  }
+  .membership .plan-foot__stat {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .membership .plan-foot__num {
+    font-family: var(--vs-font-display);
+    font-weight: 300;
+    font-size: 22px;
+    color: #fff;
+    letter-spacing: -0.01em;
+  }
+
+  /* ---------- Compare tiles (still on sage) ---------- */
+  .membership .compare {
+    list-style: none;
+    margin: 56px auto 0;
+    max-width: 1100px;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 18px;
+  }
+  .membership .compare-tile {
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(40, 40, 30, 0.12);
+    border-radius: var(--vs-r-md);
+    padding: 26px 24px 22px;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+  .membership .compare-num {
+    font-family: var(--vs-font-display);
+    font-weight: 300;
+    font-size: 40px;
+    color: var(--vs-ink);
+    letter-spacing: -0.02em;
+    line-height: 1;
+    margin-bottom: 12px;
+  }
+  .membership .compare-num em {
+    font-style: italic;
+    color: var(--vs-sage);
+    font-weight: 300;
+  }
+  .membership .compare-tile p {
+    font-size: 13.5px;
+    color: var(--vs-ink-soft);
+    margin: 0;
+    line-height: 1.55;
+    max-width: 30ch;
+  }
+
+  /* ---------- FAQ ---------- */
+  .membership .faq-list {
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-lg);
+    overflow: hidden;
+    max-width: 920px;
+    margin: 0 auto;
+    background: var(--vs-paper);
+  }
+  .membership .faq {
+    border-bottom: 1px solid var(--vs-line);
+  }
+  .membership .faq:last-child { border-bottom: 0; }
+  .membership .faq summary {
+    padding: 28px 32px;
+    cursor: pointer;
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 28px;
+    gap: 24px;
+    align-items: center;
+    transition: background 0.2s ease;
+  }
+  .membership .faq summary::-webkit-details-marker { display: none; }
+  .membership .faq summary h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: 20px;
+    line-height: 1.3;
+    color: var(--vs-ink);
+    letter-spacing: -0.005em;
+    margin: 0;
+    transition: color 0.2s ease;
+  }
+  .membership .faq summary:hover h3 { color: var(--vs-sage); }
+  .membership .faq[open] summary h3 { color: var(--vs-sage); }
+  .membership .faq[open] { background: var(--vs-cream); }
+  .membership .faq summary .icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--vs-line);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--vs-sage);
+    font-family: var(--vs-font-display);
+    font-size: 16px;
+    line-height: 1;
+    transition: background 0.25s ease, color 0.25s ease, border-color 0.25s ease, transform 0.25s ease;
+  }
+  .membership .faq[open] summary .icon {
+    background: var(--vs-sage);
+    color: #fff;
+    border-color: var(--vs-sage);
+    transform: rotate(45deg);
+  }
+  .membership .faq .answer {
+    padding: 0 32px 28px;
+    font-size: 15.5px;
+    line-height: 1.8;
+    color: var(--vs-ink-soft);
+    max-width: 70ch;
+  }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 991px) {
+    .membership .wrap { padding: 0 32px; }
+    .membership .hero { padding: 72px 32px 72px; }
+    .membership .hero-inner { grid-template-columns: 1fr; gap: 64px; }
+    .membership .hero-stack { max-width: 420px; margin: 0 auto; }
+    .membership .story-grid { grid-template-columns: 1fr; gap: 48px; }
+    .membership .story-card { position: static; }
+    .membership .pgrid { grid-template-columns: 1fr; }
+    .membership .pstep {
+      border-right: 0;
+      border-bottom: 1px solid var(--vs-line);
+      min-height: 0;
+    }
+    .membership .pstep:last-child { border-bottom: 0; }
+    .membership .plan-card { grid-template-columns: 1fr; }
+    .membership .plan-left {
+      border-right: 0;
+      border-bottom: 1px solid var(--vs-line);
+      padding: 40px 32px;
+    }
+    .membership .plan-right { grid-template-columns: 1fr; padding: 40px 32px; gap: 32px; }
+    .membership .plan-foot { grid-template-columns: 1fr; padding: 24px 32px; }
+    .membership .compare { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 479px) {
+    .membership .wrap { padding: 0 20px; }
+    .membership .hero { padding: 56px 20px 56px; }
+    .membership .hero-actions { width: 100%; }
+    .membership .faq summary { padding: 22px 24px; }
+    .membership .faq .answer { padding: 0 24px 22px; }
+    .membership .plan-left,
+    .membership .plan-right { padding: 32px 24px; }
+    .membership .plan-foot { padding: 22px 24px; }
+  }
+</style>

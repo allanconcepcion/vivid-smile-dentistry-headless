@@ -1,0 +1,362 @@
+---
+/**
+ * LocalTrust — self-contained <section> with a framed Google Maps embed +
+ * trust column (body, reviews summary, address/note, CTAs).
+ *
+ * `body` prop renders as a paragraph; omit it to pass rich markup via the
+ * default slot (used by cost sections that want bulleted lists). Page-scoped
+ * CSS cascades into the slot through the parent page wrapper.
+ */
+
+import Button from "./Button.astro";
+import {
+  bookNowHref,
+  directionsHref,
+  addressStreet,
+  addressCity,
+  addressState,
+  addressZip,
+  addressLine,
+} from "../data/contact";
+
+type ButtonVariant = "sage" | "ghost" | "ghost-light" | "light" | "outline-light";
+
+interface CtaButton {
+  label: string;
+  href: string;
+  variant?: ButtonVariant;
+  hoverLabel?: string;
+}
+
+interface Props {
+  /** Section eyebrow — defaults to "Our Practice". */
+  eyebrow?: string;
+  /** Section h2 (centered). */
+  heading: string;
+  /** Optional italic phrase appended to the heading and rendered in sage-soft —
+   *  mirrors SectionIntro's headingItalic. */
+  headingItalic?: string;
+  /** Optional centered intro paragraph rendered under the heading. */
+  intro?: string;
+  /** Body paragraph rendered in the right column. Falls back to the
+   *  default slot when omitted (use the slot for richer content like
+   *  bulleted cost factors). */
+  body?: string;
+  /** Section anchor id — defaults to "local". Override per-page for
+   *  alternate IDs ("results", "cost", "investment"). */
+  id?: string;
+  /** Band background — cream (default) matches the alt-section rhythm. */
+  background?: "cream" | "paper";
+  /** Custom CTAs — defaults to Book Online (sage) + Get Directions (ghost). */
+  ctas?: CtaButton[];
+  /** Replaces the multi-line address with a single-line note (e.g.
+   *  "Real cases · Real Vivid Smiles patients"). When omitted, the
+   *  practice address is rendered as the trust-column anchor. */
+  note?: string;
+}
+
+const {
+  eyebrow = "Our Practice",
+  heading,
+  headingItalic,
+  intro,
+  body,
+  id = "local",
+  background = "cream",
+  ctas,
+  note,
+} = Astro.props;
+
+const ctaList: CtaButton[] = ctas && ctas.length > 0
+  ? ctas
+  : [
+      { label: "Book Online", href: bookNowHref, variant: "sage", hoverLabel: "Book Now" },
+      { label: "Get Directions", href: directionsHref, variant: "ghost", hoverLabel: "Open Map" },
+    ];
+
+// No API key needed — `output=embed` returns Google's free embeddable map.
+const mapEmbedSrc = `https://maps.google.com/maps?q=${encodeURIComponent(addressLine)}&output=embed`;
+---
+
+<section class:list={["vs-lt", `vs-lt--${background}`]} id={id} data-vs-reveal-batch>
+  <div class="vs-lt-wrap">
+    {/* ---------- Centered section-head triad ---------- */}
+    <div class="vs-lt-head">
+      <span class="vs-lt-eyebrow">{eyebrow}</span>
+      <h2 class="vs-lt-h2">{heading}{headingItalic && <> <em class="vs-italic-word">{headingItalic}</em></>}</h2>
+      {intro && <p class="vs-lt-intro">{intro}</p>}
+    </div>
+
+    {/* ---------- Two-column trust block ---------- */}
+    <div class="vs-lt-grid">
+      {/* Map column — framed Google Maps iframe, lazy-loaded. */}
+      <div class="vs-lt-map-wrap" data-vs-reveal>
+        <iframe
+          class="vs-lt-map"
+          src={mapEmbedSrc}
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          title={`Map showing Vivid Smiles Dentistry at ${addressLine}`}
+        ></iframe>
+      </div>
+
+      {/* Trust column — body (prop or slot), reviews summary, address/note, CTAs. */}
+      <div class="vs-lt-trust">
+        {body
+          ? <p class="vs-lt-body">{body}</p>
+          : <div class="vs-lt-body vs-lt-body--rich"><slot /></div>
+        }
+
+        <div class="vs-lt-reviews" aria-label="Patient reviews summary">
+          <span class="vs-lt-stars" aria-hidden="true">★★★★★</span>
+          <div class="vs-lt-reviews-meta">
+            <b class="vs-lt-reviews-count">300+</b>
+            <small class="vs-lt-reviews-label">Five-Star Reviews</small>
+          </div>
+        </div>
+
+        {note ? (
+          <p class="vs-lt-note">{note}</p>
+        ) : (
+          <address class="vs-lt-address">
+            <span>{addressStreet}</span>
+            <span>{addressCity}, {addressState} {addressZip}</span>
+          </address>
+        )}
+
+        <div class="vs-lt-cta">
+          {ctaList.map((c) => (
+            <Button
+              variant={c.variant ?? "sage"}
+              href={c.href}
+              hoverLabel={c.hoverLabel}
+            >{c.label}</Button>
+          ))}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .vs-lt { padding: 130px 0; background: var(--vs-cream); }
+  .vs-lt--paper { background: var(--vs-paper); }
+
+  .vs-lt-wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  /* ---------- Section head (centered triad) ---------- */
+  .vs-lt-head {
+    max-width: 760px;
+    margin: 0 auto 64px;
+    text-align: center;
+  }
+
+  .vs-lt-eyebrow {
+    font-family: var(--vs-font-body);
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .vs-lt-eyebrow::before,
+  .vs-lt-eyebrow::after {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+
+  .vs-lt-h2 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    color: var(--vs-ink);
+    font-size: var(--vs-h2-size);
+    letter-spacing: -0.022em;
+    line-height: 1.08;
+    margin: 22px 0 22px;
+  }
+  .vs-lt-h2 :global(em) {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+
+  .vs-lt-intro {
+    font-family: var(--vs-font-body);
+    font-size: 17px;
+    line-height: 1.7;
+    max-width: 60ch;
+    margin: 0 auto;
+    color: var(--vs-ink-soft);
+  }
+
+  /* ---------- Two-column trust block ---------- */
+  .vs-lt-grid {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 50px;
+    align-items: stretch;
+  }
+
+  /* Map — framed iframe, 4:5 aspect like the contact page so the band
+     height stays consistent with the rest of the site's image frames. */
+  .vs-lt-map-wrap {
+    border-radius: var(--vs-r-xl);
+    overflow: hidden;
+    box-shadow: var(--vs-shadow-lg);
+    background: var(--vs-ink);
+    aspect-ratio: 4 / 5;
+    width: 100%;
+    min-height: 460px;
+  }
+  .vs-lt-map {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
+
+  /* Trust column — vertical stack, centered vertically against the map. */
+  .vs-lt-trust {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 28px;
+    padding: 12px 4px;
+  }
+
+  /* Body — used as a paragraph wrapper when `body` prop is set, or as a
+     full-width container when slot content is rendered. The --rich
+     variant drops the reading-width cap so bulleted cost lists / sub
+     callouts can use the full column. */
+  .vs-lt-body {
+    font-family: var(--vs-font-body);
+    font-size: 16.5px;
+    line-height: 1.8;
+    color: var(--vs-ink-soft);
+    max-width: 52ch;
+    margin: 0;
+  }
+  .vs-lt-body--rich { max-width: none; }
+  /* Slot-rendered paragraphs inherit body styling without needing a class
+     (since page-scoped CSS like `.fmdi .cost-list` cascades from the
+     parent wrapper, we don't need to restyle bullets here). */
+  .vs-lt-body--rich :global(p) {
+    font-family: var(--vs-font-body);
+    font-size: 16.5px;
+    line-height: 1.8;
+    color: var(--vs-ink-soft);
+    margin: 0 0 14px;
+  }
+  .vs-lt-body--rich :global(p:last-child) { margin-bottom: 0; }
+
+  /* Reviews summary — stars + count side-by-side, bracketed by hairlines
+     so it reads as a self-contained trust badge rather than meta text. */
+  .vs-lt-reviews {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+    padding: 22px 0;
+    border-top: 1px solid var(--vs-line);
+    border-bottom: 1px solid var(--vs-line);
+    max-width: 52ch;
+  }
+  .vs-lt-stars {
+    color: var(--vs-sage);
+    font-size: 18px;
+    letter-spacing: 0.16em;
+    line-height: 1;
+  }
+  .vs-lt-reviews-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .vs-lt-reviews-count {
+    font-family: var(--vs-font-display);
+    font-size: 32px;
+    font-weight: 300;
+    color: var(--vs-sage);
+    letter-spacing: -0.02em;
+    line-height: 1;
+  }
+  .vs-lt-reviews-label {
+    font-family: var(--vs-font-body);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--vs-muted);
+  }
+
+  .vs-lt-address {
+    font-family: var(--vs-font-body);
+    font-style: normal;
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--vs-ink-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  /* Single-line note — replaces the address when a contextual caption is
+     more appropriate for the section (e.g. "Real cases · Real Vivid
+     Smiles patients" on a results section). Smaller + uppercase-spaced
+     to match the original `.cta-note` cap-text feel. */
+  .vs-lt-note {
+    font-family: var(--vs-font-body);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--vs-muted);
+    margin: 0;
+  }
+
+  .vs-lt-cta {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-top: 4px;
+  }
+
+  /* ---------- Responsive ----------
+     By sitewide convention the multi-column collapse breakpoint is 991px (matches
+     the legacy Webflow tablet break the rest of the site uses). */
+  @media (max-width: 991px) {
+    .vs-lt { padding: 80px 0; }
+    .vs-lt-wrap { padding: 0 22px; }
+    .vs-lt-head { margin-bottom: 44px; }
+    .vs-lt-grid {
+      grid-template-columns: 1fr;
+      gap: 36px;
+    }
+    .vs-lt-map-wrap {
+      aspect-ratio: 4 / 3;
+      min-height: 0;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+    .vs-lt-trust {
+      padding: 0;
+      gap: 24px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .vs-lt { padding: 70px 0; }
+    .vs-lt-map-wrap { aspect-ratio: 1 / 1; }
+    .vs-lt-body { font-size: 15.5px; }
+    .vs-lt-reviews { gap: 18px; padding: 18px 0; }
+    .vs-lt-reviews-count { font-size: 28px; }
+    .vs-lt-cta { width: 100%; }
+    .vs-lt-cta :global(.vs-btn) { flex: 1; justify-content: center; }
+  }
+</style>

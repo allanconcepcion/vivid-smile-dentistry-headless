@@ -1,0 +1,87 @@
+---
+/**
+ * ReviewMarquee — swipe-draggable testimonial loop.
+ *
+ * Renders a DOUBLED set of ReviewCards (the clone half hidden from assistive
+ * tech) wired to the shared marquee behavior: [data-vs-marquee] structure +
+ * reduced-motion fallback in src/styles/components/marquee.css, motion driven by
+ * initDraggableMarquee in src/scripts/animations.js.
+ *
+ * The doubling is REQUIRED — measureHalf in animations.js assumes the track
+ * holds exactly two identical copies. This component guarantees it so a page can
+ * never forget and break the loop seam.
+ *
+ * Pass the reviews you want shown (slice upstream if you want fewer). All sizing
+ * + responsive behavior lives here, so pages add nothing but an optional class
+ * for layout context (e.g. margin).
+ */
+import type { CollectionEntry } from "astro:content";
+import ReviewCard from "./cards/ReviewCard.astro";
+
+interface Props {
+  reviews: CollectionEntry<"reviews">[];
+  ariaLabel?: string;
+  class?: string;
+}
+const { reviews, ariaLabel = "Patient testimonials", class: extra } = Astro.props;
+const marqueeClass = ["vs-review-marquee", extra].filter(Boolean).join(" ");
+---
+
+<div class={marqueeClass} data-vs-marquee aria-label={ariaLabel}>
+  <div class="vs-review-marquee__track" data-vs-marquee-track>
+    {reviews.map((r) => (
+      <ReviewCard
+        reviewer={r.data.reviewer}
+        rating={r.data.rating}
+        source={r.data.source}
+        date={r.data.date}
+        tags={r.data.tags}
+      >
+        {r.body}
+      </ReviewCard>
+    ))}
+    {/* Duplicate half — visually identical, hidden from AT for the seamless loop. */}
+    <div class="vs-marquee-clone" aria-hidden="true" inert>
+      {reviews.map((r) => (
+        <ReviewCard
+          reviewer={r.data.reviewer}
+          rating={r.data.rating}
+          source={r.data.source}
+          date={r.data.date}
+          tags={r.data.tags}
+        >
+          {r.body}
+        </ReviewCard>
+      ))}
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Track padding gives the card hover-lift shadow room before overflow clips it.
+     --vs-marquee-drag-speed: seconds per copy for the GSAP auto-scroll — reviews
+     run slower than galleries (default 40) so the cards stay readable. */
+  .vs-review-marquee {
+    --vs-marquee-pad: 24px 14px 60px;
+    --vs-marquee-drag-speed: 70;
+  }
+  .vs-review-marquee :global(.vs-review-card) {
+    flex: 0 0 380px;
+    width: 380px;
+    min-height: 460px;
+    white-space: normal;
+  }
+  @media (max-width: 780px) {
+    .vs-review-marquee {
+      --vs-marquee-gap: 18px;
+      --vs-marquee-speed: 70s;
+      --vs-marquee-pad: 24px 8px 56px;
+      --vs-marquee-fade: 4%;
+    }
+    .vs-review-marquee :global(.vs-review-card) {
+      flex: 0 0 300px;
+      width: 300px;
+      min-height: 440px;
+    }
+  }
+</style>

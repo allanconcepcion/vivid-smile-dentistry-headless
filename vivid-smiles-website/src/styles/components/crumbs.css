@@ -1,0 +1,73 @@
+/*
+ * Global breadcrumb (`<nav class="crumbs">`).
+ *
+ * One look sitewide — paper background to read as a continuation of the global
+ * <Nav> bar above it, with a hairline below to separate from page content. No
+ * per-page overrides; pages own only the markup + their `.here` label.
+ *
+ * If a page truly needs a unique breadcrumb (e.g. blog post showing an article
+ * title), override only the *.here* element — never the background or color.
+ *
+ * Mounted by src/layouts/BaseLayout.astro so every route inherits the same look.
+ */
+
+nav.crumbs {
+  background: var(--vs-paper);
+  border-bottom: 1px solid var(--vs-line);
+  font-size: 11.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--vs-ink-soft);
+  position: relative;
+}
+
+/* Right-edge fade — hints there's more rail to scroll when the trail overflows. */
+nav.crumbs::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 1px;
+  width: 32px;
+  background: linear-gradient(90deg, transparent, var(--vs-paper));
+  pointer-events: none;
+}
+
+nav.crumbs .crumbs-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 14px 40px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+nav.crumbs .crumbs-inner::-webkit-scrollbar { display: none; }
+
+nav.crumbs a,
+nav.crumbs .here,
+nav.crumbs .sep { white-space: nowrap; flex-shrink: 0; }
+
+nav.crumbs a {
+  color: var(--vs-ink-soft);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+nav.crumbs a:hover { color: var(--vs-sage); }
+
+nav.crumbs .sep { color: var(--vs-line); }
+
+nav.crumbs .here {
+  color: var(--vs-ink);
+  font-weight: 500;
+}
+
+@media (max-width: 600px) {
+  nav.crumbs .crumbs-inner {
+    padding: 12px 22px;
+    font-size: 10.5px;
+  }
+}

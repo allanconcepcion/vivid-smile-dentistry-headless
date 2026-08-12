@@ -1,0 +1,580 @@
+/* Vivid Smiles — Services hub page styles. Page-scoped under `.services`. */
+
+.services {
+  /* Height of the global nav — used by section scroll-margin-top so anchor
+     jumps land just below the sticky nav bar. */
+  --nav-h: 77px;
+
+  --sage: var(--vs-sage);
+  --sage-deep: var(--vs-sage-deep);
+  --sage-soft: var(--vs-sage-soft);
+  --cream: var(--vs-cream);
+  --paper: var(--vs-paper);
+  --ink: var(--vs-ink);
+  --ink-soft: var(--vs-ink-soft);
+  --muted: var(--vs-muted);
+  --line: var(--vs-line);
+  --shadow: 0 24px 60px -30px rgba(40, 40, 30, 0.25), 0 8px 20px -10px rgba(40, 40, 30, 0.08);
+  --shadow-lg: var(--vs-shadow-lg);
+  --r-sm: var(--vs-r-sm);
+  --r-md: var(--vs-r-md);
+  --r-lg: var(--vs-r-lg);
+  --r-xl: var(--vs-r-xl);
+  --f-display: var(--vs-font-display);
+  --f-body: var(--vs-font-body);
+}
+
+.services .wrap {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+.services .eyebrow {
+  font-family: var(--f-body);
+  font-size: 12px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--sage);
+  font-weight: 500;
+}
+/* `.eyebrow.light` was the old white-on-sage variant. Sage-pale + charcoal
+   bands now use their own per-band overrides; keep `.light` as ink-soft so
+   any leftover markup still reads correctly on the pale band. */
+.services .eyebrow.light {
+  color: var(--ink-soft);
+}
+
+/* :where pins specificity to (0,0,0) so component-internal typography
+   (ProcessStep, .svc-card h3) wins over these page-level defaults at equal
+   specificity instead of losing on source order. */
+.services :where(h1, h2, h3, h4) {
+  font-family: var(--f-display);
+  font-weight: 400;
+  color: var(--sage);
+  margin: 0;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+}
+.services :where(h1) {
+  font-size: clamp(48px, 7vw, 92px);
+  font-weight: 300;
+  letter-spacing: -0.025em;
+}
+.services :where(h1) :where(em) {
+  font-style: italic;
+  color: var(--sage-soft);
+  font-weight: 300;
+}
+.services :where(h2) {
+  font-size: clamp(32px, 4.2vw, 54px);
+  font-weight: 400;
+  letter-spacing: -0.022em;
+}
+.services :where(h2) :where(em) {
+  font-style: italic;
+  color: var(--sage-soft);
+  font-weight: 300;
+}
+.services :where(h3) {
+  font-size: clamp(20px, 2vw, 26px);
+  font-weight: 500;
+  color: var(--ink);
+}
+.services :where(h4) {
+  font-size: 17px;
+  font-weight: 500;
+  color: var(--ink);
+  letter-spacing: 0;
+}
+.services :where(p) {
+  margin: 0;
+  color: var(--ink-soft);
+}
+.services :where(em) {
+  font-style: italic;
+  color: var(--sage-soft);
+  font-weight: 300;
+}
+
+.services .visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.services section[id] {
+  scroll-margin-top: calc(var(--nav-h) + 12px);
+}
+
+.services .section {
+  padding: 110px 0;
+}
+/* No hero block on this page — first section sits flush under the breadcrumb,
+   so trim its top padding to avoid an awkward empty band. */
+.services main > .section:first-of-type {
+  padding-top: 56px;
+}
+
+/* `.section.alt` (cream → charcoal-green) — used by #cosmetic. */
+.services .section.alt {
+  background: var(--vs-charcoal-green);
+  color: #fff;
+}
+.services .section.alt h1,
+.services .section.alt h2,
+.services .section.alt h3 {
+  color: #fff;
+}
+.services .section.alt h1 em,
+.services .section.alt h2 em,
+.services .section.alt em {
+  color: var(--vs-eyebrow-on-sage);
+}
+.services .section.alt p {
+  color: rgba(255, 255, 255, 0.85);
+}
+.services .section.alt .eyebrow {
+  color: var(--vs-eyebrow-on-sage);
+}
+.services .section.alt .section-head .eyebrow::before,
+.services .section.alt .section-head .eyebrow::after {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+/* `.section.dark` (sage → sage-pale) — used by #implants. Light band; text
+   must read dark. The earlier white-on-sage rules are intentionally gone. */
+.services .section.dark {
+  background: var(--vs-sage-pale);
+  color: var(--vs-ink);
+}
+.services .section.dark h2,
+.services .section.dark h3 {
+  color: var(--vs-ink);
+}
+.services .section.dark h1 em,
+.services .section.dark h2 em,
+.services .section.dark em {
+  color: var(--vs-sage);
+}
+.services .section.dark p {
+  color: var(--vs-ink-soft);
+}
+.services .section.dark .eyebrow {
+  color: var(--vs-ink-soft);
+}
+.services .section.dark .section-head .eyebrow::before,
+.services .section.dark .section-head .eyebrow::after {
+  background: var(--vs-ink-soft);
+}
+
+/* Service-tile titles + descs sit on photo + dark-gradient — they're chrome'd
+   independently of the band. Re-white them so the (0,3,1) .section.dark rule
+   doesn't drag them dark. */
+.services .section.dark .svc-card h3 {
+  color: #fff;
+}
+.services .section.dark .svc-card .svc-desc {
+  color: #fff;
+}
+
+/* ProcessStep cards (.vs-pstep) are white-bg cards used inside #process — they
+   sit on charcoal but the text needs to read on their own white background. Pull
+   the (0,3,1) .section.alt rule back so inner-card h3 + p stay dark. */
+.services .section.alt .vs-pstep h3 {
+  color: var(--vs-ink);
+}
+.services .section.alt .vs-pstep p {
+  color: var(--vs-ink-soft);
+}
+
+.services .section-head {
+  max-width: 760px;
+  margin: 0 auto 64px;
+  text-align: center;
+}
+.services .section-head .eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+}
+.services .section-head .eyebrow::before,
+.services .section-head .eyebrow::after {
+  content: '';
+  width: 28px;
+  height: 1px;
+  background: var(--sage);
+}
+/* Dark-band flanker overrides live in the `.section.alt` / `.section.dark`
+   blocks above. */
+.services .section-head h2 {
+  margin: 22px 0 22px;
+}
+.services .section-head p {
+  font-size: 17px;
+  line-height: 1.7;
+  max-width: 60ch;
+  margin: 0 auto;
+}
+
+/* `.svc-card.compact` chrome mirrors the home page's service cards
+   (`src/styles/pages/home.css`). Kept page-scoped here rather than shared
+   because the two pages need slightly different h3 + .svc-desc sizing. */
+.services .svc-grid {
+  display: grid;
+  gap: 22px;
+}
+
+/* Cosmetic (6 cards) renders 3+3. */
+.services .svc-grid-6 {
+  grid-template-columns: repeat(3, 1fr);
+}
+
+/* Implant (5 cards) uses a 6-col underlying grid with each card spanning 2.
+   The 4th card is placed at col 2 / span 2 so row 2 reads centered
+   (col 2-3 + col 4-5) instead of left-aligned. Mirrors the
+   .impd .svc-grid pattern used on the implant-dentistry hub. */
+.services .svc-grid-5 {
+  grid-template-columns: repeat(6, 1fr);
+}
+.services .svc-grid-5 > .svc-card {
+  grid-column: span 2;
+}
+.services .svc-grid-5 > .svc-card:nth-child(4) {
+  grid-column: 2 / span 2;
+}
+
+.services .svc-grid-2 {
+  grid-template-columns: 1fr 1fr;
+}
+
+.services .svc-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--r-lg);
+  background: var(--ink);
+  text-decoration: none;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  isolation: isolate;
+  /* `translateZ(0)` + `will-change` keep the card on its own GPU layer at
+     rest so border-radius clipping doesn't briefly fail when the hover
+     transform kicks in. Hover uses `translate3d` to keep that layer alive. */
+  transform: translateZ(0);
+  will-change: transform;
+  transition: transform 0.4s ease;
+}
+.services .svc-card:hover {
+  transform: translate3d(0, -3px, 0);
+}
+.services .svc-card .svc-img {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+.services .svc-card .svc-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transform: scale(1.02);
+  transition: transform 1.4s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.services .svc-card:hover .svc-img img {
+  transform: scale(1.08);
+}
+.services .svc-card .svc-img::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(20, 28, 16, 0) 0%,
+    rgba(20, 28, 16, 0.18) 45%,
+    rgba(20, 28, 16, 0.82) 100%
+  );
+}
+.services .svc-card.compact .svc-img::after {
+  background: linear-gradient(
+    180deg,
+    rgba(20, 28, 16, 0) 0%,
+    rgba(20, 28, 16, 0.25) 50%,
+    rgba(20, 28, 16, 0.85) 100%
+  );
+}
+.services .svc-card .svc-tag {
+  position: absolute;
+  top: 22px;
+  left: 22px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(28, 32, 24, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  border-radius: 999px;
+  padding: 8px 15px;
+  font-size: 10.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: #fff;
+  font-weight: 500;
+  box-shadow:
+    0 2px 14px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+.services .svc-card .svc-body {
+  position: relative;
+  z-index: 2;
+  margin-top: auto;
+  padding: 26px 28px 26px;
+  display: grid;
+  gap: 14px;
+}
+.services .svc-card .svc-row-bot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+}
+.services .svc-card h3 {
+  font-family: var(--f-display);
+  font-weight: 400;
+  font-size: 28px;
+  line-height: 1.04;
+  letter-spacing: -0.012em;
+  color: #fff;
+  max-width: 14ch;
+  margin: 0;
+}
+.services .svc-card .svc-desc {
+  font-size: 15.5px;
+  color: #fff;
+  line-height: 1.55;
+  max-width: 54ch;
+  font-weight: 400;
+  text-shadow: 0 1px 14px rgba(0, 0, 0, 0.4);
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transform: translateY(6px);
+  transition:
+    max-height 0.55s cubic-bezier(0.2, 0.7, 0.2, 1),
+    opacity 0.45s ease 0.05s,
+    transform 0.55s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.services .svc-card:hover .svc-desc,
+.services .svc-card:focus-visible .svc-desc {
+  max-height: 140px;
+  opacity: 1;
+  transform: translateY(0);
+}
+.services .svc-card.compact {
+  min-height: 380px;
+}
+
+.services .cta-row {
+  margin-top: 56px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+}
+.services .cta-row .cta-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  justify-content: center;
+}
+.services .cta-row.in-head {
+  margin-top: 32px;
+}
+
+.services .faq-list {
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  max-width: 920px;
+  margin: 0 auto;
+  background: #fff;
+}
+.services .faq {
+  border-bottom: 1px solid var(--line);
+}
+.services .faq:last-child {
+  border-bottom: 0;
+}
+.services .faq summary {
+  padding: 28px 32px;
+  cursor: pointer;
+  list-style: none;
+  display: grid;
+  grid-template-columns: 1fr 28px;
+  gap: 24px;
+  align-items: center;
+  transition: background 0.2s ease;
+}
+.services .faq summary::-webkit-details-marker {
+  display: none;
+}
+.services .faq summary h3 {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: 20px;
+  color: var(--ink);
+  letter-spacing: -0.005em;
+  transition: color 0.2s ease;
+  margin: 0;
+}
+.services .faq[open] summary h3 {
+  color: var(--sage);
+}
+.services .faq[open] {
+  background: var(--cream);
+}
+.services .faq summary:hover h3 {
+  color: var(--sage);
+}
+.services .faq summary .icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--sage);
+  font-family: var(--f-display);
+  font-size: 16px;
+  line-height: 1;
+  transition:
+    background 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease,
+    transform 0.25s ease;
+}
+.services .faq[open] summary .icon {
+  background: var(--sage);
+  color: #fff;
+  border-color: var(--sage);
+  transform: rotate(45deg);
+}
+.services .faq .answer {
+  padding: 0 32px 28px;
+  font-size: 15.5px;
+  line-height: 1.8;
+  color: var(--ink-soft);
+  max-width: 70ch;
+}
+.services .faq .answer a {
+  color: var(--sage);
+  text-decoration: none;
+  border-bottom: 1px solid var(--sage-soft);
+}
+.services .faq .answer a:hover {
+  color: var(--sage-deep);
+  border-bottom-color: var(--sage-deep);
+}
+
+@media (max-width: 1100px) {
+  .services .svc-grid-6 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  /* Reset the desktop 6-col span-2 placement; tablet flows 2-col flat,
+     accepting a single left-aligned orphan at the end (matches the
+     .impd .svc-grid breakpoint behavior). */
+  .services .svc-grid-5 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .services .svc-grid-5 > .svc-card,
+  .services .svc-grid-5 > .svc-card:nth-child(4) {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 991px) {
+  .services .svc-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 780px) {
+  .services .wrap {
+    padding: 0 22px;
+  }
+  .services .section {
+    padding: 70px 0;
+  }
+  .services .section-head {
+    margin-bottom: 44px;
+  }
+  .services .svc-grid-6,
+  .services .svc-grid-5,
+  .services .svc-grid-2 {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  /* On touch devices let the description sit visible by default — hover
+     reveal isn't reliable and the title alone reads thin. */
+  .services .svc-card .svc-desc {
+    max-height: 400px;
+    opacity: 1;
+    font-size: 16px;
+    transform: none;
+    max-width: none;
+  }
+  /* Single-column cards go full-width here while the height stayed pinned,
+     so the card letterboxed to ~2.26:1 at 768 and cover-cropped portraits
+     down to mouth-and-chin. `aspect-ratio` ties height to width; `min-height`
+     stays as a floor so the narrowest phones are unchanged.
+     `width: 100%` is load-bearing — without a definite width, aspect-ratio
+     resolves the OTHER way and inflates width off `min-height` (320 x 16/11
+     = 465px), which overflows the viewport at 390. */
+  .services .svc-card.compact {
+    width: 100%;
+    min-height: 320px;
+    aspect-ratio: 16 / 11;
+  }
+  .services .cta-row {
+    margin-top: 36px;
+  }
+  .services .faq summary {
+    padding: 22px 24px;
+  }
+  .services .faq .answer {
+    padding: 0 24px 22px;
+  }
+}
+
+@media (max-width: 480px) {
+  .services .section-head h2 {
+    max-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .services .svc-card,
+  .services .svc-card .svc-img img,
+  .services .svc-card .svc-desc,
+  .services .faq summary,
+  .services .faq summary .icon {
+    transition: none !important;
+  }
+}
+
+/* H2 base color → ink for sitewide split-color pattern.
+   Equal specificity (0,1,1) with the h1/h2/h3/h4 group rule above; comes later
+   in the cascade, so this wins for h2 only. h1/h3/h4 keep sage. Dark-band
+   `.section.alt h2 { color: #fff }` (0,2,1) still trumps. */
+.services h2 {
+  color: var(--vs-ink);
+}

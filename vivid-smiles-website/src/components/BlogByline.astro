@@ -1,0 +1,53 @@
+---
+/**
+ * BlogByline — author + date + reading-time row shown under the post H1.
+ *
+ * Render in the post template as:
+ *   <BlogByline author={data.author} date={data.date} body={post.body} />
+ *
+ * The body is needed only to derive the reading-time estimate. The component
+ * doesn't render it.
+ */
+
+import { readingTime, formatDate } from "../lib/blog";
+
+interface Props {
+  author: string;
+  date: Date;
+  body: string;
+}
+
+const { author, date, body } = Astro.props;
+const minutes = readingTime(body);
+---
+
+<div class="vs-blog-byline">
+  <span class="vs-blog-byline-by">By <span class="vs-blog-byline-author">{author}</span></span>
+  <span class="vs-blog-byline-dot" aria-hidden="true">·</span>
+  <time class="vs-blog-byline-date" datetime={date.toISOString()}>{formatDate(date)}</time>
+  <span class="vs-blog-byline-dot" aria-hidden="true">·</span>
+  <span class="vs-blog-byline-read">{minutes} min read</span>
+</div>
+
+<style>
+  .vs-blog-byline {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    font-family: var(--vs-font-body);
+    font-size: 13px;
+    color: var(--vs-muted);
+    letter-spacing: 0.04em;
+  }
+  .vs-blog-byline-by {
+    color: var(--vs-ink-soft);
+  }
+  .vs-blog-byline-author {
+    color: var(--vs-sage);
+    font-weight: 500;
+  }
+  .vs-blog-byline-dot {
+    color: var(--vs-line);
+  }
+</style>

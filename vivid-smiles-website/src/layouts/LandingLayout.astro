@@ -1,0 +1,404 @@
+---
+/**
+ * LandingLayout — bare shell for paid-traffic landing pages.
+ *
+ * Unlike BaseLayout, there is no global Nav or Footer. The page mounts
+ *   - a stripped header (logo + phone + single Free Consult CTA)
+ *   - a slim 2-column footer (practice info + legal)
+ *   - a sticky mobile CTA bar (≤600px) — slot named "stickyCTA"
+ *
+ * Conversion logic: paid-traffic visitors should convert or leave. No mega
+ * menus, no service directory, no escape routes. The single CTA scrolls to
+ * the on-page consult form (#consult) — the page that uses this layout MUST
+ * include an element with id="consult".
+ *
+ * Defaults `noindex` to true. Landing pages compete with the organic hub for
+ * keywords, so we keep them out of the index. Sitemap exclusion lives in
+ * astro.config.mjs.
+ *
+ * Head/meta/global scripts mirror BaseLayout so design tokens, motion, and
+ * call tracking all behave identically.
+ *
+ * Usage:
+ *   <LandingLayout title="…" description="…">
+ *     <slot />
+ *     <StickyMobileCTA slot="stickyCTA" />
+ *   </LandingLayout>
+ */
+// Self-hosted fonts + FontAwesome — mirrors BaseLayout. Eliminates the
+// fonts.googleapis.com + cdnjs.cloudflare.com render-blocking CSS chain so
+// paid-traffic visitors see paint sooner.
+import "@fontsource-variable/urbanist";
+import "@fontsource-variable/urbanist/wght-italic.css";
+import "@fontsource-variable/public-sans";
+import "@fortawesome/fontawesome-free/css/fontawesome.css";
+import "@fortawesome/fontawesome-free/css/solid.css";
+import "../styles/tokens.css";
+import "../styles/global.css";
+import "../styles/animations.css";
+import "../styles/components/marquee.css";
+import { Image } from "astro:assets";
+import vsLogo from "../assets/images/brand/vivid-logo-green.webp";
+import {
+  phoneLabel,
+  phoneHref,
+  addressLine,
+  directionsHref,
+} from "../data/contact";
+import { officeHours } from "../data/hours";
+import Analytics from "../components/Analytics.astro";
+import AnalyticsNoscript from "../components/AnalyticsNoscript.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+  noindex?: boolean;
+  ogImage?: string;
+  /**
+   * When set, the header CTA opens a Typeform popup with this form id
+   * (using data-tf-popup) instead of being a pure jump link. The page must
+   * already have the Typeform embed.js loaded — VirtualConsult loads it,
+   * so any LP that mounts <VirtualConsult> can pass this prop safely.
+   */
+  typeformPopupId?: string;
+}
+
+const {
+  title = "Cosmetic Dentistry in Parker, CO — Vivid Smiles Dentistry",
+  description = "Natural, high-end cosmetic dentistry in Parker, CO. Dr. Bryce Richardson — 600+ hours of advanced esthetic training, 300+ five-star reviews. Request a free smile consult.",
+  noindex = true,
+  ogImage,
+  typeformPopupId,
+} = Astro.props;
+
+const popupAttrs = typeformPopupId
+  ? { "data-tf-popup": typeformPopupId, "data-tf-transitive-search-params": "utm_source,utm_medium,utm_campaign,utm_term,utm_content,utm_ad,utm_adset,gclid,fbclid" }
+  : {};
+
+const canonical = new URL(Astro.url.pathname, Astro.site).href;
+const ogImageAbsolute = ogImage
+  ? new URL(ogImage, Astro.site).href
+  : new URL("/apple-touch-icon.png", Astro.site).href;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="generator" content={Astro.generator} />
+
+    <Analytics />
+
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="canonical" href={canonical} />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    {noindex && <meta name="robots" content="noindex,nofollow" />}
+
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImageAbsolute} />
+    <meta property="og:site_name" content="Vivid Smiles Dentistry" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageAbsolute} />
+
+    <!-- WhatConverts dynamic number insertion (matches BaseLayout). Paid-traffic
+         landing pages depend on this for ad-source call attribution. -->
+    <script is:inline>
+      var $wc_load = function (a) {
+        return JSON.parse(JSON.stringify(a));
+      };
+      var $wc_leads = $wc_leads || {
+        doc: {
+          url: $wc_load(document.URL),
+          ref: $wc_load(document.referrer),
+          search: $wc_load(location.search),
+          hash: $wc_load(location.hash),
+        },
+      };
+    </script>
+    <script is:inline async src="https://s.ksrndkehqnwntyxlhgto.com/162233.js"></script>
+  </head>
+  <body class="vs-landing-body">
+    <AnalyticsNoscript />
+    <a class="vs-skip-link" href="#main">Skip to content</a>
+
+    <header class="vs-lp-header" data-vs-lp-header id="top">
+      <div class="vs-lp-header-wrap">
+        {/* Logo anchors to the top of the page, not the homepage — paid-traffic
+            visitors get no escape route off the LP. */}
+        <a class="vs-lp-logo" href="#top" aria-label="Vivid Smiles Dentistry — back to top">
+          <Image src={vsLogo} alt="Vivid Smiles Dentistry" widths={[180, 240]} sizes="180px" />
+        </a>
+        <div class="vs-lp-header-actions">
+          <a class="vs-lp-phone" href={phoneHref} aria-label={`Call ${phoneLabel}`}>
+            <i class="fa-solid fa-phone" aria-hidden="true"></i>
+            <span class="vs-lp-phone-label">{phoneLabel}</span>
+          </a>
+          <a class="vs-lp-header-cta" href="#consult" {...popupAttrs}>
+            <span>Free Consult</span>
+            <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <main id="main">
+      <slot />
+    </main>
+
+    <slot name="stickyCTA" />
+
+    <footer class="vs-lp-footer">
+      <div class="vs-lp-footer-wrap">
+        <div class="vs-lp-footer-brand">
+          <a href="#top" aria-label="Vivid Smiles Dentistry — back to top" class="vs-lp-footer-logo">
+            <Image src={vsLogo} alt="Vivid Smiles Dentistry" widths={[180]} sizes="180px" />
+          </a>
+          <p class="vs-lp-footer-tag">Cosmetic & implant dentistry in Parker, Colorado.</p>
+        </div>
+        <div class="vs-lp-footer-info">
+          <div class="vs-lp-footer-col">
+            <h4>Visit</h4>
+            <p>
+              <a href={directionsHref} target="_blank" rel="noopener">{addressLine}</a>
+            </p>
+            <p>
+              <a href={phoneHref}>{phoneLabel}</a>
+            </p>
+          </div>
+          <div class="vs-lp-footer-col">
+            <h4>Hours</h4>
+            <ul>
+              {officeHours.map((r) => (
+                <li>
+                  <span>{r.label}</span>
+                  <span>{r.hoursShort}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="vs-lp-footer-base">
+        <small>© {new Date().getFullYear()} Vivid Smiles Dentistry. All rights reserved.</small>
+        {/* Privacy Policy lives in the bottom bar (Legal column removed). Opens
+            in a new tab so paid-traffic visitors keep the LP open — a
+            required-but-accessible privacy notice for Google/Meta ad policy +
+            the Colorado Privacy Act (the consult form collects PII; Clarity
+            records sessions). */}
+        <a href="/privacy-policy/" target="_blank" rel="noopener">Privacy Policy</a>
+      </div>
+    </footer>
+
+    <script>
+      import "../scripts/lenis.js";
+      import "../scripts/animations.js";
+    </script>
+
+    <style>
+      /* ── Header ───────────────────────────────────────────────────── */
+      .vs-lp-header {
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        background: rgba(248, 245, 240, 0.92);
+        backdrop-filter: saturate(140%) blur(14px);
+        -webkit-backdrop-filter: saturate(140%) blur(14px);
+        border-bottom: 1px solid var(--vs-line);
+      }
+      .vs-lp-header-wrap {
+        max-width: 1320px;
+        margin: 0 auto;
+        padding: 14px 40px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+      }
+      .vs-lp-logo {
+        display: inline-flex;
+        align-items: center;
+        text-decoration: none;
+      }
+      .vs-lp-logo :global(img) {
+        height: 38px;
+        width: auto;
+        display: block;
+      }
+      .vs-lp-header-actions {
+        display: inline-flex;
+        align-items: center;
+        gap: 18px;
+      }
+      .vs-lp-phone {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        color: var(--vs-ink);
+        text-decoration: none;
+        font-family: var(--vs-font-body);
+        font-size: 14px;
+        font-weight: 500;
+        letter-spacing: 0.01em;
+      }
+      .vs-lp-phone i {
+        font-size: 12px;
+        color: var(--vs-sage);
+      }
+      .vs-lp-phone:hover { color: var(--vs-sage); }
+      .vs-lp-header-cta {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 11px 18px 11px 22px;
+        background: var(--vs-sage);
+        color: #fff;
+        font-family: var(--vs-font-body);
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+        border-radius: 999px;
+        text-decoration: none;
+        transition: background 220ms ease;
+      }
+      .vs-lp-header-cta i {
+        font-size: 11px;
+        transition: transform 220ms ease;
+      }
+      .vs-lp-header-cta:hover { background: var(--vs-sage-deep); }
+      .vs-lp-header-cta:hover i { transform: translateX(3px); }
+
+      @media (max-width: 768px) {
+        .vs-lp-header-wrap { padding: 12px 22px; gap: 14px; }
+        .vs-lp-logo :global(img) { height: 32px; }
+        .vs-lp-phone-label { display: none; }
+        .vs-lp-phone {
+          width: 38px;
+          height: 38px;
+          justify-content: center;
+          border-radius: 999px;
+          border: 1px solid var(--vs-line);
+          background: #fff;
+        }
+        .vs-lp-phone i { font-size: 13px; color: var(--vs-ink); }
+        .vs-lp-header-cta { padding: 10px 16px; font-size: 12.5px; }
+        .vs-lp-header-actions { gap: 10px; }
+      }
+
+      /* ── Footer ───────────────────────────────────────────────────── */
+      .vs-lp-footer {
+        background: var(--vs-paper);
+        border-top: 1px solid var(--vs-line);
+        padding: 70px 0 28px;
+      }
+      .vs-lp-footer-wrap {
+        max-width: 1240px;
+        margin: 0 auto;
+        padding: 0 40px;
+        display: grid;
+        grid-template-columns: 1fr 2fr;
+        gap: 60px;
+        align-items: start;
+      }
+      .vs-lp-footer-brand :global(img) {
+        height: 44px;
+        width: auto;
+        margin-bottom: 18px;
+      }
+      .vs-lp-footer-tag {
+        font-size: 14px;
+        color: var(--vs-ink-soft);
+        line-height: 1.6;
+        max-width: 26ch;
+        margin: 0;
+      }
+      .vs-lp-footer-info {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 36px;
+      }
+      .vs-lp-footer-col h4 {
+        font-family: var(--vs-font-display);
+        font-weight: 500;
+        font-size: 12px;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
+        color: var(--vs-sage);
+        margin: 0 0 16px;
+      }
+      .vs-lp-footer-col p,
+      .vs-lp-footer-col li {
+        font-size: 14px;
+        line-height: 1.7;
+        color: var(--vs-ink-soft);
+        margin: 0 0 8px;
+      }
+      .vs-lp-footer-col ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .vs-lp-footer-col ul li {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+      }
+      .vs-lp-footer-col a {
+        color: var(--vs-ink-soft);
+        text-decoration: none;
+        transition: color 200ms ease;
+      }
+      .vs-lp-footer-col a:hover { color: var(--vs-sage); }
+      .vs-lp-footer-base {
+        max-width: 1240px;
+        margin: 56px auto 0;
+        padding: 22px 40px 0;
+        border-top: 1px solid var(--vs-line);
+        display: flex;
+        justify-content: center;
+        align-items: baseline;
+        flex-wrap: wrap;
+        gap: 8px 20px;
+      }
+      .vs-lp-footer-base small {
+        font-size: 12px;
+        color: var(--vs-ink-soft);
+        letter-spacing: 0.04em;
+      }
+      .vs-lp-footer-base a {
+        font-size: 12px;
+        color: var(--vs-ink-soft);
+        letter-spacing: 0.04em;
+        text-decoration: none;
+        transition: color 200ms ease;
+      }
+      .vs-lp-footer-base a:hover { color: var(--vs-sage); }
+
+      @media (max-width: 991px) {
+        .vs-lp-footer { padding: 56px 0 28px; }
+        .vs-lp-footer-wrap {
+          grid-template-columns: 1fr;
+          gap: 40px;
+          padding: 0 22px;
+        }
+        .vs-lp-footer-info {
+          grid-template-columns: repeat(2, 1fr);
+          gap: 22px;
+        }
+        .vs-lp-footer-base { padding: 20px 22px 0; }
+      }
+      @media (max-width: 600px) {
+        .vs-lp-footer-info { grid-template-columns: 1fr; gap: 28px; }
+        .vs-lp-footer { padding-bottom: 96px; } /* leave room for sticky mobile CTA */
+      }
+    </style>
+  </body>
+</html>

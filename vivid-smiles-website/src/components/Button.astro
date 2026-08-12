@@ -1,0 +1,470 @@
+---
+/**
+ * Button — pill button with an <ArrowBadge> on the right.
+ *
+ * Variants:
+ *   - sage          (primary on paper/cream bands)
+ *   - ghost         (secondary on paper/cream bands)
+ *   - ghost-light   (ghost variant on dark/sage bands)
+ *   - light         (primary on sage band)
+ *   - outline-light (secondary on sage band)
+ *   - gold          (high-contrast conversion CTA — reads `--vs-gold*` which is
+ *                    only defined inside the cosmetic LP scope (`.cdlp-page`).
+ *                    Off-LP it falls back to sage, so it never leaks the gold
+ *                    hue into the closed brand palette. See cosmetic-dentistry-lp.css.)
+ *
+ * Pass `hoverLabel` to set a different label for the hover slide effect (l2).
+ * Without it, the hover label is the same as the slot content.
+ *
+ * Hover behaviour (badge swap + magnetic + click ripple) is wired by the
+ * shared GSAP system in src/scripts/animations.js when the host element
+ * carries `data-vs-arrow="magnetic ripple"`. Per-variant badge colors live
+ * in the `.vs-btn-*` rules below as `--vs-arrow-*` overrides.
+ *
+ * Usage:
+ *   <Button variant="sage" href="/contact" hoverLabel="Let's Talk">Book a Consultation</Button>
+ *   <Button variant="light" arrow="↗">(720) 555-0199</Button>
+ */
+import ArrowBadge from "./ArrowBadge.astro";
+
+type Variant = "sage" | "ghost" | "ghost-light" | "light" | "outline-light" | "gold";
+
+interface Props {
+  variant?: Variant;
+  href?: string;
+  arrow?: string;
+  hoverLabel?: string;
+  class?: string;
+  [key: string]: unknown;
+}
+
+const {
+  variant = "sage",
+  href = "#",
+  arrow = "→",
+  hoverLabel,
+  class: extra,
+  ...rest
+} = Astro.props;
+
+const cls = ["vs-btn", `vs-btn-${variant}`, extra].filter(Boolean).join(" ");
+
+// External URLs (booking on NexHealth, Google review pages, etc.) should open
+// in a new tab so the user keeps the marketing site behind them. Explicit
+// target/rel passed via props win — externalAttrs is spread first.
+const isExternal = typeof href === "string" && /^https?:\/\//i.test(href);
+const externalAttrs = isExternal
+  ? { target: "_blank", rel: "noopener noreferrer" }
+  : {};
+---
+
+<a class={cls} href={href} data-vs-arrow="magnetic ripple" data-hover={hoverLabel} {...externalAttrs} {...rest}>
+  <span class="btn-label">
+    <span class="l1"><slot /></span>
+    <span class="l2">{hoverLabel ?? <slot />}</span>
+  </span>
+  <ArrowBadge arrow={arrow} />
+  <span class="btn-ripple"></span>
+</a>
+
+<style is:global>
+  .vs-btn {
+    --btn-bg: var(--vs-sage);
+    --btn-fg: #fff;
+    --btn-border: transparent;
+    --btn-ripple: rgba(255, 255, 255, 0.6);
+
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 12px 12px 26px;
+    background: var(--btn-bg);
+    color: var(--btn-fg);
+    border: 1px solid var(--btn-border);
+    border-radius: 999px;
+    font-family: var(--vs-font-body);
+    font-size: 13px;
+    font-weight: 400;
+    letter-spacing: 0.02em;
+    text-decoration: none;
+    cursor: pointer;
+    overflow: hidden;
+    /* No CSS color transition on the host: nothing changes --btn-* on hover —
+       the badge owns the visible color flip via GSAP. */
+  }
+
+  .vs-btn .btn-label {
+    position: relative;
+    display: inline-block;
+    overflow: hidden;
+    line-height: 1.2;
+  }
+
+  .vs-btn .btn-label .l1,
+  .vs-btn .btn-label .l2 {
+    display: block;
+    will-change: transform;
+  }
+
+  .vs-btn .btn-label .l2 {
+    position: absolute;
+    inset: 0;
+    /* Resting hidden state must live in CSS, not only in JS: under
+       prefers-reduced-motion (or if GSAP fails to load) wireArrowSwap never
+       runs, so without this the hover label stacks on top of the resting
+       label. overflow:hidden on .btn-label clips this out of view; GSAP
+       overrides it inline to animate the swap when motion is allowed. */
+    transform: translateY(100%);
+  }
+
+  /* Button-specific badge sizing — slightly larger than ArrowBadge md (32). */
+  .vs-btn .vs-arrow {
+    width: 36px;
+    height: 36px;
+    font-size: 15px;
+  }
+
+  .vs-btn .btn-ripple {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--btn-ripple);
+    pointer-events: none;
+    transform: scale(0);
+    opacity: 0;
+  }
+
+  .vs-btn:focus-visible {
+    outline: 3px solid var(--vs-sage);
+    outline-offset: 3px;
+  }
+  /* Gold CTA focus ring — only meaningful inside the LP where --vs-gold-deep
+     is defined; falls back to sage elsewhere. */
+  .vs-btn-gold:focus-visible {
+    outline-color: var(--vs-gold-deep, var(--vs-sage));
+  }
+
+  /* ── Variant overrides ─────────────────────────────────────────────────
+     Each variant sets the host pill colors (--btn-*) on .vs-btn-<variant>,
+     and the ArrowBadge colors (--vs-arrow-*) on .vs-btn-<variant> .vs-arrow.
+     Button always renders the badge with its default ghost-line variant
+     (no `variant` prop passed), so the descendant selector beats ArrowBadge's
+     own .vs-arrow defaults by both specificity (0,2,0 vs 0,1,0) and source
+     order. */
+  .vs-btn-sage {
+    --btn-bg: var(--vs-sage);
+    --btn-fg: #fff;
+    --btn-border: transparent;
+    --btn-ripple: rgba(255, 255, 255, 0.6);
+  }
+  .vs-btn-sage .vs-arrow {
+    --vs-arrow-bg: rgba(255, 255, 255, 0.16);
+    --vs-arrow-fg: #fff;
+    --vs-arrow-border: rgba(255, 255, 255, 0.5);
+    --vs-arrow-hover-bg: #fff;
+    --vs-arrow-hover-fg: var(--vs-sage-deep);
+    --vs-arrow-hover-border: #fff;
+  }
+
+  /* ── Gold (LP-scoped conversion CTA) ─────────────────────────────────
+     --vs-gold* are defined ONLY under `.cdlp-page` in cosmetic-dentistry-lp.css,
+     so this variant renders sage anywhere the tokens aren't in scope. That
+     fallback keeps the global closed palette honest while letting the paid
+     landing page run a high-contrast gold pill. FLAT solid bright-gold surface
+     (--vs-gold #caa84e) with DARK charcoal text — the old champagne GRADIENT +
+     inset sheen read like a progress/slider bar, so we dropped both for a flat
+     fill that reads unmistakably as a button. Dark text clears AA at ~7:1 on
+     this bright gold; white text was tried but only stays legible
+     on a much deeper gold, which reads as mustard/brown — rejected, stays dark. */
+  .vs-btn-gold {
+    --btn-bg: var(--vs-gold, var(--vs-sage));
+    --btn-fg: #fff;
+    --btn-border: transparent;
+    --btn-ripple: rgba(255, 255, 255, 0.28);
+    box-shadow: 0 6px 18px -8px rgba(122, 92, 18, 0.55);
+    transition: box-shadow 220ms ease, filter 220ms ease;
+  }
+  /* Heavier label only on gold — the gold surface can carry a bolder,
+     near-black weight for a more confident, premium read (partner request). */
+  .vs-btn-gold .btn-label { font-weight: 600; }
+  .vs-btn-gold:hover {
+    box-shadow: 0 10px 26px -8px rgba(122, 92, 18, 0.6);
+    filter: brightness(0.97);
+  }
+  .vs-btn-gold .vs-arrow {
+    --vs-arrow-bg: rgba(255, 255, 255, 0.18);
+    --vs-arrow-fg: #fff;
+    --vs-arrow-border: rgba(255, 255, 255, 0.45);
+    --vs-arrow-hover-bg: var(--vs-gold-deep, var(--vs-sage-deep));
+    --vs-arrow-hover-fg: #fff;
+    --vs-arrow-hover-border: var(--vs-gold-deep, var(--vs-sage-deep));
+  }
+
+  .vs-btn-ghost {
+    --btn-bg: transparent;
+    --btn-fg: var(--vs-ink);
+    --btn-border: var(--vs-ink);
+    --btn-ripple: rgba(42, 42, 40, 0.18);
+  }
+  .vs-btn-ghost .vs-arrow {
+    --vs-arrow-bg: transparent;
+    --vs-arrow-fg: var(--vs-ink);
+    --vs-arrow-border: var(--vs-ink);
+    --vs-arrow-hover-bg: var(--vs-ink);
+    --vs-arrow-hover-fg: #fff;
+    --vs-arrow-hover-border: var(--vs-ink);
+  }
+
+  .vs-btn-light {
+    --btn-bg: #fff;
+    --btn-fg: var(--vs-ink);
+    --btn-border: transparent;
+    --btn-ripple: rgba(107, 122, 84, 0.28);
+  }
+  .vs-btn-light .vs-arrow {
+    --vs-arrow-bg: var(--vs-cream);
+    --vs-arrow-fg: var(--vs-sage-deep);
+    --vs-arrow-border: var(--vs-line);
+    --vs-arrow-hover-bg: var(--vs-sage);
+    --vs-arrow-hover-fg: #fff;
+    --vs-arrow-hover-border: var(--vs-sage);
+  }
+
+  .vs-btn-outline-light {
+    --btn-bg: transparent;
+    --btn-fg: #fff;
+    --btn-border: rgba(255, 255, 255, 0.6);
+    --btn-ripple: rgba(255, 255, 255, 0.45);
+  }
+  .vs-btn-outline-light .vs-arrow {
+    --vs-arrow-bg: rgba(255, 255, 255, 0.1);
+    --vs-arrow-fg: #fff;
+    --vs-arrow-border: rgba(255, 255, 255, 0.55);
+    --vs-arrow-hover-bg: #fff;
+    --vs-arrow-hover-fg: var(--vs-sage);
+    --vs-arrow-hover-border: #fff;
+  }
+
+  /* Ghost on dark/sage bands — same shape, white border */
+  .vs-btn-ghost-light {
+    --btn-bg: transparent;
+    --btn-fg: #fff;
+    --btn-border: rgba(255, 255, 255, 0.7);
+    --btn-ripple: rgba(255, 255, 255, 0.5);
+  }
+  .vs-btn-ghost-light .vs-arrow {
+    --vs-arrow-bg: rgba(255, 255, 255, 0.1);
+    --vs-arrow-fg: #fff;
+    --vs-arrow-border: rgba(255, 255, 255, 0.55);
+    --vs-arrow-hover-bg: #fff;
+    --vs-arrow-hover-fg: var(--vs-ink);
+    --vs-arrow-hover-border: #fff;
+  }
+
+  /* ── Sage-pale band override ─────────────────────────────────────────
+     Sage-pale was introduced (`--vs-sage-pale`) as the canonical
+     light-green band background. On that ground, the white text + white
+     border of `outline-light` / `ghost-light` fails contrast and reads
+     as ghosted-out rather than as a button.
+     Flip those two variants to ink whenever they sit inside a sage-pale
+     band — they then render like `.vs-btn-ghost` does on cream/paper.
+
+     Legacy pages where `.section.dark` still maps to deep `--vs-sage`
+     with white text (contact, teeth-whitening, smile-gallery) are
+     deliberately not in the list — white pills still read fine there.
+     When those pages migrate to v43, add their namespace below. */
+  :is(
+    .services .section.dark,
+    .fmrehab .section.dark,
+    .gdent .section.dark,
+    .vs-office .section.dark,
+    .singletooth .section.dark,
+    .np .section.dark,
+    .caligners .section.dark,
+    .fmdi .section.dark,
+    .rp .section.dark,
+    .aus .section.dark,
+    .bgraft .section.dark,
+    .impd .section.dark,
+    .emerg .section.dark,
+    .cdent .section.dark,
+    .smilemakeover .section.dark,
+    .aos4 .section.dark,
+    .pveneers .section.dark,
+    .gcontouring .section.dark,
+    .sinuslift .section.dark,
+    .contact .section.dark,
+    .home .gallery,
+    .home .membership-content,
+    .patient-testimonials .divider-strip,
+    .patient-testimonials .veneer-stories,
+    .vs-smile-gallery.bg-sage-pale
+  ) :is(.vs-btn-outline-light, .vs-btn-ghost-light) {
+    --btn-fg: var(--vs-ink);
+    --btn-border: var(--vs-ink);
+    --btn-ripple: rgba(42, 42, 40, 0.18);
+  }
+  :is(
+    .services .section.dark,
+    .fmrehab .section.dark,
+    .gdent .section.dark,
+    .vs-office .section.dark,
+    .singletooth .section.dark,
+    .np .section.dark,
+    .caligners .section.dark,
+    .fmdi .section.dark,
+    .rp .section.dark,
+    .aus .section.dark,
+    .bgraft .section.dark,
+    .impd .section.dark,
+    .emerg .section.dark,
+    .cdent .section.dark,
+    .smilemakeover .section.dark,
+    .aos4 .section.dark,
+    .pveneers .section.dark,
+    .gcontouring .section.dark,
+    .sinuslift .section.dark,
+    .contact .section.dark,
+    .home .gallery,
+    .home .membership-content,
+    .patient-testimonials .divider-strip,
+    .patient-testimonials .veneer-stories,
+    .vs-smile-gallery.bg-sage-pale
+  ) :is(.vs-btn-outline-light, .vs-btn-ghost-light) .vs-arrow {
+    --vs-arrow-bg: transparent;
+    --vs-arrow-fg: var(--vs-ink);
+    --vs-arrow-border: var(--vs-ink);
+    --vs-arrow-hover-bg: var(--vs-ink);
+    --vs-arrow-hover-fg: #fff;
+    --vs-arrow-hover-border: var(--vs-ink);
+  }
+
+  /* ── Charcoal-green band override ────────────────────────────────────
+     Mirror of the sage-pale rule above. The standard `ghost` variant
+     paints ink-on-transparent, which is invisible against the charcoal
+     green band. Flip it to white whenever it sits inside a charcoal
+     band — same treatment as `ghost-light` gets by default. */
+  :is(
+    .services .section.alt,
+    .fmrehab .section.alt,
+    .gdent .section.alt,
+    .bna .section.alt,
+    .vs-office .section.alt,
+    .np .section.alt,
+    .singletooth .section.alt,
+    .rp .section.alt,
+    .caligners .section.alt,
+    .aus .section.alt,
+    .fmdi .section.alt,
+    .emerg .section.alt,
+    .bgraft .section.alt,
+    .aos4 .section.alt,
+    .cdent .section.alt,
+    .impd .section.alt,
+    .smilemakeover .section.alt,
+    .pveneers .section.alt,
+    .sinuslift .section.alt,
+    .gcontouring .section.alt,
+    .contact .section.alt,
+    .tyou .section.alt,
+    .tyou .hero,
+    .home .trust-card,
+    .home .process,
+    .home .stories,
+    .patient-testimonials .stories,
+    .cdlp-case--cream,
+    .caligners .hero,
+    .pveneers .hero,
+    .gcontouring .hero,
+    .smilemakeover .hero,
+    .fmrehab .hero,
+    .singletooth .hero,
+    .aos4 .hero,
+    .bgraft .hero,
+    .sinuslift .hero,
+    .fmdi .hero,
+    .bna .hero,
+    .vs-smile-gallery.bg-charcoal
+  ) .vs-btn-ghost {
+    --btn-fg: #fff;
+    --btn-border: rgba(255, 255, 255, 0.7);
+    --btn-ripple: rgba(255, 255, 255, 0.5);
+  }
+  :is(
+    .services .section.alt,
+    .fmrehab .section.alt,
+    .gdent .section.alt,
+    .bna .section.alt,
+    .vs-office .section.alt,
+    .np .section.alt,
+    .singletooth .section.alt,
+    .rp .section.alt,
+    .caligners .section.alt,
+    .aus .section.alt,
+    .fmdi .section.alt,
+    .emerg .section.alt,
+    .bgraft .section.alt,
+    .aos4 .section.alt,
+    .cdent .section.alt,
+    .impd .section.alt,
+    .smilemakeover .section.alt,
+    .pveneers .section.alt,
+    .sinuslift .section.alt,
+    .gcontouring .section.alt,
+    .contact .section.alt,
+    .tyou .section.alt,
+    .tyou .hero,
+    .home .trust-card,
+    .home .process,
+    .home .stories,
+    .patient-testimonials .stories,
+    .cdlp-case--cream,
+    .caligners .hero,
+    .pveneers .hero,
+    .gcontouring .hero,
+    .smilemakeover .hero,
+    .fmrehab .hero,
+    .singletooth .hero,
+    .aos4 .hero,
+    .bgraft .hero,
+    .sinuslift .hero,
+    .fmdi .hero,
+    .bna .hero,
+    .vs-smile-gallery.bg-charcoal
+  ) .vs-btn-ghost .vs-arrow {
+    --vs-arrow-bg: rgba(255, 255, 255, 0.1);
+    --vs-arrow-fg: #fff;
+    --vs-arrow-border: rgba(255, 255, 255, 0.55);
+    --vs-arrow-hover-bg: #fff;
+    --vs-arrow-hover-fg: var(--vs-ink);
+    --vs-arrow-hover-border: #fff;
+  }
+
+  /* ── .inline-cta.dark re-assertion ────────────────────────
+     `.inline-cta.dark` is a charcoal-green sub-band that appears inside
+     sage-pale `.section.dark` (cosmetic detail pages) and inside
+     `.section.alt` (implant detail pages). Without this rule the
+     The ink override above bleeds into the sub-band and paints
+     the `.vs-btn-ghost-light` "Call (XXX)" button black-on-charcoal.
+     Doubled-class trick forces
+     specificity to (0,6,0) — four class instances on the outer doubled
+     `.inline-cta.dark.inline-cta.dark` plus two on the inner doubled
+     `.vs-btn-ghost-light.vs-btn-ghost-light`. Beats the override
+     at (0,4,0) (`:is(.<ns> .section.dark, …)` max-branch (0,3,0) + inner
+     `:is(.vs-btn-ghost-light, …)` (0,1,0)). */
+  .inline-cta.dark.inline-cta.dark .vs-btn-ghost-light.vs-btn-ghost-light {
+    --btn-fg: #fff;
+    --btn-border: rgba(255, 255, 255, 0.7);
+    --btn-ripple: rgba(255, 255, 255, 0.5);
+  }
+  .inline-cta.dark.inline-cta.dark .vs-btn-ghost-light.vs-btn-ghost-light .vs-arrow {
+    --vs-arrow-bg: rgba(255, 255, 255, 0.1);
+    --vs-arrow-fg: #fff;
+    --vs-arrow-border: rgba(255, 255, 255, 0.55);
+    --vs-arrow-hover-bg: #fff;
+    --vs-arrow-hover-fg: var(--vs-ink);
+    --vs-arrow-hover-border: #fff;
+  }
+</style>

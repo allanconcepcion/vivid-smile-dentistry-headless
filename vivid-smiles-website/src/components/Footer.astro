@@ -1,0 +1,349 @@
+---
+// Global dark statement footer — mounted by BaseLayout.
+import { Image } from "astro:assets";
+import Button from "./Button.astro";
+import vsLogo from "../assets/images/brand/vivid-smiles.webp";
+import {
+  bookNowHref,
+  emailAddress,
+  emailHref,
+  phoneHref,
+  phoneLabel,
+  directionsHref,
+  addressStreet,
+  addressCity,
+  addressState,
+  addressZip,
+} from "../data/contact";
+import { officeHours } from "../data/hours";
+---
+
+<footer class="footer">
+  <div class="footer-wrap">
+
+    <div class="footer-cta">
+      <div class="footer-cta-text">
+        <span class="ey">Ready when you are</span>
+        <p>Two ways to start — book a chair or share a few photos and get a video reply from Dr. Richardson.</p>
+      </div>
+      <div class="footer-cta-actions">
+        <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button>
+        <Button variant="outline-light" href="/#virtualConsult" hoverLabel="Get a Video">Free Virtual Consult</Button>
+      </div>
+    </div>
+
+    <div class="footer-cols">
+      <div class="footer-brand">
+        <a href="/" class="logo" aria-label="Vivid Smiles">
+          <Image src={vsLogo} alt="Vivid Smiles" />
+        </a>
+        <p>Cosmetic, implant, and family dentistry crafted in Parker, Colorado — where artistry meets precision.</p>
+        <div class="badges">
+          <span class="stars">★★★★★</span>
+          <span class="b-text"><b>5.0 · 300+</b>Google Verified Reviews</span>
+        </div>
+      </div>
+
+      <div class="footer-col">
+        <h2>Explore</h2>
+        <ul>
+          <li><a href="/">Home</a></li>
+          <li><a href="/about-us/">About Us</a></li>
+          <li><a href="/about-us/#team">Meet the Team</a></li>
+          <li><a href="/our-office/">Our Office</a></li>
+          <li><a href="/smile-gallery/">Smile Gallery</a></li>
+          <li><a href="/patient-testimonials/">Patient Stories</a></li>
+          <li><a href="/contact/">Contact</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col">
+        <h2>Services</h2>
+        <ul>
+          <li><a href="/services/">All Services</a></li>
+          <li><a href="/cosmetic-dentistry/">Cosmetic Dentistry</a></li>
+          <li><a href="/implant-dentistry/">Dental Implants</a></li>
+          <li><a href="/general-dentistry/">General Dentistry</a></li>
+          <li><a href="/emergency-dentistry/">Emergency Care</a></li>
+          <li><a href="/new-patients/">New Patients</a></li>
+          <li><a href="/dental-membership-plan/">Membership</a></li>
+        </ul>
+      </div>
+
+      <div class="footer-col footer-contact">
+        <h2>Get in touch</h2>
+        <div class="row">
+          <span class="ic" aria-hidden="true"><i class="fa-solid fa-phone"></i></span>
+          <div class="text"><small>Call</small><a href={phoneHref}>{phoneLabel}</a></div>
+        </div>
+        <div class="row">
+          <span class="ic" aria-hidden="true"><i class="fa-solid fa-envelope"></i></span>
+          <div class="text"><small>Email</small><a href={emailHref}>{emailAddress}</a></div>
+        </div>
+        <div class="row">
+          <span class="ic" aria-hidden="true"><i class="fa-solid fa-location-dot"></i></span>
+          <div class="text"><small>Visit</small><a href={directionsHref} target="_blank" rel="noopener">{addressStreet}<br>{addressCity}, {addressState} {addressZip}</a></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-hours">
+      <span class="lbl">Office Hours</span>
+      <div class="days">
+        {officeHours.map((r) => (
+          <span class={r.opens ? undefined : "closed"}>
+            <b>{r.label}</b>{r.hoursLong}
+          </span>
+        ))}
+      </div>
+      <span class="open-now" data-vs-status hidden>
+        <span class="status-label">Open Now</span>
+      </span>
+    </div>
+
+    <div class="footer-bot">
+      <div class="copy">
+        <span>© {new Date().getFullYear()} Vivid Smiles Dentistry · Parker, CO</span>
+        <span class="built-by">Built by <a href="https://slate.digital" target="_blank" rel="noopener">Slate Digital Marketing</a></span>
+      </div>
+      <div class="legal">
+        <a href="/privacy-policy/">Privacy Policy</a>
+        <a href="/terms-conditions/">Terms &amp; Conditions</a>
+      </div>
+      <div class="social" aria-label="Social media">
+        <a href="https://www.instagram.com/vividdentist/" target="_blank" rel="noopener" aria-label="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 2.2c3.2 0 3.6 0 4.85.07 1.17.05 1.8.25 2.23.42.56.21.96.47 1.38.89.42.42.68.82.89 1.38.17.42.37 1.06.42 2.23.06 1.25.07 1.65.07 4.85s0 3.6-.07 4.85c-.05 1.17-.25 1.8-.42 2.23-.21.56-.47.96-.89 1.38-.42.42-.82.68-1.38.89-.42.17-1.06.37-2.23.42-1.25.06-1.65.07-4.85.07s-3.6 0-4.85-.07c-1.17-.05-1.8-.25-2.23-.42-.56-.21-.96-.47-1.38-.89-.42-.42-.68-.82-.89-1.38-.17-.42-.37-1.06-.42-2.23C2.2 15.6 2.2 15.2 2.2 12s0-3.6.07-4.85c.05-1.17.25-1.8.42-2.23.21-.56.47-.96.89-1.38.42-.42.82-.68 1.38-.89.42-.17 1.06-.37 2.23-.42C8.4 2.2 8.8 2.2 12 2.2zm0 1.8c-3.15 0-3.52 0-4.76.07-.99.05-1.53.21-1.89.35-.47.18-.81.4-1.17.76-.36.36-.58.7-.76 1.17-.14.36-.3.9-.35 1.89C2.99 8.48 2.99 8.85 2.99 12s0 3.52.07 4.76c.05.99.21 1.53.35 1.89.18.47.4.81.76 1.17.36.36.7.58 1.17.76.36.14.9.3 1.89.35 1.24.06 1.61.07 4.76.07s3.52 0 4.76-.07c.99-.05 1.53-.21 1.89-.35.47-.18.81-.4 1.17-.76.36-.36.58-.7.76-1.17.14-.36.3-.9.35-1.89.06-1.24.07-1.61.07-4.76s0-3.52-.07-4.76c-.05-.99-.21-1.53-.35-1.89-.18-.47-.4-.81-.76-1.17-.36-.36-.7-.58-1.17-.76-.36-.14-.9-.3-1.89-.35C15.52 4 15.15 4 12 4zm0 3.06A4.94 4.94 0 1 1 7.06 12 4.94 4.94 0 0 1 12 7.06zm0 8.15A3.21 3.21 0 1 0 8.79 12 3.21 3.21 0 0 0 12 15.21zm6.3-8.36a1.16 1.16 0 1 1-1.16-1.16 1.16 1.16 0 0 1 1.16 1.16z"></path></svg></a>
+        <a href="https://www.facebook.com/VivdSmiles/" target="_blank" rel="noopener" aria-label="Facebook"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M13.5 21v-7.6h2.55l.38-2.96H13.5V8.55c0-.85.24-1.43 1.46-1.43h1.55V4.47A20.85 20.85 0 0 0 14.24 4.3c-2.24 0-3.78 1.37-3.78 3.88v2.26H7.9v2.96h2.56V21z"></path></svg></a>
+        <a href="https://share.google/NvLvRT7hymFROwfn6" target="_blank" rel="noopener" aria-label="Google"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M21.35 11.1H12v3.83h5.36c-.5 2.45-2.6 3.85-5.36 3.85a5.94 5.94 0 1 1 0-11.88 5.86 5.86 0 0 1 3.74 1.34l2.7-2.7A9.5 9.5 0 1 0 12 21.5c5.5 0 9.13-3.86 9.13-9.3 0-.4-.04-.78-.1-1.1z"></path></svg></a>
+      </div>
+    </div>
+
+  </div>
+</footer>
+
+<style is:global>
+  .footer {
+    background: var(--vs-ink-deep); color: #fff;
+    padding: 0;
+    border-radius: var(--vs-r-xl) var(--vs-r-xl) 0 0;
+    margin: 0 28px;
+    position: relative; overflow: hidden;
+  }
+  .footer::before {
+    content: ""; position: absolute; right: -180px; top: -180px;
+    width: 520px; height: 520px;
+    border: 1px solid rgba(255, 255, 255, .07);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  .footer::after {
+    content: ""; position: absolute; right: -100px; top: -100px;
+    width: 360px; height: 360px;
+    border: 1px solid rgba(255, 255, 255, .05);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+
+  .footer .footer-wrap { max-width: 1240px; margin: 0 auto; padding: 0 40px; }
+
+  .footer-cta {
+    padding: 44px 0;
+    border-bottom: 1px solid rgba(255, 255, 255, .1);
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 40px; flex-wrap: wrap;
+  }
+  .footer-cta-text { max-width: 44ch; display: flex; flex-direction: column; gap: 10px; }
+  .footer-cta-text .ey {
+    font-family: var(--vs-font-body); font-size: 11px; letter-spacing: .3em; text-transform: uppercase;
+    color: rgba(255, 255, 255, .55); font-weight: 400;
+    display: inline-flex; align-items: center; gap: 14px;
+  }
+  .footer-cta-text .ey::before { content: ""; width: 28px; height: 1px; background: rgba(255, 255, 255, .5); }
+  .footer-cta-text p {
+    font-family: var(--vs-font-display); font-weight: 300;
+    font-size: clamp(20px, 2.2vw, 26px);
+    line-height: 1.25; letter-spacing: -0.01em;
+    color: #fff; margin: 0;
+  }
+  .footer-cta-actions {
+    display: flex; gap: 12px; flex-wrap: wrap; align-items: center;
+  }
+
+  .footer-cols {
+    padding: 70px 0 60px;
+    display: grid;
+    grid-template-columns: 1.4fr 1fr 1fr 1.1fr;
+    gap: 60px;
+    align-items: start;
+    position: relative;
+  }
+  .footer-brand .logo { display: inline-flex; align-items: center; }
+  .footer-brand .logo img { height: 40px; width: auto; }
+  .footer-brand p {
+    margin-top: 22px; font-size: 14px; line-height: 1.7;
+    color: rgba(255, 255, 255, .7); max-width: 30ch;
+  }
+  .footer-brand .badges {
+    margin-top: 26px; display: flex; align-items: center; gap: 16px;
+    padding-top: 22px; border-top: 1px solid rgba(255, 255, 255, .12);
+  }
+  .footer-brand .badges .stars { color: #fff; letter-spacing: .14em; font-size: 14px; }
+  .footer-brand .badges .b-text { font-size: 11px; letter-spacing: .18em; text-transform: uppercase; color: rgba(255, 255, 255, .65); }
+  .footer-brand .badges .b-text b { color: #fff; font-weight: 500; font-family: var(--vs-font-display); letter-spacing: .04em; font-size: 13px; display: block; margin-bottom: 2px; }
+
+  /* Footer column titles use <h2> (not <h5>) so the heading order audit doesn't
+   * fail — pages end at h2/h3, and the previous h5 skipped levels. Visual styling
+   * stays identical via the class selector. */
+  .footer-col h2 {
+    font-family: var(--vs-font-body); font-size: 11px; letter-spacing: .26em; text-transform: uppercase;
+    color: rgba(255, 255, 255, .7); font-weight: 500;
+    margin: 0 0 22px;
+    display: inline-flex; align-items: center; gap: 12px;
+  }
+  .footer-col h2::before { content: ""; width: 22px; height: 1px; background: rgba(255, 255, 255, .4); }
+  .footer-col ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+  .footer-col a {
+    color: rgba(255, 255, 255, .88); text-decoration: none; font-size: 15px;
+    font-family: var(--vs-font-display); font-weight: 400;
+    letter-spacing: -0.005em;
+    transition: color .2s ease;
+    display: inline-flex; align-items: center;
+    cursor: pointer;
+  }
+  .footer-col a:hover { color: var(--vs-sage-soft); }
+
+  .footer-contact .row {
+    display: flex; align-items: flex-start; gap: 14px;
+    padding: 14px 0;
+    border-top: 1px solid rgba(255, 255, 255, .1);
+  }
+  .footer-contact .row:first-of-type { border-top: 0; padding-top: 4px; }
+  .footer-contact .row .ic {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, .25);
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 12px; color: rgba(255, 255, 255, .85); flex-shrink: 0; margin-top: 2px;
+  }
+  .footer-contact .row .ic i { line-height: 1; }
+  .footer-contact .row .text { font-size: 14px; line-height: 1.55; color: rgba(255, 255, 255, .88); }
+  .footer-contact .row .text small {
+    display: block; font-size: 10.5px; letter-spacing: .22em; text-transform: uppercase;
+    color: rgba(255, 255, 255, .5); margin-bottom: 3px; font-weight: 500;
+  }
+  .footer-contact .row .text a { color: inherit; text-decoration: none; font-family: var(--vs-font-display); font-size: 16px; letter-spacing: -0.005em; cursor: pointer; transition: color .2s ease; }
+  .footer-contact .row .text a:hover { color: var(--vs-sage-soft); }
+
+  .footer-hours {
+    padding: 24px 0;
+    border-top: 1px solid rgba(255, 255, 255, .1);
+    border-bottom: 1px solid rgba(255, 255, 255, .1);
+    display: grid; grid-template-columns: auto 1fr auto; gap: 30px; align-items: center;
+  }
+  .footer-hours .lbl {
+    font-size: 10.5px; letter-spacing: .28em; text-transform: uppercase; color: rgba(255, 255, 255, .55);
+    display: inline-flex; align-items: center; gap: 12px;
+  }
+  .footer-hours .lbl::before { content: ""; width: 22px; height: 1px; background: rgba(255, 255, 255, .4); }
+  .footer-hours .days {
+    display: flex; align-items: center; gap: 28px; flex-wrap: wrap;
+    font-size: 13.5px; color: rgba(255, 255, 255, .85);
+    font-family: var(--vs-font-display); font-weight: 400; letter-spacing: -0.005em;
+  }
+  .footer-hours .days span b { color: #fff; font-weight: 500; margin-right: 8px; font-size: 11px; letter-spacing: .18em; text-transform: uppercase; }
+  /* Bumped from .4 alpha so closed-day text passes WCAG AA contrast on the
+   * deep-ink footer band (~7.5:1 vs the previous ~4.0:1). */
+  .footer-hours .days .closed { color: rgba(255, 255, 255, .65); }
+  .footer-hours .open-now {
+    display: inline-flex; align-items: center; gap: 10px;
+    font-size: 11px; letter-spacing: .22em; text-transform: uppercase;
+    color: #fff; font-weight: 500;
+    padding: 8px 16px; border-radius: 999px;
+    background: rgba(var(--vs-pulse-live-rgb), .15); border: 1px solid rgba(var(--vs-pulse-live-rgb), .4);
+  }
+  .footer-hours .open-now[hidden] { display: none; }
+  .footer-hours .open-now::before {
+    content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--vs-pulse-live);
+    box-shadow: 0 0 0 4px rgba(var(--vs-pulse-live-rgb), .25);
+    animation: footer-pulse-dot 2s ease-in-out infinite;
+  }
+  .footer-hours .open-now.is-closed {
+    background: rgba(255, 255, 255, .06);
+    border-color: rgba(255, 255, 255, .18);
+    color: rgba(255, 255, 255, .7);
+  }
+  .footer-hours .open-now.is-closed::before {
+    background: rgba(255, 255, 255, .35);
+    box-shadow: none;
+    animation: none;
+  }
+  @keyframes footer-pulse-dot {
+    0%, 100% { box-shadow: 0 0 0 4px rgba(var(--vs-pulse-live-rgb), .25); }
+    50%      { box-shadow: 0 0 0 7px rgba(var(--vs-pulse-live-rgb), .05); }
+  }
+
+  .footer-bot {
+    padding: 24px 0 32px;
+    display: flex; justify-content: space-between; align-items: center; gap: 24px;
+    font-size: 12px; color: rgba(255, 255, 255, .55);
+    letter-spacing: .02em;
+    flex-wrap: wrap;
+  }
+  .footer-bot .copy { display: flex; flex-direction: column; gap: 4px; text-align: left; }
+  /* Bumped from .4 alpha to .6 so "Built by …" text passes WCAG AA on the
+   * deep-ink footer band. */
+  .footer-bot .built-by { font-size: 11px; letter-spacing: .04em; color: rgba(255, 255, 255, .6); }
+  .footer-bot .built-by a { color: rgba(255, 255, 255, .65); text-decoration: none; transition: color .2s ease; }
+  .footer-bot .built-by a:hover { color: var(--vs-sage-soft); }
+  .footer-bot .legal { display: flex; gap: 22px; flex-wrap: wrap; }
+  .footer-bot .legal a { color: rgba(255, 255, 255, .7); text-decoration: none; font-size: 12px; letter-spacing: .04em; transition: color .2s ease; }
+  .footer-bot .legal a:hover { color: #fff; }
+  .footer-bot .social { display: flex; gap: 8px; }
+  .footer-bot .social a {
+    width: 34px; height: 34px; border-radius: 50%;
+    border: 1px solid rgba(255, 255, 255, .2);
+    display: inline-flex; align-items: center; justify-content: center;
+    color: rgba(255, 255, 255, .75); text-decoration: none;
+    transition: all .25s ease;
+  }
+  .footer-bot .social a:hover { background: var(--vs-sage); border-color: var(--vs-sage); color: #fff; transform: translateY(-2px); }
+  .footer-bot .social svg { width: 14px; height: 14px; fill: currentColor; }
+
+  @media (max-width: 991px) {
+    .footer { margin: 0 14px; border-radius: var(--vs-r-lg) var(--vs-r-lg) 0 0; }
+    .footer-cta { padding: 36px 0; gap: 24px; }
+    .footer-cta-actions { width: 100%; }
+    .footer-cols { grid-template-columns: 1fr; gap: 40px; padding: 50px 0 40px; }
+    .footer-hours { grid-template-columns: 1fr; gap: 16px; padding: 22px 0; }
+    .footer-hours .open-now { justify-self: start; }
+    .footer-bot { flex-direction: column; gap: 16px; text-align: center; align-items: flex-start; }
+  }
+
+  @media (max-width: 600px) {
+    .footer .footer-wrap { padding: 0 22px; }
+  }
+</style>
+
+<script>
+  /* Schedule sourced from src/data/hours.ts. Re-checks every minute so a tab
+     left open across the open/close boundary updates without a reload. */
+  import { isOpenNow } from "../data/hours";
+
+  (function () {
+    const el = document.querySelector<HTMLElement>("[data-vs-status]");
+    if (!el) return;
+    const labelEl = el.querySelector<HTMLElement>(".status-label");
+    if (!labelEl) return;
+
+    let last: boolean | null = null;
+    function paint() {
+      const open = isOpenNow();
+      if (open === last) return;
+      last = open;
+      el!.classList.toggle("is-closed", !open);
+      labelEl!.textContent = open ? "Open Now" : "Closed";
+      el!.removeAttribute("hidden");
+    }
+
+    paint();
+    setInterval(paint, 60_000);
+  })();
+</script>

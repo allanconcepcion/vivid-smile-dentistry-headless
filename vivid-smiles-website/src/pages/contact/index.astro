@@ -1,0 +1,336 @@
+---
+// The on-page Typeform here is a separate funnel from the Virtual Consult one
+// (Home + service pages) — keep analytics and reply routing distinct.
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import Button from "../../components/Button.astro";
+import FinalBand from "../../components/FinalBand.astro";
+import ArrowBadge from "../../components/ArrowBadge.astro";
+import {
+  phoneHref,
+  phoneLabel,
+  phoneE164,
+  bookNowHref,
+  directionsHref,
+  addressStreet,
+  addressCity,
+  addressState,
+  addressZip,
+  addressLine,
+  emailAddress,
+  emailHref,
+  contactTypeformId,
+} from "../../data/contact";
+import { officeHours, openingHoursSpecification, hoursCopyShort } from "../../data/hours";
+import "../../styles/pages/contact.css";
+
+// Google Maps embed — `output=embed` avoids needing an API key.
+const mapEmbedSrc = `https://maps.google.com/maps?q=${encodeURIComponent(addressLine)}&output=embed`;
+
+const faqs = [
+  {
+    q: "Are you accepting new patients?",
+    a: "Yes — Vivid Smiles is welcoming new patients, both locally and from out of state. Many of our smile-design and implant patients travel in from across Colorado and beyond. Request a visit through any of the contact methods on this page and our front desk will reach out within one business day.",
+    open: true,
+  },
+  {
+    q: "Where do I park?",
+    a: "There is free, on-site parking directly in front of the building at 17167 Cedar Gulch Pkwy, Suite 102. Accessible spaces are nearest the entrance. Our suite is on the ground floor — no stairs.",
+  },
+  {
+    q: "Do you take my insurance?",
+    a: "We're in-network with most major PPO plans and we file claims on your behalf. We also offer an in-house dental membership plan for patients without insurance. Send your plan details through the form and our team will verify benefits before your visit.",
+  },
+  {
+    q: "How quickly will you reply to my message?",
+    a: "We aim to reply to every message within one business day. Calls during office hours reach our front desk live; voicemails left after hours are returned the next morning.",
+  },
+  {
+    q: "What if I have a dental emergency?",
+    a: `Please call <a href="${phoneHref}">${phoneLabel}</a> first — same-day care is available for active pain, dental injuries, and trauma. <a href="/emergency-dentistry/">See our emergency dentistry page</a> for what counts as urgent and what to do before you arrive.`,
+  },
+  {
+    q: "What should I bring to my first visit?",
+    a: 'A photo ID, your insurance card if you have one, and a list of any medications you take. <a href="/new-patients/">Our new-patients page</a> has the full first-visit guide, including what to expect during the consultation.',
+  },
+];
+
+const contactOptions = [
+  {
+    icon: "fa-solid fa-calendar-check",
+    kicker: "Book online",
+    title: "Schedule an appointment",
+    body: "Pick a time through our online booking — fastest way to lock in your visit.",
+    href: bookNowHref,
+    external: true,
+  },
+  {
+    icon: "fa-solid fa-phone",
+    kicker: "Call",
+    title: phoneLabel,
+    body: "Live during office hours. After hours, leave a voicemail and we'll return your call the next morning.",
+    href: phoneHref,
+  },
+  {
+    icon: "fa-solid fa-comment-dots",
+    kicker: "Contact form",
+    title: "Use the form above",
+    body: "Tell us what you need in the form at the top of this page — we'll write back within one business day.",
+    href: "#contact-form",
+  },
+  {
+    icon: "fa-solid fa-envelope",
+    kicker: "Email",
+    title: emailAddress,
+    body: "Best for non-urgent questions, insurance details, or sending records ahead of a visit.",
+    href: emailHref,
+  },
+];
+---
+
+<BaseLayout
+  title="Contact Vivid Smiles Dentistry — Parker, CO"
+  description={`Get in touch with Vivid Smiles Dentistry in Parker, CO. Book online, call ${phoneLabel}, send a message through our contact form, or email ${emailAddress}.`}
+>
+  <div class="contact">
+
+    {/* ---------- BREADCRUMB ---------- */}
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <div class="crumbs-inner">
+        <a href="/">Home</a>
+        <span class="sep">/</span>
+        <span class="here">Contact</span>
+      </div>
+    </nav>
+
+    <main id="main">
+
+    {/* ---------- HERO (paper) — copy + form, form is the centerpiece ----------
+         Facelift: cream → paper, matching the sitewide post-v43
+         convention (our-office, new-patients, about-us). The sage radials
+         carry the warmth that cream used to provide; the white Typeform
+         iframe still reads as a card against the paper ground. */}
+    <header class="hero" id="contact-form">
+      <div class="hero-inner">
+        <div class="hero-copy" data-vs-reveal-batch>
+          <span class="eyebrow">Get in touch · Parker, CO</span>
+          <h1>We'd love to <em>meet you.</em></h1>
+          <p class="hero-sub">
+            Send us a message in the form, or reach us another way — book online, call our
+            front desk, or drop us an email. Every message lands on a real person.
+          </p>
+          <div class="hero-actions">
+            <Button variant="sage" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button>
+            <Button variant="ghost" href={phoneHref} hoverLabel="Tap to Dial">Call {phoneLabel}</Button>
+            <span class="reply-note">
+              <span class="dot" aria-hidden="true"></span>
+              <span>Replies within one business day</span>
+            </span>
+          </div>
+        </div>
+
+        <div class="hero-form" data-vs-reveal data-vs-lenis-passthrough>
+          <div class="tf-loading" aria-hidden="true">
+            <span class="spinner"></span>
+            <span>Loading form…</span>
+          </div>
+          <div data-tf-live={contactTypeformId}></div>
+          <script is:inline src="https://embed.typeform.com/next/embed.js"></script>
+        </div>
+      </div>
+    </header>
+
+    {/* ---------- CONTACT GRID — 4 ways to reach (sage-pale) ----------
+         All cards are visually consistent — the four options are presented as
+         equal alternatives, not a hierarchy. Facelift: paper →
+         sage-pale (`.section.dark`) so the white cards pop against the new
+         washed-green ground; gives the band rhythm a paper → sage-pale →
+         charcoal → paper → paper sweep. */}
+    <section class="section dark" id="reach" aria-label="Ways to reach us" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Four ways to reach us</span>
+          <h2>However you'd <em>rather get in touch.</em></h2>
+          <p>
+            Pick whichever feels most natural — every one of them lands on the same front desk,
+            and we'll take it from there.
+          </p>
+        </div>
+
+        <div class="contact-grid">
+          {contactOptions.map((opt) => (
+            <a
+              class="contact-card"
+              href={opt.href}
+              data-vs-arrow
+              {...(opt.external ? { target: "_blank", rel: "noopener" } : {})}
+            >
+              <span class="ic" aria-hidden="true"><i class={opt.icon}></i></span>
+              <span class="kicker">{opt.kicker}</span>
+              <h3>{opt.title}</h3>
+              <p>{opt.body}</p>
+              <ArrowBadge size="md" variant="ghost-line" class="contact-card-arrow" />
+            </a>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- LOCATION + HOURS (charcoal-green) ----------
+         Facelift: full-bleed `--vs-sage` → `--vs-charcoal-green`
+         via the canonical `.section.alt` band class. Mirrors our-office #visit. */}
+    <section class="section alt" id="visit" aria-label="Visit our practice">
+      <div class="wrap">
+        <div class="location-grid">
+          <div class="location-copy" data-vs-reveal-batch>
+            <span class="eyebrow light">Visit our practice</span>
+            <h2>Right here <em>in Parker.</em></h2>
+            <p class="lede">
+              Our office is on Cedar Gulch Parkway in Parker, with easy parking directly in
+              front and a calm, modern interior designed to feel more like a wellness studio
+              than a dental clinic.
+            </p>
+
+            <div class="location-card">
+              <div class="row">
+                <span class="ic" aria-hidden="true"><i class="fa-solid fa-location-dot"></i></span>
+                <div>
+                  <span class="label">Address</span>
+                  <span class="val">{addressStreet}<br>{addressCity}, {addressState} {addressZip}</span>
+                </div>
+              </div>
+
+              <div class="row">
+                <span class="ic" aria-hidden="true"><i class="fa-solid fa-phone"></i></span>
+                <div>
+                  <span class="label">Phone</span>
+                  <a href={phoneHref}>{phoneLabel}</a>
+                </div>
+              </div>
+
+              <div class="row">
+                <span class="ic" aria-hidden="true"><i class="fa-solid fa-envelope"></i></span>
+                <div>
+                  <span class="label">Email</span>
+                  <a href={emailHref}>{emailAddress}</a>
+                </div>
+              </div>
+
+              <div class="row">
+                <span class="ic" aria-hidden="true"><i class="fa-solid fa-clock"></i></span>
+                <div>
+                  <span class="label">Hours</span>
+                  <div class="hours-table">
+                    {officeHours.map((r) => (
+                      <div class:list={["day-row", !r.opens && "closed"]}>
+                        <span class="day">{r.label}</span>
+                        <span class="hrs">{r.hoursLong}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="location-actions">
+              <Button variant="light" href={directionsHref} hoverLabel="Open Map">Get Directions</Button>
+              <Button variant="ghost-light" href={phoneHref} hoverLabel="Tap to Dial">Call {phoneLabel}</Button>
+            </div>
+          </div>
+
+          {/* Embedded Google Map (no API key — uses output=embed). Lazy-loaded
+              so it doesn't block first paint. Aspect ratio matches the
+              previous image frame so layout stays stable. */}
+          <div class="location-map-wrap" data-vs-reveal>
+            <iframe
+              class="location-map"
+              src={mapEmbedSrc}
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              title={`Map showing Vivid Smiles Dentistry at ${addressLine}`}
+            ></iframe>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- FAQ (paper) — native details/summary, zero JS ---------- */}
+    <section class="section" id="faq" data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="section-head">
+          <span class="eyebrow">Common questions</span>
+          <h2>Before you <em>reach out.</em></h2>
+          <p>The quick answers most people need before scheduling — insurance, parking, what to bring, what counts as urgent.</p>
+        </div>
+
+        <div class="faq-list">
+          {faqs.map((f) => (
+            <details class="faq" open={f.open}>
+              <summary><h3>{f.q}</h3><span class="icon" aria-hidden="true">+</span></summary>
+              <div class="answer" set:html={f.a} />
+            </details>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    {/* ---------- FINAL BAND (paper) ----------
+         Dropped the cream-warm background; paper is the component
+         default and keeps the pre-footer rest as a clean light buffer. */}
+    <FinalBand eyebrow="Prefer to skip the form?">
+      <p>Call our front desk directly — {hoursCopyShort}.</p>
+    </FinalBand>
+
+    </main>
+
+    {/* JSON-LD structured data — Dentist (LocalBusiness subtype), BreadcrumbList, FAQPage. */}
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "Dentist",
+      "name": "Vivid Smiles Dentistry",
+      "image": new URL("/apple-touch-icon.png", Astro.site).href,
+      "url": new URL("/contact/", Astro.site).href,
+      "telephone": phoneE164,
+      "email": emailAddress,
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": addressStreet,
+        "addressLocality": addressCity,
+        "addressRegion": addressState,
+        "postalCode": addressZip,
+        "addressCountry": "US"
+      },
+      "openingHoursSpecification": openingHoursSpecification,
+      "priceRange": "$$",
+      // areaServed kept as the 3-city Colorado list — explicit local-SEO
+      // signal (locked in commit dfb0ab8). Body copy across the site has been
+      // softened to "locally and from out of state" because Vivid treats
+      // fly-in patients, but the structured-data field is a search-ranking
+      // input, not user-facing prose, so the city list stays.
+      "areaServed": ["Parker, CO", "Castle Rock, CO", "Lone Tree, CO"]
+    })} />
+
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Home",    "item": new URL("/", Astro.site).href },
+        { "@type": "ListItem", "position": 2, "name": "Contact", "item": new URL("/contact/", Astro.site).href }
+      ]
+    })} />
+
+    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": faqs.map((f) => ({
+        "@type": "Question",
+        "name": f.q,
+        "acceptedAnswer": {
+          "@type": "Answer",
+          // Strip HTML for the schema answer text — links survive on-page
+          // for users; schema crawlers want the bare text.
+          "text": f.a.replace(/<[^>]+>/g, "")
+        }
+      }))
+    })} />
+  </div>
+</BaseLayout>

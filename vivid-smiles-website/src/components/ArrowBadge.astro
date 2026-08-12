@@ -1,0 +1,154 @@
+---
+/**
+ * ArrowBadge — circular arrow badge with dual-glyph "knock-up + swap" hover.
+ *
+ * Single source of truth for every circled-arrow surface across the site.
+ * The hover effect (rotate -45°, scale 1.08, main glyph translates out
+ * diagonally while ghost glyph translates in from the opposite corner)
+ * is driven by the shared GSAP wiring in src/scripts/animations.js when
+ * the host element opts in via `data-vs-arrow`.
+ *
+ * Sizes: sm 26 · md 32 · lg 36 · xl 40 (px)
+ * Variants:
+ *   - ghost-line     (default) — transparent + line border, sage glyph (paper bands)
+ *   - ghost-sage     — transparent + sage border, sage glyph (paper bands, bolder)
+ *   - ghost-light    — translucent white on dark backgrounds (cards, hero)
+ *   - ghost-dark     — transparent + ink border on light backgrounds
+ *   - ghost-emergency — for the dark emergency-band gradient
+ *
+ * Consumers that need bespoke colors (e.g. Button.astro's 5 variants) can
+ * override the `--vs-arrow-{bg,fg,border,hover-bg,hover-fg,hover-border}`
+ * custom properties from an ancestor selector. See Button.astro for the
+ * pattern.
+ *
+ * Usage:
+ *   <ArrowBadge size="md" variant="ghost-sage" />
+ *   <ArrowBadge size="xl" variant="ghost-light" arrow="↗" />
+ */
+
+type Size = "sm" | "md" | "lg" | "xl";
+type Variant =
+  | "ghost-line"
+  | "ghost-sage"
+  | "ghost-light"
+  | "ghost-dark"
+  | "ghost-emergency";
+
+interface Props {
+  size?: Size;
+  variant?: Variant;
+  arrow?: string;
+  class?: string;
+}
+
+const {
+  size = "md",
+  variant = "ghost-line",
+  arrow = "→",
+  class: extra,
+} = Astro.props;
+
+const cls = [
+  "vs-arrow",
+  `vs-arrow-${size}`,
+  `vs-arrow-${variant}`,
+  extra,
+]
+  .filter(Boolean)
+  .join(" ");
+---
+
+<span class={cls} aria-hidden="true">
+  <span class="a-glyph main">{arrow}</span>
+  <span class="a-glyph ghost">{arrow}</span>
+</span>
+
+<style is:global>
+  /* ── Base shape ──────────────────────────────────────────────────────
+     Reads colors from custom properties so ancestors can override per
+     surface. The hover GSAP in animations.js reads the *-hover-* props
+     off this element via getComputedStyle. */
+  .vs-arrow {
+    --vs-arrow-bg: transparent;
+    --vs-arrow-fg: var(--vs-sage);
+    --vs-arrow-border: var(--vs-line);
+    --vs-arrow-hover-bg: var(--vs-sage);
+    --vs-arrow-hover-fg: var(--vs-paper);
+    --vs-arrow-hover-border: var(--vs-sage);
+
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    flex-shrink: 0;
+    overflow: hidden;
+    background: var(--vs-arrow-bg);
+    color: var(--vs-arrow-fg);
+    border: 1px solid var(--vs-arrow-border);
+    font-family: var(--vs-font-display);
+    line-height: 1;
+    /* No CSS color transition: hover colors are owned by GSAP wireArrowSwap
+       (animations.js). Reduced-motion users skip wireArrowSwap entirely and
+       there is no :hover rule for these props, so a CSS transition would
+       only fight the GSAP tween and never fire on its own. */
+  }
+
+  .vs-arrow .a-glyph {
+    display: inline-block;
+    will-change: transform;
+  }
+
+  .vs-arrow .a-glyph.ghost {
+    position: absolute;
+    inset: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* ── Sizes ──────────────────────────────────────────────────────────── */
+  .vs-arrow-sm { width: 26px; height: 26px; font-size: 13px; }
+  .vs-arrow-md { width: 32px; height: 32px; font-size: 14px; }
+  .vs-arrow-lg { width: 36px; height: 36px; font-size: 15px; }
+  .vs-arrow-xl { width: 40px; height: 40px; font-size: 16px; }
+
+  /* ── Variants ───────────────────────────────────────────────────────── */
+  /* ghost-line: default (declared on .vs-arrow above) */
+
+  .vs-arrow-ghost-sage {
+    --vs-arrow-bg: transparent;
+    --vs-arrow-fg: var(--vs-sage);
+    --vs-arrow-border: var(--vs-sage);
+    --vs-arrow-hover-bg: var(--vs-sage);
+    --vs-arrow-hover-fg: var(--vs-paper);
+    --vs-arrow-hover-border: var(--vs-sage);
+  }
+
+  .vs-arrow-ghost-light {
+    --vs-arrow-bg: rgba(255, 255, 255, 0.06);
+    --vs-arrow-fg: #fff;
+    --vs-arrow-border: rgba(255, 255, 255, 0.45);
+    --vs-arrow-hover-bg: #fff;
+    --vs-arrow-hover-fg: var(--vs-ink);
+    --vs-arrow-hover-border: #fff;
+  }
+
+  .vs-arrow-ghost-dark {
+    --vs-arrow-bg: transparent;
+    --vs-arrow-fg: var(--vs-ink);
+    --vs-arrow-border: var(--vs-ink);
+    --vs-arrow-hover-bg: var(--vs-ink);
+    --vs-arrow-hover-fg: #fff;
+    --vs-arrow-hover-border: var(--vs-ink);
+  }
+
+  .vs-arrow-ghost-emergency {
+    --vs-arrow-bg: transparent;
+    --vs-arrow-fg: #fff;
+    --vs-arrow-border: rgba(255, 255, 255, 0.35);
+    --vs-arrow-hover-bg: var(--vs-paper);
+    --vs-arrow-hover-fg: var(--vs-sage-deep);
+    --vs-arrow-hover-border: var(--vs-paper);
+  }
+</style>

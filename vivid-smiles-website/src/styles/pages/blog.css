@@ -1,0 +1,286 @@
+/*
+ * Blog hub — page-scoped styles under .blog-hub.
+ *
+ * Same skeleton as the before-and-afters catalog:
+ *   - breadcrumb · hero · sticky filter bar · card grid · empty state · CTA
+ * Card visual lives in BlogCard.astro (scoped to .bc). Only the hub
+ * chrome — hero, filter rail, grid wrapper, empty state — lives here.
+ */
+
+.blog-hub {
+  --nav-h: 77px;
+
+  --sage: var(--vs-sage);
+  --sage-deep: var(--vs-sage-deep);
+  --sage-soft: var(--vs-sage-soft);
+  --cream: var(--vs-cream);
+  --paper: var(--vs-paper);
+  --ink: var(--vs-ink);
+  --ink-soft: var(--vs-ink-soft);
+  --muted: var(--vs-muted);
+  --line: var(--vs-line);
+}
+
+.blog-hub .wrap {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+@media (max-width: 600px) {
+  .blog-hub .wrap { padding: 0 22px; }
+}
+
+.blog-hub .eyebrow {
+  font-family: var(--vs-font-body);
+  font-size: 12px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--sage);
+  font-weight: 500;
+  display: inline-block;
+}
+
+.blog-hub h1,
+.blog-hub h2,
+.blog-hub h3 {
+  font-family: var(--vs-font-display);
+  color: var(--sage);
+  margin: 0;
+  letter-spacing: -0.018em;
+}
+.blog-hub h1 {
+  font-size: clamp(44px, 6vw, 84px);
+  font-weight: 300;
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+}
+.blog-hub h1 em {
+  font-style: italic;
+  color: var(--sage-soft);
+  font-weight: 300;
+}
+.blog-hub p { margin: 0; color: var(--ink-soft); }
+
+/* ---------- HERO ---------- */
+.blog-hub .hero {
+  background: var(--cream);
+  padding: 70px 0 60px;
+}
+.blog-hub .hero .eyebrow { margin-bottom: 18px; }
+.blog-hub .hero h1 {
+  margin: 0 0 22px;
+  max-width: 18ch;
+}
+.blog-hub .hero-sub {
+  font-family: var(--vs-font-body);
+  font-size: clamp(16px, 1.4vw, 18px);
+  line-height: 1.6;
+  color: var(--ink-soft);
+  max-width: 66ch;
+}
+
+/* ---------- FILTER BAR (sticky) ---------- */
+.blog-hub .filterbar {
+  position: sticky;
+  top: var(--nav-h);
+  z-index: 40;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: saturate(140%) blur(10px);
+  -webkit-backdrop-filter: saturate(140%) blur(10px);
+  border-bottom: 1px solid var(--line);
+  padding: 12px 0;
+}
+.blog-hub .filterbar-inner {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 40px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.blog-hub .filterbar-label {
+  font-size: 10.5px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--sage);
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+.blog-hub .filterbar-label::before {
+  content: "";
+  width: 18px;
+  height: 1px;
+  background: var(--sage);
+}
+.blog-hub .filterbar-scroll {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+.blog-hub .filterbar-scroll::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 40px;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.95));
+  pointer-events: none;
+}
+.blog-hub .filter-list {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 4px 30px 4px 0;
+}
+.blog-hub .filter-list::-webkit-scrollbar { display: none; }
+.blog-hub .chip {
+  flex-shrink: 0;
+  font-family: var(--vs-font-body);
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: var(--paper);
+  letter-spacing: 0.02em;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease,
+    transform 0.2s ease;
+}
+.blog-hub .chip:hover {
+  color: var(--sage);
+  border-color: var(--sage);
+  transform: translateY(-1px);
+}
+.blog-hub .chip .count {
+  font-size: 11px;
+  color: var(--muted);
+  background: var(--cream);
+  border-radius: 999px;
+  padding: 1px 8px;
+  letter-spacing: 0;
+}
+.blog-hub .chip.active {
+  background: var(--sage);
+  color: var(--paper);
+  border-color: var(--sage);
+}
+.blog-hub .chip.active .count {
+  background: rgba(255, 255, 255, 0.18);
+  color: var(--paper);
+}
+
+@media (max-width: 600px) {
+  .blog-hub .filterbar { padding: 10px 0; }
+  .blog-hub .filterbar-inner { padding: 0 22px; gap: 12px; }
+  .blog-hub .filterbar-label { display: none; }
+}
+
+/* ---------- GRID ---------- */
+.blog-hub .section {
+  padding: 70px 0 100px;
+  background: var(--paper);
+}
+.blog-hub .grid-meta {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 32px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+  gap: 14px;
+}
+.blog-hub .grid-meta .count {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.blog-hub .grid-meta .count b {
+  font-family: var(--vs-font-display);
+  font-weight: 300;
+  font-size: 38px;
+  color: var(--sage);
+  line-height: 1;
+}
+.blog-hub .grid-meta .count small {
+  font-size: 10.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.blog-hub .grid-meta .legend .dot {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.blog-hub .grid-meta .legend .dot::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--sage);
+}
+
+.blog-hub .card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 28px;
+}
+@media (max-width: 991px) {
+  .blog-hub .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 600px) {
+  .blog-hub .card-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Filter toggle */
+.blog-hub .card-grid .bc.is-hidden {
+  display: none;
+}
+
+/* Empty state — only shown when filter matches zero posts */
+.blog-hub .grid-empty {
+  display: none;
+  padding: 60px 0;
+  text-align: center;
+  color: var(--ink-soft);
+}
+.blog-hub .grid-empty.show {
+  display: block;
+}
+.blog-hub .grid-empty h3 {
+  font-family: var(--vs-font-display);
+  font-weight: 400;
+  font-size: 22px;
+  color: var(--sage);
+  margin: 0 0 8px;
+}
+.blog-hub .grid-empty p {
+  max-width: 36ch;
+  margin: 0 auto;
+  font-size: 14.5px;
+  color: var(--muted);
+}
+
+/* H2 base color → ink for sitewide split-color pattern.
+   Equal specificity (0,1,1) with the h1/h2/h3/h4 group rule above; comes later
+   in the cascade, so this wins for h2 only. h1/h3/h4 keep sage. Dark-band
+   `.section.alt h2 { color: #fff }` (0,2,1) still trumps. */
+.blog-hub h2 { color: var(--vs-ink); }

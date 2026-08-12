@@ -1,0 +1,864 @@
+---
+/**
+ * Teeth Whitening (KOR) — Vivid Smiles Dentistry, Parker CO.
+ *
+ * sibling to porcelain-veneers + clear-aligners. Mirrors the same
+ * 14-section pattern (breadcrumb → keys → TOC → why → what → process →
+ * compare → natural → lasting → local → gallery → faq → virtual consult →
+ * final CTA + JSON-LD), wrapper class `.twhitening`, page-scoped styles at
+ * src/styles/pages/teeth-whitening.css.
+ *
+ * No prototype exists for this page (`the design prototypes` checked).
+ * Per the precedent ("no prototype = port closest service page"),
+ * the structure is cloned from clear-aligners.astro and copy is dropped in
+ * verbatim from the user-supplied SEO markdown.
+ *
+ * Adaptations from the aligners template (each documented inline at the
+ * section that introduces it):
+ *   1. PROCESS — 3 main level-cards (KöR-Night / KöR Power / KöR Ultra &
+ *      Ultra-T) instead of 4 process-step cards. Above them, a 2-card
+ *      `.process-pre` mini-grid hosts the "What to Expect" + "In-Office vs
+ *      At-Home" copy verbatim. Each card describes the clinical protocol
+ *      for that KöR tier.
+ *   2. COMPARE — adds a `.safety-callout` block below the 3 OTC-vs-KöR
+ *      cards to host the "Is Professional Teeth Whitening Safe" paragraphs.
+ *   3. LASTING — hosts the stat-card + maintenance bullets, then a
+ *      4-tier `<PricingTiers>` block (Opalescence / KöR-Night / KöR Power /
+ *      KöR Ultra & Ultra-T) sourced from Dr. Richardson's printed price
+ *      sheet. Pricing lives in the same Lasting band as lifespan because
+ *      the SEO block in the source copy keeps them together.
+ *   4. NATURAL — adds a `.veneers-callout` inset below the candidacy prose
+ *      to host the "When to Consider Veneers Instead" cross-link.
+ *
+ * Imagery: hero is a real patient portrait from the 2026-07 practice shoot.
+ * "What is KOR" and natural results still use generated portraits —
+ * the shoot's only matching macros are veneer results, which would misrepresent
+ * what whitening achieves. Gallery pulls from the central smiles/ folder.
+ * Swap in real KOR photos when available.
+ *
+ * Buttons + scroll reveals wired by src/scripts/animations.js
+ * (data-vs-arrow / data-vs-reveal*).
+ *
+ * Global <Nav /> + <Footer /> are mounted by BaseLayout.
+ */
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Button from '../../components/Button.astro';
+import FinalBand from '../../components/FinalBand.astro';
+import VirtualConsult from '../../components/VirtualConsult.astro';
+import LocalTrust from '../../components/LocalTrust.astro';
+import PricingTiers from '../../components/PricingTiers.astro';
+import { phoneHref, phoneLabel, bookNowHref } from '../../data/contact';
+import '../../styles/pages/teeth-whitening.css';
+
+import heroImg from '../../assets/images/people/real/man-bearded-natural-smile.webp';
+// "What is whitening" — a real chairside shade guide held against teeth,
+// which is literally what the section copy ("calibrated to shade") describes.
+// Deliberately NOT a veneer macro from the 2026-07 shoot: a veneer result in
+// this slot would imply whitening produced it.
+import whatImg from '../../assets/images/procedures/natural-smile-macro-daylight.webp';
+// "Natural results" — real patient portrait, natural light indoors.
+// Distinct from the hero subject so no one person appears twice here.
+import naturalImg from '../../assets/images/people/real/woman-blonde-warm-interior.webp';
+
+// Gallery pulls dynamically from the central smiles/ folder.
+import { getSmiles } from '../../lib/smiles';
+const galleryTiles = getSmiles();
+const galleryTrack = [...galleryTiles, ...galleryTiles];
+
+const tocLinks = [
+  { href: '#why', label: 'Why Vivid Smiles' },
+  { href: '#what', label: 'What Is KöR' },
+  { href: '#process', label: 'Treatment Levels' },
+  { href: '#compare', label: 'vs. Over-the-Counter' },
+  { href: '#natural', label: 'Candidates' },
+  { href: '#lasting', label: 'Results & Pricing' },
+  { href: '#local', label: 'Parker, CO' },
+  { href: '#faq', label: 'FAQ' },
+];
+
+// 3 KöR clinical Treatment Levels rendered as process cards (Night / Power /
+// Ultra & Ultra-T). The pricing block below adds Opalescence as a fourth
+// entry-tier option that sits outside the KöR clinical system.
+const treatmentLevels = [
+  {
+    tag: 'Level One',
+    num: '01',
+    title: 'KöR-Night',
+    body: 'A take-home system using custom trays and refrigerated 16% carbamide peroxide gel for mild to moderate staining; patients wear trays nightly over two weeks with periodic at-home maintenance.',
+  },
+  {
+    tag: 'Level Two',
+    num: '02',
+    title: 'KöR Power',
+    body: 'An in-office whitening treatment paired with custom take-home trays — three 20-minute in-office sessions plus take-home maintenance, suited for moderate staining or patients who want faster initial improvement than a home-only system provides.',
+  },
+  {
+    tag: 'Level Three',
+    num: '03',
+    title: 'KöR Ultra & Ultra-T',
+    body: 'The most intensive level — designed to treat severe staining including tetracycline discoloration that other whitening systems cannot address. Ultra runs 3–4 weeks; Ultra-T extends to 6–8 weeks for the most resistant intrinsic staining.',
+  },
+];
+
+// Maintenance bullets (J) — verbatim from the user's copy, rendered inside
+// the Lasting card body shell.
+const maintenanceBullets = [
+  {
+    lead: 'Limit staining beverages',
+    body: 'Coffee, red wine, and tea cause most whitening regression. Rinsing with water after these drinks meaningfully extends results.',
+  },
+  {
+    lead: 'Use touch-up trays',
+    body: "KOR custom trays can be recharged with fresh gel as needed; Dr. Richardson's team provides a schedule based on your diet and lifestyle.",
+  },
+  {
+    lead: 'Stay current with professional cleanings',
+    body: 'Routine cleanings remove the surface buildup that accelerates discoloration and protect your whitening investment long term.',
+  },
+];
+
+// 4 FAQs — verbatim from the user's copy. First Q is `open: true` to match
+// the veneers/aligners default.
+const faqs = [
+  {
+    q: 'What is the average price to have your teeth whitened?',
+    a: 'Vivid Smiles publishes four whitening tiers: Opalescence take-home trays ($99), KöR-Night custom take-home trays ($350), KöR Power in-office whitening with trays ($665), and KöR Ultra / Ultra-T for the most resistant staining ($1,541). Dr. Richardson helps you match the right tier to your staining type at a no-obligation consultation.',
+    open: true,
+  },
+  {
+    q: 'Is it worth paying for teeth whitening?',
+    a: 'Professional whitening produces results that last years rather than weeks, making it far more cost-effective over time than repeatedly buying over-the-counter products. For patients whose smile appearance affects their daily confidence, supervised KöR whitening is consistently a worthwhile investment.',
+  },
+  {
+    q: 'Why do teeth turn yellow?',
+    a: 'Yellowing comes from two sources: extrinsic staining from food, drinks, and tobacco deposited on enamel, and intrinsic discoloration from aging or certain medications. KöR addresses both types, including the intrinsic staining most other whitening systems cannot reach.',
+  },
+  {
+    q: 'What is the fastest way to whiten teeth?',
+    a: 'In-office KöR Power whitening delivers the fastest results — three 20-minute chair sessions plus take-home maintenance trays. Patients who need significant change quickly can also step up to KöR Ultra or Ultra-T for the most resistant staining, including tetracycline discoloration.',
+  },
+];
+---
+
+<BaseLayout
+  title="Teeth Whitening in Parker, CO | Vivid Smiles Dentistry"
+  description="KöR and Opalescence professional teeth whitening in Parker, CO with Dr. Bryce Richardson. Four pricing tiers from $99, including KöR Ultra-T for tetracycline staining other systems can't reach."
+>
+  <div class="twhitening">
+    {/* ---------- BREADCRUMB ---------- */}
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <div class="crumbs-inner">
+        <a href="/">Home</a>
+        <span class="sep">/</span>
+        <a href="/services/">Services</a>
+        <span class="sep">/</span>
+        <a href="/cosmetic-dentistry/">Cosmetic Dentistry</a>
+        <span class="sep">/</span>
+        <span class="here">Teeth Whitening</span>
+      </div>
+    </nav>
+
+    <main id="main">
+      {/* ---------- HERO ---------- */}
+      <header class="hero" data-vs-reveal-batch>
+        <div class="wrap hero-inner">
+          <div class="hero-copy">
+            <span class="eyebrow">Cosmetic Dentistry · Parker, CO</span>
+            <h1 data-vs-reveal-lines>Professional Teeth Whitening <em>in Parker, Colorado</em></h1>
+            <p class="hero-sub">
+              KöR professional whitening delivers reliable shade improvement for most patients,
+              including those with difficult staining types that over-the-counter products cannot
+              address. Unlike generic whitening systems, KöR uses refrigerated gels and continuous
+              tooth contact to produce results that hold for years.
+            </p>
+            <div class="hero-actions">
+              <Button variant="sage" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button>
+              <Button variant="ghost" href="#consult" hoverLabel="Get a Video"
+                >Free Virtual Consult</Button
+              >
+              <div class="ratings">
+                <span class="stars" aria-hidden="true">★★★★★</span>
+                <span>5.0 · 300+ reviews</span>
+              </div>
+            </div>
+          </div>
+          <div class="hero-img" data-vs-parallax data-parallax="-30">
+            <Image
+              src={heroImg}
+              alt="Smiling man photographed at the Vivid Smiles Dentistry neon smile wall in Parker, CO"
+              widths={[600, 900, 1400]}
+              sizes="(max-width: 991px) 100vw, 50vw"
+            />
+          </div>
+        </div>
+      </header>
+
+      {
+        /* ---------- KEYS — at-a-glance.
+         Stat chips derived from the source copy (the facts are all in the
+         hero/intro and treatment-level paragraphs). The veneers + aligners
+         keys bands use the same derived-stat pattern. */
+      }
+      <section class="keys" id="keys" aria-label="Teeth whitening at a glance" data-vs-reveal-batch>
+        <div class="keys-grid">
+          <div class="keys-label">At a glance</div>
+          <div class="keys-item">
+            <div class="k">Refrigerated</div><div class="v">KöR Gel Technology</div>
+          </div>
+          <div class="keys-item">
+            <div class="k">Four Tiers</div><div class="v">Opalescence · Night · Power · Ultra</div>
+          </div>
+          <div class="keys-item">
+            <div class="k">3 × 20 min</div><div class="v">In-Office Sessions</div>
+          </div>
+          <div class="keys-item">
+            <div class="k">Years</div><div class="v">Lasting Results</div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- ON-THIS-PAGE TOC ---------- */}
+      <nav class="toc" id="toc" aria-label="On this page">
+        <div class="toc-inner">
+          <span class="toc-label">On this page</span>
+          <div class="toc-scroll">
+            <div class="toc-list">
+              {tocLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* ---------- WHY (paper) ---------- */}
+      <section class="section" id="why" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Why Vivid Smiles</span>
+            <h2>Why Choose Vivid Smiles <em>for Teeth Whitening in Parker</em></h2>
+            <p>
+              Two clinical advantages set whitening at Vivid Smiles apart from neighboring
+              practices: the system we use, and what every patient sees on screen before treatment
+              ever begins.
+            </p>
+          </div>
+
+          <div class="why-grid">
+            <article class="why-card">
+              <div class="num">01</div>
+              <h3>KöR — Not Generic Whitening</h3>
+              <p class="lead">
+                Refrigerated gels and continuous tooth contact, not the off-the-shelf protocols
+                Parker patients have heard before.
+              </p>
+              <p>
+                Vivid Smiles uses KöR, a clinically differentiated whitening system, rather than the
+                generic Zoom or DaVinci protocols many Parker providers offer.
+              </p>
+            </article>
+
+            <article class="why-card">
+              <div class="num">02</div>
+              <h3>Trained, Reviewed, and Previewable</h3>
+              <p class="lead">
+                Six-hundred-plus training hours, 300+ five-star reviews, and a digital preview
+                before any treatment begins.
+              </p>
+              <p>
+                Dr. Bryce Richardson completed 600+ hours of specialized esthetic training and the
+                practice holds a 5-star rating backed by 300+ verified patient reviews. Digital
+                smile design lets patients preview expected results before any treatment begins, a
+                step most whitening providers skip entirely.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      {
+        /* ---------- WHAT (cream) — Definition + How It Works.
+         Hosts both the "What Is KOR Teeth Whitening" and "How KOR Whitening
+         Works" paragraphs verbatim. The image is a tooth-shade swatch shot
+         from the home/ folder — on-topic for any whitening shade discussion
+         and a placeholder until a KOR-specific photo is sourced. */
+      }
+      <section class="section alt" id="what" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="what-grid">
+            <div class="what-img" data-vs-parallax data-parallax="-25">
+              <Image
+                src={whatImg}
+                alt="Close-up of a natural smile in daylight"
+                widths={[500, 800, 1100]}
+                sizes="(max-width: 991px) 100vw, 50vw"
+              />
+            </div>
+            <div class="what-text">
+              <span class="eyebrow">Definition</span>
+              <h2>What Is <em>KöR Teeth Whitening?</em></h2>
+              <div class="prose">
+                <p>
+                  KöR whitening is a clinically advanced professional system that delivers lasting
+                  shade improvement through refrigerated gel technology and extended tooth contact.
+                  It outperforms standard whitening for routine staining and for difficult cases,
+                  including tetracycline discoloration that most whitening protocols cannot
+                  meaningfully address.
+                </p>
+                <p>
+                  KöR whitening uses a proprietary gel kept refrigerated until treatment, which
+                  preserves potency and maximizes effectiveness. Custom trays seal the gel against
+                  every tooth surface for continuous contact, and the dual-action formula reaches
+                  both surface staining and deeper intrinsic discoloration that standard gels cannot
+                  penetrate.
+                </p>
+              </div>
+              <div class="cta-row left">
+                <div class="cta-buttons">
+                  <Button variant="sage" href="#consult" hoverLabel="Get a Video"
+                    >Free Virtual Consult</Button
+                  >
+                  <Button variant="ghost" href="#process" hoverLabel="View Levels"
+                    >See KöR Levels</Button
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {
+        /* ---------- PROCESS (sage) — KöR Treatment Levels + appointment flow.
+         3 main cards (Night / Power / Ultra & Ultra-T) instead of the
+         veneers/aligners step-by-step grid. The .process-pre 2-card mini-grid
+         above the main grid hosts the "What to Expect" + "In-Office vs
+         At-Home" copy. (The Investment block below shows a fourth tier —
+         Opalescence — as an entry option outside the KöR clinical system.) */
+      }
+      <section class="section dark" id="process" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow light">Your KöR Treatment</span>
+            <h2>KöR Treatment Levels <em>at Vivid Smiles</em></h2>
+            <p>
+              Vivid Smiles offers three KöR clinical treatment levels matched to different staining
+              types and patient goals.
+            </p>
+          </div>
+
+          <div class="process-pre">
+            <article class="process-pre-card">
+              <h3>What to Expect During Your Teeth Whitening Appointment</h3>
+              <p>
+                A Vivid Smiles whitening appointment begins with a consultation to assess your
+                staining type, confirm shade goals, and select the right KöR level. Dr. Richardson's
+                team follows specific protocols to manage sensitivity so the experience stays
+                comfortable from first application to finish.
+              </p>
+            </article>
+            <article class="process-pre-card">
+              <h3>In-Office vs At-Home KöR Whitening</h3>
+              <p>
+                In-office KöR Power treatment combines three 20-minute chair sessions with custom
+                take-home trays for ongoing maintenance. At-home KöR-Night uses custom trays worn
+                nightly for two weeks, with results building gradually. Many patients combine both:
+                in-office for the initial lift, then take-home trays for maintenance.
+              </p>
+            </article>
+          </div>
+
+          <div class="process-grid">
+            {
+              treatmentLevels.map((s) => (
+                <div class="process-card">
+                  <span class="step-tag">{s.tag}</span>
+                  <div class="num">{s.num}</div>
+                  <h3>{s.title}</h3>
+                  <p>{s.body}</p>
+                </div>
+              ))
+            }
+          </div>
+
+          <div class="inline-cta dark">
+            <div class="ic-text">
+              Not sure which KöR level fits? <em
+                >Send a few photos and Dr. Richardson will recommend a tier.</em
+              >
+            </div>
+            <div class="ic-buttons">
+              <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button
+              >
+              <Button variant="ghost-light" href={phoneHref} hoverLabel="Tap to Dial"
+                >Call {phoneLabel}</Button
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {
+        /* ---------- COMPARE (paper) — Pro vs OTC.
+         3 cards (Strips / Prefilled trays / KOR custom — featured) split
+         the verbatim M paragraph along its 3 OTC-vs-KOR sentences. Below
+         the cards, `.safety-callout` hosts the verbatim L copy ("Is
+         Professional Teeth Whitening Safe") since both blocks make the
+         same pro-vs-DIY argument. */
+      }
+      <section class="section" id="compare" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Pro vs Over-the-Counter</span>
+            <h2>Why Professional Whitening <em>Beats Over-the-Counter Products</em></h2>
+            <p>
+              Professional KOR whitening outperforms over-the-counter products on every key measure:
+              gel concentration, custom fit, and lasting results.
+            </p>
+          </div>
+
+          <div class="compare">
+            <article class="compare-card">
+              <span class="tag">Drugstore</span>
+              <h3>Store-bought whitening strips</h3>
+              <p>
+                Store-bought strips and prefilled trays use peroxide concentrations far below
+                professional formulas, limiting achievable shade improvement.
+              </p>
+            </article>
+            <article class="compare-card">
+              <span class="tag">Prefilled Trays</span>
+              <h3>Retail prefilled trays</h3>
+              <p>
+                Prefilled retail trays do not seal against the tooth, letting saliva dilute the gel
+                before it takes full effect.
+              </p>
+            </article>
+            <article class="compare-card featured">
+              <span class="ribbon">Professional</span>
+              <span class="tag">Custom KöR</span>
+              <h3>Custom KöR trays</h3>
+              <p>
+                Custom KöR trays are fabricated from digital impressions, so the gel contacts every
+                surface evenly throughout treatment. The result is a whiter, more even outcome that
+                holds for years rather than weeks.
+              </p>
+            </article>
+          </div>
+
+          <aside class="safety-callout" aria-labelledby="safety-callout-h3">
+            <h3 id="safety-callout-h3">Is Professional Teeth Whitening Safe?</h3>
+            <p>
+              KöR professional whitening is safe for most healthy adults when supervised by a
+              trained dental provider.
+            </p>
+            <p>
+              KöR formulations are developed to protect enamel while maximizing whitening efficacy,
+              unlike the unregulated products sold online or in salons. Dr. Richardson assesses
+              enamel condition and gum health before treatment begins, and KöR's gel chemistry is
+              specifically engineered to reduce post-treatment sensitivity compared to older
+              whitening formulas. Professional oversight is what separates safe, lasting results
+              from unpredictable outcomes.
+            </p>
+          </aside>
+
+          <div class="cta-row">
+            <div class="cta-buttons">
+              <Button variant="sage" href="#consult" hoverLabel="Get a Video"
+                >Free Virtual Consult</Button
+              >
+              <Button variant="ghost" href="#faq" hoverLabel="See Answers">Read FAQ</Button>
+            </div>
+            <span class="cta-note">No commitment · Personal video reply</span>
+          </div>
+        </div>
+      </section>
+
+      {
+        /* ---------- NATURAL (cream) — Candidacy + Veneers cross-link.
+         F (good-candidate) is the main natural-text prose. N ("When to
+         Consider Veneers Instead") sits in `.veneers-callout` below the
+         prose as an inset cross-link — F already gestures toward veneers,
+         so the callout reads as a natural continuation. */
+      }
+      <section class="section alt" id="natural" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="natural-grid">
+            <div class="natural-text">
+              <span class="eyebrow">Candidacy</span>
+              <h2>Who Is a Good Candidate <em>for Professional Teeth Whitening?</em></h2>
+              <div class="natural-quote">
+                Yellow teeth can become white again with the right protocol.
+              </div>
+              <div class="prose">
+                <p>
+                  Professional whitening works best for patients with extrinsic staining from
+                  coffee, wine, tea, and tobacco, plus the gradual yellowing that comes with age.
+                </p>
+                <p>
+                  Most adults with healthy teeth and gums qualify, and KOR's treatment levels handle
+                  difficult cases other systems cannot. Yellow teeth can become white again with the
+                  right protocol; the degree of improvement depends on the staining source.
+                  Whitening cannot change the color of existing crowns, veneers, or fillings, and it
+                  does not correct tooth shape or alignment. Patients whose goals include those
+                  changes often achieve better results with <a
+                    class="vs-link"
+                    href="/cosmetic-dentistry/porcelain-veneers/">porcelain veneers</a
+                  >.
+                </p>
+              </div>
+
+              <aside class="veneers-callout">
+                <h3>When to Consider Veneers Instead of Whitening</h3>
+                <p>
+                  Veneers are the better option when discoloration is paired with shape concerns,
+                  visible chips, worn edges, or alignment issues that whitening cannot fix.
+                </p>
+                <p>
+                  Whitening changes color only; it does not alter tooth size, shape, or position.
+                  The dramatically uniform smiles many patients ask about, including those often
+                  achieved by people preparing for a camera or a stage, are typically the result of
+                  veneers rather than whitening. Vivid Smiles specializes in <a
+                    class="vs-link"
+                    href="/cosmetic-dentistry/porcelain-veneers/"
+                    >no-prep and minimal-prep porcelain veneers</a
+                  > that preserve natural tooth structure. At a consultation, Dr. Richardson uses digital
+                  smile design to show what either option would look like before any commitment is made.
+                </p>
+              </aside>
+            </div>
+            <div class="natural-img" data-vs-parallax data-parallax="-25">
+              <Image
+                src={naturalImg}
+                alt="Smiling woman photographed indoors in Parker, CO"
+                widths={[500, 800, 1100]}
+                sizes="(max-width: 991px) 100vw, 50vw"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {
+        /* ---------- LASTING (paper) — Results + Maintenance + Cost.
+         Stat-card hosts I prose + 3 maintenance bullets J in `.lasting-body`
+         (aligners precedent for bulleted content inside the stat-card shell).
+         Below the stat-card, `.lasting-cost` is a sub-section that holds
+         the 3 cost bullets K verbatim — cost lives logically adjacent to
+         lifespan in the source copy and stays in the same Lasting band. */
+      }
+      <section class="section" id="lasting" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Results &amp; Maintenance</span>
+            <h2>Teeth Whitening Results and <em>How Long They Last</em></h2>
+            <p>
+              KöR whitening improves shade by several levels on the Vita scale, with results that
+              hold for years when maintained. For tetracycline staining, KöR Ultra and Ultra-T
+              achieve visible brightening that standard whitening systems cannot replicate.
+            </p>
+          </div>
+
+          <div class="lasting-card">
+            <div class="lasting-stat">
+              <div class="big">Years</div>
+              <div class="label">Lasting results when maintained</div>
+            </div>
+            <div class="lasting-body">
+              <h3>Maintaining Your Whitening Results</h3>
+              <p>
+                Maintaining KöR results takes consistent daily habits and the occasional touch-up.
+              </p>
+              <ul>
+                {
+                  maintenanceBullets.map((b) => (
+                    <li>
+                      <strong>{b.lead}:</strong> {b.body}
+                    </li>
+                  ))
+                }
+              </ul>
+            </div>
+          </div>
+
+          <div class="lasting-cost-wrap">
+            <div class="section-head sub">
+              <span class="eyebrow">Investment</span>
+              <h3>Teeth Whitening Pricing in Parker, Colorado</h3>
+              <p>
+                Vivid Smiles offers four whitening tiers — from an accessible Opalescence take-home
+                option to the clinically intensive KöR Ultra-T protocol — so every patient finds a
+                match for their staining type and budget.
+              </p>
+            </div>
+
+            <PricingTiers
+              tiers={[
+                {
+                  name: 'Opalescence Take-Home Trays',
+                  price: '$99',
+                  tagline: 'Most accessible whitening tier — professional-grade at an entry price.',
+                  bullets: [
+                    '10 at-home treatments',
+                    '15% carbamide peroxide gel',
+                    'Custom-fit upper and lower trays',
+                    'Great entry to professional whitening',
+                  ],
+                },
+                {
+                  name: 'KöR-Night Custom Take-Home Trays',
+                  price: '$350',
+                  tagline: 'Two-week at-home whitening with custom-tray accuracy.',
+                  bullets: [
+                    '2 office visits (impressions + tray delivery)',
+                    '2 weeks of nightly at-home whitening',
+                    'KöR-Night 16% carbamide peroxide',
+                    'Periodic at-home maintenance kit',
+                  ],
+                },
+                {
+                  name: 'KöR Power In-Office Whitening',
+                  priceQualifier: 'Trays Included',
+                  price: '$665',
+                  tagline: 'Professional-grade in-office whitening with take-home maintenance.',
+                  bullets: [
+                    '3 office visits',
+                    'One in-office treatment · 3 × 20-min sessions',
+                    'Custom KöR take-home maintenance trays',
+                    'Professional-grade visible shade lift',
+                  ],
+                  highlight: true,
+                  ribbon: 'Most Popular',
+                },
+                {
+                  name: 'KöR Ultra & KöR Ultra-T',
+                  price: '$1,541',
+                  tagline: 'Maximum-strength formulation for the most resistant staining.',
+                  bullets: [
+                    '3–4 office visits',
+                    'In-office conditioning + take-home regimen',
+                    'Ultra: 3–4 weeks · Ultra-T: 6–8 weeks',
+                    'Reaches tetracycline and intrinsic staining',
+                  ],
+                },
+              ]}
+              financingNote="Whitening is a cosmetic procedure and most dental plans don't cover it. Patients without coverage can ask about Vivid Smiles' in-house dental membership plan, which offers savings on routine care."
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- LOCAL (cream) ---------- */}
+      <LocalTrust
+        heading="Whitening Designed"
+        headingItalic="in Parker, Colorado"
+        intro="Patients come for KOR whitening locally and from out of state — every appointment starts with the same shade-and-staining consultation, regardless of how far you travel for it."
+        body="Vivid Smiles Dentistry is located at 17167 Cedar Gulch Pkwy in Parker, welcoming new patients under the care of Dr. Bryce Richardson."
+      />
+
+      {
+        /* ---------- GALLERY (sage) — marquee, doubled track.
+         No KOR-specific photos exist for this practice yet, so the
+         tiles are reused from the broader finished-case set in
+         src/assets/images/smiles/. The mechanic, band, and
+         "smile gallery" framing match the veneers + aligners pages. */
+      }
+      <section class="section dark" id="gallery">
+        <div class="wrap">
+          <div class="section-head" data-vs-reveal>
+            <span class="eyebrow light">Smile Gallery</span>
+            <h2>Finished smiles <em>in Parker.</em></h2>
+            <p>
+              A selection of finished cosmetic and restorative cases from across the practice. These
+              are not whitening results.
+            </p>
+          </div>
+        </div>
+
+        <div class="gallery-marquee" data-vs-marquee aria-label="Vivid Smiles smile gallery">
+          <div class="gallery-track" data-vs-marquee-track>
+            {
+              galleryTrack.map((t, i) => {
+                const isClone = i >= galleryTiles.length;
+                return (
+                  <div
+                    class="smile-tile"
+                    aria-hidden={isClone || undefined}
+                    inert={isClone || undefined}
+                  >
+                    <Image src={t.src} alt={t.alt} widths={[420, 640, 840]} sizes="420px" />
+                  </div>
+                );
+              })
+            }
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- FAQ (paper) — native details/summary, zero JS ---------- */}
+      <section class="section" id="faq" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">FAQ</span>
+            <h2>Frequently Asked Questions About <em>Teeth Whitening in Parker</em></h2>
+          </div>
+
+          <div class="faq-list">
+            {
+              faqs.map((f) => (
+                <details class="faq" open={f.open}>
+                  <summary>
+                    <>
+                      <h3>{f.q}</h3>
+                      <span class="icon" aria-hidden="true">
+                        +
+                      </span>
+                    </>
+                  </summary>
+                  <div class="answer">{f.a}</div>
+                </details>
+              ))
+            }
+          </div>
+
+          <div class="cta-row">
+            <div class="cta-buttons">
+              <Button variant="sage" href="#consult" hoverLabel="Get a Video"
+                >Still Have Questions? Free Virtual Consult</Button
+              >
+              <Button variant="ghost" href={phoneHref} hoverLabel="Tap to Dial"
+                >Call {phoneLabel}</Button
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {
+        /* ---------- VIRTUAL CONSULT — primary closing conversion.
+         Body slot hosts the verbatim italicized first closing paragraph
+         from the source (the consultation pitch). */
+      }
+      <VirtualConsult id="consult" eyebrow="Free whitening consultation">
+        <Fragment slot="headline">Free whitening <em>consultation.</em></Fragment>
+        <Fragment slot="body">
+          Getting a noticeably whiter smile in Parker starts with a consultation built around your
+          specific staining type and shade goals. KOR's treatment levels cover nearly every case,
+          and digital smile design gives you a preview of results before treatment begins.
+        </Fragment>
+      </VirtualConsult>
+
+      {/* ---------- CLOSING BAND ---------- */}
+      <FinalBand>
+        <p>Schedule your consultation and take the first step toward lasting whitening results.</p>
+      </FinalBand>
+    </main>
+
+    <script>
+      import { initTocSpy } from '../../scripts/toc-spy';
+      initTocSpy('.twhitening');
+    </script>
+
+    {
+      /* JSON-LD structured data — three blocks: MedicalProcedure for the
+        treatment, FAQPage for the accordion, BreadcrumbList for the trail. */
+    }
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'MedicalProcedure',
+        name: 'Professional Teeth Whitening',
+        alternateName: [
+          'KöR Whitening',
+          'KOR Whitening',
+          'KöR-Night',
+          'KOR Night',
+          'KöR Power',
+          'KOR Power',
+          'KöR Ultra',
+          'KOR Ultra',
+          'KöR Ultra-T',
+          'KOR Ultra-T',
+          'Opalescence Take-Home',
+          'Take-Home Teeth Whitening',
+        ],
+        procedureType: 'https://schema.org/TherapeuticProcedure',
+        bodyLocation: 'Teeth',
+        preparation:
+          'Consultation to assess staining type and confirm shade goals; custom whitening trays fabricated from digital impressions.',
+        howPerformed:
+          'Refrigerated KöR gel applied via custom-fitted trays for continuous tooth contact. KöR Power in-office runs three 20-minute chair sessions; KöR-Night uses custom trays worn nightly over two weeks; KöR Ultra and Ultra-T extend the protocol for tetracycline and other intrinsic staining (Ultra: 3–4 weeks, Ultra-T: 6–8 weeks). Opalescence take-home trays are also offered as an accessible entry tier.',
+        followup:
+          'Custom touch-up tray refresh schedule, routine professional cleanings, and limited staining beverages to extend results.',
+        performer: {
+          '@type': 'Dentist',
+          name: 'Dr. Bryce Richardson',
+          worksFor: {
+            '@type': 'Dentist',
+            name: 'Vivid Smiles Dentistry',
+            address: {
+              '@type': 'PostalAddress',
+              streetAddress: '17167 Cedar Gulch Pkwy Ste 102',
+              addressLocality: 'Parker',
+              addressRegion: 'CO',
+              postalCode: '80134',
+              addressCountry: 'US',
+            },
+            telephone: '+1-303-841-5313',
+          },
+        },
+      })}
+    />
+
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faqs.map((f) => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
+      })}
+    />
+
+    {
+      /* Breadcrumb URLs source the host from astro.config.mjs `site` and use
+        real site routes (matching the visible breadcrumb above). Trailing
+        slashes are required because the site is configured
+        `trailingSlash: 'always'`. */
+    }
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: new URL('/', Astro.site).href },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'Services',
+            item: new URL('/services/', Astro.site).href,
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: 'Cosmetic Dentistry',
+            item: new URL('/cosmetic-dentistry/', Astro.site).href,
+          },
+          {
+            '@type': 'ListItem',
+            position: 4,
+            name: 'Teeth Whitening',
+            item: new URL('/cosmetic-dentistry/teeth-whitening/', Astro.site).href,
+          },
+        ],
+      })}
+    />
+  </div>
+</BaseLayout>

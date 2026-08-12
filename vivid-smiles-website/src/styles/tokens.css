@@ -1,0 +1,72 @@
+/*
+ * Vivid Smiles — design tokens.
+ * Closed set — never invent a 10th color.
+ */
+
+:root {
+  /* Color (closed set of 9) */
+  --vs-sage: #6b7a54;
+  --vs-sage-deep: #5a6847;
+  --vs-sage-soft: #8b9875;
+  --vs-cream: #fbf9f5;
+  --vs-paper: #ffffff;
+  --vs-ink: #2a2a28;
+  --vs-ink-soft: #4a4a47;
+  --vs-muted: #7d7d78;
+  --vs-line: #e7e4dd;
+
+  /* Footer-only deep ink (one tone deeper than --vs-ink — used only for the footer band) */
+  --vs-ink-deep: #1c2018;
+
+  /* Charcoal-green — alternate dark band color (alongside --vs-ink-deep for the footer). */
+  --vs-charcoal-green: #262d22;
+
+  /* Washed-out sage — replaces --vs-sage on full-bleed section backgrounds only. Deep --vs-sage stays for buttons/headings/eyebrows/accents. */
+  --vs-sage-pale: #dee3d2;
+
+  /* Motif tokens — narrow-purpose accents that recur across the system.
+     Use only for the role described; do not introduce new colors elsewhere. */
+  --vs-pulse-live: #b5d27c;            /* Open-now / live-status indicator — green */
+  --vs-pulse-live-rgb: 181, 210, 124;  /* same color in rgb tuple form for rgba(var(--…), α) */
+  --vs-pulse-amber: #e8d072;           /* Emergency live-status indicator — amber */
+  --vs-pulse-amber-rgb: 232, 208, 114;
+  --vs-cream-warm: #f5f2ea;            /* Warmer cream variant — story panels, emergency callouts */
+  --vs-line-soft: #efece5;             /* Softer hairline — interior dividers on warm backgrounds */
+  --vs-eyebrow-on-sage: #e8ead8;       /* Pale-sage eyebrow text on sage bands */
+  --vs-emergency-from: #3a4431;        /* Emergency StandaloneCard gradient — top-left */
+  --vs-emergency-to: #2a3022;          /* Emergency StandaloneCard gradient — bottom-right */
+
+  /* Shadow */
+  --vs-shadow: 0 30px 60px -20px rgba(42, 42, 40, 0.25);
+  --vs-shadow-lg: 0 40px 90px -40px rgba(42, 42, 40, 0.32), 0 12px 28px -14px rgba(42, 42, 40, 0.12);
+  --vs-mega-shadow: 0 40px 80px -40px rgba(40, 40, 30, 0.35), 0 12px 30px -12px rgba(40, 40, 30, 0.12);
+
+  /* Radii */
+  --vs-r-sm: 12px;
+  --vs-r-md: 18px;
+  --vs-r-lg: 28px;
+  --vs-r-xl: 40px;
+  --vs-radius-pill: 999px;
+
+  /* Type
+   * "Urbanist Variable" / "Public Sans Variable" are the family names registered
+   * by the self-hosted @fontsource-variable packages (single-file variable axis).
+   * "Urbanist" / "Public Sans" are kept as fallbacks for anyone who happens to
+   * have the original Google Fonts names installed system-wide. */
+  --vs-font-display: "Urbanist Variable", "Urbanist", system-ui, sans-serif;
+  --vs-font-body: "Public Sans Variable", "Public Sans", system-ui, sans-serif;
+  --vs-h1-size: clamp(48px, 7vw, 92px);
+  --vs-h2-size: clamp(34px, 4.6vw, 58px);
+  --vs-h3-size: clamp(20px, 2.2vw, 26px);
+  --vs-display-num-size: clamp(44px, 6vw, 72px);
+
+  /* Layout */
+  --vs-container-max: 1280px;
+  --vs-section-pad: clamp(80px, 10vw, 128px);
+
+  /* Motion */
+  --vs-ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --vs-dur-hover: 200ms;
+  --vs-dur-card: 240ms;
+  --vs-dur-image: 400ms;
+}

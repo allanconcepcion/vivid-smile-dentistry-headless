@@ -1,0 +1,707 @@
+---
+// The shoot contains no sinus-lift or CBCT imagery, so the hero is a patient
+// portrait rather than a procedure shot. The one clinical frame this page owns
+// (the Yomi placement) sits in #technology, where the copy actually describes it.
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Button from '../../components/Button.astro';
+import FinalBand from '../../components/FinalBand.astro';
+import VirtualConsult from '../../components/VirtualConsult.astro';
+import { phoneHref, phoneLabel, bookNowHref } from '../../data/contact';
+import { getSmiles } from '../../lib/smiles';
+import '../../styles/pages/sinus-lift.css';
+
+import heroImg from '../../assets/images/people/real/woman-mountain-portrait.webp';
+// "What is a sinus lift" — anatomical cross-section diagram (gpt_image_2).
+import whatImg from '../../assets/images/procedures/sinus-lift-cross-section-diagram.webp';
+// #technology — the Yomi placement, which is tech-list item 03.
+import yomiImg from '../../assets/images/procedures/dr-richardson-performing-yomi-guided-implant-surgery.webp';
+import drRichardsonImg from '../../assets/images/team/dr-bryce-richardson.webp';
+
+// Gallery pulls dynamically from src/assets/images/smiles/ via the
+// central loader. Doubled for seamless marquee loop.
+const galleryTiles = getSmiles();
+const galleryTrack = [...galleryTiles, ...galleryTiles];
+
+const tocLinks = [
+  { href: '#why', label: 'Why Vivid Smiles' },
+  { href: '#what', label: 'What It Is' },
+  { href: '#process', label: 'The Procedure' },
+  { href: '#alternatives', label: 'Alternatives' },
+  { href: '#technology', label: 'Technology' },
+  { href: '#investment', label: 'Cost & Insurance' },
+  { href: '#faq', label: 'FAQ' },
+];
+
+const causeCards = [
+  { tag: 'Most common', title: 'Upper back tooth loss' },
+  { tag: 'Cause', title: 'Periodontal disease' },
+  { tag: 'Cause', title: 'Long-term denture wear' },
+  { tag: 'Cause', title: 'Naturally thin sinus anatomy' },
+];
+
+const processSteps = [
+  {
+    tag: 'Step One',
+    num: '01',
+    title: 'Anesthesia',
+    body: 'Local anesthesia is standard; sedation is available for patients who prefer a relaxed experience.',
+  },
+  {
+    tag: 'Step Two',
+    num: '02',
+    title: 'Incision and access',
+    body: 'A small gum incision exposes the bone above the sinus, and the sinus membrane is gently lifted to create space beneath it.',
+  },
+  {
+    tag: 'Step Three',
+    num: '03',
+    title: 'Bone graft placement',
+    body: "Graft material (synthetic, bovine, or the patient's own bone) is packed into the space beneath the membrane.",
+  },
+  {
+    tag: 'Step Four',
+    num: '04',
+    title: 'Closure and healing',
+    body: 'Sutures close the incision; bone integration takes 4 to 6 months before implants are placed. Simultaneous implant placement is possible when adequate existing bone is present.',
+  },
+];
+
+const alternatives = [
+  {
+    tag: 'Alternative',
+    title: 'Short implants',
+    body: 'Can work in thinner bone, but long-term success rates are lower than standard implants in fully grafted bone.',
+  },
+  {
+    tag: 'Alternative',
+    title: 'Zygomatic implants',
+    body: 'Anchor in the cheekbone rather than the jawbone; reserved for severe bone loss requiring specialized surgical training.',
+  },
+  {
+    tag: 'Alternative',
+    title: 'Removable dentures',
+    body: 'No surgery required, but chewing stability and long-term function are significantly lower than implant-supported restorations.',
+  },
+];
+
+const techList = [
+  {
+    marker: '01',
+    title: 'CBCT imaging',
+    body: 'Gives Dr. Richardson a precise 3D map of bone height and sinus anatomy before any incision, measuring the exact graft volume needed and eliminating guesswork from the plan.',
+  },
+  {
+    marker: '02',
+    title: 'Digital planning',
+    body: 'Converts that to precise surgical coordinates.',
+  },
+  {
+    marker: '03',
+    title: 'Robotic implant placement',
+    body: 'Guides the final procedure to the pre-planned position.',
+  },
+];
+
+const costBullets = [
+  {
+    title: 'Graft material',
+    body: "Synthetic, bovine, or autogenous (patient's own) bone each carries different costs.",
+  },
+  {
+    title: 'Implant timing',
+    body: 'Simultaneous placement, when anatomy permits, reduces total treatment cost.',
+  },
+  {
+    title: 'Insurance coverage',
+    body: 'Dental insurance may cover a portion when medically necessary; some medical plans also contribute when sinus pathology is documented.',
+  },
+];
+
+const faqs = [
+  {
+    q: 'How much does a sinus lift cost?',
+    a: 'Costs vary based on graft material, sedation, and whether implants are placed at the same time. Vivid Smiles provides an itemized estimate after reviewing your CBCT scan.',
+    open: true,
+  },
+  {
+    q: 'What is the downside of a sinus lift?',
+    a: 'The main downsides are the 4-to-6-month healing period before implant placement and a small risk of sinus membrane perforation. Precise 3D imaging and experienced technique reduce that risk substantially.',
+  },
+  {
+    q: 'Is a sinus lift covered by insurance?',
+    a: 'Dental insurance may cover a portion when documented as medically necessary for implant success. Some medical plans also contribute when sinus pathology is present.',
+  },
+  {
+    q: 'How often do sinus lifts fail?',
+    a: 'Published success rates consistently exceed 95% when performed by trained surgeons using appropriate graft material. Patient compliance is the other key variable.',
+  },
+  {
+    q: 'How long does a sinus lift take to heal?',
+    a: 'Full bone integration takes 4 to 6 months. Patients with adequate existing bone may qualify for simultaneous implant placement, condensing the timeline.',
+  },
+];
+---
+
+<BaseLayout
+  title="Sinus Lift Procedure in Parker, CO | Vivid Smiles Dentistry"
+  description="Sinus lift in Parker, CO with Dr. Bryce Richardson — CBCT imaging, robotic implant placement, and 600-plus hours of advanced surgical training. Schedule a free consultation."
+>
+  <div class="sinuslift">
+    {/* ---------- BREADCRUMB ---------- */}
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <div class="crumbs-inner">
+        <a href="/">Home</a>
+        <span class="sep">/</span>
+        <a href="/services/">Services</a>
+        <span class="sep">/</span>
+        <a href="/implant-dentistry/">Implant Dentistry</a>
+        <span class="sep">/</span>
+        <span class="here">Sinus Lift</span>
+      </div>
+    </nav>
+
+    <main id="main">
+      {/* ---------- HERO ---------- */}
+      <header class="hero" data-vs-reveal-batch>
+        <div class="wrap hero-inner">
+          <div class="hero-copy">
+            <span class="eyebrow">Implant Dentistry · Parker, CO</span>
+            <h1 data-vs-reveal-lines>Sinus Lift Procedure <em>in Parker, Colorado</em></h1>
+            <p class="hero-sub">
+              A sinus lift (sinus augmentation) adds bone to the upper jaw, so <a
+                class="vs-link"
+                href="/implant-dentistry/single-tooth-dental-implants/">dental implants</a
+              > have enough height to anchor securely. When upper back teeth are lost, the jawbone recedes,
+              and the sinus expands downward, leaving insufficient bone for a stable implant. Here is
+              who needs a sinus lift, how the procedure works, and what recovery looks like at Vivid Smiles
+              in Parker, CO.
+            </p>
+            <div class="hero-actions">
+              <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button
+              >
+              <Button variant="ghost-light" href="#consult" hoverLabel="Get a Video"
+                >Free Virtual Consult</Button
+              >
+              <div class="ratings">
+                <span class="stars" aria-hidden="true">★★★★★</span>
+                <span>5.0 · 300+ reviews</span>
+              </div>
+            </div>
+          </div>
+          <div class="hero-img" data-vs-parallax data-parallax="-30">
+            <Image
+              src={heroImg}
+              alt="Smiling woman photographed outdoors in the Colorado foothills"
+              widths={[600, 900, 1400]}
+              sizes="(max-width: 991px) 100vw, 50vw"
+            />
+          </div>
+        </div>
+      </header>
+
+      {/* ---------- KEYS — at-a-glance ---------- */}
+      <section class="keys" id="keys" aria-label="Sinus lift at a glance" data-vs-reveal-batch>
+        <div class="keys-grid">
+          <div class="keys-label">At a glance</div>
+          <div class="keys-item">
+            <div class="k">4–6 mo</div><div class="v">Bone Integration</div>
+          </div>
+          <div class="keys-item"><div class="k">95%+</div><div class="v">Success Rate</div></div>
+          <div class="keys-item">
+            <div class="k">2–3 days</div><div class="v">Return to Work</div>
+          </div>
+          <div class="keys-item">
+            <div class="k">600+ hrs</div><div class="v">Surgical Training</div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- ON-THIS-PAGE TOC ---------- */}
+      <nav class="toc" id="toc" aria-label="On this page">
+        <div class="toc-inner">
+          <span class="toc-label">On this page</span>
+          <div class="toc-scroll">
+            <div class="toc-list">
+              {tocLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* ---------- WHY (paper, editorial credentials split) ---------- */}
+      <section class="section" id="why" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="why-editorial">
+            <div class="why-image" data-vs-parallax data-parallax="-20">
+              <Image
+                src={drRichardsonImg}
+                alt="Dr. Bryce Richardson, lead surgeon at Vivid Smiles Dentistry in Parker, CO"
+                widths={[500, 800, 1100]}
+                sizes="(max-width: 991px) 100vw, 45vw"
+              />
+            </div>
+            <div class="why-text">
+              <span class="eyebrow">Why Vivid Smiles</span>
+              <h2>Why Choose Vivid Smiles for Your <em>Sinus Lift in Parker, CO</em></h2>
+              <p class="why-lede">
+                Dr. Bryce Richardson holds <strong
+                  >600-plus hours of advanced surgical training</strong
+                >, including a staff role at <strong>Implant Pathway</strong>, one of the country's
+                most respected implant programs. With <strong>300+ five-star Google reviews</strong
+                >, CBCT imaging, digital planning, and robotic implant placement all in one Parker
+                practice, Vivid Smiles delivers national-level training close to home.
+              </p>
+              <div class="why-creds">
+                <div class="cred">
+                  <div class="cred-stat">600+ hrs</div>
+                  <div class="cred-label">Advanced Surgical Training</div>
+                </div>
+                <div class="cred">
+                  <div class="cred-stat">
+                    300+ <span class="stars" aria-hidden="true">★★★★★</span>
+                  </div>
+                  <div class="cred-label">Five-Star Google Reviews</div>
+                </div>
+                <div class="cred">
+                  <div class="cred-stat">Implant Pathway</div>
+                  <div class="cred-label">Clinical Staff Role</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- WHAT (cream split + Common Causes sub-grid) ---------- */}
+      <section class="section alt" id="what" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="what-grid">
+            <div class="what-img" data-vs-parallax data-parallax="-25">
+              <Image
+                src={whatImg}
+                alt="Cross-section illustration of a sinus lift — graft material placed beneath the lifted sinus membrane above an implant fixture"
+                widths={[500, 800, 1100]}
+                sizes="(max-width: 991px) 100vw, 50vw"
+              />
+            </div>
+            <div class="what-text">
+              <span class="eyebrow">Definition</span>
+              <h2>What Is a <em>Sinus Lift?</em></h2>
+              <div class="prose">
+                <p>
+                  A sinus lift builds bone between the upper jaw and the maxillary sinuses (air
+                  cavities above your upper back teeth) to create the height dental implants
+                  require. When teeth are lost, the jawbone shrinks and the sinus floor drops,
+                  narrowing the space where an implant needs solid support. It is a specialized form
+                  of <a class="vs-link" href="/implant-dentistry/bone-grafting/">bone grafting</a>,
+                  focused on the upper molar region.
+                </p>
+              </div>
+              <div class="cta-row left">
+                <div class="cta-buttons">
+                  <Button variant="light" href="#consult" hoverLabel="Get a Video"
+                    >Free Virtual Consult</Button
+                  >
+                  <Button variant="ghost-light" href="#process" hoverLabel="View Steps"
+                    >How It Works</Button
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="what-sub">
+            <div class="what-sub-head">
+              <span class="eyebrow">Common Causes</span>
+              <h3>Why You Might Need a Sinus Lift for Dental Implants</h3>
+              <div class="prose">
+                <p>
+                  Upper back tooth loss is the most common reason patients need a sinus lift, but
+                  periodontal disease, long-term denture wear, or naturally thin sinus anatomy can
+                  create the same problem. CBCT imaging measures the exact bone shortfall before
+                  treatment begins, so there are no surprises.
+                </p>
+              </div>
+            </div>
+            <div class="cause-grid">
+              {
+                causeCards.map((c) => (
+                  <article class="cause-card">
+                    <span class="tag">{c.tag}</span>
+                    <h4>{c.title}</h4>
+                  </article>
+                ))
+              }
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- PROCESS (sage, 4-step + Recovery inline-cta) ---------- */}
+      <section class="section dark" id="process" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow light">The Procedure</span>
+            <h2>The Sinus Lift Procedure: <em>What to Expect</em></h2>
+            <p>
+              Dr. Richardson reviews each patient's CBCT scan and customizes the surgical plan
+              before the procedure begins.
+            </p>
+          </div>
+
+          <div class="process-grid">
+            {
+              processSteps.map((s) => (
+                <div class="process-card">
+                  <span class="step-tag">{s.tag}</span>
+                  <div class="num">{s.num}</div>
+                  <h3>{s.title}</h3>
+                  <p>{s.body}</p>
+                </div>
+              ))
+            }
+          </div>
+
+          <div class="inline-cta dark">
+            <div class="ic-text">
+              <strong>Recovery and Aftercare.</strong> Most patients return to work within 2 to 3 days,
+              with mild swelling managed by prescribed medication. The critical post-operative instruction:
+              do not blow your nose or sneeze forcefully for two weeks.
+            </div>
+            <div class="ic-buttons">
+              <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button
+              >
+              <Button variant="ghost-light" href={phoneHref} hoverLabel="Tap to Dial"
+                >Call {phoneLabel}</Button
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- ALTERNATIVES (paper, 3-card) ---------- */}
+      <section class="section" id="alternatives" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Alternatives</span>
+            <h2>Alternatives to <em>Sinus Lifts</em></h2>
+            <p>Each alternative involves trade-offs in stability or longevity.</p>
+          </div>
+
+          <div class="alt-grid">
+            {
+              alternatives.map((a) => (
+                <article class="alt-card">
+                  <span class="tag">{a.tag}</span>
+                  <h3>{a.title}</h3>
+                  <p>{a.body}</p>
+                </article>
+              ))
+            }
+          </div>
+
+          <div class="cta-row">
+            <div class="cta-buttons">
+              <Button variant="sage" href="#consult" hoverLabel="Get a Video"
+                >Free Virtual Consult</Button
+              >
+              <Button variant="ghost" href="#faq" hoverLabel="See Answers">Read FAQ</Button>
+            </div>
+            <span class="cta-note">No commitment · Personal video reply</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- TECHNOLOGY (cream split) ---------- */}
+      <section class="section alt" id="technology" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="natural-grid">
+            <div class="natural-text">
+              <span class="eyebrow">Technology</span>
+              <h2>Advanced Technology <em>for Predictable Outcomes</em></h2>
+              <div class="natural-quote">
+                Precision before any incision — CBCT imaging, digital planning, and robotic
+                placement eliminate guesswork from the plan.
+              </div>
+              <ul class="tech-list">
+                {
+                  techList.map((t) => (
+                    <li>
+                      <span class="marker">{t.marker}</span>
+                      <span>
+                        <b>{t.title} —</b> {t.body}
+                      </span>
+                    </li>
+                  ))
+                }
+              </ul>
+            </div>
+            <div class="natural-img" data-vs-parallax data-parallax="-25">
+              <Image
+                src={yomiImg}
+                alt="Dr. Bryce Richardson placing a dental implant with the Yomi robotic arm at Vivid Smiles Dentistry"
+                widths={[500, 800, 1100]}
+                sizes="(max-width: 991px) 100vw, 50vw"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- INVESTMENT (paper) ---------- */}
+      <section class="section invest" id="investment" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Investment &amp; Insurance</span>
+            <h2>Sinus Lift <em>Cost and Insurance Coverage</em></h2>
+            <p>
+              Sinus lift costs vary by case; Vivid Smiles provides an itemized breakdown after
+              reviewing CBCT imaging at the consultation.
+            </p>
+          </div>
+
+          <div class="invest-grid">
+            <div class="invest-factors">
+              <span class="eyebrow">What affects your cost</span>
+              <ul class="cost-factor-list">
+                {
+                  costBullets.map((c, i) => (
+                    <li class="cost-factor">
+                      <span class="cost-factor__num">{String(i + 1).padStart(2, '0')}</span>
+                      <div class="cost-factor__copy">
+                        <h3>{c.title}</h3>
+                        <p>{c.body}</p>
+                      </div>
+                    </li>
+                  ))
+                }
+              </ul>
+            </div>
+
+            <aside class="insurance-card">
+              <span class="eyebrow light">Insurance &amp; Financing</span>
+              <h3>A clear estimate before any decisions.</h3>
+              <p>
+                Every sinus lift is quoted against a CBCT scan — no surprises, no across-the-board
+                pricing. We review your PPO benefits up front, document medical-necessity language
+                when applicable, and offer financing for the balance.
+              </p>
+              <ul class="insurance-card__list">
+                <li>PPO dental benefits reviewed pre-treatment</li>
+                <li>Medical-plan language when sinus pathology is documented</li>
+                <li>In-house &amp; third-party financing partners</li>
+                <li>Vivid Smiles membership plan for uninsured patients</li>
+              </ul>
+              <div class="insurance-card__actions">
+                <Button variant="light" href="#consult" hoverLabel="Get a Video"
+                  >Free Virtual Consult</Button
+                >
+                <Button variant="outline-light" href={bookNowHref} hoverLabel="Book Consult"
+                  >Book a Quote</Button
+                >
+              </div>
+              <p class="insurance-card__bring">Bring your insurance card(s) to the consultation.</p>
+            </aside>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- GALLERY (sage, marquee) ---------- */}
+      <section class="section dark" id="gallery">
+        <div class="wrap">
+          <div class="section-head" data-vs-reveal>
+            <span class="eyebrow light">Smile Gallery</span>
+            <h2>Finished smiles from <em>our chair.</em></h2>
+            <p>
+              A selection of finished cosmetic and restorative work from across the practice, not
+              sinus lift cases specifically.
+            </p>
+          </div>
+        </div>
+
+        <div class="gallery-marquee" data-vs-marquee aria-label="Vivid Smiles smile gallery">
+          <div class="gallery-track" data-vs-marquee-track>
+            {
+              galleryTrack.map((t, i) => {
+                const isClone = i >= galleryTiles.length;
+                return (
+                  <div
+                    class="smile-tile"
+                    aria-hidden={isClone || undefined}
+                    inert={isClone || undefined}
+                  >
+                    <Image src={t.src} alt={t.alt} widths={[420, 640, 840]} sizes="420px" />
+                  </div>
+                );
+              })
+            }
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- FAQ (paper) ---------- */}
+      <section class="section" id="faq" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">FAQ</span>
+            <h2>Frequently Asked Questions <em>About Sinus Lifts</em></h2>
+            <p>
+              These answers address what patients most often ask before scheduling a sinus lift
+              consultation.
+            </p>
+          </div>
+
+          <div class="faq-list">
+            {
+              faqs.map((f) => (
+                <details class="faq" open={f.open}>
+                  <summary>
+                    <>
+                      <h3>{f.q}</h3>
+                      <span class="icon" aria-hidden="true">
+                        +
+                      </span>
+                    </>
+                  </summary>
+                  <div class="answer">{f.a}</div>
+                </details>
+              ))
+            }
+          </div>
+
+          <div class="pull">
+            <p>
+              A sinus lift is a reliable first step for upper-jaw implant patients with insufficient
+              bone. Understanding the procedure and timeline before your appointment makes the
+              planning conversation more productive.
+            </p>
+          </div>
+
+          <div class="cta-row">
+            <div class="cta-buttons">
+              <Button variant="sage" href="#consult" hoverLabel="Get a Video"
+                >Still Have Questions? Free Virtual Consult</Button
+              >
+              <Button variant="ghost" href={phoneHref} hoverLabel="Tap to Dial"
+                >Call {phoneLabel}</Button
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- VIRTUAL CONSULT ---------- */}
+      <VirtualConsult id="consult" eyebrow="Free sinus lift consultation">
+        <Fragment slot="headline">Free sinus lift <em>consultation.</em></Fragment>
+        <Fragment slot="body">
+          Curious whether a sinus lift is the right next step toward upper-jaw implants? Skip the
+          office visit — Dr. Richardson personally records a custom video reviewing your case, your
+          candidacy, and what's possible at Vivid Smiles Dentistry, all from photos you submit
+          below.
+        </Fragment>
+      </VirtualConsult>
+
+      {/* ---------- CLOSING BAND ---------- */}
+      <FinalBand>
+        <p>
+          Vivid Smiles Dentistry in Parker, CO, pairs Dr. Richardson's surgical training with CBCT
+          imaging and robotic implant placement. Call {phoneLabel} or
+          <a href={bookNowHref} target="_blank" rel="noopener noreferrer">
+            book a free consultation</a
+          > to start with a 3D scan and a personalized plan.
+        </p>
+      </FinalBand>
+    </main>
+
+    <script>
+      import { initTocSpy } from '../../scripts/toc-spy';
+      initTocSpy('.sinuslift');
+    </script>
+
+    {/* JSON-LD structured data — MedicalProcedure + FAQPage + BreadcrumbList */}
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'MedicalProcedure',
+        name: 'Sinus Lift',
+        alternateName: [
+          'Sinus Augmentation',
+          'Sinus Lift Surgery',
+          'Maxillary Sinus Floor Augmentation',
+        ],
+        procedureType: 'https://schema.org/SurgicalProcedure',
+        bodyLocation: 'Upper jaw / maxillary sinus',
+        preparation:
+          'CBCT cone-beam scan to map bone height and sinus anatomy in three dimensions, measuring the exact graft volume needed before treatment begins.',
+        howPerformed:
+          'Under local anesthesia (sedation available), a small gum incision exposes the bone above the sinus; the sinus membrane is gently lifted, graft material (synthetic, bovine, or autogenous) is packed into the space beneath it, and sutures close the incision. Bone integration takes 4 to 6 months before implants are placed; simultaneous implant placement is possible when adequate existing bone is present.',
+        followup:
+          'Return to work within 2 to 3 days. Do not blow your nose or sneeze forcefully for two weeks.',
+        performer: {
+          '@type': 'Dentist',
+          name: 'Dr. Bryce Richardson',
+          worksFor: {
+            '@type': 'Dentist',
+            name: 'Vivid Smiles Dentistry',
+            address: {
+              '@type': 'PostalAddress',
+              streetAddress: '17167 Cedar Gulch Pkwy Ste 102',
+              addressLocality: 'Parker',
+              addressRegion: 'CO',
+              postalCode: '80134',
+              addressCountry: 'US',
+            },
+            telephone: '+1-303-841-5313',
+          },
+        },
+      })}
+    />
+
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faqs.map((f) => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
+      })}
+    />
+
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: new URL('/', Astro.site).href },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'Services',
+            item: new URL('/services/', Astro.site).href,
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: 'Implant Dentistry',
+            item: new URL('/implant-dentistry/', Astro.site).href,
+          },
+          {
+            '@type': 'ListItem',
+            position: 4,
+            name: 'Sinus Lift',
+            item: new URL('/implant-dentistry/sinus-lift/', Astro.site).href,
+          },
+        ],
+      })}
+    />
+  </div>
+</BaseLayout>

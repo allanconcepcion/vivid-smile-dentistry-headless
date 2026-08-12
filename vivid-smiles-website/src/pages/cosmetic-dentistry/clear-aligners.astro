@@ -1,0 +1,720 @@
+---
+/**
+ * Clear Aligners — Vivid Smiles Dentistry, Parker CO.
+ *
+ * sibling to porcelain-veneers. Mirrors the same 14-section pattern
+ * (breadcrumb → keys → TOC → why → what → process → compare → natural →
+ * lasting → local → gallery → faq → final CTA → JSON-LD), wrapper class
+ * `.caligners`, page-scoped styles at src/styles/pages/clear-aligners.css.
+ *
+ * Two intentional adaptations from veneers (documented inline below):
+ *   1. Process is 4 cards (not 5) — copy only names two stages and 4 cards
+ *      stay defensible against the verbatim source.
+ *   2. The Lasting stat-card hosts the 6 daily care bullets as a <ul> in
+ *      .lasting-body — the shell is content-agnostic, so the 6-bullet care
+ *      list lands inside it cleanly.
+ *
+ * Imagery: no aligner-specific assets exist yet, so this page reuses photos
+ * from facility/ + people/ + smiles/ — the intra-oral scanner shot is a perfect
+ * fit for the digital-scan story, the doctor portraits anchor the hero +
+ * candidacy sections, and whatever finished-smile photos sit in
+ * src/assets/images/smiles/ power the smile gallery marquee. Replace any
+ * import below to swap in real aligner photos later.
+ *
+ * Buttons + scroll reveals wired by src/scripts/animations.js
+ * (data-vs-arrow / data-vs-reveal*).
+ *
+ * Global <Nav /> + <Footer /> are mounted by BaseLayout.
+ */
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Button from '../../components/Button.astro';
+import FinalBand from '../../components/FinalBand.astro';
+import VirtualConsult from '../../components/VirtualConsult.astro';
+import LocalTrust from '../../components/LocalTrust.astro';
+import { phoneHref, phoneLabel, bookNowHref } from '../../data/contact';
+import '../../styles/pages/clear-aligners.css';
+
+import heroImg from '../../assets/images/people/generated/clear-aligners.webp';
+// "What are clear aligners" — real patient portrait outdoors by a Colorado
+// lake. Landscape source, which suits this 5:4 slot; the 4:5 portraits do not.
+// Deliberately not a veneer macro — this page is about moving teeth, not
+// resurfacing them.
+import whatImg from '../../assets/images/people/real/woman-colorado-lakeside.webp';
+// "Natural results / candidacy" — real patient portrait, natural light
+// indoors. Distinct subject from the #what image above.
+import naturalImg from '../../assets/images/people/real/woman-blonde-warm-interior.webp';
+
+// Gallery pulls dynamically from the central smiles/ folder.
+import { getSmiles } from '../../lib/smiles';
+const galleryTiles = getSmiles();
+const galleryTrack = [...galleryTiles, ...galleryTiles];
+
+const tocLinks = [
+  { href: '#why', label: 'Why Vivid Smiles' },
+  { href: '#what', label: 'What Are Aligners' },
+  { href: '#process', label: 'The Process' },
+  { href: '#compare', label: 'Aligners vs Braces' },
+  { href: '#natural', label: 'Candidacy' },
+  { href: '#lasting', label: 'Daily Care' },
+  { href: '#local', label: 'Parker, CO' },
+  { href: '#faq', label: 'FAQ' },
+];
+
+// 4 cards (not 5). The copy names only two stages (Consultation + Timeline);
+// 4 cards stay defensible against the verbatim source while preserving the
+// dark-band process visual.
+const processSteps = [
+  {
+    tag: 'Step One',
+    num: '01',
+    title: '3D scan & consultation',
+    body: 'Your first visit begins with a 3D digital scan and an on-screen preview of your projected smile. Dr. Richardson reviews your goals, outlines a realistic treatment timeline, and walks through cost and insurance options.',
+  },
+  {
+    tag: 'Step Two',
+    num: '02',
+    title: 'Digital smile preview',
+    body: 'Before you wear a single aligner, you see a digital projection of your finished smile built from the precise 3D model of your own teeth — not a generic template.',
+  },
+  {
+    tag: 'Step Three',
+    num: '03',
+    title: 'Custom Spark fabrication',
+    body: 'Planning software maps every stage of tooth movement before the first aligner is fabricated, resulting in an accurate fit from tray one — and a treatment timeline that stays on track.',
+  },
+  {
+    tag: 'Step Four',
+    num: '04',
+    title: 'Wear & advance',
+    body: 'Wear each set 20 to 22 hours daily, removing only for meals, drinking anything besides water, and brushing. Advance to a new set every 1–2 weeks; check-ins land every 6–8 weeks.',
+  },
+];
+
+// Daily care bullets — verbatim from the user's copy. Rendered as a <ul>
+// inside the Lasting card .lasting-body shell.
+const careBullets = [
+  {
+    lead: 'Rinse every time you remove them',
+    body: 'Bacteria and saliva dry onto the surface quickly, causing odor and cloudiness.',
+  },
+  {
+    lead: 'Clean with a soft toothbrush and clear, unscented soap',
+    body: 'Toothpaste is abrasive and will scratch the plastic, making aligners appear dull over time.',
+  },
+  {
+    lead: 'Use cool or lukewarm water only',
+    body: 'Hot water warps the plastic and can compromise the precise fit against your teeth.',
+  },
+  {
+    lead: 'Store in the case when not wearing',
+    body: 'Loose aligners get lost or damaged, and replacements slow your treatment timeline.',
+  },
+  {
+    lead: 'Brush before reinserting',
+    body: 'Food particles trapped under the tray sit against your enamel for hours and increase cavity risk.',
+  },
+  {
+    lead: 'Avoid staining beverages while wearing',
+    body: 'Coffee, tea, and red wine discolor clear plastic noticeably, even after brief exposure.',
+  },
+];
+
+// 8 entries: 7 from the user's copy verbatim + Cost & Insurance as Q8.
+const faqs = [
+  {
+    q: 'Do clear aligners hurt?',
+    a: 'Most patients feel mild pressure for the first day or two after switching to a new tray, a normal sign the aligners are actively working. This is far less intense than the soreness from brace tightening and fades within 48 hours.',
+    open: true,
+  },
+  {
+    q: 'Will clear aligners affect the way I talk?',
+    a: 'A slight lisp is common during the first few days as your tongue adjusts to the trays. Most people adapt fully within a week and speak normally without removing aligners.',
+  },
+  {
+    q: 'How often do I need to visit the dentist during clear aligner treatment?',
+    a: 'Check-in appointments at Vivid Smiles are typically scheduled every six to eight weeks. These brief visits confirm that tooth movement is progressing as planned and allow us to release the next sets of trays.',
+  },
+  {
+    q: 'Can I eat my favorite foods with clear aligners?',
+    a: 'Yes, because the trays are removed for every meal, there are no food restrictions during clear aligner treatment. Eat normally, brush before reinserting, and continue wearing your aligners.',
+  },
+  {
+    q: 'How long does clear aligner treatment take?',
+    a: 'Most cases at Vivid Smiles are completed in 6 to 18 months, depending on the amount of correction needed. Minor spacing or crowding issues may resolve closer to the six-month end of that range.',
+  },
+  {
+    q: 'Will clear aligners work for my teeth?',
+    a: 'Spark clear aligners treat a wide range of mild to moderate alignment issues effectively, but not every case is suitable for aligner-based treatment. A 3D scan and consultation with Dr. Richardson will confirm whether aligners are the right solution for your specific goals.',
+  },
+  {
+    q: 'Are clear aligners really invisible?',
+    a: 'Spark aligners are manufactured from a highly transparent material that is extremely difficult to detect at normal conversation distance. Most patients report that friends, coworkers, and family never realize they are in orthodontic treatment.',
+  },
+  {
+    q: 'How much do clear aligners cost, and does insurance cover them?',
+    a: 'Clear aligner cost varies based on the complexity of your case, and many PPO dental plans include orthodontic benefits that apply to treatment. For patients without insurance, the Vivid Smiles in-house membership plan can help offset costs. Call (303) 841-5313 to discuss your options and get an accurate estimate for your specific situation.',
+  },
+];
+---
+
+<BaseLayout
+  title="Clear Aligners in Parker, CO | Vivid Smiles Dentistry"
+  description="Spark clear aligners in Parker, CO with Dr. Bryce Richardson. See your projected smile before treatment begins, with 3D scanning and digital smile planning at Vivid Smiles Dentistry."
+>
+  <div class="caligners">
+    {/* ---------- BREADCRUMB ---------- */}
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <div class="crumbs-inner">
+        <a href="/">Home</a>
+        <span class="sep">/</span>
+        <a href="/services/">Services</a>
+        <span class="sep">/</span>
+        <a href="/cosmetic-dentistry/">Cosmetic Dentistry</a>
+        <span class="sep">/</span>
+        <span class="here">Clear Aligners</span>
+      </div>
+    </nav>
+
+    <main id="main">
+      {/* ---------- HERO ---------- */}
+      <header class="hero" data-vs-reveal-batch>
+        <div class="wrap hero-inner">
+          <div class="hero-copy">
+            <span class="eyebrow">Cosmetic Dentistry · Parker, CO</span>
+            <h1 data-vs-reveal-lines>Clear Aligners <em>in Parker, CO</em></h1>
+            <p class="hero-sub">
+              Clear aligners are custom-made, removable plastic trays that shift teeth gradually
+              into alignment, offering a nearly invisible alternative to traditional braces. Unlike
+              metal brackets and wires, they come out for meals and daily brushing, and digital
+              planning tools let you see your projected results before treatment begins. Here is
+              what to expect from the process, who qualifies, and why Parker residents choose Vivid
+              Smiles Dentistry for their clear aligner care.
+            </p>
+            <div class="hero-actions">
+              <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button
+              >
+              <Button variant="ghost-light" href="#consult" hoverLabel="Get a Video"
+                >Free Virtual Consult</Button
+              >
+              <div class="ratings">
+                <span class="stars" aria-hidden="true">★★★★★</span>
+                <span>5.0 · 300+ reviews</span>
+              </div>
+            </div>
+          </div>
+          <div class="hero-img" data-vs-parallax data-parallax="-30">
+            <Image
+              src={heroImg}
+              alt="Patient holding a clear aligner tray — Spark clear aligners in Parker, CO"
+              widths={[600, 900, 1400]}
+              sizes="(max-width: 991px) 100vw, 50vw"
+            />
+          </div>
+        </div>
+      </header>
+
+      {/* ---------- KEYS — at-a-glance ---------- */}
+      <section class="keys" id="keys" aria-label="Clear aligners at a glance" data-vs-reveal-batch>
+        <div class="keys-grid">
+          <div class="keys-label">At a glance</div>
+          <div class="keys-item">
+            <div class="k">6–18 months</div><div class="v">Typical Treatment</div>
+          </div>
+          <div class="keys-item"><div class="k">20–22 hrs</div><div class="v">Daily Wear</div></div>
+          <div class="keys-item">
+            <div class="k">1–2 weeks</div><div class="v">Per Aligner Set</div>
+          </div>
+          <div class="keys-item">
+            <div class="k">Spark</div><div class="v">Aligners by Vivid Smiles</div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- ON-THIS-PAGE TOC ---------- */}
+      <nav class="toc" id="toc" aria-label="On this page">
+        <div class="toc-inner">
+          <span class="toc-label">On this page</span>
+          <div class="toc-scroll">
+            <div class="toc-list">
+              {tocLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* ---------- WHY (paper) ---------- */}
+      <section class="section" id="why" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Why Vivid Smiles</span>
+            <h2>Why Choose Clear Aligners <em>at Vivid Smiles Dentistry</em></h2>
+            <p>
+              Vivid Smiles Dentistry combines modern digital technology with genuine Parker
+              community roots for a clear aligner experience that is transparent from the first
+              visit. Two advantages set our approach apart: a digital smile preview before treatment
+              starts, and 3D scanning that replaces the messy impressions most practices still use.
+            </p>
+          </div>
+
+          <div class="why-grid">
+            <article class="why-card">
+              <div class="num">01</div>
+              <h3>Digital Smile Preview Before You Commit</h3>
+              <p class="lead">
+                See your finished smile on screen before you wear a single aligner — built from your
+                own anatomy, not a template.
+              </p>
+              <p>
+                Before you wear a single aligner, you will see a digital projection of your finished
+                smile built from the precise 3D model of your own teeth, not a generic template.
+                This preview is generated from your consultation scan, so the outcome you see is
+                specific to your actual anatomy and goals, not an approximation.
+              </p>
+            </article>
+
+            <article class="why-card">
+              <div class="num">02</div>
+              <h3>Advanced Technology for Comfortable Treatment</h3>
+              <p class="lead">
+                3D scanning replaces messy impressions, and planning software maps every stage
+                before tray one.
+              </p>
+              <p>
+                Our digital scanners create a precise 3D model of your teeth in minutes, no
+                impression trays required. Planning software then maps every stage of tooth movement
+                before the first aligner is fabricated, resulting in an accurate fit from tray one.
+                That precision also keeps your treatment timeline on track.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- WHAT (cream) ---------- */}
+      <section class="section alt" id="what" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="what-grid">
+            <div class="what-img" data-vs-parallax data-parallax="-25">
+              <Image
+                src={whatImg}
+                alt="Smiling woman seated beside a Colorado mountain lake"
+                widths={[500, 800, 1100]}
+                sizes="(max-width: 991px) 100vw, 50vw"
+              />
+            </div>
+            <div class="what-text">
+              <span class="eyebrow">Definition</span>
+              <h2>What Are <em>Clear Aligners?</em></h2>
+              <div class="prose">
+                <p>
+                  Clear aligners are smooth, custom-fabricated plastic trays that move your teeth
+                  gradually into position using gentle, controlled pressure. Each tray shifts your
+                  teeth incrementally, and you advance through the series until treatment is
+                  complete. At Vivid Smiles Dentistry, we use Spark clear aligners, a precision
+                  brand known for exceptional optical clarity and accurate fit. There are no
+                  brackets, no wires, and no food restrictions. You wear each set for approximately
+                  one to two weeks, then move on to the next.
+                </p>
+              </div>
+              <div class="cta-row left">
+                <div class="cta-buttons">
+                  <Button variant="light" href="#consult" hoverLabel="Get a Video"
+                    >Free Virtual Consult</Button
+                  >
+                  <Button variant="ghost-light" href="#process" hoverLabel="View Steps"
+                    >How It Works</Button
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- PROCESS (sage) ---------- */}
+      <section class="section dark" id="process" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow light">Your Treatment Process</span>
+            <h2>How Clear Aligners Work <em>at Vivid Smiles</em></h2>
+            <p>
+              Clear aligner treatment follows a predictable sequence from your first scan to your
+              final retainer. Understanding the path ahead makes the commitment easier to plan
+              around.
+            </p>
+          </div>
+
+          <div class="process-grid">
+            {
+              processSteps.map((s) => (
+                <div class="process-card">
+                  <span class="step-tag">{s.tag}</span>
+                  <div class="num">{s.num}</div>
+                  <h3>{s.title}</h3>
+                  <p>{s.body}</p>
+                </div>
+              ))
+            }
+          </div>
+
+          <div class="inline-cta dark">
+            <div class="ic-text">
+              Ready for the next step? <em>Book online and we'll take it from here.</em>
+            </div>
+            <div class="ic-buttons">
+              <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button
+              >
+              <Button variant="ghost-light" href={phoneHref} hoverLabel="Tap to Dial"
+                >Call {phoneLabel}</Button
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- COMPARE (paper) ---------- */}
+      <section class="section" id="compare" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Aligners vs Braces</span>
+            <h2>Benefits of Clear Aligners <em>vs Traditional Braces</em></h2>
+            <p>
+              Clear aligners offer several practical advantages over traditional braces that adult
+              patients value most.
+            </p>
+          </div>
+
+          <div class="compare">
+            <article class="compare-card featured">
+              <span class="ribbon">Patient Favorite</span>
+              <span class="tag">No Restrictions</span>
+              <h3>Eat what you like</h3>
+              <p>
+                Removable aligners mean you eat whatever you like at every meal, with no food
+                restrictions. Take them out, eat, brush, reinsert.
+              </p>
+            </article>
+            <article class="compare-card">
+              <span class="tag">Hygiene</span>
+              <h3>Brush &amp; floss as before</h3>
+              <p>
+                Brushing and flossing remain exactly as before treatment — no wire threading, no
+                special tools, no compromise on daily oral care.
+              </p>
+            </article>
+            <article class="compare-card">
+              <span class="tag">Discretion</span>
+              <h3>Removable for occasions</h3>
+              <p>
+                For presentations, photographs, or any occasion where you prefer to go without, the
+                trays come out in seconds and go back in just as easily.
+              </p>
+            </article>
+          </div>
+
+          <div class="cta-row">
+            <div class="cta-buttons">
+              <Button variant="sage" href="#consult" hoverLabel="Get a Video"
+                >Free Virtual Consult</Button
+              >
+              <Button variant="ghost" href="#faq" hoverLabel="See Answers">Read FAQ</Button>
+            </div>
+            <span class="cta-note">No commitment · Personal video reply</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- NATURAL (cream) — Candidacy ---------- */}
+      <section class="section alt" id="natural" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="natural-grid">
+            <div class="natural-text">
+              <span class="eyebrow">Candidacy</span>
+              <h2>Who Is a Good Candidate <em>for Clear Aligners?</em></h2>
+              <div class="natural-quote">Both teens and adults qualify in most cases.</div>
+              <div class="prose">
+                <p>
+                  Clear aligners work well for mild to moderate crowding, gaps between teeth,
+                  spacing irregularities, and minor bite issues such as a slight overbite or
+                  underbite. They are also effective for patients who had orthodontic work in the
+                  past and have seen some gradual shifting since. Severe crowding, significant bite
+                  discrepancies, or complex jaw alignment concerns may require a different approach.
+                  Aligners are also a common preparatory step inside a broader <a
+                    class="vs-link"
+                    href="/cosmetic-dentistry/smile-makeover/">smile makeover</a
+                  >, positioning teeth before <a
+                    class="vs-link"
+                    href="/cosmetic-dentistry/porcelain-veneers/">porcelain veneers</a
+                  > or whitening for a more stable final result. Candidacy is confirmed at your consultation
+                  with a 3D scan and clinical review of your specific tooth positions.
+                </p>
+              </div>
+            </div>
+            <div class="natural-img" data-vs-parallax data-parallax="-25">
+              <Image
+                src={naturalImg}
+                alt="Smiling woman photographed indoors in Parker, CO"
+                widths={[500, 800, 1100]}
+                sizes="(max-width: 991px) 100vw, 50vw"
+              />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {
+        /* ---------- LASTING (paper) — Daily Care ----------
+         Adapted from veneers' "Lifespan" stat-card. The big stat highlights
+         the daily wear requirement (the single most load-bearing care
+         habit), and the body hosts the 6 verbatim care bullets. */
+      }
+      <section class="section" id="lasting" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Daily Care</span>
+            <h2>Caring for Your <em>Clear Aligners</em></h2>
+            <p>
+              Consistent care keeps your trays clear and your teeth healthy throughout treatment.
+            </p>
+          </div>
+
+          <div class="lasting-card">
+            <div class="lasting-stat">
+              <div class="big">20–22<em>hrs</em></div>
+              <div class="label">Daily wear for results</div>
+            </div>
+            <div class="lasting-body">
+              <p>
+                Aligners should be worn 20 to 22 hours each day, removed only for eating, drinking
+                anything besides water, and brushing. The habits below keep the trays clear and your
+                teeth healthy across treatment:
+              </p>
+              <ul>
+                {
+                  careBullets.map((b) => (
+                    <li>
+                      <strong>{b.lead}:</strong> {b.body}
+                    </li>
+                  ))
+                }
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- LOCAL (cream) ---------- */}
+      <LocalTrust
+        heading="Why Patients Choose Vivid Smiles"
+        headingItalic="for Clear Aligners"
+        intro="Dr. Bryce Richardson is a Parker resident who built Vivid Smiles Dentistry on the values of his hometown — and that shows in every visit, whether patients drive across town or fly in for treatment."
+        body="With 300+ five-star Google reviews and a welcoming office at 17167 Cedar Gulch Pkwy Ste 102, patients receive individual attention that larger groups cannot replicate. Many patients discover additional smile possibilities during treatment."
+      />
+
+      {
+        /* ---------- GALLERY (sage) — marquee, doubled track.
+         No aligner-specific photos exist for this practice yet, so the
+         tiles are reused from the broader finished-case set in
+         src/assets/images/smiles/. The mechanic, band, and
+         "smile gallery" framing match the veneers page. */
+      }
+      <section class="section dark" id="gallery">
+        <div class="wrap">
+          <div class="section-head" data-vs-reveal>
+            <span class="eyebrow light">Smile Gallery</span>
+            <h2>Finished smiles <em>in Parker.</em></h2>
+            <p>
+              A selection of finished cosmetic and restorative cases from across the practice. These
+              are not aligner results.
+            </p>
+          </div>
+        </div>
+
+        <div class="gallery-marquee" data-vs-marquee aria-label="Vivid Smiles smile gallery">
+          <div class="gallery-track" data-vs-marquee-track>
+            {
+              galleryTrack.map((t, i) => {
+                const isClone = i >= galleryTiles.length;
+                return (
+                  <div
+                    class="smile-tile"
+                    aria-hidden={isClone || undefined}
+                    inert={isClone || undefined}
+                  >
+                    <Image src={t.src} alt={t.alt} widths={[420, 640, 840]} sizes="420px" />
+                  </div>
+                );
+              })
+            }
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- FAQ (paper) — native details/summary, zero JS ---------- */}
+      <section class="section" id="faq" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">FAQ</span>
+            <h2>Frequently Asked Questions <em>About Clear Aligners</em></h2>
+          </div>
+
+          <div class="faq-list">
+            {
+              faqs.map((f) => (
+                <details class="faq" open={f.open}>
+                  <summary>
+                    <>
+                      <h3>{f.q}</h3>
+                      <span class="icon" aria-hidden="true">
+                        +
+                      </span>
+                    </>
+                  </summary>
+                  <div class="answer">{f.a}</div>
+                </details>
+              ))
+            }
+          </div>
+
+          <div class="pull">
+            <p>
+              Spark clear aligners treat a wide range of mild to moderate alignment issues — and at
+              Vivid Smiles, you see your projected results before committing to a single tray.
+            </p>
+          </div>
+
+          <div class="cta-row">
+            <div class="cta-buttons">
+              <Button variant="sage" href="#consult" hoverLabel="Get a Video"
+                >Still Have Questions? Free Virtual Consult</Button
+              >
+              <Button variant="ghost" href={phoneHref} hoverLabel="Tap to Dial"
+                >Call {phoneLabel}</Button
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {
+        /* ---------- VIRTUAL CONSULT — primary closing conversion.
+         Anchor #consult is the destination for every mid-page CTA on this
+         page; the form delivers users directly to a Typeform that sends
+         Dr. Richardson their photo + questions for a personalized video reply.
+         Service-specific framing via slot. */
+      }
+      <VirtualConsult id="consult" eyebrow="Free aligners consultation">
+        <Fragment slot="headline">Free aligners <em>consultation.</em></Fragment>
+        <Fragment slot="body">
+          Wondering whether Spark aligners are right for your smile? Skip the office visit — Dr.
+          Richardson personally records a custom video previewing your alignment options, your
+          projected timeline, and what to expect from candidacy through the final tray, all from a
+          few photos you submit below.
+        </Fragment>
+      </VirtualConsult>
+
+      {/* ---------- CLOSING BAND ---------- */}
+      <FinalBand>
+        <p>
+          17167 Cedar Gulch Pkwy Ste 102, Parker, CO 80134. Patients welcome locally and from out of
+          state.
+        </p>
+      </FinalBand>
+    </main>
+
+    <script>
+      import { initTocSpy } from '../../scripts/toc-spy';
+      initTocSpy('.caligners');
+    </script>
+
+    {
+      /* JSON-LD structured data — three blocks: MedicalProcedure for the
+        treatment, FAQPage for the accordion, BreadcrumbList for the trail. */
+    }
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'MedicalProcedure',
+        name: 'Clear Aligners',
+        alternateName: ['Spark Aligners', 'Invisible Aligners', 'Orthodontic Aligners'],
+        procedureType: 'https://schema.org/TherapeuticProcedure',
+        bodyLocation: 'Teeth',
+        preparation: '3D digital scan and digital smile preview before any aligner is fabricated.',
+        howPerformed:
+          'A series of custom-fabricated transparent plastic trays apply controlled, incremental pressure to move teeth into alignment. Patients wear each tray 20–22 hours per day for 1–2 weeks, then advance through the series.',
+        followup:
+          'Routine brushing, flossing, and dental visits; retainer wear after treatment to prevent shifting.',
+        performer: {
+          '@type': 'Dentist',
+          name: 'Dr. Bryce Richardson',
+          worksFor: {
+            '@type': 'Dentist',
+            name: 'Vivid Smiles Dentistry',
+            address: {
+              '@type': 'PostalAddress',
+              streetAddress: '17167 Cedar Gulch Pkwy Ste 102',
+              addressLocality: 'Parker',
+              addressRegion: 'CO',
+              postalCode: '80134',
+              addressCountry: 'US',
+            },
+            telephone: '+1-303-841-5313',
+          },
+        },
+      })}
+    />
+
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faqs.map((f) => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
+      })}
+    />
+
+    {
+      /* Breadcrumb URLs source the host from astro.config.mjs `site` and use
+        real site routes (matching the visible breadcrumb above). Trailing
+        slashes are required because the site is configured
+        `trailingSlash: 'always'`. */
+    }
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: new URL('/', Astro.site).href },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'Services',
+            item: new URL('/services/', Astro.site).href,
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: 'Cosmetic Dentistry',
+            item: new URL('/cosmetic-dentistry/', Astro.site).href,
+          },
+          {
+            '@type': 'ListItem',
+            position: 4,
+            name: 'Clear Aligners',
+            item: new URL('/cosmetic-dentistry/clear-aligners/', Astro.site).href,
+          },
+        ],
+      })}
+    />
+  </div>
+</BaseLayout>

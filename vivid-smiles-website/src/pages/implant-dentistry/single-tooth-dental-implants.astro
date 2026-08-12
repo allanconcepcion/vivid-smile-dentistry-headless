@@ -1,0 +1,734 @@
+---
+/**
+ * Single Tooth Dental Implants — Vivid Smiles Dentistry, Parker CO.
+ * Page-scoped styles: src/styles/pages/single-tooth-dental-implants.css (.singletooth wrapper).
+ * Pattern cloned from all-on-4-single-arch.astro.
+ * Adjustments documented inline: 6-card why-grid (3-col), 5-card benefits-grid, robotics-callout
+ * repurposed for bone-preservation explainer under the WHAT section.
+ */
+import { Image } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import Button from '../../components/Button.astro';
+import FinalBand from '../../components/FinalBand.astro';
+import VirtualConsult from '../../components/VirtualConsult.astro';
+import PricingTiers from '../../components/PricingTiers.astro';
+import { phoneHref, phoneLabel, bookNowHref } from '../../data/contact';
+import { getSmiles } from '../../lib/smiles';
+import '../../styles/pages/single-tooth-dental-implants.css';
+
+import heroImg from '../../assets/images/people/real/woman-blonde-warm-interior.webp';
+import whatImg from '../../assets/images/procedures/implant-prosthesis-arch-detail.webp';
+import candidacyImg from '../../assets/images/people/real/woman-pines-portrait.webp';
+
+// Track doubled for seamless marquee loop.
+const galleryTiles = getSmiles();
+const galleryTrack = [...galleryTiles, ...galleryTiles];
+
+const tocLinks = [
+  { href: '#why', label: 'Why Vivid Smiles' },
+  { href: '#what', label: 'Why Choose Implant' },
+  { href: '#compare', label: 'Implants vs. Bridges' },
+  { href: '#process', label: 'The Process' },
+  { href: '#candidacy', label: 'Candidacy' },
+  { href: '#benefits', label: 'Benefits' },
+  { href: '#cost', label: 'Cost & Financing' },
+  { href: '#faq', label: 'FAQ' },
+];
+
+// Six "why Vivid Smiles" cards (3-col grid, 2 rows). Verbatim copy from the brief.
+const whyCards = [
+  {
+    num: '01',
+    title: 'Robotic implant placement',
+    body: 'Sub-millimeter precision with less tissue trauma and faster recovery; this is not standard equipment at most dental offices.',
+  },
+  {
+    num: '02',
+    title: 'Full process in-house',
+    body: 'CBCT imaging, surgical placement, and crown fabrication all at Vivid Smiles; no specialist referrals required.',
+  },
+  {
+    num: '03',
+    title: "Dr. Richardson's surgical credentials",
+    body: "600+ hours of advanced training and a staff role at Implant Pathway, one of the country's top implant training facilities.",
+  },
+  {
+    num: '04',
+    title: '300+ five-star Google reviews',
+    body: 'Consistent feedback about advanced technology, a welcoming environment, and natural-looking, long-lasting results.',
+  },
+  {
+    num: '05',
+    title: 'Parker community roots',
+    body: 'Dr. Richardson is a Parker resident; his investment in patient outcomes is personal.',
+  },
+];
+
+// Four-step process from the brief. Verbatim copy.
+const processSteps = [
+  {
+    tag: 'Step One',
+    num: '01',
+    title: 'Evaluation and CBCT Imaging',
+    body: 'Dr. Richardson uses CBCT imaging at your first consultation to map bone density, nerve locations, and sinus proximity in 3D. This data guides the exact position, depth, and angle of placement before surgery begins.',
+  },
+  {
+    tag: 'Step Two',
+    num: '02',
+    title: 'Robotic Implant Placement',
+    body: "Vivid Smiles uses robotic guidance during surgery for sub-millimeter precision and less tissue trauma. Dr. Richardson completed 600+ hours of surgical training and served at Implant Pathway, one of the country's top implant training facilities; Vivid Smiles handles this in-house.",
+  },
+  {
+    tag: 'Step Three',
+    num: '03',
+    title: 'Healing and Osseointegration',
+    body: 'After placement, the implant needs 3 to 6 months to fuse with the jawbone through osseointegration. A temporary tooth is available during the healing process. Most individuals return to normal activity within days of surgery, and the full timeline is what makes the implant stable for decades.',
+  },
+  {
+    tag: 'Step Four',
+    num: '04',
+    title: 'Custom Crown Design and Placement',
+    body: 'The final crown is designed with digital impressions, milled in-house, and custom-shaded to match surrounding teeth. The implant post is permanent; the crown needs replacement after 10 to 15 years of normal wear.',
+  },
+];
+
+// Five benefit cards (5-col grid at desktop). Verbatim copy.
+const benefitsCards = [
+  {
+    num: '01',
+    title: 'Preserves adjacent teeth',
+    body: 'The implant stands alone; no neighboring teeth are ground down, crowned, or altered.',
+  },
+  {
+    num: '02',
+    title: 'Stops bone loss',
+    body: 'The titanium post stimulates the jawbone the way a natural root does, preventing the resorption that follows every extraction.',
+  },
+  {
+    num: '03',
+    title: 'Functions like a natural tooth',
+    body: 'Eat, speak, and clean teeth normally, with no dietary restrictions and no maintenance beyond brushing and flossing.',
+  },
+  {
+    num: '04',
+    title: 'Long-lasting results',
+    body: 'The implant post can last a lifetime with proper care; the crown needs replacement after 10 to 15 years.',
+  },
+  {
+    num: '05',
+    title: 'Natural appearance',
+    body: 'Custom-shaded crowns match surrounding teeth; most clients report that no one can tell which tooth is the implant.',
+  },
+];
+
+const keyStats: [string, string][] = [
+  ['95–98%', 'Documented Success Rate'],
+  ['4–8 mo', 'Start to Final Crown'],
+  ['Lifetime', 'Implant Post'],
+  ['10–15 yrs', 'Crown Lifespan'],
+];
+
+// 8 FAQs verbatim from the brief.
+const faqs = [
+  {
+    q: 'Are dental implants painful?',
+    a: 'The procedure uses local anesthesia, and robotic placement minimizes tissue trauma and post-surgical soreness. Most patients can manage discomfort with over-the-counter pain relief for a few days.',
+    open: true,
+  },
+  {
+    q: 'Do dental implants look natural?',
+    a: 'Each crown is custom-shaded to match surrounding teeth using digital impressions and in-house milling; most patients cannot tell the implant apart from their natural teeth.',
+  },
+  {
+    q: 'What is the success rate of single tooth implants?',
+    a: 'Single tooth implants have a documented success rate of 95 to 98 percent when placed in adequate bone. Placement before a thorough CBCT imaging is the most important predictor of a successful long-term outcome.',
+  },
+  {
+    q: 'How long do dental implants last?',
+    a: 'The titanium post can last a lifetime with consistent oral hygiene and regular checkups. The crown placed on top needs replacement after 10 to 15 years of normal wear.',
+  },
+  {
+    q: 'Can I eat normally with a dental implant?',
+    a: 'Once integrated and the final crown is in place, there are no dietary restrictions. Single tooth implants handle the same biting and chewing forces as natural teeth.',
+  },
+  {
+    q: 'How much does a single tooth dental implant cost?',
+    a: 'Cost depends on bone volume, crown material, and whether grafting is required. A consultation at Vivid Smiles includes a personalized estimate based on your case.',
+  },
+  {
+    q: 'How long does a single tooth implant take from start to finish?',
+    a: 'From consultation to final crown, the process takes 4 to 8 months, with osseointegration taking up most of that time. The surgical appointment itself takes about one hour.',
+  },
+  {
+    q: 'Can I get an implant if I have bone loss?',
+    a: `<a class="vs-link" href="/implant-dentistry/bone-grafting/">Bone grafting</a> or a <a class="vs-link" href="/implant-dentistry/sinus-lift/">sinus lift</a> can restore needed volume, and both are performed in-house at Vivid Smiles. Your first CBCT scan confirms whether grafting is part of your plan.`,
+  },
+];
+---
+
+<BaseLayout
+  title="Single Tooth Dental Implants in Parker, CO | Vivid Smiles Dentistry"
+  description="Single tooth dental implants in Parker, CO with Dr. Bryce Richardson — robotic placement, CBCT planning, in-house crown fabrication. Free consultation."
+>
+  <div class="singletooth">
+    {/* ---------- BREADCRUMB ---------- */}
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <div class="crumbs-inner">
+        <a href="/">Home</a>
+        <span class="sep">/</span>
+        <a href="/services/">Services</a>
+        <span class="sep">/</span>
+        <a href="/implant-dentistry/">Implant Dentistry</a>
+        <span class="sep">/</span>
+        <span class="here">Single Tooth Dental Implants</span>
+      </div>
+    </nav>
+
+    <main id="main">
+      {/* ---------- HERO ---------- */}
+      <header class="hero" data-vs-reveal-batch>
+        <div class="wrap hero-inner">
+          <div class="hero-copy">
+            <span class="eyebrow">Implant Dentistry · Parker, CO</span>
+            <h1 data-vs-reveal-lines>Single Tooth Dental Implants <em>in Parker, Colorado</em></h1>
+            <p class="hero-sub">
+              A single tooth dental implant replaces a missing tooth with a titanium post and custom
+              crown. It stands alone without altering adjacent teeth and preserves the jawbone
+              beneath the gap. Below is how the process works at Vivid Smiles, how it compares to
+              other replacement options, and who qualifies.
+            </p>
+            <div class="hero-actions">
+              <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button
+              >
+              <Button variant="ghost-light" href="#consult" hoverLabel="Get a Video"
+                >Free Virtual Consult</Button
+              >
+              <div class="ratings">
+                <span class="stars" aria-hidden="true">★★★★★</span>
+                <span>5.0 · 300+ reviews</span>
+              </div>
+            </div>
+          </div>
+          <div class="hero-img" data-vs-parallax data-parallax="-30">
+            <Image
+              src={heroImg}
+              alt="Smiling woman photographed indoors in Parker, CO"
+              widths={[600, 900, 1400]}
+              sizes="(max-width: 991px) 100vw, 50vw"
+            />
+          </div>
+        </div>
+      </header>
+
+      {/* ---------- KEYS — at-a-glance ---------- */}
+      <section
+        class="keys"
+        id="keys"
+        aria-label="Single tooth implant at a glance"
+        data-vs-reveal-batch
+      >
+        <div class="keys-grid">
+          <div class="keys-label">At a glance</div>
+          {
+            keyStats.map(([k, v]) => (
+              <div class="keys-item">
+                <>
+                  <div class="k">{k}</div>
+                  <div class="v">{v}</div>
+                </>
+              </div>
+            ))
+          }
+        </div>
+      </section>
+
+      {/* ---------- ON-THIS-PAGE TOC ---------- */}
+      <nav class="toc" id="toc" aria-label="On this page">
+        <div class="toc-inner">
+          <span class="toc-label">On this page</span>
+          <div class="toc-scroll">
+            <div class="toc-list">
+              {tocLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* ---------- WHY (paper, 6 cards in 3-col grid — adapted from aos4's 4-col) ---------- */}
+      <section class="section" id="why" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Why Vivid Smiles</span>
+            <h2>Why Choose Vivid Smiles <em>for Your Single Tooth Implant</em></h2>
+            <p>
+              Several Parker practices place implants; fewer offer the technology, training, and
+              in-house capabilities that make outcomes more predictable.
+            </p>
+          </div>
+
+          <div class="why-grid">
+            {
+              whyCards.map((c) => (
+                <article class="why-card">
+                  <div class="num">{c.num}</div>
+                  <h3>{c.title}</h3>
+                  <p>{c.body}</p>
+                </article>
+              ))
+            }
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- WHAT (cream split + bone-preservation callout sub-block) ---------- */}
+      <section class="section alt" id="what" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="what-grid">
+            <div class="what-img" data-vs-parallax data-parallax="-25">
+              <Image
+                src={whatImg}
+                alt="Close-up of an implant-supported restoration on a dental model"
+                widths={[500, 800, 1100]}
+                sizes="(max-width: 991px) 100vw, 50vw"
+              />
+            </div>
+            <div class="what-text">
+              <span class="eyebrow">Why Choose</span>
+              <h2>Why Choose a <em>Single Tooth Implant?</em></h2>
+              <div class="prose">
+                <p>
+                  A single tooth implant is the only replacement that leaves adjacent teeth
+                  untouched and stimulates the jawbone where the root once was. For most adults,
+                  missing one tooth, it is the best long-term choice for preserving adjacent teeth,
+                  jawbone, and bite stability.
+                </p>
+              </div>
+              <div class="robotics-callout">
+                <span class="label">Bone & Face Structure</span>
+                <h4>Why Implants Preserve Your Jawbone and Face Structure</h4>
+                <p>
+                  Without a tooth root, the jawbone beneath the gap begins to resorb (shrink) within
+                  months. Osseointegration, where the titanium post fuses with living bone, restores
+                  the stimulation that prevents jaw narrowing and the facial sagging that follows
+                  untreated bone loss over time.
+                </p>
+              </div>
+              <div class="cta-row left">
+                <div class="cta-buttons">
+                  <Button variant="light" href="#consult" hoverLabel="Get a Video"
+                    >Free Virtual Consult</Button
+                  >
+                  <Button variant="ghost-light" href="#process" hoverLabel="See How"
+                    >See the Process</Button
+                  >
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- COMPARE (paper, Implant vs Bridge — 2-card head-to-head) ---------- */}
+      <section class="section" id="compare" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Comparison</span>
+            <h2>Implants vs. <em>Dental Bridges</em></h2>
+            <p>
+              Dental bridges require shaving both adjacent teeth; a single tooth implant leaves them
+              untouched, can last a lifetime versus a bridge's 10 to 15 years, and prevents the bone
+              loss that continues beneath a bridge with no root to stimulate the jaw.
+            </p>
+          </div>
+
+          <div class="compare">
+            <article class="compare-card featured">
+              <span class="ribbon">Our Specialty</span>
+              <span class="tag">Single Tooth Implant</span>
+              <h3>Single Tooth Dental Implant</h3>
+              <ul class="compare-list">
+                <li>
+                  <b>Adjacent teeth —</b> leaves them untouched; nothing is ground down or crowned.
+                </li>
+                <li>
+                  <b>Lifespan —</b> the titanium post can last a lifetime; crown replaced after 10 to
+                  15 years.
+                </li>
+                <li>
+                  <b>Bone health —</b> stimulates the jawbone the way a natural root does and prevents
+                  resorption.
+                </li>
+                <li>
+                  <b>Best for —</b> most adults missing a single tooth with adequate bone and healthy
+                  gums.
+                </li>
+              </ul>
+            </article>
+
+            <article class="compare-card">
+              <span class="tag">Dental Bridge</span>
+              <h3>Dental Bridge</h3>
+              <ul class="compare-list">
+                <li>
+                  <b>Adjacent teeth —</b> requires shaving both adjacent teeth to anchor the bridge.
+                </li>
+                <li><b>Lifespan —</b> 10 to 15 years before replacement.</li>
+                <li>
+                  <b>Bone health —</b> bone loss continues beneath the bridge with no root to stimulate
+                  the jaw.
+                </li>
+                <li>
+                  <b>Best for —</b> patients who cannot or do not wish to pursue surgical placement.
+                </li>
+              </ul>
+            </article>
+          </div>
+
+          <div class="cta-row">
+            <div class="cta-buttons">
+              <Button variant="sage" href="#consult" hoverLabel="Get a Video"
+                >Free Virtual Consult</Button
+              >
+              <Button variant="ghost" href="#faq" hoverLabel="See Answers">Read FAQ</Button>
+            </div>
+            <span class="cta-note">No commitment · Personal video reply</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- PROCESS (sage, 4-step — adapted from 5-col to 4-col) ---------- */}
+      <section class="section dark" id="process" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow light">The Process</span>
+            <h2>The Single Tooth Implant Process <em>at Vivid Smiles Dentistry</em></h2>
+            <p>
+              The process at Vivid Smiles unfolds in four planned stages. Robotic guidance and
+              in-house imaging mean fewer appointments and a more predictable result.
+            </p>
+          </div>
+
+          <div class="process-grid">
+            {
+              processSteps.map((s) => (
+                <div class="process-card">
+                  <span class="step-tag">{s.tag}</span>
+                  <div class="num">{s.num}</div>
+                  <h3>{s.title}</h3>
+                  <p>{s.body}</p>
+                </div>
+              ))
+            }
+          </div>
+
+          <div class="inline-cta dark">
+            <div class="ic-text">
+              <strong>From consultation to final crown — 4 to 8 months.</strong> Osseointegration takes
+              up most of that time. The surgical appointment itself takes about one hour, and a temporary
+              tooth is available during the healing process.
+            </div>
+            <div class="ic-buttons">
+              <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button
+              >
+              <Button variant="ghost-light" href={phoneHref} hoverLabel="Tap to Dial"
+                >Call {phoneLabel}</Button
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- CANDIDACY (cream, natural-grid + bone-loss sub-callout) ---------- */}
+      <section class="section alt" id="candidacy" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="natural-grid">
+            <div class="natural-text">
+              <span class="eyebrow">Candidacy</span>
+              <h2>Who Is a Candidate <em>for Single Tooth Implants?</em></h2>
+              <div class="natural-quote">
+                Most healthy adults with a single missing tooth, adequate bone, and healthy gums
+                qualify for an implant.
+              </div>
+              <div class="prose">
+                <p>
+                  Active gum disease or uncontrolled diabetes must be resolved first; a CBCT scan at
+                  your first appointment establishes candidacy.
+                </p>
+              </div>
+            </div>
+            <div class="natural-img" data-vs-parallax data-parallax="-25">
+              <Image
+                src={candidacyImg}
+                alt="Woman standing among pines on a Colorado hillside"
+                widths={[500, 800, 1100]}
+                sizes="(max-width: 991px) 100vw, 50vw"
+              />
+            </div>
+          </div>
+
+          <div class="candidacy-sub">
+            <span class="label">If you don't qualify yet</span>
+            <h3>What If I Don't Have Enough Bone?</h3>
+            <p>
+              If bone volume is insufficient, grafting or a sinus lift can restore it; both are
+              performed in-house at Vivid Smiles. These procedures add 3 to 6 months to the timeline
+              but make implant placement possible for patients who would otherwise not qualify.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- BENEFITS (paper, 5-card grid — adapted from aos4's 4-col) ---------- */}
+      <section class="section" id="benefits" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Benefits</span>
+            <h2>Benefits of <em>Single Tooth Dental Implants</em></h2>
+            <p>
+              Single-tooth implants offer functional and aesthetic advantages that no other
+              replacement option replicates.
+            </p>
+          </div>
+
+          <div class="benefits-grid">
+            {
+              benefitsCards.map((c) => (
+                <article class="benefits-card">
+                  <div class="num">{c.num}</div>
+                  <h3>{c.title}</h3>
+                  <p>{c.body}</p>
+                </article>
+              ))
+            }
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- COST (cream) ---------- */}
+      <section class="section alt" id="cost" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">Cost &amp; Financing</span>
+            <h2>Single Tooth Implant Cost <em>in Parker, CO</em></h2>
+            <p>
+              A single tooth implant costs more upfront than a bridge or denture, but the long-term
+              economics usually favor it. Bridges require altering adjacent teeth, need replacement
+              every 10 to 15 years, and allow ongoing bone loss; a single tooth implant avoids all
+              three.
+            </p>
+          </div>
+
+          <PricingTiers
+            tiers={[
+              {
+                name: 'Single Tooth Implant',
+                priceQualifier: 'Starts at',
+                price: '$3,995',
+                priceSuffix: 'implant + crown',
+                tagline: 'Permanent tooth replacement that preserves the rest of your smile.',
+                bullets: [
+                  'Robotic placement with sub-millimeter precision',
+                  'CBCT bone-volume evaluation; grafting only if required',
+                  'Crown material color-matched to neighboring teeth',
+                  'PPO insurance reviewed pre-treatment',
+                  'In-house and partner financing available',
+                ],
+                highlight: true,
+              },
+            ]}
+            financingNote="Bridges need replacement every 10–15 years and allow ongoing bone loss; single-tooth implants avoid both. Vivid Smiles reviews PPO benefits up front and offers in-house financing for uninsured patients — both reviewed during your consultation."
+          />
+        </div>
+      </section>
+
+      {/* ---------- GALLERY ---------- */}
+      <section class="section dark" id="gallery">
+        <div class="wrap">
+          <div class="section-head" data-vs-reveal>
+            <span class="eyebrow light">Smile Gallery</span>
+            <h2>Finished smiles from <em>our chair.</em></h2>
+            <p>
+              A selection of finished cosmetic and restorative work from across the practice, not
+              single-tooth implant cases specifically.
+            </p>
+          </div>
+        </div>
+
+        <div
+          class="gallery-marquee"
+          data-vs-marquee
+          aria-label="Vivid Smiles smile gallery"
+        >
+          <div class="gallery-track" data-vs-marquee-track>
+            {
+              galleryTrack.map((t, i) => {
+                const isClone = i >= galleryTiles.length;
+                return (
+                  <div
+                    class="smile-tile"
+                    aria-hidden={isClone || undefined}
+                    inert={isClone || undefined}
+                  >
+                    <Image src={t.src} alt={t.alt} widths={[420, 640, 840]} sizes="420px" />
+                  </div>
+                );
+              })
+            }
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- FAQ (paper, 8 accordion items + closing pull-quote) ---------- */}
+      <section class="section" id="faq" data-vs-reveal-batch>
+        <div class="wrap">
+          <div class="section-head">
+            <span class="eyebrow">FAQ</span>
+            <h2>Frequently Asked Questions <em>About Single Tooth Implants</em></h2>
+          </div>
+
+          <div class="faq-list">
+            {
+              faqs.map((f) => (
+                <details class="faq" open={f.open}>
+                  <summary>
+                    <>
+                      <h3>{f.q}</h3>
+                      <span class="icon" aria-hidden="true">
+                        +
+                      </span>
+                    </>
+                  </summary>
+                  <div class="answer" set:html={f.a} />
+                </details>
+              ))
+            }
+          </div>
+
+          <div class="pull">
+            <p>
+              A single tooth implant addresses the visible gap and the bone loss beneath it, and
+              Vivid Smiles builds every case around natural-looking, predictable results. Robotic
+              placement and in-house crown fabrication give Dr. Richardson control at every stage of
+              treatment.
+            </p>
+          </div>
+
+          <div class="cta-row">
+            <div class="cta-buttons">
+              <Button variant="sage" href="#consult" hoverLabel="Get a Video"
+                >Still Have Questions? Free Virtual Consult</Button
+              >
+              <Button variant="ghost" href={phoneHref} hoverLabel="Tap to Dial"
+                >Call {phoneLabel}</Button
+              >
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* ---------- VIRTUAL CONSULT ---------- */}
+      <VirtualConsult id="consult" eyebrow="Free single tooth implant consultation">
+        <Fragment slot="headline">Free single tooth implant <em>consultation.</em></Fragment>
+        <Fragment slot="body">
+          Vivid Smiles Dentistry in Parker, CO, manages the complete single-tooth implant process
+          under one roof, without specialist referrals. Call {phoneLabel} or book online to schedule your
+          consultation with Dr. Richardson.
+        </Fragment>
+      </VirtualConsult>
+
+      {/* ---------- CLOSING BAND ---------- */}
+      <FinalBand>
+        <p>
+          Dr. Bryce Richardson pairs robotic precision with 600-plus hours of advanced surgical
+          training to deliver single tooth implant outcomes built to last decades.
+        </p>
+      </FinalBand>
+    </main>
+
+    <script>
+      import { initTocSpy } from '../../scripts/toc-spy';
+      initTocSpy('.singletooth');
+    </script>
+
+    {/* JSON-LD: MedicalProcedure + FAQPage + BreadcrumbList */}
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'MedicalProcedure',
+        name: 'Single Tooth Dental Implant',
+        alternateName: ['Single Tooth Implant', 'Dental Implant', 'Single Tooth Replacement'],
+        procedureType: 'https://schema.org/SurgicalProcedure',
+        bodyLocation: 'Jaw',
+        preparation:
+          'CBCT cone-beam scan at your first consultation to map bone density, nerve locations, and sinus proximity in 3D; this data guides the exact position, depth, and angle of placement before surgery begins.',
+        howPerformed:
+          'Robotic guidance during surgery for sub-millimeter precision and less tissue trauma; the implant needs 3 to 6 months to fuse with the jawbone through osseointegration, with a temporary tooth available during healing; the final crown is designed with digital impressions, milled in-house, and custom-shaded to match surrounding teeth.',
+        followup:
+          'Brush and floss normally with no dietary restrictions once the final crown is in place; titanium post can last a lifetime with proper care, the crown needs replacement after 10 to 15 years of normal wear.',
+        performer: {
+          '@type': 'Dentist',
+          name: 'Dr. Bryce Richardson',
+          worksFor: {
+            '@type': 'Dentist',
+            name: 'Vivid Smiles Dentistry',
+            address: {
+              '@type': 'PostalAddress',
+              streetAddress: '17167 Cedar Gulch Pkwy Ste 102',
+              addressLocality: 'Parker',
+              addressRegion: 'CO',
+              postalCode: '80134',
+              addressCountry: 'US',
+            },
+            telephone: '+1-303-841-5313',
+          },
+        },
+      })}
+    />
+
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'FAQPage',
+        mainEntity: faqs.map((f) => ({
+          '@type': 'Question',
+          name: f.q,
+          acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
+      })}
+    />
+
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: new URL('/', Astro.site).href },
+          {
+            '@type': 'ListItem',
+            position: 2,
+            name: 'Services',
+            item: new URL('/services/', Astro.site).href,
+          },
+          {
+            '@type': 'ListItem',
+            position: 3,
+            name: 'Implant Dentistry',
+            item: new URL('/implant-dentistry/', Astro.site).href,
+          },
+          {
+            '@type': 'ListItem',
+            position: 4,
+            name: 'Single Tooth Dental Implants',
+            item: new URL('/implant-dentistry/single-tooth-dental-implants/', Astro.site).href,
+          },
+        ],
+      })}
+    />
+  </div>
+</BaseLayout>
