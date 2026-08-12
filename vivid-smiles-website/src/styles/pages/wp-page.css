@@ -1,0 +1,310 @@
+/*
+ * Generic template styles — pages created in WordPress that have no hand-built
+ * route of their own. See src/pages/[...slug].astro.
+ *
+ * Deliberately plain. The bespoke pages each have their own stylesheet written
+ * around a fixed structure; a page an editor invented this morning has no such
+ * structure, so this styles ordinary prose — headings, lists, tables, images —
+ * using the design tokens rather than inventing values. It is meant to look
+ * like the site, not to replace a designed page.
+ */
+
+.wp-page .wrap {
+  max-width: var(--vs-container-max);
+  margin-inline: auto;
+  padding-inline: clamp(20px, 5vw, 48px);
+}
+
+.wp-page-hero {
+  padding-block: clamp(40px, 7vw, 88px) clamp(20px, 3vw, 36px);
+}
+
+.wp-page-body {
+  padding-bottom: var(--vs-section-pad);
+}
+
+.wp-page-prose {
+  max-width: 72ch;
+  font-family: var(--vs-font-body);
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--vs-ink-soft);
+}
+
+.wp-page-prose > * + * {
+  margin-top: 1.1em;
+}
+
+.wp-page-prose h2,
+.wp-page-prose h3,
+.wp-page-prose h4 {
+  font-family: var(--vs-font-display);
+  color: var(--vs-ink);
+  line-height: 1.15;
+}
+
+.wp-page-prose h2 {
+  font-size: var(--vs-h2-size);
+  margin-top: 1.5em;
+}
+
+.wp-page-prose h3 {
+  font-size: var(--vs-h3-size);
+  margin-top: 1.4em;
+}
+
+.wp-page-prose h4 {
+  font-size: 18px;
+  margin-top: 1.3em;
+}
+
+.wp-page-prose a {
+  color: var(--vs-sage-deep);
+  text-underline-offset: 3px;
+}
+
+.wp-page-prose ul,
+.wp-page-prose ol {
+  padding-left: 1.25em;
+}
+
+.wp-page-prose li + li {
+  margin-top: 0.5em;
+}
+
+.wp-page-prose img {
+  max-width: 100%;
+  height: auto;
+  border-radius: var(--vs-r-md);
+}
+
+.wp-page-prose figure {
+  margin: 1.6em 0;
+}
+
+.wp-page-prose figcaption {
+  margin-top: 0.6em;
+  font-size: 14px;
+  color: var(--vs-muted);
+}
+
+.wp-page-prose blockquote {
+  margin: 1.6em 0;
+  padding-left: 1em;
+  border-left: 3px solid var(--vs-line);
+  color: var(--vs-muted);
+  font-style: italic;
+}
+
+.wp-page-prose table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.wp-page-prose th,
+.wp-page-prose td {
+  padding: 10px 12px;
+  border: 1px solid var(--vs-line);
+  text-align: left;
+}
+
+.wp-page-prose th {
+  background: var(--vs-cream);
+  color: var(--vs-ink);
+}
+
+
+/* ---------- FIELD-DRIVEN BLOCKS ----------
+ * A page created in wp-admin has no body: the editor is removed on purpose, so
+ * what an editor fills in is the field group. These style the shapes that come
+ * out of it — the table of contents, sections, process steps, cards and FAQs —
+ * with the same tokens the designed pages use.
+ */
+
+.wp-page-toc {
+  display: block;
+  max-width: 72ch;
+  margin-bottom: clamp(28px, 4vw, 48px);
+  padding: 18px 20px;
+  border: 1px solid var(--vs-line);
+  border-radius: var(--vs-r-md);
+  background: var(--vs-cream);
+}
+
+.wp-page-toc-label {
+  display: block;
+  margin-bottom: 10px;
+  font-family: var(--vs-font-body);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vs-muted);
+}
+
+.wp-page-toc ul {
+  margin: 0;
+  padding-left: 1.1em;
+}
+
+.wp-page-toc li + li {
+  margin-top: 0.4em;
+}
+
+.wp-page-toc a {
+  color: var(--vs-sage-deep);
+  text-underline-offset: 3px;
+}
+
+.wp-page-section + .wp-page-section {
+  margin-top: clamp(36px, 5vw, 64px);
+}
+
+.wp-page-section > h2 {
+  margin-bottom: 0.6em;
+}
+
+.wp-page-eyebrow {
+  display: block;
+  margin-bottom: 8px;
+  font-family: var(--vs-font-body);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vs-muted);
+}
+
+.wp-page-cta {
+  display: inline-block;
+  margin-top: 1.2em;
+  color: var(--vs-sage-deep);
+  font-family: var(--vs-font-body);
+  text-underline-offset: 3px;
+}
+
+.wp-page-steps {
+  max-width: 72ch;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: wp-page-step;
+}
+
+.wp-page-steps > li {
+  position: relative;
+  counter-increment: wp-page-step;
+  padding-left: 2.6em;
+}
+
+.wp-page-steps > li + li {
+  margin-top: 1.6em;
+}
+
+.wp-page-steps > li::before {
+  content: counter(wp-page-step);
+  position: absolute;
+  left: 0;
+  top: 0.1em;
+  width: 1.8em;
+  height: 1.8em;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--vs-cream);
+  color: var(--vs-ink);
+  font-family: var(--vs-font-body);
+  font-size: 14px;
+}
+
+.wp-page-step-tag {
+  display: block;
+  margin-bottom: 4px;
+  font-family: var(--vs-font-body);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vs-muted);
+}
+
+.wp-page-step-title {
+  margin: 0 0 0.4em;
+  font-family: var(--vs-font-display);
+  font-size: 18px;
+  line-height: 1.2;
+  color: var(--vs-ink);
+}
+
+.wp-page-cards {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wp-page-cards > li {
+  padding: 20px;
+  border: 1px solid var(--vs-line);
+  border-radius: var(--vs-r-md);
+  background: var(--vs-cream);
+}
+
+.wp-page-cards > li + li {
+  margin-top: 0;
+}
+
+.wp-page-card-meta {
+  display: block;
+  margin-bottom: 6px;
+  font-family: var(--vs-font-body);
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vs-muted);
+}
+
+.wp-page-card-title {
+  margin: 0 0 0.4em;
+  font-family: var(--vs-font-display);
+  font-size: 18px;
+  line-height: 1.2;
+  color: var(--vs-ink);
+}
+
+.wp-page-card-title a {
+  color: inherit;
+  text-underline-offset: 3px;
+}
+
+.wp-page-cards p {
+  margin: 0;
+  font-family: var(--vs-font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--vs-ink-soft);
+}
+
+.wp-page-faqs {
+  max-width: 72ch;
+  border-top: 1px solid var(--vs-line);
+}
+
+.wp-page-faqs details {
+  border-bottom: 1px solid var(--vs-line);
+}
+
+.wp-page-faqs summary {
+  padding: 16px 0;
+  cursor: pointer;
+  font-family: var(--vs-font-display);
+  font-size: 17px;
+  color: var(--vs-ink);
+}
+
+.wp-page-faqs details[open] summary {
+  padding-bottom: 8px;
+}
+
+.wp-page-faqs .wp-page-prose {
+  padding-bottom: 16px;
+}
