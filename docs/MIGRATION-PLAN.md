@@ -1586,10 +1586,14 @@ curl -s "http://localhost:8888/wp-json/wp/v2/posts?per_page=100&_fields=slug,dat
 > `cms/bin/restore.sh` do this, and `restore.sh` takes the target URL as an
 > argument: `bash cms/bin/restore.sh https://cms.vividsmilesdentistry.com`. The
 > dump lives at `cms/backup/database.sql` and the origin it was taken from at
-> `cms/backup/SITEURL`, which is what makes the rewrite decidable. Media is
-> deliberately **not** exported — `wp-content/uploads` is mapped to
-> `cms/uploads/` and is committed with the repo, so dump plus uploads is a
-> complete portable copy. The `--skip-columns=guid` flag below is wrong for this
+> `cms/backup/SITEURL`, which is what makes the rewrite decidable. Two things are
+> deliberately **not** in the dump. Media: `wp-content/uploads` is mapped to
+> `cms/uploads/` and committed with the repo, so dump plus uploads is a complete
+> copy of the content. Accounts: `backup.sh` passes
+> `--exclude_tables=wp_users,wp_usermeta`, so restoring onto a real host moves
+> content and leaves that host's logins untouched — the export uses
+> `--add-drop-table`, so a dump that merely *emptied* those tables would drop and
+> recreate them, wiping the target's accounts. The `--skip-columns=guid` flag below is wrong for this
 > setup: `restore.sh` rewrites all tables precisely, because WordPress stores
 > serialized PHP in `wp_options` with string lengths encoded alongside the
 > values, so the rewrite must go through `wp search-replace` and must not skip
@@ -1765,6 +1769,20 @@ I'll do the honest part first.
 
 ## 9. Open questions — things I need from the client before Phase 1
 
+> **Several of these were answered by what shipped. Do not re-ask them.**
+>
+> | # | Settled as |
+> |---|---|
+> | 3 | **Yoast.** Pinned at `wordpress-seo:28.2` with `add-wpgraphql-seo:5.1.0`, so WPGraphQL stayed on the table. |
+> | 4 | **Full scope, not blog + reviews.** 31 routes of page copy, images, menus and settings all moved. |
+> | 5 | Partly. **No ACF Pro purchase** — Secure Custom Fields, free and GPL. Hosting is GoDaddy Managed WordPress; Vercel is on Hobby, not Pro. Who pays and who owns the accounts is not recorded here. |
+> | 10 | `import-blog.php` writes the rendered HTML straight into `post_content` and performs **no block conversion**, so an imported post opens as a single Classic block. Posts keep their editor; pages have it removed entirely, because nothing renders a page's `post_content`. Whether anyone has since run "Convert to blocks" in wp-admin is not recorded. |
+> | 14, 18 | Resolved — see the struck-through entries below. |
+>
+> Questions 1, 2, 6, 7, 8, 11, 12, 13, 15, 16 and 17 have no recorded answer and
+> should be treated as still open. Question 9 was answered by the code in a
+> third way neither option anticipated; see its entry.
+
 **Blocking (cannot start without answers):**
 
 1. **Who is actually going to write the blog posts after this ships — the practice, or Concepcion.Work?** If the honest answer is Concepcion.Work, this migration is net-negative and we should not do it. I need a straight answer, not an aspirational one.
@@ -1778,7 +1796,7 @@ I'll do the honest part first.
 
 7. **Confirm all 14 slugs are frozen forever.** Editors must be told they can change a post *title* freely but must never change a *slug*. Is there an editorial policy we can put in writing, or do we need to lock the slug field in wp-admin?
 8. **The `author` / Organization problem.** `blog/[slug].astro:160-163` types the JSON-LD author as `Organization` while the field is called `author` and currently contains `"Slate"`. If real human bylines are coming, we change that node to `Person`. Which is it?
-9. **Unmapped category behaviour:** should an editor creating a new category (a) warn-and-default to "Dental Tips" so the site stays current, or (b) hard-fail the build so nothing miscategorized ships? Current code does (a).
+9. **Unmapped category behaviour:** should an editor creating a new category (a) warn-and-default to "Dental Tips" so the site stays current, or (b) hard-fail the build so nothing miscategorized ships? ~~Current code does (a).~~ **The shipped loader does neither.** `src/loaders/blog.ts` **skips** any post whose category is outside the five-name allowlist, logging a warning, and throws only if *every* post is skipped. So a miscategorized post does not get defaulted and does not stop the build — it silently vanishes from the blog hub and the sitemap while the deploy reports success. Two guards soften it: `vs-content-model.php` seeds the five terms and repoints `default_category` to Dental Tips, so a new post never lands on Uncategorized. This question is still worth putting to the client.
 10. **Do the 14 posts need to be Gutenberg-editable, or is a Classic HTML block acceptable?** Gutenberg means 14 manual "Convert to blocks" clicks and a real editing experience; Classic means one opaque blob nobody can safely edit.
 
 **Needed before Phase 8 / cutover:**

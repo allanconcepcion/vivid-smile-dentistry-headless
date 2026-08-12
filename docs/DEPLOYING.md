@@ -182,8 +182,9 @@ cold build failed on a different image every run.
 The warm-up requests each of the **131 media files** once, **three at a time**
 (`CONCURRENCY = 3`), retrying on 429 over five attempts with backoff, then
 pauses three seconds before handing over so the build does not start rendering
-inside a rate-limit window it just opened. By the time Astro's high-concurrency
-phase runs, every URL is a cache HIT and the origin is never touched.
+inside a rate-limit window it opened moments earlier. By the time Astro's
+high-concurrency phase runs, every URL is a cache HIT and the origin is never
+touched.
 
 It must run **inside** the build: Cloudflare caches per datacenter, so warming
 from a laptop does nothing for the colo a CI build runs in. This is measured,
@@ -382,9 +383,11 @@ or a registrar's — asks you to delete records or replace the whole zone, stop.
     and Bing Webmaster Tools. That is the same path the old WordPress site used,
     so an existing submission keeps working; the build also writes
     `sitemap-index.xml` for anything referencing the hyphenated form.
-11. Re-check the Microsoft Clarity and Google Ads tags. Both returned 503 on the
-    `.vercel.app` URL, which may simply have been rejection of an unrecognised
-    domain.
+11. Re-check the Microsoft Clarity and Google Ads tags. Both
+    `clarity.ms/tag/vkjzesavnp` and the GTM-fired POST to
+    `process.iconnode.com/google-ads/` returned 503 during the 2026-08-11 audit;
+    both returned 200 when re-checked on 2026-08-13, so that looks transient
+    rather than a domain rejection. Confirm again once the real domain is live.
 12. Confirm `https://cms.vividsmilesdentistry.com/robots.txt` is `Disallow: /` —
     the CMS must never be indexed alongside the real site.
 
