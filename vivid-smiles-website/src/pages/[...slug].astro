@@ -17,6 +17,8 @@
  * It is a floor, not a ceiling: generic prose in the right typography. A page
  * that matters still deserves its own template.
  */
+import { readdir } from "node:fs/promises";
+import { join } from "node:path";
 import type { GetStaticPaths } from "astro";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import { wpQuery } from "../lib/wp";
@@ -24,10 +26,9 @@ import { optimizeBodyImages } from "../lib/wp-body-images";
 import "../styles/pages/wp-page.css";
 
 type WpPage = {
-  title: string;
-  uri: string;
+  title: string | null;
+  uri: string | null;
   content: string | null;
-  isFrontPage: boolean;
 };
 
 /**
@@ -42,50 +43,105 @@ const PAGES_QUERY = `
         title
         uri
         content
-        isFrontPage
       }
     }
   }
 `;
 
-/** Every route already served by a hand-built template in this directory. */
-function handBuiltRoutes(): Set<string> {
+/**
+ * Every .astro file below `dir`, as a path relative to it.
+ *
+ * Read from disk rather than globbed. A Vite glob for every .astro file under
+ * this directory matches this file too, which hands the bundler a page that
+ * imports itself and fails the build before a page is rendered. Reading the
+ * directory keeps the list generated rather than hardcoded, without putting
+ * pages into each other's import graph.
+ */
+async function astroFilesIn(dir: string, prefix = ""): Promise<string[]> {
+  const found: string[] = [];
+
+  for (const entry of await readdir(dir, { withFileTypes: true })) {
+    const relative = prefix ? `${prefix}/${entry.name}` : entry.name;
+
+    if (entry.isDirectory()) {
+      found.push(...(await astroFilesIn(join(dir, entry.name), relative)));
+    } else if (entry.name.endsWith(".astro")) {
+      found.push(relative);
+    }
+  }
+
+  return found;
+}
+
+/** src/pages, whether the build runs from the site directory or the repo root. */
+const PAGES_DIR_CANDIDATES = [
+  join(process.cwd(), "src", "pages"),
+  join(process.cwd(), "vivid-smiles-website", "src", "pages"),
+];
+
+/** Every route already served by a hand-built template. */
+async function handBuiltRoutes(): Promise<Set<string>> {
+  let files: string[] | null = null;
+
+  for (const dir of PAGES_DIR_CANDIDATES) {
+    try {
+      files = await astroFilesIn(dir);
+      break;
+    } catch {
+      // Not this one. Try the next.
+    }
+  }
+
+  // Better to stop than to guess: an empty set here would let a WordPress page
+  // claim a designed page's URL and overwrite it in the output directory.
+  if (!files) {
+    throw new Error(
+      "[wp-pages] Could not find src/pages, so the routes that already have a " +
+        "hand-built template are unknown. Refusing to build WordPress pages.",
+    );
+  }
+
   const routes = new Set<string>();
 
-  // Enumerated from the filesystem rather than hardcoded, so a route added
-  // next month is respected without anyone remembering a list lives here.
-  for (const file of Object.keys(import.meta.glob("./**/*.astro"))) {
+  for (const file of files) {
     // Dynamic routes, this file included — they own no fixed path.
     if (file.includes("[")) continue;
 
-    const path = file
-      .replace(/^\.\//, "")
-      .replace(/\.astro$/, "")
-      .replace(/(^|\/)index$/, "");
-
-    routes.add(path ? `/${path}/` : "/");
+    const route = file.replace(/\.astro$/, "").replace(/(^|\/)index$/, "");
+    routes.add(route ? `/${route}/` : "/");
   }
 
   return routes;
 }
 
 export const getStaticPaths = (async () => {
-  const data = await wpQuery<{ pages: { nodes: WpPage[] } }>(
+  const data = await wpQuery<{ pages: { nodes: WpPage[] } | null }>(
     PAGES_QUERY,
     { first: 200 },
     "pages for catch-all route",
   );
 
-  const handBuilt = handBuiltRoutes();
+  const handBuilt = await handBuiltRoutes();
+  const claimed = new Set<string>();
 
-  return data.pages.nodes.flatMap((page) => {
+  return (data.pages?.nodes ?? []).flatMap((page) => {
+    const uri = page.uri ?? "";
+
+    // No usable URL means there is nothing to build.
+    if (!uri.startsWith("/")) return [];
+
+    const route = uri.endsWith("/") ? uri : `${uri}/`;
+
     // The home page belongs to index.astro whatever WordPress thinks.
-    if (page.isFrontPage) return [];
-
-    const route = page.uri.endsWith("/") ? page.uri : `${page.uri}/`;
+    if (route === "/") return [];
 
     // A designed template always wins.
     if (handBuilt.has(route)) return [];
+
+    // Two pages can end up sharing a URL after a slug edit. The first wins,
+    // rather than both writing to the same file.
+    if (claimed.has(route)) return [];
+    claimed.add(route);
 
     const content = (page.content ?? "").trim();
 
@@ -97,16 +153,21 @@ export const getStaticPaths = (async () => {
       return [];
     }
 
-    return [{ params: { slug: route.slice(1, -1) }, props: { page, content } }];
+    return [
+      {
+        params: { slug: route.slice(1, -1) },
+        props: { title: page.title ?? "Untitled", content },
+      },
+    ];
   });
 }) satisfies GetStaticPaths;
 
 interface Props {
-  page: WpPage;
+  title: string;
   content: string;
 }
 
-const { page, content } = Astro.props;
+const { title, content } = Astro.props;
 
 // Body images are authored against the CMS host. Rewriting them here downloads
 // each at build time and swaps in a hashed local asset, exactly as the blog
@@ -123,27 +184,27 @@ const description = content
   .slice(0, 155);
 ---
 
-<BaseLayout title={`${page.title} | Vivid Smiles Dentistry`} description={description || undefined}>
+<BaseLayout title={`${title} | Vivid Smiles Dentistry`} description={description || undefined}>
   <div class="wp-page">
     {/* ---------- BREADCRUMB ---------- */}
     <nav class="crumbs" aria-label="Breadcrumb">
       <div class="crumbs-inner">
         <a href="/">Home</a>
         <span class="sep">/</span>
-        <span class="here">{page.title}</span>
+        <span class="here">{title}</span>
       </div>
     </nav>
 
     <main id="main">
       <header class="wp-page-hero" data-vs-reveal-batch>
         <div class="wrap">
-          <h1 class="vs-h1">{page.title}</h1>
+          <h1 class="vs-h1">{title}</h1>
         </div>
       </header>
 
       <section class="wp-page-body">
         <div class="wrap">
-          <div class="wp-page-prose" data-vs-reveal set:html={bodyHtml} />
+          <div class="wp-page-prose" data-vs-reveal set:html={bodyHtml}></div>
         </div>
       </section>
     </main>
