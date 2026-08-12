@@ -2,48 +2,16 @@
 /**
  * MegaResources — Patient Resources mega-menu panel.
  *
- * 2-column grid:
- *   - .resource-feature: large feature card with team photo background, links
- *     to the Membership Plan page (the most-converting resource).
- *   - .resource-directory: vertical row list with FA icon + title + body + arrow.
- *
- * Used by Nav.astro inside the .mega-wrap when "Patient Resources" is open.
- *
- * Parity: the feature card href + `rows` array below must mirror the
- * "resources" section in MobileMenu.astro (the feature card's destination
- * surfaces there as a flat row, e.g. "Membership Plan"). No shared data
- * source — change links here AND there in the same edit.
+ * Rows come from the children of the "Patient Resources" item in the WordPress
+ * primary menu (Appearance -> Menus).
  */
 
 import { Image } from "astro:assets";
 import featureBg from "../../assets/images/team/vivid-smiles-team-candid.webp";
+import { getMenuBranch } from "../../lib/menus";
 
-const rows = [
-  {
-    href: "/new-patients/",
-    title: "New Patients",
-    body: "Your first visit, the paperwork, what to expect, and how to prepare.",
-    icon: "fa-clipboard-check",
-  },
-  {
-    href: "/blog/",
-    title: "Blog",
-    body: "Plain-language writing on cosmetic dentistry, implants, and everyday oral health.",
-    icon: "fa-book-open",
-  },
-  {
-    href: "/referral-program/",
-    title: "Referral Program",
-    body: "Send a friend, and we'll thank you both with a credit toward your next visit.",
-    icon: "fa-user-plus",
-  },
-  {
-    href: "/patient-testimonials/",
-    title: "Patient Testimonials",
-    body: "Stories from real patients in their own words, plus our 5-star Google reviews.",
-    icon: "fa-comment-dots",
-  },
-];
+const branch = await getMenuBranch("/new-patients/");
+const rows = branch?.children ?? [];
 ---
 
 <div class="mega mega-resources-panel" role="region" aria-label="Patient Resources menu">
@@ -66,7 +34,7 @@ const rows = [
             <i class={`fa-solid ${r.icon}`} aria-hidden="true"></i>
           </span>
           <div class="rr-body">
-            <div class="rr-title">{r.title}</div>
+            <div class="rr-title">{r.label}</div>
             <div class="rr-sub">{r.body}</div>
           </div>
           <span class="rr-arrow" aria-hidden="true">→</span>

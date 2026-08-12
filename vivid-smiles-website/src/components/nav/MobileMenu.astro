@@ -25,6 +25,7 @@
 
 import { phoneLabel, phoneHref, bookNowHref } from "../../data/contact";
 import Button from "../Button.astro";
+import { getMenu } from "../../lib/menus";
 
 interface Props {
   phone?: string;
@@ -64,65 +65,48 @@ interface Section {
   items: Item[];
 }
 
-const sections: Section[] = [
-  {
-    id: "about",
-    label: "About Us",
-    href: "/about-us/",
-    items: [
-      { label: "About Us", href: "/about-us/" },
-      { label: "Meet the Team", href: "/about-us/#team" },
-      { label: "Our Office", href: "/our-office/" },
-      { label: "Smile Gallery", href: "/smile-gallery/" },
-    ],
-  },
-  {
-    id: "services",
-    label: "Services",
-    href: "/services/",
-    items: [
-      { label: "General Dentistry", href: "/general-dentistry/", icon: ICON_TOOTH, children: [] },
-      { label: "Emergency Dentistry", href: "/emergency-dentistry/", icon: ICON_PULSE, children: [] },
-      {
-        label: "Cosmetic Dentistry",
-        href: "/cosmetic-dentistry/",
-        icon: ICON_SPARKLE,
-        children: [
-          { label: "Smile Makeover", href: "/cosmetic-dentistry/smile-makeover/" },
-          { label: "Porcelain Veneers", href: "/cosmetic-dentistry/porcelain-veneers/" },
-          { label: "Clear Aligners", href: "/cosmetic-dentistry/clear-aligners/" },
-          { label: "Teeth Whitening", href: "/cosmetic-dentistry/teeth-whitening/" },
-          { label: "Gum Contouring", href: "/cosmetic-dentistry/gum-contouring/" },
-          { label: "Full Mouth Rehabilitation", href: "/cosmetic-dentistry/full-mouth-rehabilitation/" },
-        ],
-      },
-      {
-        label: "Implant Dentistry",
-        href: "/implant-dentistry/",
-        icon: ICON_CROWN,
-        children: [
-          { label: "Single Tooth Dental Implants", href: "/implant-dentistry/single-tooth-dental-implants/" },
-          { label: "Full Mouth Dental Implants", href: "/implant-dentistry/full-mouth-dental-implants/" },
-          { label: "All-on-4 Single Arch", href: "/implant-dentistry/all-on-4-single-arch/" },
-          { label: "Bone Grafting", href: "/implant-dentistry/bone-grafting/" },
-          { label: "Sinus Lift", href: "/implant-dentistry/sinus-lift/" },
-        ],
-      },
-    ],
-  },
-  {
-    id: "resources",
-    label: "Patient Resources",
-    href: "/new-patients/",
-    items: [
-      { label: "New Patients", href: "/new-patients/" },
-      { label: "Blog", href: "/blog/" },
-      { label: "Referral Program", href: "/referral-program/" },
-      { label: "Patient Testimonials", href: "/patient-testimonials/" },
-      { label: "Membership Plan", href: "/dental-membership-plan/" },
-    ],
-  },
-];
+/**
+ * Inline SVG icons, keyed by the page a Services item points at.
+ *
+ * The desktop panel uses Font Awesome classes from WordPress; this menu uses
+ * inline SVG so the icons paint before the icon font loads. That is a rendering
+ * choice, not content, so the mapping lives here rather than in the CMS.
+ */
+const MOBILE_ICONS: Record<string, string> = {
+  "/general-dentistry/": ICON_TOOTH,
+  "/emergency-dentistry/": ICON_PULSE,
+  "/cosmetic-dentistry/": ICON_SPARKLE,
+  "/implant-dentistry/": ICON_CROWN,
+};
+
+const primary = await getMenu("PRIMARY");
+
+/**
+ * Sections come from the WordPress primary menu — the same source the desktop
+ * panels read. These lists used to be a second hardcoded copy that had to be
+ * edited in lockstep with MegaServices.
+ *
+ * Standalone services are listed FIRST here, which is the order this menu has
+ * always shown and the reverse of the desktop panel's. Sorting locally keeps
+ * both layouts as they are while still reading one shared menu.
+ */
+const sections: Section[] = primary
+  .filter((item) => item.children.length > 0)
+  .map((item) => ({
+    id: item.href.replace(/^\/|\/$/g, "") || "home",
+    label: item.label,
+    href: item.href,
+    items: [...item.children]
+      .sort((a, b) => Number(b.layout.startsWith("standalone")) - Number(a.layout.startsWith("standalone")))
+      .map((child) => ({
+        label: child.label,
+        href: child.href,
+        ...(MOBILE_ICONS[child.href] ? { icon: MOBILE_ICONS[child.href] } : {}),
+        ...(child.children.length || child.layout.startsWith("standalone")
+          ? { children: child.children.map((leaf) => ({ label: leaf.label, href: leaf.href })) }
+          : {}),
+      })),
+  }));
 ---
 
 <aside

@@ -20,6 +20,7 @@
  */
 import { Image } from "astro:assets";
 import { getLogo } from "../../lib/settings";
+import { getMenu } from "../../lib/menus";
 const vsLogoNav = await getLogo("lightBg");
 import Button from "../Button.astro";
 import MegaAbout from "./MegaAbout.astro";
@@ -74,14 +75,30 @@ function deriveActive(path: string): ActiveLink {
 
 const active = deriveActive(currentPath);
 
-const items: Array<{ id: ActiveLink; label: string; href: string; mega?: "about" | "services" | "resources" }> = [
-  { id: "home", label: "Home", href: "/" },
-  { id: "about", label: "About Us", href: "/about-us/", mega: "about" },
-  { id: "services", label: "Services", href: "/services/", mega: "services" },
-  { id: "resources", label: "Patient Resources", href: "/new-patients/", mega: "resources" },
-  { id: "contact", label: "Contact", href: "/contact/" },
-];
+/**
+ * Which bespoke panel component opens under a top-level item.
+ *
+ * Keyed by href rather than label, so renaming "Services" to "Treatments" in
+ * WordPress does not detach its panel. This mapping stays in code because it
+ * selects a COMPONENT — the panels are hand-built layouts, not content, and an
+ * editor adding a menu item should not be able to conjure a mega panel that
+ * does not exist.
+ */
+const MEGA_BY_HREF: Record<string, "about" | "services" | "resources"> = {
+  "/about-us/": "about",
+  "/services/": "services",
+  "/new-patients/": "resources",
+};
 
+/** Labels, order and links come from WordPress (Appearance -> Menus). */
+const items = (await getMenu("PRIMARY")).map((item) => ({
+  id: deriveActive(item.href),
+  label: item.label,
+  href: item.href,
+  external: item.external,
+  // Only show a panel when the item actually has children to fill it.
+  mega: item.children.length ? MEGA_BY_HREF[item.href] : undefined,
+}));
 ---
 
 <header class="vs-nav-shell" data-vs-nav>

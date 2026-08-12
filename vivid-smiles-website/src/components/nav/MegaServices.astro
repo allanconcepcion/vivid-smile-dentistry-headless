@@ -3,48 +3,26 @@
  * MegaServices — Services mega-menu panel.
  *
  * Two-section grid:
- *   - .svc-breakouts (2 cols of .svc-col): Cosmetic Dentistry + Implant Dentistry,
- *     each with an icon header, sub-links, and a "view all" link. Takes ~2/3 width.
- *   - .svc-standalones: General Dentistry + Emergency Dentistry, rendered with
- *     <StandaloneCard /> (which owns its global styles). Takes ~1/3 width.
+ *   - .svc-breakouts (2 cols of .svc-col): items whose panel layout is
+ *     "column" — an icon header, their child links, and a "view all" link.
+ *   - .svc-standalones: items whose layout is "standalone", rendered with
+ *     <StandaloneCard /> (which owns its global styles).
  *
  * Used by Nav.astro inside the .mega-wrap when "Services" is open.
  *
- * Parity: the `cosmetic.links` + `implant.links` + standalone hub hrefs
- * below must mirror the "services" section in MobileMenu.astro. No shared
- * data source — change links here AND there in the same edit.
+ * Content comes from the WordPress primary menu (Appearance -> Menus), so this
+ * and MobileMenu read the SAME source. They used to hold duplicate hardcoded
+ * link lists that had to be edited together by hand.
  */
 
 import StandaloneCard from "../cards/StandaloneCard.astro";
+import { getMenuBranch } from "../../lib/menus";
 
-const cosmetic = {
-  title: "Cosmetic Dentistry",
-  sub: "Smile design",
-  href: "/cosmetic-dentistry/",
-  icon: "fa-wand-magic-sparkles",
-  links: [
-    { label: "Smile Makeover", href: "/cosmetic-dentistry/smile-makeover/" },
-    { label: "Porcelain Veneers", href: "/cosmetic-dentistry/porcelain-veneers/" },
-    { label: "Clear Aligners", href: "/cosmetic-dentistry/clear-aligners/" },
-    { label: "Teeth Whitening", href: "/cosmetic-dentistry/teeth-whitening/" },
-    { label: "Gum Contouring", href: "/cosmetic-dentistry/gum-contouring/" },
-    { label: "Full Mouth Rehabilitation", href: "/cosmetic-dentistry/full-mouth-rehabilitation/" },
-  ],
-};
+const branch = await getMenuBranch("/services/");
+const groups = branch?.children ?? [];
 
-const implant = {
-  title: "Implant Dentistry",
-  sub: "Replace missing teeth",
-  href: "/implant-dentistry/",
-  icon: "fa-tooth",
-  links: [
-    { label: "Single Tooth Dental Implants", href: "/implant-dentistry/single-tooth-dental-implants/" },
-    { label: "Full Mouth Dental Implants", href: "/implant-dentistry/full-mouth-dental-implants/" },
-    { label: "All-on-4 Single Arch", href: "/implant-dentistry/all-on-4-single-arch/" },
-    { label: "Bone Grafting", href: "/implant-dentistry/bone-grafting/" },
-    { label: "Sinus Lift", href: "/implant-dentistry/sinus-lift/" },
-  ],
-};
+const columns = groups.filter((g) => g.layout === "column");
+const standalones = groups.filter((g) => g.layout.startsWith("standalone"));
 ---
 
 <div class="mega mega-services-panel" role="region" aria-label="Services menu">
@@ -52,19 +30,19 @@ const implant = {
 
   <div class="mega-services">
     <div class="svc-breakouts">
-      {[cosmetic, implant].map((col) => (
+      {columns.map((col) => (
         <div class="svc-col">
           <div class="col-head">
             <span class="col-icon">
               <i class={`fa-solid ${col.icon}`} aria-hidden="true"></i>
             </span>
             <div>
-              <div class="col-title">{col.title}</div>
-              <div class="col-sub">{col.sub}</div>
+              <div class="col-title">{col.label}</div>
+              <div class="col-sub">{col.eyebrow}</div>
             </div>
           </div>
           <ul>
-            {col.links.map((l) => (
+            {col.children.map((l) => (
               <li>
                 <a href={l.href}>
                   <span>{l.label}</span>
@@ -73,29 +51,23 @@ const implant = {
               </li>
             ))}
           </ul>
-          <a class="col-all" href={col.href}>View all {col.title.toLowerCase()}</a>
+          <a class="col-all" href={col.href}>View all {col.label.toLowerCase()}</a>
         </div>
       ))}
     </div>
 
     <div class="svc-standalones">
-      <StandaloneCard
-        kicker="Everyday care"
-        title="General Dentistry"
-        href="/general-dentistry/"
-      >
-        Cleanings, fillings, crowns and preventive care for every member of the family.
-        <i class="fa-solid fa-shield-heart" slot="icon" aria-hidden="true"></i>
-      </StandaloneCard>
-      <StandaloneCard
-        kicker="Same-day"
-        title="Emergency Dentistry"
-        href="/emergency-dentistry/"
-        emergency
-      >
-        Toothache, broken tooth, lost crown? Call now &mdash; we hold same-day spots open.
-        <i class="fa-solid fa-truck-medical" slot="icon" aria-hidden="true"></i>
-      </StandaloneCard>
+      {standalones.map((card) => (
+        <StandaloneCard
+          kicker={card.eyebrow}
+          title={card.label}
+          href={card.href}
+          emergency={card.layout === "standalone_emergency"}
+        >
+          {card.body}
+          <i class={`fa-solid ${card.icon}`} slot="icon" aria-hidden="true"></i>
+        </StandaloneCard>
+      ))}
     </div>
   </div>
 </div>

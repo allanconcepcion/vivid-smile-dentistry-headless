@@ -3,7 +3,10 @@
 import { Image } from "astro:assets";
 import Button from "./Button.astro";
 import { getLogo } from "../lib/settings";
+import { getMenu } from "../lib/menus";
 const vsLogo = await getLogo("darkBg");
+// Footer link columns come from WordPress (Appearance -> Menus -> Footer Links).
+const footerCols = await getMenu("FOOTER");
 import {
   bookNowHref,
   emailAddress,
@@ -45,31 +48,18 @@ import { officeHours, openSchedule } from "../data/hours";
         </div>
       </div>
 
-      <div class="footer-col">
-        <h2>Explore</h2>
-        <ul>
-          <li><a href="/">Home</a></li>
-          <li><a href="/about-us/">About Us</a></li>
-          <li><a href="/about-us/#team">Meet the Team</a></li>
-          <li><a href="/our-office/">Our Office</a></li>
-          <li><a href="/smile-gallery/">Smile Gallery</a></li>
-          <li><a href="/patient-testimonials/">Patient Stories</a></li>
-          <li><a href="/contact/">Contact</a></li>
-        </ul>
-      </div>
-
-      <div class="footer-col">
-        <h2>Services</h2>
-        <ul>
-          <li><a href="/services/">All Services</a></li>
-          <li><a href="/cosmetic-dentistry/">Cosmetic Dentistry</a></li>
-          <li><a href="/implant-dentistry/">Dental Implants</a></li>
-          <li><a href="/general-dentistry/">General Dentistry</a></li>
-          <li><a href="/emergency-dentistry/">Emergency Care</a></li>
-          <li><a href="/new-patients/">New Patients</a></li>
-          <li><a href="/dental-membership-plan/">Membership</a></li>
-        </ul>
-      </div>
+      {footerCols.map((col) => (
+        <div class="footer-col">
+          <h2>{col.label}</h2>
+          <ul>
+            {col.children.map((link) => (
+              <li>
+                <a href={link.href} target={link.external ? "_blank" : undefined} rel={link.external ? "noopener" : undefined}>{link.label}</a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
 
       <div class="footer-col footer-contact">
         <h2>Get in touch</h2>

@@ -1,63 +1,17 @@
 ---
 /**
- * MegaAbout — About Us mega-menu panel.
+ * MegaAbout — About mega-menu panel.
  *
- * 4-card grid linking to the four About-tier routes. Each card carries a
- * photo (rendered through `astro:assets` <Image>) sized to the .img frame.
- *
- * Hover wired via [data-vs-arrow] in src/scripts/animations.js — same
- * canonical knock-up + swap as buttons + service cards. The badge's
- * sage→paper color flip lives on the ghost-sage variant in ArrowBadge.
- *
- * Used by Nav.astro inside the .mega-wrap when "About Us" is open.
- *
- * Parity: the `cards` array below must mirror the "about" section in
- * MobileMenu.astro. No shared data source — change links here AND there
- * in the same edit.
+ * Cards come from the children of the "About Us" item in the WordPress primary
+ * menu (Appearance -> Menus), including their images and focal points.
  */
 
 import { Image } from "astro:assets";
 import ArrowBadge from "../ArrowBadge.astro";
-import imgAbout from "../../assets/images/team/annie-and-bryce.webp";
-import imgTeam from "../../assets/images/team/vivid-team-photo.webp";
-import imgOffice from "../../assets/images/facility/operating-room.webp";
-import imgGallery from "../../assets/images/procedures/smile-three-quarter-dark-backdrop.webp";
+import { getMenuBranch } from "../../lib/menus";
 
-const cards = [
-  {
-    href: "/about-us/",
-    eyebrow: "Our practice",
-    title: "About Us",
-    body: "The story behind Vivid Smiles — our calm, premium, patient-centered approach to cosmetic and implant dentistry in Parker, CO.",
-    img: imgAbout,
-    alt: "Drs. Bryce Richardson and Annie Westermeier at Vivid Smiles",
-    imgPos: "center 37%",
-  },
-  {
-    href: "/about-us/#team",
-    eyebrow: "Doctors & team",
-    title: "Meet the Team",
-    body: "The dentists and hygienists who built Vivid Smiles. Decades of training, a single calm chair-side voice.",
-    img: imgTeam,
-    alt: "The Vivid Smiles team",
-  },
-  {
-    href: "/our-office/",
-    eyebrow: "Visit us",
-    title: "Our Office",
-    body: "A bright, low-stress space with the technology of a specialty clinic and the warmth of a neighborhood practice.",
-    img: imgOffice,
-    alt: "Inside the Vivid Smiles Parker office",
-  },
-  {
-    href: "/smile-gallery/",
-    eyebrow: "Our work",
-    title: "Smile Gallery",
-    body: "Real patients, real smiles. See the finished cosmetic and implant work that comes through our chairs.",
-    img: imgGallery,
-    alt: "Close-up of a Vivid Smiles patient smiling",
-  },
-];
+const branch = await getMenuBranch("/about-us/");
+const cards = branch?.children ?? [];
 ---
 
 <div class="mega mega-about-panel" role="region" aria-label="About Us menu">
@@ -66,10 +20,20 @@ const cards = [
     {cards.map((c) => (
       <a class="about-card" href={c.href} data-vs-arrow>
         <div class="img">
-          <Image src={c.img} alt={c.alt} widths={[320, 480, 640]} sizes="(max-width: 1100px) 50vw, 25vw" style={c.imgPos ? `object-position: ${c.imgPos}` : undefined} />
+          {c.image && (
+            <Image
+              src={c.image.src}
+              width={c.image.width}
+              height={c.image.height}
+              alt={c.image.alt}
+              widths={[320, 480, 640]}
+              sizes="(max-width: 1100px) 50vw, 25vw"
+              style={c.image.position ? `object-position: ${c.image.position}` : undefined}
+            />
+          )}
         </div>
         <div class="about-eyebrow">{c.eyebrow}</div>
-        <h4>{c.title}</h4>
+        <h4>{c.label}</h4>
         <p>{c.body}</p>
         <span class="more">
           More
