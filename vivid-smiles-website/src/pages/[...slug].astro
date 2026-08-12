@@ -8,28 +8,29 @@
  * route, so it 404'd on the front end and was dropped from the sitemap with a
  * warning nobody reads.
  *
- * This closes it. Any published page whose URL no template already owns is
- * built here from its WordPress body, in the site's shell, with its images run
- * through the asset pipeline. Nothing about the designed pages changes — a
- * static route always wins over this one, and the guard below makes that
- * explicit rather than relying on Astro's route priority.
+  *  This closes it. Any page in the pages collection whose URL no template
+ * already owns is built here, in the site's shell, from the same fields the
+ * designed templates read. Nothing about those pages changes — a static route
+ * always wins, and the guard below makes that explicit rather than relying on
+ * Astro's route priority.
  *
- * It is a floor, not a ceiling: generic prose in the right typography. A page
+ * Note there is no post_content to fall back on: vs-content-model.php calls
+ * remove_post_type_support('page', 'editor') on purpose, so a page IS its
+ * fields. Sections, process steps, FAQs and cards are what an editor fills in,
+ * and they are what gets rendered here.
+ *
+ * It is a floor, not a ceiling: the right typography in the right shell. A page
  * that matters still deserves its own template.
  */
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
 import type { GetStaticPaths } from "astro";
+import { getCollection, type CollectionEntry } from "astro:content";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import { wpQuery } from "../lib/wp";
 import { optimizeBodyImages } from "../lib/wp-body-images";
 import "../styles/pages/wp-page.css";
 
-type WpPage = {
-  title: string | null;
-  uri: string | null;
-  content: string | null;
-};
+type PageData = CollectionEntry<"pages">["data"];
 
 /**
  * Astro lifts getStaticPaths out of this frontmatter so it can be called
@@ -38,21 +39,6 @@ type WpPage = {
  * this function needs is therefore declared inside it.
  */
 export const getStaticPaths = (async () => {
-  // No status filter: an unauthenticated WPGraphQL request already returns only
-  // published content, and query-level errors are fatal to the build, so the
-  // fewer arguments this depends on the better.
-  const PAGES_QUERY = `
-    query PagesForCatchAllRoute($first: Int!) {
-      pages(first: $first) {
-        nodes {
-          title
-          uri
-          content
-        }
-      }
-    }
-  `;
-
   /**
    * Every .astro file below a directory, as a path relative to it.
    *
@@ -118,22 +104,17 @@ export const getStaticPaths = (async () => {
     return routes;
   }
 
-  const data = await wpQuery<{ pages: { nodes: WpPage[] } | null }>(
-    PAGES_QUERY,
-    { first: 200 },
-    "pages for catch-all route",
-  );
-
+  const entries = await getCollection("pages");
   const handBuilt = await handBuiltRoutes();
   const claimed = new Set<string>();
 
-  return (data.pages?.nodes ?? []).flatMap((page) => {
-    const uri = page.uri ?? "";
+  return entries.flatMap((entry) => {
+    const raw = entry.data.route;
 
     // No usable URL means there is nothing to build.
-    if (!uri.startsWith("/")) return [];
+    if (!raw.startsWith("/")) return [];
 
-    const route = uri.endsWith("/") ? uri : `${uri}/`;
+    const route = raw.endsWith("/") ? raw : `${raw}/`;
 
     // The home page belongs to index.astro whatever WordPress thinks.
     if (route === "/") return [];
@@ -146,70 +127,179 @@ export const getStaticPaths = (async () => {
     if (claimed.has(route)) return [];
     claimed.add(route);
 
-    const content = (page.content ?? "").trim();
+    // A page with nothing in any field is one that exists to be filled in
+    // later. Publishing a URL with only a heading on it would be worse than
+    // leaving it out, so it is skipped and named in the log.
+    const { sections, processSteps, faqs, cards } = entry.data;
+    const hasCopy =
+      sections.some((s) => s.heading.trim() || s.body.trim()) ||
+      processSteps.length > 0 ||
+      faqs.length > 0 ||
+      cards.length > 0;
 
-    // An empty body means the page exists to feed fields into a hand-built
-    // template, not to be read on its own. Publishing a blank URL would be
-    // worse than leaving it out, so it is skipped and named in the log.
-    if (!content) {
-      console.warn(`[wp-pages] ${route} has no body content — not building it.`);
+    if (!hasCopy) {
+      console.warn(`[wp-pages] ${route} has no content in any field — not building it.`);
       return [];
     }
 
-    return [
-      {
-        params: { slug: route.slice(1, -1) },
-        props: { title: page.title ?? "Untitled", content },
-      },
-    ];
+    return [{ params: { slug: route.slice(1, -1) }, props: { page: entry.data } }];
   });
 }) satisfies GetStaticPaths;
 
 interface Props {
-  title: string;
-  content: string;
+  page: PageData;
 }
 
-const { title, content } = Astro.props;
+const { page } = Astro.props;
 
-// Body images are authored against the CMS host. Rewriting them here downloads
-// each at build time and swaps in a hashed local asset, exactly as the blog
-// does — otherwise a "static" page keeps a runtime dependency on WordPress.
-const bodyHtml = await optimizeBodyImages(content);
+/**
+ * A field's copy as HTML.
+ *
+ * A wysiwyg field arrives as HTML; a plain textarea does not, and handing raw
+ * text to set:html would collapse every paragraph into one. Images inside the
+ * HTML go through the asset pipeline, exactly as the blog's do — otherwise a
+ * "static" page keeps a runtime dependency on WordPress.
+ */
+async function toHtml(value: string): Promise<string> {
+  const copy = value.trim();
+  if (!copy) return "";
 
-// This page has no SEO fields to read: it was never wired to the field group
-// the designed pages use. A description taken from the opening copy beats the
+  if (!copy.includes("<")) {
+    return copy
+      .split(/\n\s*\n/)
+      .map((paragraph) => `<p>${paragraph.trim().replace(/\n/g, "<br />")}</p>`)
+      .join("");
+  }
+
+  return await optimizeBodyImages(copy);
+}
+
+const sections = await Promise.all(
+  page.sections
+    .filter((section) => section.heading.trim() || section.body.trim())
+    .map(async (section) => ({ ...section, html: await toHtml(section.body) })),
+);
+
+const steps = await Promise.all(
+  page.processSteps.map(async (step) => ({ ...step, html: await toHtml(step.body) })),
+);
+
+const faqs = await Promise.all(
+  page.faqs.map(async (faq) => ({ ...faq, html: await toHtml(faq.a) })),
+);
+
+// Cards are grouped by the field array they came from, the same way
+// getPageContent groups them for the designed templates.
+const cardGroups = new Map<string, PageData["cards"]>();
+for (const card of page.cards) {
+  cardGroups.set(card.group, [...(cardGroups.get(card.group) ?? []), card]);
+}
+
+// Editor-managed SEO wins. Falling back to the opening copy beats the
 // site-wide default repeated on every page an editor adds.
-const description = content
-  .replace(/<[^>]+>/g, " ")
-  .replace(/\s+/g, " ")
-  .trim()
-  .slice(0, 155);
+const description =
+  page.seo.description ||
+  sections[0]?.html
+    .replace(/<[^>]+>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 155) ||
+  undefined;
 ---
 
-<BaseLayout title={`${title} | Vivid Smiles Dentistry`} description={description || undefined}>
+<BaseLayout
+  title={page.seo.title || `${page.title} | Vivid Smiles Dentistry`}
+  description={description}
+  noindex={page.seo.noindex}
+  ogImage={page.seo.ogImage || undefined}>
   <div class="wp-page">
     {/* ---------- BREADCRUMB ---------- */}
     <nav class="crumbs" aria-label="Breadcrumb">
       <div class="crumbs-inner">
         <a href="/">Home</a>
         <span class="sep">/</span>
-        <span class="here">{title}</span>
+        <span class="here">{page.title}</span>
       </div>
     </nav>
 
     <main id="main">
+      {/* ---------- HERO ---------- */}
       <header class="wp-page-hero" data-vs-reveal-batch>
         <div class="wrap">
-          <h1 class="vs-h1">{title}</h1>
+          <h1 class="vs-h1">{page.title}</h1>
+          {description && <p class="vs-lede">{description}</p>}
         </div>
       </header>
 
-      <section class="wp-page-body">
+      <div class="wp-page-body">
         <div class="wrap">
-          <div class="wp-page-prose" data-vs-reveal set:html={bodyHtml}></div>
+          {page.tocLinks.length > 0 && (
+            <aside class="wp-page-toc" aria-label="On this page">
+              <span class="wp-page-toc-label">On this page</span>
+              <ul>
+                {page.tocLinks.map((link) => (
+                  <li><a href={link.href}>{link.label}</a></li>
+                ))}
+              </ul>
+            </aside>
+          )}
+
+          {sections.map((section) => (
+            <section class="wp-page-section" id={section.section_id || undefined} data-vs-reveal>
+              {section.eyebrow && <span class="wp-page-eyebrow">{section.eyebrow}</span>}
+              {section.heading && <h2 class="vs-h3">{section.heading}</h2>}
+              {section.html && <div class="wp-page-prose" set:html={section.html}></div>}
+              {section.cta_label && section.cta_href && (
+                <a class="wp-page-cta" href={section.cta_href}>{section.cta_label}</a>
+              )}
+            </section>
+          ))}
+
+          {steps.length > 0 && (
+            <section class="wp-page-section" data-vs-reveal>
+              <ol class="wp-page-steps">
+                {steps.map((step) => (
+                  <li>
+                    {step.tag && <span class="wp-page-step-tag">{step.tag}</span>}
+                    <h3 class="wp-page-step-title">{step.title}</h3>
+                    {step.html && <div class="wp-page-prose" set:html={step.html}></div>}
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
+
+          {Array.from(cardGroups).map(([group, cards]) => (
+            <section class="wp-page-section" data-vs-reveal>
+              <ul class="wp-page-cards" data-group={group}>
+                {cards.map((card) => (
+                  <li>
+                    {card.meta && <span class="wp-page-card-meta">{card.meta}</span>}
+                    <h3 class="wp-page-card-title">
+                      {card.href ? <a href={card.href}>{card.title}</a> : card.title}
+                    </h3>
+                    {card.body && <p>{card.body}</p>}
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+
+          {faqs.length > 0 && (
+            <section class="wp-page-section" data-vs-reveal>
+              <h2 class="vs-h3">Frequently asked questions</h2>
+              <div class="wp-page-faqs">
+                {faqs.map((faq) => (
+                  <details open={faq.open}>
+                    <summary>{faq.q}</summary>
+                    <div class="wp-page-prose" set:html={faq.html}></div>
+                  </details>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
-      </section>
+      </div>
     </main>
   </div>
 </BaseLayout>
