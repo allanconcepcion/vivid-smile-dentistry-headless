@@ -1,0 +1,367 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "trailingSlash": true,
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=31536000; includeSubDomains"
+        },
+        {
+          "key": "X-Frame-Options",
+          "value": "SAMEORIGIN"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        }
+      ]
+    },
+    {
+      "source": "/_assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        },
+        {
+          "key": "Accept-Ranges",
+          "value": "bytes"
+        }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/cosmetic-dentistry/composite-bonding/",
+      "destination": "/cosmetic-dentistry/",
+      "permanent": true
+    },
+    {
+      "source": "/cosmetic-dentistry/composite-bonding",
+      "destination": "/cosmetic-dentistry/",
+      "permanent": true
+    },
+    {
+      "source": "/implant-dentistry/implant-retained-dentures/",
+      "destination": "/implant-dentistry/",
+      "permanent": true
+    },
+    {
+      "source": "/implant-dentistry/implant-retained-dentures",
+      "destination": "/implant-dentistry/",
+      "permanent": true
+    },
+    {
+      "source": "/5-things-to-know-about-baby-teeth/",
+      "destination": "/blog/common-myths-about-dental-care-debunked/",
+      "permanent": true
+    },
+    {
+      "source": "/5-things-to-know-about-baby-teeth",
+      "destination": "/blog/common-myths-about-dental-care-debunked/",
+      "permanent": true
+    },
+    {
+      "source": "/how-cosmetic-dentistry/",
+      "destination": "/blog/how-cosmetic-dentistry-can-boost-your-confidence/",
+      "permanent": true
+    },
+    {
+      "source": "/how-cosmetic-dentistry",
+      "destination": "/blog/how-cosmetic-dentistry-can-boost-your-confidence/",
+      "permanent": true
+    },
+    {
+      "source": "/what-are-veneers-and-how-long-do-they-last/",
+      "destination": "/cosmetic-dentistry/porcelain-veneers/",
+      "permanent": true
+    },
+    {
+      "source": "/what-are-veneers-and-how-long-do-they-last",
+      "destination": "/cosmetic-dentistry/porcelain-veneers/",
+      "permanent": true
+    },
+    {
+      "source": "/are-implant-dentures-better-than-regular-dentures/",
+      "destination": "/blog/are-implant-dentures-better-than-regular-dentures/",
+      "permanent": true
+    },
+    {
+      "source": "/are-implant-dentures-better-than-regular-dentures",
+      "destination": "/blog/are-implant-dentures-better-than-regular-dentures/",
+      "permanent": true
+    },
+    {
+      "source": "/how-long-does-all-on-4-implants-last/",
+      "destination": "/blog/how-long-does-all-on-4-implants-last/",
+      "permanent": true
+    },
+    {
+      "source": "/how-long-does-all-on-4-implants-last",
+      "destination": "/blog/how-long-does-all-on-4-implants-last/",
+      "permanent": true
+    },
+    {
+      "source": "/parker-colorados-annual-dental-makeover-event-vivid-smile-parker-dr-bryce-richardsons-dental-implant-giveaway/",
+      "destination": "/blog/parker-colorados-annual-dental-makeover-event-vivid-smile-parker-dr-bryce-richardsons-dental-implant-giveaway/",
+      "permanent": true
+    },
+    {
+      "source": "/parker-colorados-annual-dental-makeover-event-vivid-smile-parker-dr-bryce-richardsons-dental-implant-giveaway",
+      "destination": "/blog/parker-colorados-annual-dental-makeover-event-vivid-smile-parker-dr-bryce-richardsons-dental-implant-giveaway/",
+      "permanent": true
+    },
+    {
+      "source": "/what-to-expect-at-your-dental-check-up/",
+      "destination": "/blog/what-to-expect-at-your-dental-check-up/",
+      "permanent": true
+    },
+    {
+      "source": "/what-to-expect-at-your-dental-check-up",
+      "destination": "/blog/what-to-expect-at-your-dental-check-up/",
+      "permanent": true
+    },
+    {
+      "source": "/porcelain-veneers-tooth-repair-that-transforms-your-smile/",
+      "destination": "/cosmetic-dentistry/porcelain-veneers/",
+      "permanent": true
+    },
+    {
+      "source": "/porcelain-veneers-tooth-repair-that-transforms-your-smile",
+      "destination": "/cosmetic-dentistry/porcelain-veneers/",
+      "permanent": true
+    },
+    {
+      "source": "/what-to-do-hairline-cracks-in-tooth-treatment-options-that-work/",
+      "destination": "/blog/hairline-cracks-in-tooth-what-are-your-treatment-options/",
+      "permanent": true
+    },
+    {
+      "source": "/what-to-do-hairline-cracks-in-tooth-treatment-options-that-work",
+      "destination": "/blog/hairline-cracks-in-tooth-what-are-your-treatment-options/",
+      "permanent": true
+    },
+    {
+      "source": "/do-dental-implants-hurt/",
+      "destination": "/blog/do-dental-implants-hurt-what-to-expect-before-during-and-after-treatment/",
+      "permanent": true
+    },
+    {
+      "source": "/do-dental-implants-hurt",
+      "destination": "/blog/do-dental-implants-hurt-what-to-expect-before-during-and-after-treatment/",
+      "permanent": true
+    },
+    {
+      "source": "/how-much-do-veneers-cost/",
+      "destination": "/blog/how-much-do-veneers-cost/",
+      "permanent": true
+    },
+    {
+      "source": "/how-much-do-veneers-cost",
+      "destination": "/blog/how-much-do-veneers-cost/",
+      "permanent": true
+    },
+    {
+      "source": "/dental-implant-cost-what-you-need-to-know-before-starting-treatment/",
+      "destination": "/blog/dental-implant-cost-what-you-need-to-know-before-starting-treatment/",
+      "permanent": true
+    },
+    {
+      "source": "/dental-implant-cost-what-you-need-to-know-before-starting-treatment",
+      "destination": "/blog/dental-implant-cost-what-you-need-to-know-before-starting-treatment/",
+      "permanent": true
+    },
+    {
+      "source": "/i-want-all-new-teeth-how-dental-implants-can-replace-all-your-teeth/",
+      "destination": "/blog/i-want-all-new-teeth-how-dental-implants-can-replace-all-your-teeth/",
+      "permanent": true
+    },
+    {
+      "source": "/i-want-all-new-teeth-how-dental-implants-can-replace-all-your-teeth",
+      "destination": "/blog/i-want-all-new-teeth-how-dental-implants-can-replace-all-your-teeth/",
+      "permanent": true
+    },
+    {
+      "source": "/the-best-type-of-dental-veneers-the-different-types-of-veneers/",
+      "destination": "/blog/the-best-type-of-dental-veneers-the-different-types-of-veneers/",
+      "permanent": true
+    },
+    {
+      "source": "/the-best-type-of-dental-veneers-the-different-types-of-veneers",
+      "destination": "/blog/the-best-type-of-dental-veneers-the-different-types-of-veneers/",
+      "permanent": true
+    },
+    {
+      "source": "/invisalign/",
+      "destination": "/cosmetic-dentistry/clear-aligners/",
+      "permanent": true
+    },
+    {
+      "source": "/invisalign",
+      "destination": "/cosmetic-dentistry/clear-aligners/",
+      "permanent": true
+    },
+    {
+      "source": "/veneers/",
+      "destination": "/cosmetic-dentistry/porcelain-veneers/",
+      "permanent": true
+    },
+    {
+      "source": "/veneers",
+      "destination": "/cosmetic-dentistry/porcelain-veneers/",
+      "permanent": true
+    },
+    {
+      "source": "/emergency-dental-care-in-parker-co/",
+      "destination": "/emergency-dentistry/",
+      "permanent": true
+    },
+    {
+      "source": "/emergency-dental-care-in-parker-co",
+      "destination": "/emergency-dentistry/",
+      "permanent": true
+    },
+    {
+      "source": "/dental-implants-parker-co/",
+      "destination": "/implant-dentistry/",
+      "permanent": true
+    },
+    {
+      "source": "/dental-implants-parker-co",
+      "destination": "/implant-dentistry/",
+      "permanent": true
+    },
+    {
+      "source": "/full-mouth-all-on-x-dental-implants/",
+      "destination": "/implant-dentistry/full-mouth-dental-implants/",
+      "permanent": true
+    },
+    {
+      "source": "/full-mouth-all-on-x-dental-implants",
+      "destination": "/implant-dentistry/full-mouth-dental-implants/",
+      "permanent": true
+    },
+    {
+      "source": "/implant-dentures/",
+      "destination": "/implant-dentistry/",
+      "permanent": true
+    },
+    {
+      "source": "/implant-dentures",
+      "destination": "/implant-dentistry/",
+      "permanent": true
+    },
+    {
+      "source": "/dr-bryce-richardson/",
+      "destination": "/about-us/",
+      "permanent": true
+    },
+    {
+      "source": "/dr-bryce-richardson",
+      "destination": "/about-us/",
+      "permanent": true
+    },
+    {
+      "source": "/meet-the-team/",
+      "destination": "/about-us/",
+      "permanent": true
+    },
+    {
+      "source": "/meet-the-team",
+      "destination": "/about-us/",
+      "permanent": true
+    },
+    {
+      "source": "/patient-stories-education/",
+      "destination": "/patient-testimonials/",
+      "permanent": true
+    },
+    {
+      "source": "/patient-stories-education",
+      "destination": "/patient-testimonials/",
+      "permanent": true
+    },
+    {
+      "source": "/book-now/",
+      "destination": "/contact/",
+      "permanent": true
+    },
+    {
+      "source": "/book-now",
+      "destination": "/contact/",
+      "permanent": true
+    },
+    {
+      "source": "/thank-you",
+      "destination": "/thank-you/",
+      "permanent": true
+    },
+    {
+      "source": "/implant-dentistry/all-on-4-dental-implants/",
+      "destination": "/implant-dentistry/all-on-4-single-arch/",
+      "permanent": true
+    },
+    {
+      "source": "/implant-dentistry/all-on-4-dental-implants",
+      "destination": "/implant-dentistry/all-on-4-single-arch/",
+      "permanent": true
+    },
+    {
+      "source": "/all-on-4-dental-implants/",
+      "destination": "/implant-dentistry/all-on-4-single-arch/",
+      "permanent": true
+    },
+    {
+      "source": "/all-on-4-dental-implants",
+      "destination": "/implant-dentistry/all-on-4-single-arch/",
+      "permanent": true
+    },
+    {
+      "source": "/cosmetic-dentistry-lp-1/",
+      "destination": "/cosmetic-dentistry-lp/",
+      "permanent": true
+    },
+    {
+      "source": "/cosmetic-dentistry-lp-1",
+      "destination": "/cosmetic-dentistry-lp/",
+      "permanent": true
+    },
+    {
+      "source": "/blog/porcelain-veneers-tooth-repair-that-transforms-your-smile/",
+      "destination": "/cosmetic-dentistry/porcelain-veneers/",
+      "permanent": true
+    },
+    {
+      "source": "/blog/porcelain-veneers-tooth-repair-that-transforms-your-smile",
+      "destination": "/cosmetic-dentistry/porcelain-veneers/",
+      "permanent": true
+    },
+    {
+      "source": "/blog/what-are-veneers-and-how-long-do-they-last/",
+      "destination": "/cosmetic-dentistry/porcelain-veneers/",
+      "permanent": true
+    },
+    {
+      "source": "/blog/what-are-veneers-and-how-long-do-they-last",
+      "destination": "/cosmetic-dentistry/porcelain-veneers/",
+      "permanent": true
+    },
+    {
+      "source": "/before-and-afters/",
+      "destination": "/smile-gallery/",
+      "permanent": true
+    },
+    {
+      "source": "/before-and-afters",
+      "destination": "/smile-gallery/",
+      "permanent": true
+    }
+  ]
+}

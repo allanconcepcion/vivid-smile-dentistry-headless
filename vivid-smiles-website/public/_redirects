@@ -1,3 +1,6 @@
+# NOTE: Netlify/Cloudflare syntax. Vercel does NOT read this file.
+#       vercel.json is generated from it — run `npm run vercel:config`
+#       after editing, or the deployed redirects will not change.
 # Redirect rules, applied by the host before its own 404 fallback.
 #
 # Syntax (Netlify/Cloudflare):  <from-path>  <to-path>  <status>

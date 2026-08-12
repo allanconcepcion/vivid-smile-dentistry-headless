@@ -1,3 +1,6 @@
+# NOTE: Netlify/Cloudflare syntax. Vercel does NOT read this file.
+#       vercel.json is generated from it — run `npm run vercel:config`
+#       after editing, or the deployed headers will not change.
 # Long-cache hashed assets and video.
 # Astro copies public/_headers to dist/_headers at build time.
 

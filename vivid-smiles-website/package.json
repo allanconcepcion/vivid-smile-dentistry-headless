@@ -11,7 +11,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "check": "astro check && astro build"
+    "check": "astro check && astro build",
+    "vercel:config": "node scripts/build-vercel-config.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.2",
