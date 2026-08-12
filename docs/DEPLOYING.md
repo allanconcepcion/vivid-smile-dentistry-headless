@@ -19,13 +19,20 @@ Vercel build ──► static HTML ──► visitors
 
 ## Order of operations
 
-### 1. Host WordPress first
+### 1. Host WordPress first — DONE
 
-Until this exists, every Vercel deployment fails at the content-loading step.
+Live at `https://1230613.us28.myftpupload.com` (GoDaddy Managed WordPress,
+temporary hostname). All content migrated: 14 posts, 33 pages, 20 testimonials,
+practice settings, menus, and the custom `vsRoute` / `vsSeo` fields.
 
-Any host that runs WordPress works. Give it its own hostname so it is never
-confused with the public site — `cms.vividsmilesdentistry.com` is the
-convention this repo assumes.
+Two things still to do on that host:
+
+1. **Set `VS_FRONTEND_URL` in `wp-config.php`** once the site has a public URL.
+   Until then the CMS front end serves WordPress rather than redirecting — the
+   safe default. Deploy the current `cms/mu-plugins/` first: an older copy is on
+   the host that redirects visitors to `http://localhost:4321`.
+2. **Move to a permanent hostname** (`cms.vividsmilesdentistry.com`) before
+   launch, and update `WP_GRAPHQL_ENDPOINT` plus `image.remotePatterns`.
 
 Then:
 
@@ -79,7 +86,11 @@ repository root.
 
 | Name | Value | Environments |
 | --- | --- | --- |
-| `WP_GRAPHQL_ENDPOINT` | `https://cms.vividsmilesdentistry.com/graphql` | Production, Preview |
+| `WP_GRAPHQL_ENDPOINT` | `https://1230613.us28.myftpupload.com/graphql` | Production, Preview |
+
+Change this to `https://cms.vividsmilesdentistry.com/graphql` when the CMS moves
+to its permanent hostname, and add that hostname to `image.remotePatterns` in
+`astro.config.mjs` at the same time.
 
 This is the only variable the build needs. Without it the build fails
 immediately with a message saying so, rather than publishing an empty site.
@@ -120,6 +131,26 @@ Without it the two disagree about the canonical form of every URL, producing
 redirect chains and duplicate-content signals.
 
 ---
+
+## The CDN warm-up step, and why it exists
+
+`npm run build` runs `scripts/warm-media-cache.mjs` first, via `prebuild`.
+
+Astro downloads every remote image at build time, at high concurrency. The CMS
+sits behind Cloudflare, and a few hundred rapid requests come back **429 with
+`cf-mitigated: challenge`** — bot protection, not rate limiting. It fires even on
+files already cached at the edge, so caching alone does not avoid it, and a
+cold build failed on a different image every run.
+
+The warm-up requests each of the 131 media files once at concurrency 4 with
+backoff. By the time Astro's high-concurrency phase runs, every URL is a cache
+HIT and the origin is never touched. A cold build then completes in ~20s.
+
+It must run **inside** the build: Cloudflare caches per datacenter, so warming
+from a laptop does nothing for the colo a CI build runs in. Failures there are
+non-fatal — Astro retries anything unwarmed.
+
+If image builds start failing after a host change, check this first.
 
 ## Build-time failure modes
 
