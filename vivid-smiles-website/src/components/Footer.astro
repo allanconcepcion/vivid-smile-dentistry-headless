@@ -15,7 +15,7 @@ import {
   addressState,
   addressZip,
 } from "../data/contact";
-import { officeHours } from "../data/hours";
+import { officeHours, openSchedule } from "../data/hours";
 ---
 
 <footer class="footer">
@@ -96,7 +96,7 @@ import { officeHours } from "../data/hours";
           </span>
         ))}
       </div>
-      <span class="open-now" data-vs-status hidden>
+      <span class="open-now" data-vs-status data-schedule={JSON.stringify(openSchedule)} hidden>
         <span class="status-label">Open Now</span>
       </span>
     </div>
@@ -323,9 +323,12 @@ import { officeHours } from "../data/hours";
 </style>
 
 <script>
-  /* Schedule sourced from src/data/hours.ts. Re-checks every minute so a tab
-     left open across the open/close boundary updates without a reload. */
-  import { isOpenNow } from "../data/hours";
+  /* The schedule is serialized into data-schedule by the markup above, and the
+     evaluator is a pure module. Importing src/data/hours.ts here instead would
+     drag the build-time WPGraphQL client into this browser bundle. Re-checks
+     every minute so a tab left open across the open/close boundary updates
+     without a reload. */
+  import { isOpenNow, type OpenSchedule } from "../lib/open-now";
 
   (function () {
     const el = document.querySelector<HTMLElement>("[data-vs-status]");
@@ -333,9 +336,17 @@ import { officeHours } from "../data/hours";
     const labelEl = el.querySelector<HTMLElement>(".status-label");
     if (!labelEl) return;
 
+    let schedule: OpenSchedule = [];
+    try {
+      schedule = JSON.parse(el.dataset.schedule || "[]");
+    } catch {
+      return;
+    }
+    if (!schedule.length) return;
+
     let last: boolean | null = null;
     function paint() {
-      const open = isOpenNow();
+      const open = isOpenNow(schedule);
       if (open === last) return;
       last = open;
       el!.classList.toggle("is-closed", !open);
