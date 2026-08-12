@@ -58,6 +58,10 @@ export default defineConfig({
     remotePatterns: [
       { protocol: 'http', hostname: 'localhost', port: '8888', pathname: '/wp-content/uploads/**' },
       { protocol: 'https', hostname: 'cms.vividsmilesdentistry.com', pathname: '/wp-content/uploads/**' },
+      // GoDaddy Managed WordPress temporary hostname. Keep until the CMS moves
+      // to its permanent subdomain — an unauthorized host means every image
+      // fails the build rather than degrading quietly.
+      { protocol: 'https', hostname: '1230613.us28.myftpupload.com', pathname: '/wp-content/uploads/**' },
     ],
   },
   vite: {

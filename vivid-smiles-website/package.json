@@ -12,7 +12,9 @@
     "preview": "astro preview",
     "astro": "astro",
     "check": "astro check && astro build",
-    "vercel:config": "node scripts/build-vercel-config.mjs"
+    "vercel:config": "node scripts/build-vercel-config.mjs",
+    "prebuild": "node scripts/warm-media-cache.mjs",
+    "warm:media": "node scripts/warm-media-cache.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.2",

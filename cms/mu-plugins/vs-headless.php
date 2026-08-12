@@ -26,12 +26,18 @@ if ( ! defined( 'ABSPATH' ) ) {
  *
  * Override per-environment with the VS_FRONTEND_URL constant in wp-config.
  */
-function frontend_url(): string {
+function frontend_url(): ?string {
 	if ( defined( 'VS_FRONTEND_URL' ) && VS_FRONTEND_URL ) {
 		return rtrim( (string) VS_FRONTEND_URL, '/' );
 	}
 
-	return 'http://localhost:4321';
+	// No fallback, deliberately. This used to default to http://localhost:4321,
+	// which is correct locally and actively broken anywhere else: deployed to a
+	// real host without the constant set, every front-end request 302'd visitors
+	// to a dead localhost address. Returning null instead serves WordPress
+	// normally — still noindexed and Disallow: / — which is a harmless outcome,
+	// unlike a redirect to a machine that is not theirs.
+	return null;
 }
 
 /**
@@ -43,7 +49,7 @@ function frontend_url(): string {
  */
 function allowed_origins(): array {
 	$origins = [
-		'http://localhost:4321',   // astro dev
+		'http://localhost:4321',   // astro dev (local only; harmless elsewhere)
 		'http://127.0.0.1:4321',
 		'http://localhost:4322',   // astro dev, fallback port
 		'https://vividsmilesdentistry.com',
@@ -104,7 +110,14 @@ function redirect_frontend(): void {
 		return;
 	}
 
-	wp_safe_redirect( frontend_url() . $uri, 302 );
+	$frontend = frontend_url();
+
+	// Unconfigured: serve WordPress rather than redirect somewhere wrong.
+	if ( $frontend === null ) {
+		return;
+	}
+
+	wp_safe_redirect( $frontend . $uri, 302 );
 	exit;
 }
 add_action( 'template_redirect', __NAMESPACE__ . '\\redirect_frontend', 0 );
@@ -114,7 +127,13 @@ add_action( 'template_redirect', __NAMESPACE__ . '\\redirect_frontend', 0 );
  * here is redirecting off-host, so the front-end host is allowlisted.
  */
 function allow_frontend_host( array $hosts ): array {
-	$host = wp_parse_url( frontend_url(), PHP_URL_HOST );
+	$frontend = frontend_url();
+
+	if ( $frontend === null ) {
+		return $hosts;
+	}
+
+	$host = wp_parse_url( $frontend, PHP_URL_HOST );
 
 	if ( is_string( $host ) && $host !== '' ) {
 		$hosts[] = $host;
