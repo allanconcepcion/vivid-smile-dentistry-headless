@@ -11,7 +11,9 @@
     "destroy": "wp-env destroy",
     "clean": "wp-env clean all",
     "logs": "wp-env logs all",
-    "cli": "wp-env run cli wp"
+    "cli": "wp-env run cli wp",
+    "backup": "bash bin/backup.sh",
+    "restore": "bash bin/restore.sh"
   },
   "devDependencies": {
     "@wordpress/env": "^10.30.0"

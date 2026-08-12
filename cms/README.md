@@ -108,6 +108,38 @@ records its source filename, so re-running updates rather than duplicating.
 npm run import:reviews
 ```
 
+## Content durability
+
+WordPress content lives in a Docker volume, which `wp-env destroy` deletes.
+Two things keep it safe and portable:
+
+- **`uploads/`** — `wp-content/uploads` is mapped to the host, so media sits in
+  this directory as ordinary files rather than inside Docker.
+- **`backup/database.sql`** — written by `npm run backup`.
+
+Together those are a complete, portable copy of the site. Back up before
+destroying anything, and after any editing session worth keeping:
+
+```bash
+npm run backup     # -> backup/database.sql
+npm run restore    # <- backup/database.sql
+```
+
+`restore` also accepts a target URL, which is what makes the same dump usable
+against a real hostname when the site goes online:
+
+```bash
+bash bin/restore.sh https://cms.vividsmilesdentistry.com
+```
+
+The URL rewrite runs through `wp search-replace`, not SQL. WordPress stores
+serialized PHP in the options table, where string lengths are encoded alongside
+the values — a plain find/replace on the dump corrupts every serialized option
+whose URL changes length.
+
+This has been verified end to end: back up, delete records, restore, rebuild,
+confirm rendering.
+
 ## Commands
 
 | Command | What |
@@ -116,6 +148,8 @@ npm run import:reviews
 | `npm run stop` | Stop the containers |
 | `npm run setup` | Re-provision plugins and options |
 | `npm run import:reviews` | Import `src/content/reviews/*.md` |
+| `npm run backup` | Export the database to `backup/database.sql` |
+| `npm run restore` | Restore from `backup/database.sql` |
 | `npm run cli -- <args>` | Run WP-CLI, e.g. `npm run cli -- plugin list` |
 | `npm run logs` | Tail container logs |
 | `npm run destroy` | Delete the containers **and the database** |

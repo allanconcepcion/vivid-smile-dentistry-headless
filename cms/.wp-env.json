@@ -14,6 +14,8 @@
   },
   "mappings": {
     "wp-content/mu-plugins": "./mu-plugins",
+    "wp-content/uploads": "./uploads",
+    "wp-content/vs-backup": "./backup",
     "wp-content/vs-import/content": "../vivid-smiles-website/src/content",
     "wp-content/vs-import/assets": "../vivid-smiles-website/src/assets",
     "wp-content/vs-import/bin": "./import"

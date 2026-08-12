@@ -60,6 +60,36 @@ The `reviews` collection is fully WordPress-backed: edited in wp-admin under
 **Testimonials**, fetched by `src/loaders/reviews.ts`, and validated against the
 unchanged Zod schema in `src/content.config.ts`. No consuming component changed.
 
+## This runs entirely on your machine
+
+Nothing here depends on a hosted service. WordPress runs in Docker locally,
+Astro reads it over `localhost` at build time, and the built site is plain
+static files. You can work offline, and no client content leaves your machine.
+
+Content is kept portable so that going online later is a move, not a rebuild:
+
+| What | Where | Survives `wp-env destroy` |
+| --- | --- | --- |
+| Posts, reviews, settings | `cms/backup/database.sql` (`npm run backup`) | Yes |
+| Media uploads | `cms/uploads/` — mapped to the host, not Docker | Yes |
+| Content model, plugins | `cms/mu-plugins/`, `cms/bin/setup.sh` | Yes — declared in code |
+
+### Going online later
+
+Nothing needs rewriting. The sequence is:
+
+1. Provision WordPress at `cms.vividsmilesdentistry.com`.
+2. Copy `cms/uploads/` to the host and restore the database against it:
+   `bash cms/bin/restore.sh https://cms.vividsmilesdentistry.com`
+3. Deploy the `mu-plugins/` directory and run `bin/setup.sh` against the host.
+4. Set `WP_GRAPHQL_ENDPOINT` in the Vercel project to the new hostname.
+5. Add `image.remotePatterns` for that hostname to `astro.config.mjs` so Astro
+   downloads and optimizes WordPress media at build time.
+6. Add a Vercel deploy hook and fire it from WordPress on publish.
+
+Until step 1 exists, a hosted preview is not possible: the Astro build fetches
+content at build time, so a deployment cannot reach a `localhost` CMS.
+
 ## Known constraints
 
 **ACF Pro is required to model page content.** Repeater, Flexible Content,
