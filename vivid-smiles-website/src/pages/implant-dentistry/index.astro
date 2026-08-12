@@ -26,14 +26,11 @@ import "../../styles/pages/implant-dentistry.css";
 // marketing without showing the actual practice.
 // TODO: consider an editorial lifestyle hero (mature couple at
 // dinner — Phase-2 prompt #2) if the page wants a non-clinical mood instead.
-import imgHero from "../../assets/images/procedures/implant-prosthesis-underside.webp";
 // "What Are Dental Implants" — the hero already carries the real Yomi-arm
 // procedure shot, so this slot uses a real patient portrait instead of a
 // second clinical frame. (Its alt used to describe a Yomi planning system
 // that the image had not shown for two revisions.)
-import imgWhat from "../../assets/images/people/real/woman-glasses-cream-blazer.webp";
 // Formal portrait for the doctor feature — Bryce only (SEO copy doesn't name Dr. Annie on this page).
-import imgDrBryce from "../../assets/images/team/dr-bryce-richardson.webp";
 
 // Service-tile imagery. No longer 1:1 with the /services/ hub — full-mouth and
 // bone-grafting use different real portraits here so the same face doesn't
@@ -41,12 +38,7 @@ import imgDrBryce from "../../assets/images/team/dr-bryce-richardson.webp";
 // a prosthesis use real clinical/lab photography rather than a patient face,
 // which also keeps a real person from appearing to front a treatment they
 // may not have had.
-import imgSingleTooth from "../../assets/images/procedures/implant-prosthesis-arch-detail.webp";
-import imgFullMouth from "../../assets/images/people/real/woman-colorado-lakeside.webp";
-import imgAllOn4 from "../../assets/images/people/real/man-bearded-natural-smile.webp";
-import imgBoneGrafting from "../../assets/images/people/real/woman-office-portrait.webp";
-import imgSinusLift from "../../assets/images/facility/operating-room.webp";
-import { getPageContent } from '../../lib/page-content';
+import { getPageContent, schemaImageUrl } from '../../lib/page-content';
 // Six FAQs verbatim from SEO copy. set:html lets inline <a class="vs-link">
 // render on the answers that benefit from internal linking.
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Dental Implants in Parker, CO).
@@ -55,38 +47,39 @@ import { getPageContent } from '../../lib/page-content';
 const { tocLinks, processSteps, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
 
 
+
 const services = [
   {
     href: "/implant-dentistry/single-tooth-dental-implants/",
-    img: imgSingleTooth,
+    img: image("imgSingleTooth"),
     alt: "Close-up of an implant-supported restoration on a dental model",
     title: "Single Tooth Implants",
     desc: "Replace one missing tooth without altering adjacent teeth. Includes consultation, full-mouth X-ray, computer-guided placement, abutment, and same-day in-house crown fabrication.",
   },
   {
     href: "/implant-dentistry/full-mouth-dental-implants/",
-    img: imgFullMouth,
+    img: image("imgFullMouth"),
     alt: "Smiling woman seated beside a Colorado mountain lake",
     title: "Full Mouth Implants",
     desc: "Comprehensive full-arch implant restoration using multiple implants per jaw for added stability and a precision-fit prosthesis.",
   },
   {
     href: "/implant-dentistry/all-on-4-single-arch/",
-    img: imgAllOn4,
+    img: image("imgAllOn4"),
     alt: "Smiling man photographed at the Vivid Smiles Dentistry neon smile wall in Parker, CO",
     title: "All-on-4 Single Arch",
     desc: "Fixed-arch restoration replacing every tooth in one jaw on four titanium implants — with same-day provisional teeth and a precision-milled zirconia prosthesis.",
   },
   {
     href: "/implant-dentistry/bone-grafting/",
-    img: imgBoneGrafting,
+    img: image("imgBoneGrafting"),
     alt: "Smiling woman photographed inside the Vivid Smiles Dentistry office in Parker, CO",
     title: "Bone Grafting",
     desc: "Rebuilds the implant site for patients with bone loss; material placed and a three-to-six-month healing window before implant placement.",
   },
   {
     href: "/implant-dentistry/sinus-lift/",
-    img: imgSinusLift,
+    img: image("imgSinusLift"),
     alt: "A treatment room at Vivid Smiles Dentistry in Parker, CO",
     title: "Sinus Lift",
     desc: "Addresses limited bone height in the upper jaw by adding material to the sinus floor, supporting upper-jaw implant placement when CBCT shows insufficient volume.",
@@ -205,6 +198,13 @@ const ledger = [
   { n: "4", h: "Stable systemic health",     p: "Well-controlled conditions such as diabetes do not disqualify a candidate; uncontrolled conditions are reviewed first.", tag: "Systemic OK" },
 ];
 
+
+// Structured data must reference this site's optimized image, not the
+// WordPress media URL — the CMS host is noindexed and is not where
+// visitors are sent.
+const schemaImages: Record<string, string> = Object.fromEntries(
+  await Promise.all(services.map(async (s) => [s.title, await schemaImageUrl(s.img, Astro.site)])),
+);
 
 ---
 
@@ -348,7 +348,7 @@ const ledger = [
             <a class="svc-card compact" href={s.href} data-vs-arrow>
               <div class="svc-img">
                 <Image
-                  src={s.img}
+                  src={s.img.url} width={s.img.width} height={s.img.height}
                   alt={s.alt}
                   widths={[420, 640, 900]}
                   sizes="(max-width: 640px) 100vw, (max-width: 1100px) 50vw, 33vw"
@@ -657,7 +657,7 @@ const ledger = [
             "@type": "MedicalProcedure",
             "name": s.title,
             "url": new URL(s.href, Astro.site).href,
-            "image": new URL(s.img.src, Astro.site).href,
+            "image": schemaImages[s.title],
           },
         })),
       },

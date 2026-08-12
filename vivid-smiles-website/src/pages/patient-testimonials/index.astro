@@ -30,30 +30,18 @@ const reviews = (await getCollection("reviews"))
   .sort((a, b) => +b.data.date - +a.data.date);
 
 // Patient story portraits (same 3 as home)
-import storyJames from "../../assets/images/video-stories/james.webp";
-import storyChanel from "../../assets/images/video-stories/chanel-patient-story.webp";
-import storyJosh from "../../assets/images/video-stories/josh.webp";
 
 // Cosmetic veneer story thumbnails — vertical 9:16 sourced from each short's
 // oar2.jpg endpoint. First three mirror the home page; last four are exclusive
 // to this page.
-import veneerMore from "../../assets/images/video-stories/veneers-story-more-than-a-smile.webp";
-import veneerConfidence from "../../assets/images/video-stories/veneers-story-confidence-restored.webp";
-import veneerLength from "../../assets/images/video-stories/veneers-story-length-and-balance.webp";
-import veneerFromTo from "../../assets/images/video-stories/veneers-story-from-veneers-to-allon-x.webp";
-import veneerBonding from "../../assets/images/video-stories/veneers-story-bonding-vs-veneers.webp";
-import veneerAnneMarie from "../../assets/images/video-stories/veneers-story-anne-marie.webp";
-import veneerPrep from "../../assets/images/video-stories/veneers-story-no-prep-vs-minimal-prep.webp";
 
 // Featured story visual. Not a Wayne portrait: until a real one is sourced
 // from the practice, the page shows a real full-arch restoration from the
 // practice's own lab work, per the "never fabricate practice content" rule.
 // (This slot previously held a generated portrait of a man, which read as a
 // stand-in for Wayne himself — exactly what that rule exists to prevent.)
-import featuredImg from "../../assets/images/procedures/full-arch-restoration-model.webp";
 
 // Hero image — Vivid Smiles team in the Parker studio.
-import heroImg from "../../assets/images/team/vivid-smiles-team-candid.webp";
 import { getPageContent } from '../../lib/page-content';
 // Section copy is edited in WordPress (Pages -> this page -> Section copy).
 const { section, image, seo } = await getPageContent(Astro.url.pathname);

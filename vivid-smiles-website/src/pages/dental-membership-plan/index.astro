@@ -19,13 +19,10 @@ import { phoneHref, phoneLabel, phoneE164 } from "../../data/contact";
 // (rwg_token / gei) the user supplied so click-source survives the redirect.
 const joinHref = "https://app.nexhealth.com/appt/vivid-smiles?gei=SNOCZ9DYI4iz0PEP4pGiwAE&hl=en-US&lid=135014&rwg_token=AJKvS9UCpCLqLfgKhJQnz7rWoeDCbQ7_4jB31UUUncy7-eeuYYpuTjjp2NDySX2gPYqlQfi7W1lrikNOJ7pN5SiEvTSWaWjcYQ%3D%3D";
 
-import heroImg from "../../assets/images/team/vivid-smiles-team-candid.webp";
-import step1Img from "../../assets/images/people/real/patient-at-reception-check-in.webp";
-import step2Img from "../../assets/images/procedures/hygienist-polishing-teeth.webp";
-import step3Img from "../../assets/images/facility/waiting-room-lounge-with-neon-smile.webp";
 import { getPageContent } from '../../lib/page-content';
 // Section copy is edited in WordPress (Pages -> this page -> Section copy).
 const { section, image, seo } = await getPageContent(Astro.url.pathname);
+
 
 
 const storyBullets = [
@@ -43,7 +40,7 @@ const processSteps = [
     title: "Enroll",
     body: "Pay the annual fee online, over the phone with our front desk, or in person at the office. We process the membership on the spot. No medical questions, no underwriting, no waiting period.",
     label: "Step One",
-    img: step1Img,
+    img: image("step1Img"),
     alt: "Front-desk team member at Vivid Smiles",
   },
   {
@@ -52,7 +49,7 @@ const processSteps = [
     title: "Come in",
     body: "Book your two yearly cleanings and exams — already paid for. For anything beyond preventive — fillings, veneers, Invisalign, implants — we apply the 15% member discount automatically at checkout. Nothing to file.",
     label: "Step Two",
-    img: step2Img,
+    img: image("step2Img"),
     alt: "Hygienist polishing a patient's teeth during a cleaning",
   },
   {
@@ -61,7 +58,7 @@ const processSteps = [
     title: "Renew",
     body: "Twelve months later we send a reminder, you decide whether to renew, and if you do, everything starts again. No automatic charges without your confirmation. Cancel any time — unused months aren't billed.",
     label: "Step Three",
-    img: step3Img,
+    img: image("step3Img"),
     alt: "The Vivid Smiles waiting lounge in Parker, CO",
   },
 ];
@@ -213,7 +210,7 @@ const faqs = [
                 <div class="pstep-head">
                   <div class="pstep-num">{s.num}</div>
                   <div class="pstep-thumb">
-                    <Image src={s.img} alt={s.alt} widths={[120, 200]} sizes="84px" />
+                    <Image src={s.img.url} width={s.img.width} height={s.img.height} alt={s.alt} widths={[120, 200]} sizes="84px" />
                   </div>
                 </div>
                 <span class="pstep-tagline">{s.tagline}</span>

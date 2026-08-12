@@ -38,30 +38,20 @@ import { getSmiles } from "../lib/smiles";
 import { phoneHref, phoneLabel } from "../data/contact";
 
 // Doctor portrait (hero attribution chip + philosophy section)
-import imgRichardson from "../assets/images/team/dr-bryce-richardson.webp";
 
 // Hero proof trio shown above the fold — a warm doctor+patient consult shot on
 // top (also the single mobile hero), then the welcoming lounge and a gentle
 // cleaning. Distinct from the auto-loaded smile gallery marquee below.
-import imgConsult from "../assets/images/people/real/woman-glasses-cream-blazer.webp";
-import imgLounge from "../assets/images/facility/waiting-room-lounge-with-neon-smile.webp";
-import imgHygienist from "../assets/images/procedures/hygienist-polishing-teeth.webp";
 
 // Closing band — Dr. Richardson at the neon smile wall.
-import imgDrPortrait from "../assets/images/team/dr-bryce-richardson-neon-portrait.webp";
 
 // Accredited-by marquee logos — match the veneers/cosmetic LP composition.
-import logoAACD from "../assets/images/credentials/american-academy-of-cosmetic-dentistry.webp";
-import logoAAID from "../assets/images/credentials/american-academy-of-implant-dentistry.webp";
-import logoFAM from "../assets/images/credentials/full-arch-masters.webp";
-import logoYomi from "../assets/images/facility/yomi-robotics.webp";
-import logoADA from "../assets/images/credentials/american-dental-association.webp";
-import logoGoogle from "../assets/images/credentials/google-reviews.png";
 import { getPageContent } from '../lib/page-content';
 // faqs is edited in WordPress (Pages -> General Lp).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
 const { faqs, image, seo } = await getPageContent(Astro.url.pathname);
+
 
 
 // ── Smile gallery — auto-loaded from src/assets/images/smiles/.
@@ -72,9 +62,9 @@ const galleryTrack = [...galleryTiles, ...galleryTiles];
 // doctor+patient consult shot — flagged mobileHero so it is the single image
 // shown on ≤991px (above the copy); the other two are hidden there.
 const heroCases = [
-  { src: imgConsult, alt: "Smiling woman photographed at Vivid Smiles Dentistry in Parker, CO", label: "Comfortable, honest care", mobileHero: true },
-  { src: imgLounge, alt: "The welcoming Vivid Smiles waiting lounge in Parker, Colorado", label: "Modern, welcoming office" },
-  { src: imgHygienist, alt: "A Vivid Smiles hygienist performing a gentle dental cleaning", label: "Gentle cleanings & exams" },
+  { src: image("imgConsult"), alt: "Smiling woman photographed at Vivid Smiles Dentistry in Parker, CO", label: "Comfortable, honest care", mobileHero: true },
+  { src: image("imgLounge"), alt: "The welcoming Vivid Smiles waiting lounge in Parker, Colorado", label: "Modern, welcoming office" },
+  { src: image("imgHygienist"), alt: "A Vivid Smiles hygienist performing a gentle dental cleaning", label: "Gentle cleanings & exams" },
 ];
 
 // ── Reviews — surface general/family-leaning reviews for the marquee, then top
@@ -144,12 +134,12 @@ const howSteps = [
 ];
 
 const trustBar = [
-  { logo: logoAACD, alt: "American Academy of Cosmetic Dentistry", title: "AACD", sub: "Member Dentist" },
-  { logo: logoAAID, alt: "American Academy of Implant Dentistry", title: "AAID", sub: "Implant Trained" },
-  { logo: logoFAM,  alt: "Full Arch Masters", title: "Full Arch Masters", sub: "Clinical Mentor" },
-  { logo: logoYomi, alt: "Yomi Robotics", title: "Yomi Robotics", sub: "Certified Surgeon" },
-  { logo: logoADA,  alt: "American Dental Association", title: "ADA", sub: "American Dental Association" },
-  { logo: logoGoogle, alt: "Google Reviews", title: "5.0 · 300+ Reviews", sub: "Google Verified" },
+  { logo: image("logoAACD"), alt: "American Academy of Cosmetic Dentistry", title: "AACD", sub: "Member Dentist" },
+  { logo: image("logoAAID"), alt: "American Academy of Implant Dentistry", title: "AAID", sub: "Implant Trained" },
+  { logo: image("logoFAM"),  alt: "Full Arch Masters", title: "Full Arch Masters", sub: "Clinical Mentor" },
+  { logo: image("logoYomi"), alt: "Yomi Robotics", title: "Yomi Robotics", sub: "Certified Surgeon" },
+  { logo: image("logoADA"),  alt: "American Dental Association", title: "ADA", sub: "American Dental Association" },
+  { logo: image("logoGoogle"), alt: "Google Reviews", title: "5.0 · 300+ Reviews", sub: "Google Verified" },
 ];
 const trustTrack = [...trustBar, ...trustBar];
 
@@ -226,7 +216,7 @@ const pageDescription =
           {heroCases.map((c, i) => (
             <figure class:list={["glp-hero-case", { "is-mobile-hero": c.mobileHero }]}>
               <Image
-                src={c.src}
+                src={c.src.url} width={c.src.width} height={c.src.height}
                 alt={c.alt}
                 widths={[600, 900, 1200, 1800]}
                 sizes="(max-width: 991px) 80vw, 460px"
@@ -252,7 +242,7 @@ const pageDescription =
             const isClone = i >= trustBar.length;
             return (
               <div class="glp-trust-item" aria-hidden={isClone || undefined} inert={isClone || undefined}>
-                <span class="glp-trust-logo"><Image src={t.logo} alt={t.alt} /></span>
+                <span class="glp-trust-logo"><Image src={t.logo.url} width={t.logo.width} height={t.logo.height} alt={t.alt} /></span>
                 <span class="glp-trust-text"><b>{t.title}</b><small>{t.sub}</small></span>
               </div>
             );

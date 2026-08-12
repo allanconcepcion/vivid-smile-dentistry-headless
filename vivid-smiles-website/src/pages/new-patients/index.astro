@@ -11,16 +11,12 @@ import ReviewMarquee from "../../components/ReviewMarquee.astro";
 import { phoneHref, phoneLabel, bookNowHref } from "../../data/contact";
 import "../../styles/pages/new-patients.css";
 
-import heroImg from "../../assets/images/team/vivid-smiles-team-candid.webp";
-import imgCosmetic from "../../assets/images/procedures/veneer-application-brush-front-closeup.webp";
-import imgImplant from "../../assets/images/procedures/full-arch-model-in-hand.webp";
-import imgGeneral from "../../assets/images/people/real/woman-portrait-office-lounge.webp";
-import imgEmergency from "../../assets/images/procedures/same-day-emergency-dental-care.webp";
 import { getPageContent } from '../../lib/page-content';
 // faqs is edited in WordPress (Pages -> New Patients in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
 const { faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+
 
 
 // Full 5-star reviews collection (newest first) drives the swipe-draggable
@@ -69,21 +65,21 @@ const services = [
     href: "/cosmetic-dentistry/",
     title: "Cosmetic Dentistry",
     desc: "Porcelain veneers, whitening, bonding, and smile makeovers designed in millimeters.",
-    img: imgCosmetic,
+    img: image("imgCosmetic"),
     alt: "Close-up of a porcelain veneer being placed",
   },
   {
     href: "/implant-dentistry/",
     title: "Implant Dentistry",
     desc: "Single-tooth implants, All-on-4, and full-arch restorations planned digitally end to end.",
-    img: imgImplant,
+    img: image("imgImplant"),
     alt: "Full-arch restoration model held in a gloved hand",
   },
   {
     href: "/general-dentistry/",
     title: "General Dentistry",
     desc: "Cleanings, exams, fillings, and crowns — the quiet, consistent care your smile needs to last.",
-    img: imgGeneral,
+    img: image("imgGeneral"),
     alt: "Smiling woman seated in the Vivid Smiles Dentistry office lounge in Parker, CO",
     objPos: "center 25%",
   },
@@ -91,7 +87,7 @@ const services = [
     href: "/emergency-dentistry/",
     title: "Emergency Dentistry",
     desc: "Pain, breaks, swelling — call us first. Same-day appointments are the norm, not the exception.",
-    img: imgEmergency,
+    img: image("imgEmergency"),
     alt: "Same-day emergency dental care in Parker, CO",
   },
 ];
@@ -193,7 +189,7 @@ const description =
             <a class="svc-card compact" href={s.href} data-vs-arrow>
               <div class="svc-img">
                 <Image
-                  src={s.img}
+                  src={s.img.url} width={s.img.width} height={s.img.height}
                   alt={s.alt}
                   widths={[320, 520, 720, 960]}
                   sizes="(max-width: 479px) 100vw, (max-width: 991px) 50vw, 25vw"

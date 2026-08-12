@@ -9,29 +9,17 @@ import VirtualConsult from '../../components/VirtualConsult.astro';
 import { phoneHref, phoneLabel, bookNowHref } from '../../data/contact';
 import '../../styles/pages/services.css';
 
-import imgVeneers from '../../assets/images/procedures/finished-veneers-tilted-black.webp';
-import imgSmileMakeover from '../../assets/images/people/real/woman-radiant-smile-green-dress.webp';
 // Clear aligners is the one remaining generated image on this page: it is the
 // only card whose subject is an appliance rather than a person, and the shoot
 // contains no aligner tray to replace it with.
-import imgClearAligners from '../../assets/images/people/generated/clear-aligners.webp';
-import imgWhitening from '../../assets/images/people/real/man-bearded-natural-smile.webp';
-import imgGumContouring from '../../assets/images/people/real/woman-mountain-portrait.webp';
-import imgFullMouthRehab from '../../assets/images/procedures/full-arch-restoration-model.webp';
 
-import imgSingleImplant from '../../assets/images/procedures/dr-richardson-performing-yomi-guided-implant-surgery.webp';
-import imgFullMouthImplants from '../../assets/images/people/real/woman-blonde-studio-portrait.webp';
-import imgAllOn4 from '../../assets/images/people/real/woman-glasses-cream-blazer.webp';
-import imgBoneGraft from '../../assets/images/procedures/dr-rich-mid-procedure.webp';
-import imgSinusLift from '../../assets/images/facility/operating-room.webp';
 
-import imgGeneral from '../../assets/images/people/real/woman-portrait-office-lounge.webp';
-import imgEmergency from '../../assets/images/procedures/same-day-emergency-dental-care.webp';
-import { getPageContent } from '../../lib/page-content';
+import { getPageContent, schemaImageUrl } from '../../lib/page-content';
 // faqs is edited in WordPress (Pages -> Services in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { faqs, section, seo } = await getPageContent(Astro.url.pathname);
+const { faqs, section, seo, image } = await getPageContent(Astro.url.pathname);
+
 
 
 // Cosmetic + implant cards are kicker-free; only the everyday + emergency
@@ -40,42 +28,42 @@ const cosmeticServices = [
   {
     title: 'Porcelain Veneers',
     href: '/cosmetic-dentistry/porcelain-veneers/',
-    img: imgVeneers,
+    img: image("imgVeneers"),
     alt: 'Close-up of a finished smile at a three-quarter angle',
     desc: 'No-prep and minimal-prep, our signature work.',
   },
   {
     title: 'Smile Makeover',
     href: '/cosmetic-dentistry/smile-makeover/',
-    img: imgSmileMakeover,
+    img: image("imgSmileMakeover"),
     alt: 'Smiling woman in a green dress photographed at the Vivid Smiles Dentistry neon smile wall in Parker, CO',
     desc: 'A complete look, designed before treatment begins.',
   },
   {
     title: 'Clear Aligners',
     href: '/cosmetic-dentistry/clear-aligners/',
-    img: imgClearAligners,
+    img: image("imgClearAligners"),
     alt: 'Clear aligners on a model',
     desc: 'Discreet straightening with quiet check-ins.',
   },
   {
     title: 'Teeth Whitening',
     href: '/cosmetic-dentistry/teeth-whitening/',
-    img: imgWhitening,
+    img: image("imgWhitening"),
     alt: 'Smiling man photographed at the Vivid Smiles Dentistry neon smile wall in Parker, CO',
     desc: 'Professional brightening, calibrated to shade.',
   },
   {
     title: 'Gum Contouring',
     href: '/cosmetic-dentistry/gum-contouring/',
-    img: imgGumContouring,
+    img: image("imgGumContouring"),
     alt: 'Smiling woman photographed outdoors in the Colorado foothills',
     desc: 'Reshape the frame around the smile.',
   },
   {
     title: 'Full Mouth Rehabilitation',
     href: '/cosmetic-dentistry/full-mouth-rehabilitation/',
-    img: imgFullMouthRehab,
+    img: image("imgFullMouthRehab"),
     alt: 'Full-arch restoration on a dental model',
     desc: 'Function and esthetics, restored together.',
   },
@@ -85,21 +73,21 @@ const implantServices = [
   {
     title: 'Single Tooth Implant',
     href: '/implant-dentistry/single-tooth-dental-implants/',
-    img: imgSingleImplant,
+    img: image("imgSingleImplant"),
     alt: 'Dr. Bryce Richardson placing a dental implant with the Yomi robotic arm at Vivid Smiles Dentistry',
     desc: 'One missing tooth, restored to look and chew normally.',
   },
   {
     title: 'Full Mouth Implants',
     href: '/implant-dentistry/full-mouth-dental-implants/',
-    img: imgFullMouthImplants,
+    img: image("imgFullMouthImplants"),
     alt: 'Smiling woman photographed against a dark studio background',
     desc: 'Replace an arch — or both — with fixed teeth.',
   },
   {
     title: 'All-on-4 Single Arch',
     href: '/implant-dentistry/all-on-4-single-arch/',
-    img: imgAllOn4,
+    img: image("imgAllOn4"),
     alt: 'Smiling woman photographed at the Vivid Smiles Dentistry office in Parker, CO',
     desc: 'A full upper or lower set on four implants in one visit.',
     objPos: 'center 25%',
@@ -107,14 +95,14 @@ const implantServices = [
   {
     title: 'Bone Grafting',
     href: '/implant-dentistry/bone-grafting/',
-    img: imgBoneGraft,
+    img: image("imgBoneGraft"),
     alt: 'Dr. Bryce Richardson performing chairside surgical work',
     desc: 'Rebuild the foundation when bone has receded.',
   },
   {
     title: 'Sinus Lift',
     href: '/implant-dentistry/sinus-lift/',
-    img: imgSinusLift,
+    img: image("imgSinusLift"),
     alt: 'A treatment room at Vivid Smiles Dentistry in Parker, CO',
     desc: 'Add height in the upper jaw before placement.',
   },
@@ -124,7 +112,7 @@ const everydayServices = [
   {
     title: 'General Dentistry',
     href: '/general-dentistry/',
-    img: imgGeneral,
+    img: image("imgGeneral"),
     alt: 'Smiling woman seated in the Vivid Smiles Dentistry office lounge in Parker, CO',
     tag: 'Cleanings & Care',
     desc: 'Six-month exams, hygiene, fillings and crowns for every member of the family.',
@@ -133,18 +121,22 @@ const everydayServices = [
   {
     title: 'Emergency Dentistry',
     href: '/emergency-dentistry/',
-    img: imgEmergency,
+    img: image("imgEmergency"),
     alt: 'Same-day emergency dental care',
     tag: 'Same-Day',
     desc: 'Toothache, broken tooth, lost crown? Call now — we hold same-day spots open every day.',
   },
 ];
 
-const allServices = [...cosmeticServices, ...implantServices, ...everydayServices].map((s) => ({
-  name: s.title,
-  url: s.href,
-  image: s.img.src,
-}));
+// schemaImageUrl resolves each image through the asset pipeline so structured
+// data points at this site's optimized copy, not at the CMS host.
+const allServices = await Promise.all(
+  [...cosmeticServices, ...implantServices, ...everydayServices].map(async (s) => ({
+    name: s.title,
+    url: s.href,
+    image: await schemaImageUrl(s.img, Astro.site),
+  })),
+);
 
 ---
 
@@ -192,7 +184,7 @@ const allServices = [...cosmeticServices, ...implantServices, ...everydayService
                 <a class="svc-card compact" href={s.href} data-vs-arrow>
                   <div class="svc-img">
                     <Image
-                      src={s.img}
+                      src={s.img.url} width={s.img.width} height={s.img.height}
                       alt={s.alt}
                       widths={[420, 640, 900]}
                       sizes="(max-width: 991px) 100vw, 33vw"
@@ -236,7 +228,7 @@ const allServices = [...cosmeticServices, ...implantServices, ...everydayService
                 <a class="svc-card compact" href={s.href} data-vs-arrow>
                   <div class="svc-img">
                     <Image
-                      src={s.img}
+                      src={s.img.url} width={s.img.width} height={s.img.height}
                       alt={s.alt}
                       widths={[420, 640, 900]}
                       sizes="(max-width: 991px) 100vw, 33vw"
@@ -271,7 +263,7 @@ const allServices = [...cosmeticServices, ...implantServices, ...everydayService
                 <a class="svc-card compact" href={s.href} data-vs-arrow>
                   <div class="svc-img">
                     <Image
-                      src={s.img}
+                      src={s.img.url} width={s.img.width} height={s.img.height}
                       alt={s.alt}
                       widths={[600, 900, 1200]}
                       sizes="(max-width: 991px) 100vw, 50vw"

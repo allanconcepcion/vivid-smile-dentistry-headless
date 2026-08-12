@@ -126,7 +126,10 @@ for (const page of pages) {
     if (!importLine.test(src)) continue;
 
     const withoutImport = src.replace(importLine, "");
-    const stillUsed = new RegExp(`\\b${slot}\\b`).test(withoutImport);
+    // Ignore the slot name where it appears as the argument to image("slot") —
+    // otherwise every rewired import looks like it is still in use.
+    const withoutLookups = withoutImport.replace(/image\(\s*"[^"]*"\s*\)/g, "image()");
+    const stillUsed = new RegExp(`\\b${slot}\\b`).test(withoutLookups);
 
     if (!stillUsed) {
       src = withoutImport;

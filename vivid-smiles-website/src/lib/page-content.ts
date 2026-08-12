@@ -11,6 +11,7 @@
  */
 
 import { getEntry } from "astro:content";
+import { getImage } from "astro:assets";
 
 export type TocLink = { href: string; label: string };
 export type ProcessStep = { tag: string; num: string; title: string; body: string };
@@ -135,4 +136,30 @@ export async function getPageContent(route: string): Promise<PageContent> {
       return found;
     },
   };
+}
+
+/**
+ * Absolute, optimized URL for a page image — for structured data.
+ *
+ * Structured data must point at the PUBLIC site, not the CMS. A PageImage's
+ * `url` is the WordPress media URL, so putting it straight into JSON-LD tells
+ * Google the canonical image lives on the CMS host — which is noindexed,
+ * password-able, and not where visitors are sent.
+ *
+ * Running it through getImage() yields the same hashed asset the page renders,
+ * and resolving against `site` makes it absolute as schema.org requires.
+ */
+export async function schemaImageUrl(
+  img: PageImage,
+  site: URL | undefined,
+  width = 1200,
+): Promise<string> {
+  const optimized = await getImage({
+    src: img.url,
+    width,
+    height: Math.max(1, Math.round((width * img.height) / img.width)),
+    format: "webp",
+  });
+
+  return new URL(optimized.src, site).href;
 }

@@ -50,34 +50,27 @@ import '../../styles/pages/general-dentistry.css';
 
 // Hero — a hygienist polishing a patient's teeth. A real chairside moment, so
 // the hub reads warm rather than clinical.
-import imgHero from '../../assets/images/procedures/hygienist-polishing-teeth.webp';
 
 // Doctors section — single duo photo (the same shot the about-us page uses
 // in its hero), since the SEO copy bills both doctors equally and this page's
 // design language is "two doctors, same weight" rather than "primary + aside".
-import imgDoctors from '../../assets/images/team/annie-and-bryce.webp';
 
 // #first-visit · 2-col image+copy. The practice entry doors — literally the
 // first thing a new patient sees. Chosen over waiting-room-portrait-view.webp,
 // which is only 768px wide and would upscale ~1.55x in this 557px slot at DPR2.
-import imgFirstVisit from '../../assets/images/facility/entry-doors-with-vivid-logos.webp';
 
 // #gateway · real portrait shot at the practice's neon smile wall. Describe the
 // photo, not a treatment — this subject also appears on /services/ and the home
 // page, and the labels must not contradict each other.
-import imgGateway from '../../assets/images/people/real/woman-neon-smile-portrait.webp';
 
 // Service-tile images — one distinct subject per tile, and none of them the
 // hero's photo.
-import imgPreventive from '../../assets/images/people/real/woman-blonde-warm-interior.webp';
-import imgRestorative from '../../assets/images/procedures/dr-rich-mid-procedure.webp';
-import imgPeriodontal from '../../assets/images/procedures/smile-macro-front-view.webp';
-import imgEmergency from '../../assets/images/procedures/same-day-emergency-dental-care.webp';
 import { getPageContent } from '../../lib/page-content';
 // tocLinks, faqs are edited in WordPress (Pages -> General Dentistry in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
 const { tocLinks, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+
 
 
 // 4-up service feature cards (unlinked — general dentistry has no child
@@ -89,28 +82,28 @@ const { tocLinks, faqs, section, image, seo } = await getPageContent(Astro.url.p
 // visible anchor text stays verbatim per the plan).
 const services = [
   {
-    img: imgPreventive,
+    img: image("imgPreventive"),
     alt: 'Smiling woman photographed in a warm interior setting',
     title: 'Preventive Care & Cleanings',
     descHtml:
       'Regular cleanings, comprehensive exams, fluoride treatments, and sealants — every exam includes digital X-rays and CBCT imaging when indicated. Most clients benefit from a cleaning and exam every six months.',
   },
   {
-    img: imgRestorative,
+    img: image("imgRestorative"),
     alt: 'Dr. Bryce Richardson performing chairside restorative work',
     title: 'Fillings, Crowns & Bridges',
     descHtml:
       'Tooth-hued composite fillings, same-day in-house-milled crowns (no temporary, no second appointment), and bridges that anchor to adjacent teeth to replace a missing tooth and prevent shifting.',
   },
   {
-    img: imgPeriodontal,
+    img: image("imgPeriodontal"),
     alt: 'Front-on close-up of a smile showing the gumline',
     title: 'Periodontal Care',
     descHtml:
       "When gum disease is present, treatment includes scaling and root planing (a thorough cleaning below the gumline) followed by a customized maintenance schedule. Dr. Annie's holistic approach means gum health is never treated in isolation.",
   },
   {
-    img: imgEmergency,
+    img: image("imgEmergency"),
     alt: 'Same-day emergency dental care',
     title: 'Emergency Dental Care',
     href: '/emergency-dentistry/',
@@ -269,7 +262,7 @@ const offerCatalog = services.map((s) => {
                 <article class="svc-feat">
                   <div class="svc-feat-img">
                     <Image
-                      src={s.img}
+                      src={s.img.url} width={s.img.width} height={s.img.height}
                       alt={s.alt}
                       widths={[300, 480, 640]}
                       sizes="(max-width: 640px) 100vw, (max-width: 1100px) 50vw, 280px"

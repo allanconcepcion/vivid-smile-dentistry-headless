@@ -21,25 +21,15 @@ import {
 import '../../styles/pages/cosmetic-dentistry.css';
 
 // Hero — Ann Marie Muscarello veneer-makeover portrait.
-import imgHero from '../../assets/images/people/real/woman-neon-smile-portrait.webp';
 // DSD section image — a finished-smile macro standing in for the outcome that
 // digital smile design previews before treatment.
-import imgDsd from '../../assets/images/procedures/smile-macro-tilted-warm.webp';
 // Formal Dr. Bryce portrait used in the doctor-feature section below — that's
 // a legitimate doctor slot, file stays in place.
-import imgDrBryce from '../../assets/images/team/dr-bryce-richardson.webp';
 // Pre-cropped headshot of Dr. Annie for the inline thumbnail beside the
 // "Also at the practice" eyebrow. Squarish source means object-fit: cover
 // alone does the right thing — no CSS zoom hacks needed.
-import imgDrAnnie from '../../assets/images/team/dr-annie-thumbnail.webp';
 
-import imgVeneers from '../../assets/images/procedures/veneer-application-brush-front-closeup.webp';
-import imgAligners from '../../assets/images/people/generated/clear-aligners.webp';
-import imgWhitening from '../../assets/images/people/real/man-bearded-natural-smile.webp';
-import imgGum from '../../assets/images/procedures/smile-macro-front-view.webp';
-import imgMakeover from '../../assets/images/people/real/woman-radiant-smile-green-dress.webp';
-import imgFullMouth from '../../assets/images/procedures/implant-prosthesis-arch-detail.webp';
-import { getPageContent } from '../../lib/page-content';
+import { getPageContent, schemaImageUrl } from '../../lib/page-content';
 // FAQ data — 8 questions, verbatim from approved SEO copy.
 // `a` values use HTML so set:html can render embedded <a class="vs-link"> anchors
 //. Composite bonding intentionally not enumerated in FAQ #1
@@ -50,6 +40,7 @@ import { getPageContent } from '../../lib/page-content';
 const { tocLinks, processSteps, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
 
 
+
 // Duplicate the track for seamless CSS infinite scroll.
 const galleryTiles = getSmiles();
 const galleryTrack = [...galleryTiles, ...galleryTiles];
@@ -57,42 +48,42 @@ const galleryTrack = [...galleryTiles, ...galleryTiles];
 const services = [
   {
     href: '/cosmetic-dentistry/porcelain-veneers/',
-    img: imgVeneers,
+    img: image("imgVeneers"),
     alt: 'Close-up of a porcelain veneer being placed',
     title: 'Porcelain Veneers',
     desc: 'Custom porcelain shells (coverings bonded to the front of teeth) that correct hue, shape, size, and minor alignment. Options range from traditional to no-prep, with varying levels of permanence.',
   },
   {
     href: '/cosmetic-dentistry/clear-aligners/',
-    img: imgAligners,
+    img: image("imgAligners"),
     alt: 'Clear aligner trays',
     title: 'Clear Aligners',
     desc: 'Straighten teeth using a series of removable trays. A strong option when alignment is the primary concern and the patient wants a reversible, non-invasive path.',
   },
   {
     href: '/cosmetic-dentistry/teeth-whitening/',
-    img: imgWhitening,
+    img: image("imgWhitening"),
     alt: 'Smiling man photographed at the Vivid Smiles Dentistry neon smile wall in Parker, CO',
     title: 'Teeth Whitening',
     desc: 'Professional-grade whitening that delivers results that over-the-counter products cannot match, with in-office and take-home options for ongoing maintenance.',
   },
   {
     href: '/cosmetic-dentistry/gum-contouring/',
-    img: imgGum,
+    img: image("imgGum"),
     alt: 'Front-on close-up of a smile showing the gumline and tooth proportions',
     title: 'Gum Contouring',
     desc: 'Reshapes an uneven or excessive gumline to improve smile symmetry.',
   },
   {
     href: '/cosmetic-dentistry/smile-makeover/',
-    img: imgMakeover,
+    img: image("imgMakeover"),
     alt: 'Smiling woman in a green dress photographed at the Vivid Smiles Dentistry neon smile wall in Parker, CO',
     title: 'Smile Makeover',
     desc: 'Combine two or more treatments into a plan so every element complements the others and the result is cohesive.',
   },
   {
     href: '/cosmetic-dentistry/full-mouth-rehabilitation/',
-    img: imgFullMouth,
+    img: image("imgFullMouth"),
     alt: 'Close-up of an implant-supported restoration on a dental model',
     title: 'Full Mouth Rehabilitation',
     desc: 'For patients with significant functional and aesthetic concerns, we develop a treatment plan that addresses structure and appearance.',
@@ -165,6 +156,13 @@ const ledger = [
   },
 ];
 
+
+// Structured data must reference this site's optimized image, not the
+// WordPress media URL — the CMS host is noindexed and is not where
+// visitors are sent.
+const schemaImages: Record<string, string> = Object.fromEntries(
+  await Promise.all(services.map(async (s) => [s.title, await schemaImageUrl(s.img, Astro.site)])),
+);
 
 ---
 
@@ -295,7 +293,7 @@ const ledger = [
                 <a class="svc-card compact" href={s.href} data-vs-arrow>
                   <div class="svc-img">
                     <Image
-                      src={s.img}
+                      src={s.img.url} width={s.img.width} height={s.img.height}
                       alt={s.alt}
                       widths={[420, 640, 900]}
                       sizes="(max-width: 640px) 100vw, (max-width: 1100px) 50vw, 33vw"
@@ -734,7 +732,7 @@ const ledger = [
               '@type': 'MedicalProcedure',
               name: s.title,
               url: new URL(s.href, Astro.site).href,
-              image: new URL(s.img.src, Astro.site).href,
+              image: schemaImages[s.title],
             },
           })),
         },

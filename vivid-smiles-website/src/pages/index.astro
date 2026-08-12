@@ -35,21 +35,10 @@ import heroBg from "../assets/images/team/vivid-smiles-team-candid.webp";
 const teamPhoto = heroBg;
 
 // Trust bar logos
-import logoAACD from "../assets/images/credentials/american-academy-of-cosmetic-dentistry.webp";
-import logoAAID from "../assets/images/credentials/american-academy-of-implant-dentistry.webp";
-import logoFAM from "../assets/images/credentials/full-arch-masters.webp";
-import logoYomi from "../assets/images/facility/yomi-robotics.webp";
-import logoADA from "../assets/images/credentials/american-dental-association.webp";
-import logoGoogle from "../assets/images/credentials/google-reviews.png";
 
 // Service cards — mirror the services hub mappings (src/assets/images/procedures/)
-import imgVeneers from "../assets/images/procedures/veneer-application-brush-macro.webp";
-import imgImplants from "../assets/images/procedures/implant-prosthesis-underside.webp";
-import imgGeneral from "../assets/images/procedures/hygienist-polishing-teeth.webp";
-import imgEmergency from "../assets/images/procedures/same-day-emergency-dental-care.webp";
 
 // Doctor portrait
-import drPortrait from "../assets/images/team/dr-bryce-richardson.webp";
 
 // Smile gallery marquee — sourced dynamically from the central
 // src/assets/images/smiles/ folder via the loader; drop/remove
@@ -57,20 +46,14 @@ import drPortrait from "../assets/images/team/dr-bryce-richardson.webp";
 import { getSmiles } from "../lib/smiles";
 
 // Tech section
-import techYomi from "../assets/images/procedures/dr-richardson-performing-yomi-guided-implant-surgery.webp";
-import techVeneerShells from "../assets/images/procedures/veneer-shells-backlit-white.webp";
 
 // Patient stories — cosmetic veneer shorts (vertical 9:16 source)
-import storyVeneersMore from "../assets/images/video-stories/veneers-story-more-than-a-smile.webp";
-import storyVeneersConfidence from "../assets/images/video-stories/veneers-story-confidence-restored.webp";
-import storyVeneersLength from "../assets/images/video-stories/veneers-story-length-and-balance.webp";
 
 // Notable patients — Denver Broncos cheerleaders (real patient portraits)
-import notableAnnMarie from "../assets/images/people/real/ann-marie-muscarello-veneer-makeover.webp";
-import notableBrittany from "../assets/images/people/real/brittany-fanning-smile-makeover.webp";
 import { getPageContent } from '../lib/page-content';
 // Section copy is edited in WordPress (Pages -> this page -> Section copy).
 const { section, image, seo } = await getPageContent(Astro.url.pathname);
+
 
 
 const galleryTiles = getSmiles();
@@ -79,12 +62,12 @@ const galleryTiles = getSmiles();
 const galleryTrack = [...galleryTiles, ...galleryTiles];
 
 const trustBar = [
-  { logo: logoAACD, alt: "American Academy of Cosmetic Dentistry", title: "AACD", sub: "Accredited Member" },
-  { logo: logoAAID, alt: "American Academy of Implant Dentistry", title: "AAID", sub: "Implant Dentistry" },
-  { logo: logoFAM, alt: "Full Arch Masters", title: "Full Arch Masters", sub: "Clinical Mentor" },
-  { logo: logoYomi, alt: "Yomi Robotics", title: "Yomi Robotics", sub: "Certified Surgeon" },
-  { logo: logoADA, alt: "American Dental Association", title: "ADA", sub: "American Dental Association" },
-  { logo: logoGoogle, alt: "Google Reviews", title: "5.0 · 300+ Reviews", sub: "Google Verified" },
+  { logo: image("logoAACD"), alt: "American Academy of Cosmetic Dentistry", title: "AACD", sub: "Accredited Member" },
+  { logo: image("logoAAID"), alt: "American Academy of Implant Dentistry", title: "AAID", sub: "Implant Dentistry" },
+  { logo: image("logoFAM"), alt: "Full Arch Masters", title: "Full Arch Masters", sub: "Clinical Mentor" },
+  { logo: image("logoYomi"), alt: "Yomi Robotics", title: "Yomi Robotics", sub: "Certified Surgeon" },
+  { logo: image("logoADA"), alt: "American Dental Association", title: "ADA", sub: "American Dental Association" },
+  { logo: image("logoGoogle"), alt: "Google Reviews", title: "5.0 · 300+ Reviews", sub: "Google Verified" },
 ];
 
 // Duplicate trust bar so the marquee animation has seamless loop content
@@ -163,7 +146,7 @@ const trustTrack = [...trustBar, ...trustBar];
               return (
                 <>
                   <div class="trust-item" aria-hidden={isClone || undefined} inert={isClone || undefined}>
-                    <span class="trust-logo"><Image src={t.logo} alt={t.alt} /></span>
+                    <span class="trust-logo"><Image src={t.logo.url} width={t.logo.width} height={t.logo.height} alt={t.alt} /></span>
                     <span class="trust-text"><b>{t.title}</b><small>{t.sub}</small></span>
                   </div>
                   <span class="trust-sep" aria-hidden="true"></span>

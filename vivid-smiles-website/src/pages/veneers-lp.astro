@@ -33,37 +33,22 @@ import { getSmiles } from '../lib/smiles';
 import { phoneHref, phoneLabel } from '../data/contact';
 
 // Doctor portrait (hero attribution chip + philosophy section) + featured cases
-import imgRichardson from '../assets/images/team/dr-bryce-richardson.webp';
-import imgAnnMarie from '../assets/images/people/real/ann-marie-muscarello-veneer-makeover.webp';
-import imgBrittany from '../assets/images/people/real/brittany-fanning-smile-makeover.webp';
 
 // Hero proof trio shown above the fold — three finished-smile photographs
 // (distinct from the auto-loaded gallery marquee below, which still pulls
 // getSmiles).
-import imgHeroSide from '../assets/images/procedures/finished-veneers-side-smile-black.webp';
-import imgHeroBerry from '../assets/images/procedures/berry-lip-smile-tilted.webp';
-import imgHeroMacro from '../assets/images/procedures/smile-macro-front-view.webp';
 
 // Warranty band editorial photo
-import imgEditorial from '../assets/images/procedures/smile-with-diamond-detail.webp';
 
 // Video-story thumbnails (YouTube shorts — clickable thumbnails only)
-import storyMore from '../assets/images/video-stories/veneers-story-more-than-a-smile.webp';
-import storyConfidence from '../assets/images/video-stories/veneers-story-confidence-restored.webp';
-import storyLength from '../assets/images/video-stories/veneers-story-length-and-balance.webp';
 
 // Accredited-by marquee logos — match home page composition
-import logoAACD from '../assets/images/credentials/american-academy-of-cosmetic-dentistry.webp';
-import logoAAID from '../assets/images/credentials/american-academy-of-implant-dentistry.webp';
-import logoFAM from '../assets/images/credentials/full-arch-masters.webp';
-import logoYomi from '../assets/images/facility/yomi-robotics.webp';
-import logoADA from '../assets/images/credentials/american-dental-association.webp';
-import logoGoogle from '../assets/images/credentials/google-reviews.png';
 import { getPageContent } from '../lib/page-content';
 // faqs is edited in WordPress (Pages -> Veneers Lp).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
 const { faqs, image, seo } = await getPageContent(Astro.url.pathname);
+
 
 
 // ── Smile gallery — auto-loaded from src/assets/images/smiles/.
@@ -76,16 +61,16 @@ const heroCases = [
   // mobileHero: on ≤991px this is the only hero image shown (above the copy);
   // the other two are hidden. Desktop keeps the full trio.
   {
-    src: imgHeroSide,
+    src: image("imgHeroSide"),
     alt: 'Close-up photograph of a Vivid Smiles patient smiling, side view',
     mobileHero: true,
   },
   {
-    src: imgHeroBerry,
+    src: image("imgHeroBerry"),
     alt: 'Close-up photograph of a Vivid Smiles patient smiling, tilted three-quarter view',
   },
   {
-    src: imgHeroMacro,
+    src: image("imgHeroMacro"),
     alt: 'Close-up photograph of a Vivid Smiles patient smiling, straight-on front view',
   },
 ];
@@ -112,7 +97,7 @@ const reviewTrack = [...pickedReviews, ...pickedReviews];
 // ── Featured transformations. Both NFL-cheerleader veneer quotes verbatim.
 const featuredCases = [
   {
-    img: imgAnnMarie,
+    img: image("imgAnnMarie"),
     alt: 'Ann Marie Muscarello — porcelain veneer makeover by Dr. Richardson',
     firstName: 'Ann Marie',
     lastName: 'Muscarello',
@@ -122,7 +107,7 @@ const featuredCases = [
     treatment: 'Custom Porcelain Veneers',
   },
   {
-    img: imgBrittany,
+    img: image("imgBrittany"),
     alt: 'Brittany Fanning — veneer smile makeover by Dr. Richardson',
     firstName: 'Brittany',
     lastName: 'Fanning',
@@ -143,21 +128,21 @@ const offerItems = [
 
 const videoStories = [
   {
-    img: storyMore,
+    img: image("storyMore"),
     id: 'Nm7RjGKP8jw',
     h: 'More than a smile',
     p: 'How the right porcelain veneer plan resets confidence — at work, in photos, in everyday life.',
     featured: true,
   },
   {
-    img: storyConfidence,
+    img: image("storyConfidence"),
     id: 'EA19QZ4lk8k',
     h: 'Confidence, restored',
     p: 'What happens when the smile finally matches the person behind it.',
     featured: false,
   },
   {
-    img: storyLength,
+    img: image("storyLength"),
     id: 'fRyN4dHhizo',
     h: 'Length & balance',
     p: 'Restoring length, symmetry, and a fuller, natural finish with veneers.',
@@ -191,26 +176,26 @@ const howSteps = [
 
 const trustBar = [
   {
-    logo: logoAACD,
+    logo: image("logoAACD"),
     alt: 'American Academy of Cosmetic Dentistry',
     title: 'AACD',
     sub: 'Member Dentist',
   },
   {
-    logo: logoAAID,
+    logo: image("logoAAID"),
     alt: 'American Academy of Implant Dentistry',
     title: 'AAID',
     sub: 'Implant Trained',
   },
-  { logo: logoFAM, alt: 'Full Arch Masters', title: 'Full Arch Masters', sub: 'Clinical Mentor' },
-  { logo: logoYomi, alt: 'Yomi Robotics', title: 'Yomi Robotics', sub: 'Certified Surgeon' },
+  { logo: image("logoFAM"), alt: 'Full Arch Masters', title: 'Full Arch Masters', sub: 'Clinical Mentor' },
+  { logo: image("logoYomi"), alt: 'Yomi Robotics', title: 'Yomi Robotics', sub: 'Certified Surgeon' },
   {
-    logo: logoADA,
+    logo: image("logoADA"),
     alt: 'American Dental Association',
     title: 'ADA',
     sub: 'American Dental Association',
   },
-  { logo: logoGoogle, alt: 'Google Reviews', title: '5.0 · 300+ Reviews', sub: 'Google Verified' },
+  { logo: image("logoGoogle"), alt: 'Google Reviews', title: '5.0 · 300+ Reviews', sub: 'Google Verified' },
 ];
 const trustTrack = [...trustBar, ...trustBar];
 
@@ -282,7 +267,7 @@ const pageDescription =
               heroCases.map((c, i) => (
                 <figure class:list={['vlp-hero-case', { 'is-mobile-hero': c.mobileHero }]}>
                   <Image
-                    src={c.src}
+                    src={c.src.url} width={c.src.width} height={c.src.height}
                     alt={c.alt}
                     widths={[600, 900, 1200, 1800]}
                     sizes="(max-width: 991px) 80vw, 460px"
@@ -314,7 +299,7 @@ const pageDescription =
                     inert={isClone || undefined}
                   >
                     <span class="vlp-trust-logo">
-                      <Image src={t.logo} alt={t.alt} />
+                      <Image src={t.logo.url} width={t.logo.width} height={t.logo.height} alt={t.alt} />
                     </span>
                     <span class="vlp-trust-text">
                       <>
@@ -394,7 +379,7 @@ const pageDescription =
               <figure class="vlp-ft-card">
                 <div class="vlp-ft-img">
                   <Image
-                    src={c.img}
+                    src={c.img.url} width={c.img.width} height={c.img.height}
                     alt={c.alt}
                     widths={[360, 540, 720]}
                     sizes="(max-width: 991px) 100vw, 360px"
@@ -485,7 +470,7 @@ const pageDescription =
               >
                 <div class="vlp-story-photo">
                   <Image
-                    src={s.img}
+                    src={s.img.url} width={s.img.width} height={s.img.height}
                     alt={`Vivid Smiles patient story — ${s.h}`}
                     widths={[400, 800]}
                     sizes="(max-width: 780px) 100vw, 50vw"
