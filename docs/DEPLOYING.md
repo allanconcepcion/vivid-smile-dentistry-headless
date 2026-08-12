@@ -236,14 +236,19 @@ The loaders fail loudly rather than publishing something that looks fine:
 | Zero posts/reviews/pages returned | Build fails — an empty result is far more likely to be a broken query than deleted content |
 | A GraphQL query returns errors | Build fails immediately; query errors are deterministic and retrying only wastes time |
 | A post is missing its hero image or alt text | That post is skipped with a warning naming it |
-| Yoast's sitemap lists a URL with no page | Build fails, naming the URLs |
+| Yoast's sitemap lists a URL with no page | That entry is left out of the written sitemap, with a warning naming it |
 
 The last one is deliberate: a sitemap full of 404s spends crawl budget and
-signals a broken site. Verification runs before the index file is replaced, so a
-failure leaves the previously written sitemap in place.
+signals a broken site, so the entry is dropped instead of shipped. Nothing is
+written until every entry has been checked. It used to fail the build; it no
+longer can, because WordPress now triggers builds itself and an editor creating a
+page must not be able to break a deploy. Dropping the entry is not the same as
+fixing it — the page still does not exist on the front end until someone adds a
+route for it, or marks it noindex so WordPress stops listing it.
 
-If Yoast's sitemap index cannot be fetched at all, that step warns and keeps the
-Astro-generated sitemap rather than shipping none.
+If a sitemap cannot be fetched at all — the CMS is down, or Cloudflare keeps
+answering 429 after five attempts — that step warns and keeps the Astro-generated
+sitemap rather than shipping none.
 
 ---
 
@@ -254,7 +259,7 @@ Astro-generated sitemap rather than shipping none.
 | Make the GitHub repository private | **Not done.** See below |
 | Move the CMS to `cms.vividsmilesdentistry.com` | Not done — see [Moving the CMS to its permanent hostname](#moving-the-cms-to-its-permanent-hostname) |
 | Relax Cloudflare bot rules for `/wp-content/uploads/` and `/graphql` | Not done — see [Cloudflare bot protection](#cloudflare-bot-protection--outstanding) |
-| Wire a Vercel deploy hook and fire it from WordPress | Not done — no hook code exists in `cms/mu-plugins/` |
+| Wire a Vercel deploy hook and fire it from WordPress | Hook created in Vercel; `cms/mu-plugins/vs-deploy.php` written. Two host steps left — see [Wire the deploy hook](#wire-the-deploy-hook) |
 | Cut `vividsmilesdentistry.com` over to Vercel | Not done — DNS still points at the old host |
 | Stop shipping `_redirects` and `_headers` into `dist/` | Not done |
 | Confirm the Facebook URL | `facebook.com/VivdSmiles/` appears to be missing an `i`. It is stored in two places: `src/components/Footer.astro` and `cms/import/import-wp-settings.php`, plus the live WordPress option |
@@ -273,9 +278,34 @@ rotated.
 
 ### Wire the deploy hook
 
-Create a Deploy Hook in the Vercel project, then fire it from WordPress on
-publish so editors do not need to know Vercel exists. Debounce it — ten quick
-edits should not queue ten builds.
+Done in part. The Vercel project has a deploy hook named **WordPress publish**
+pointing at `main` (Settings, Git, Deploy Hooks), and
+`cms/mu-plugins/vs-deploy.php` calls it when a post, page or testimonial becomes
+public, stops being public or is edited while public, when a nav menu changes,
+and when Practice Settings are saved. It debounces through WP-Cron: the first
+change schedules one event two minutes out and later changes reuse it, so a
+session of editing produces one build rather than a queue of builds that cancel
+each other.
+
+Two steps remain, and both are on the host — nothing in this repository can do
+them:
+
+1. Upload `cms/mu-plugins/vs-deploy.php` into `wp-content/mu-plugins/`.
+2. Add the hook URL to `wp-content/mu-plugins/vs-config.php`:
+
+   ```php
+   define( 'VS_DEPLOY_HOOK_URL', 'https://api.vercel.com/v1/integrations/deploy/...' );
+   ```
+
+Copy the value from Vercel with the Copy button next to the hook. It is a
+credential — anyone holding it can start builds — so it does not belong in this
+repository, which is public. With the constant undefined the plugin loads and
+does nothing, which is what a local or staging copy should do.
+
+Two caveats. Media library changes fire none of these hooks, so replacing an
+image needs the page re-saved or a build started by hand. And the trigger relies
+on WP-Cron, so if the host ever disables it the event will sit unfired; the
+recorded outcome of the last attempt is in the `vs_deploy_last_result` option.
 
 ---
 
