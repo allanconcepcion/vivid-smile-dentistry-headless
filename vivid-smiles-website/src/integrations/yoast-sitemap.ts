@@ -14,8 +14,10 @@
  *
  * EVERY URL IS VERIFIED against a page that actually got built. WordPress can
  * publish things the front end has no route for, and a sitemap full of 404s
- * spends crawl budget and signals a broken site. A mismatch fails the build
- * rather than shipping quietly.
+ * spends crawl budget and signals a broken site. Those entries are dropped from
+ * what gets written and reported as a build warning. A mismatch used to fail the
+ * build; it no longer can, because WordPress now triggers builds itself and an
+ * editor creating a page must not be able to break a deploy.
  */
 
 import type { AstroIntegration } from "astro";
@@ -122,34 +124,59 @@ export default function yoastSitemap(options: { endpoint?: string } = {}): Astro
 
         const children = locs(index);
         const written: string[] = [];
-        const allUrls: string[] = [];
+        const fetched: { name: string; xml: string }[] = [];
 
         for (const childUrl of children) {
           const name = childUrl.split("/").pop();
           if (!name) continue;
 
-          const xml = await fetchXml(childUrl);
-          allUrls.push(...locs(xml).map((u) => u.replace(cms, origin)));
+          fetched.push({ name, xml: await fetchXml(childUrl) });
+        }
 
-          await writeFile(path.join(outDir, name), rewrite(xml), "utf8");
+        // Nothing is written until every entry has been checked against a page
+        // that exists in this build. WordPress can publish something the front
+        // end has no route for — a brand new page, or a post whose route was
+        // removed — and advertising it would hand a crawler a 404. Those entries
+        // are dropped here and reported. This used to abort the build; it must
+        // not, now that publishing in WordPress triggers a build by itself.
+        const routes = await builtRoutes(outDir);
+        const isBuilt = (loc: string): boolean => {
+          const { pathname } = new URL(loc.replace(cms, origin));
+          return routes.has(pathname.endsWith("/") ? pathname : `${pathname}/`);
+        };
+
+        const listed: string[] = [];
+        const dropped: string[] = [];
+
+        for (const { name, xml } of fetched) {
+          // Whole <url> entries go, not just the <loc> inside them, so what is
+          // left is still a valid document.
+          const pruned = xml.replace(/<url>[\s\S]*?<\/url>/g, (entry) => {
+            const loc = locs(entry)[0];
+            if (!loc) return entry;
+            if (isBuilt(loc)) {
+              listed.push(loc.replace(cms, origin));
+              return entry;
+            }
+            dropped.push(loc.replace(cms, origin));
+            return "";
+          });
+
+          await writeFile(path.join(outDir, name), rewrite(pruned), "utf8");
           written.push(name);
         }
 
-        // Verify before replacing the index — if this throws, the previously
-        // written sitemap-index.xml is still in place.
-        const routes = await builtRoutes(outDir);
-        const missing = allUrls.filter((u) => {
-          const pathname = new URL(u).pathname;
-          return !routes.has(pathname.endsWith("/") ? pathname : `${pathname}/`);
-        });
-
-        if (missing.length) {
-          throw new Error(
-            `Yoast's sitemap lists ${missing.length} URL(s) with no page in this build:\n` +
-              missing.slice(0, 10).map((u) => `  ${u}`).join("\n") +
-              (missing.length > 10 ? `\n  …and ${missing.length - 10} more` : "") +
-              `\n\nEither the page is missing from the Astro site, or it should be excluded ` +
-              `from the sitemap in WordPress (mark it noindex under Yoast's Advanced tab).`,
+        if (dropped.length) {
+          logger.warn(
+            `${dropped.length} URL(s) in Yoast's sitemap have no page in this build ` +
+              `and were left out:\n` +
+              dropped
+                .slice(0, 10)
+                .map((u) => `  ${u}`)
+                .join("\n") +
+              (dropped.length > 10 ? `\n  …and ${dropped.length - 10} more` : "") +
+              `\n\nEither add the page to the Astro site, or mark it noindex under ` +
+              `Yoast's Advanced tab so WordPress stops listing it.`,
           );
         }
 
@@ -169,11 +196,11 @@ export default function yoastSitemap(options: { endpoint?: string } = {}): Astro
         }
 
         const unlisted = [...routes].filter(
-          (r) => !NOT_EXPECTED_IN_SITEMAP.has(r) && !allUrls.some((u) => new URL(u).pathname === r),
+          (r) => !NOT_EXPECTED_IN_SITEMAP.has(r) && !listed.some((u) => new URL(u).pathname === r),
         );
 
         logger.info(
-          `Yoast sitemap: ${allUrls.length} URLs across ${written.length} child sitemap(s), all verified`,
+          `Yoast sitemap: ${listed.length} URLs across ${written.length} child sitemap(s), every one built`,
         );
 
         if (unlisted.length) {
