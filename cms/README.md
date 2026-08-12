@@ -32,9 +32,15 @@ npm start
 
 | URL | What |
 | --- | --- |
-| http://localhost:8888/wp-admin | Editor UI — `admin` / `password` |
+| http://localhost:8888/wp-admin | Editor UI |
 | http://localhost:8888/graphql | GraphQL endpoint |
 | http://localhost:8888/graphql (browser) | GraphiQL IDE, when logged in |
+
+Sign in with the throwaway account `wp-env` creates on first start; its defaults
+are documented in [@wordpress/env](https://www.npmjs.com/package/@wordpress/env).
+Deliberately not repeated here: this repository is public, and a credential
+written into a README is a credential published. It is local-only in any case
+and is not valid against the hosted CMS.
 
 Then point the Astro site at it — from `../vivid-smiles-website`:
 
@@ -152,6 +158,16 @@ against a real hostname when the site goes online:
 ```bash
 bash bin/restore.sh https://cms.vividsmilesdentistry.com
 ```
+
+**The dump carries content, not accounts.** `backup.sh` excludes `wp_users` and
+`wp_usermeta`, so a restore leaves the target install's own logins alone and no
+password hash is ever written into this repository. Posts stay attributed to
+user 1, which exists on any WordPress install.
+
+The exclusion happens at the table level rather than by stripping rows, and that
+distinction is load-bearing: the export uses `--add-drop-table`, so a dump that
+merely had its user rows removed would still drop and recreate `wp_users` on
+import — wiping the target's accounts and locking everyone out.
 
 The URL rewrite runs through `wp search-replace`, not SQL. WordPress stores
 serialized PHP in the options table, where string lengths are encoded alongside

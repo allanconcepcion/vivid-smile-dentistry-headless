@@ -10,6 +10,12 @@
 # Media needs no restore step: wp-content/uploads is mapped to cms/uploads/ on
 # the host, so those files are already in place.
 #
+# User accounts are NOT restored. backup.sh excludes wp_users and wp_usermeta,
+# so this import leaves the target install's own accounts untouched — you keep
+# whatever login the target already had, and no password hash is carried across
+# environments or committed to this repository. Posts stay attributed to user 1,
+# which exists on any WordPress install.
+#
 # Pass a target URL to rewrite the hardcoded site URL during restore — this is
 # what makes the same dump usable against a real hostname:
 #

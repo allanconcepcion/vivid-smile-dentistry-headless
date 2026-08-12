@@ -256,7 +256,7 @@ wp/acf-json/                       ← ACF Local JSON (field groups in git, not 
 ```
 
 **WordPress-side setup:**
-1. `npm i -D @wordpress/env && npx wp-env start` → `http://localhost:8888`, admin/password.
+1. `npm i -D @wordpress/env && npx wp-env start` → `http://localhost:8888`, signing in with the local account wp-env creates.
 2. Register the content model (see §4 for the exact contract) via `wp/mu-plugins/vivid-headless.php`.
 3. Create the 5 blog categories with **exact slugs**: `dental-tips`, `cosmetic-dentistry`, `implant-dentistry`, `general-dentistry`, `emergency-dentistry`.
 4. Build the two ACF field groups in wp-admin, set each to **Show in REST API = Yes**, and confirm the JSON lands in `wp/acf-json/`. Commit it.

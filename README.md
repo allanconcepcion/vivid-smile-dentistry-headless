@@ -42,8 +42,13 @@ cd vivid-smiles-website && npm install && cp .env.example .env && npm run dev
 | URL | What |
 | --- | --- |
 | http://localhost:4321 | The Astro site |
-| http://localhost:8888/wp-admin | WordPress editor — `admin` / `password` |
+| http://localhost:8888/wp-admin | WordPress editor |
 | http://localhost:8888/graphql | GraphQL endpoint |
+
+The local WordPress uses the throwaway account `wp-env` creates on first start —
+see the [@wordpress/env docs](https://www.npmjs.com/package/@wordpress/env) for
+its defaults. No credentials are stored in this repository, and none of them are
+valid against the hosted CMS.
 
 See [`cms/README.md`](cms/README.md) for the content model, plugin notes, and
 the import scripts.

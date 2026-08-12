@@ -24,8 +24,23 @@ echo "==> Exporting database"
 
 # --add-drop-table so importing over an existing install replaces cleanly
 # rather than colliding on every CREATE TABLE.
+#
+# wp_users and wp_usermeta are excluded, for two reasons.
+#
+# They are not content. Everything this dump exists to carry — posts, pages,
+# testimonials, options, ACF rows — lives in other tables, and post_author=1
+# resolves against whatever user 1 is on the target install.
+#
+# And they are a liability. This file is committed to a public repository, so
+# exporting them publishes a password hash for every account in the install.
+# Excluding them at the table level rather than stripping the rows afterwards
+# matters: with --add-drop-table, a dump that CONTAINS the tables would drop
+# and recreate them on import, so a stripped-but-present wp_users would wipe
+# the target's accounts and lock everyone out. Omitting them entirely leaves
+# the target's users untouched.
 npx --no-install wp-env run cli wp db export "wp-content/vs-backup/$(basename "$OUT")" \
   --add-drop-table \
+  --exclude_tables=wp_users,wp_usermeta \
   --default-character-set=utf8mb4
 
 if [[ ! -s "$OUT" ]]; then
