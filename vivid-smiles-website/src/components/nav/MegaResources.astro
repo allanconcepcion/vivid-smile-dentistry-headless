@@ -7,7 +7,6 @@
  */
 
 import { Image } from "astro:assets";
-import featureBg from "../../assets/images/team/vivid-smiles-team-candid.webp";
 import { getMenuBranch } from "../../lib/menus";
 
 const branch = await getMenuBranch("/new-patients/");
@@ -19,7 +18,16 @@ const rows = branch?.children ?? [];
   <div class="mega-resources">
     <a class="resource-feature" href="/dental-membership-plan/">
       <div class="feature-img" aria-hidden="true">
-        <Image src={featureBg} alt="The Vivid Smiles Dentistry team" widths={[480, 720, 960]} sizes="(max-width: 1100px) 100vw, 40vw" />
+        {branch?.image && (
+          <Image
+            src={branch.image.src}
+            width={branch.image.width}
+            height={branch.image.height}
+            alt={branch.image.alt}
+            widths={[480, 720, 960]}
+            sizes="(max-width: 1100px) 100vw, 40vw"
+          />
+        )}
       </div>
       <div class="feature-body">
         <div class="feature-eyebrow">Vivid Member</div>

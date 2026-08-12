@@ -21,21 +21,16 @@ import {
 import { officeHours, openingHoursSpecification } from "../../data/hours";
 import "../../styles/pages/our-office.css";
 
-import heroPrimary from "../../assets/images/facility/waiting-room-lounge-with-neon-smile.webp";
-import heroInset from "../../assets/images/facility/entry-doors-with-vivid-logos.webp";
 
-// Portrait sources (bentoB, bentoC) intentionally placed in 1×2 vertical cells
+// The two portrait cells are intentionally placed in 1×2 vertical cells
 // in the bento grid so they crop cleanly instead of squashing.
-import bentoB from "../../assets/images/facility/operating-room.webp";
-import bentoC from "../../assets/images/facility/neon-smile-sign-detail.webp";
 
-import techPrimary from "../../assets/images/procedures/dr-richardson-performing-yomi-guided-implant-surgery.webp";
-import techInset from "../../assets/images/procedures/hygienist-polishing-teeth.webp";
 import { getPageContent } from '../../lib/page-content';
 // faqs is edited in WordPress (Pages -> Our Office in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
 const { faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+
 
 
 // `output=embed` avoids needing a Google Maps API key.
@@ -113,8 +108,8 @@ const description =
         </div>
 
         <ImageFrame
-          primary={{ src: heroPrimary, alt: "Waiting room lounge at Vivid Smiles Dentistry in Parker, CO" }}
-          inset={{ src: heroInset, alt: "Entry doors with Vivid Smiles Dentistry logo at our Parker, CO office" }}
+          primary={{ src: image("heroPrimary").url, width: image("heroPrimary").width, height: image("heroPrimary").height, alt: "Waiting room lounge at Vivid Smiles Dentistry in Parker, CO" }}
+          inset={{ src: image("heroInset").url, width: image("heroInset").width, height: image("heroInset").height, alt: "Entry doors with Vivid Smiles Dentistry logo at our Parker, CO office" }}
         />
 
       </div>
@@ -209,8 +204,8 @@ const description =
           </div>
 
           <ImageFrame
-            primary={{ src: techPrimary, alt: "Dr. Bryce Richardson placing a dental implant with the Yomi robotic arm at Vivid Smiles Dentistry" }}
-            inset={{ src: techInset, alt: "Hygienist polishing a patient's teeth chairside" }}
+            primary={{ src: image("techPrimary").url, width: image("techPrimary").width, height: image("techPrimary").height, alt: "Dr. Bryce Richardson placing a dental implant with the Yomi robotic arm at Vivid Smiles Dentistry" }}
+            inset={{ src: image("techInset").url, width: image("techInset").width, height: image("techInset").height, alt: "Hygienist polishing a patient's teeth chairside" }}
           />
         </div>
       </div>

@@ -17,8 +17,8 @@ import BaseLayout from "../layouts/BaseLayout.astro";
 import FinalBand from "../components/FinalBand.astro";
 import ArrowBadge from "../components/ArrowBadge.astro";
 import "../styles/pages/404.css";
+import { getPageContent } from '../lib/page-content';
 
-import heroBg from "../assets/images/facility/neon-smile-sign-detail.webp";
 
 const explore = [
   {
@@ -40,6 +40,9 @@ const explore = [
     href: "/smile-gallery/",
   },
 ];
+// Images are managed in WordPress (Pages -> this page -> Images).
+const { image } = await getPageContent(Astro.url.pathname);
+
 ---
 
 <BaseLayout
@@ -62,7 +65,7 @@ const explore = [
       <section class="hero">
         <Image
           class="hero-bg"
-          src={heroBg}
+          src={image("heroBg").url} width={image("heroBg").width} height={image("heroBg").height}
           alt="Neon smiley face sign at the entrance to the Vivid Smiles practice"
           widths={[768, 1280, 1600]}
           sizes="100vw"

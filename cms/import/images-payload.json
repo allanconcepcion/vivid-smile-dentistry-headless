@@ -101,6 +101,16 @@
       ]
     },
     {
+      "route": "/404/",
+      "images": [
+        {
+          "slot": "heroBg",
+          "rel": "images/facility/neon-smile-sign-detail.webp",
+          "alt": "Neon smiley face sign at the entrance to the Vivid Smiles practice"
+        }
+      ]
+    },
+    {
       "route": "/about-us/",
       "images": [
         {

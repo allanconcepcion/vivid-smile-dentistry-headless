@@ -47,8 +47,7 @@ const ARRAY_FIELDS = {
 /** Routes that are not editable marketing pages. */
 const SKIP = new Set([
   "/design-system/",
-  "/404/",
-  "/blog/", // hub, rendered from the blog collection
+    "/blog/", // hub, rendered from the blog collection
 ]);
 
 async function* walk(dir) {

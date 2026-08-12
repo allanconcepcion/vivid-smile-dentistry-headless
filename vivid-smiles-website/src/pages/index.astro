@@ -30,9 +30,6 @@ import "../styles/pages/home.css";
 const reviews = (await getCollection("reviews"))
   .sort((a, b) => +b.data.date - +a.data.date);
 
-// Hero / team
-import heroBg from "../assets/images/team/vivid-smiles-team-candid.webp";
-const teamPhoto = heroBg;
 
 // Trust bar logos
 
@@ -53,6 +50,11 @@ import { getSmiles } from "../lib/smiles";
 import { getPageContent } from '../lib/page-content';
 // Section copy is edited in WordPress (Pages -> this page -> Section copy).
 const { section, image, seo } = await getPageContent(Astro.url.pathname);
+
+// Same photo as the hero, reused lower down. Declared after the lookup it
+// depends on — a const cannot reference `image` before it is initialized.
+const teamPhoto = image("heroBg");
+
 
 
 
@@ -566,7 +568,7 @@ const trustTrack = [...trustBar, ...trustBar];
     <aside class="membership-band" id="membership" aria-labelledby="membership-heading">
       <div class="wrap">
         <div class="membership-visual" data-vs-reveal>
-          <Image src={teamPhoto} alt="The Vivid Smiles Dentistry team" widths={[480, 800, 1200]} sizes="(max-width: 991px) 100vw, 50vw" />
+          <Image src={teamPhoto.url} width={teamPhoto.width} height={teamPhoto.height} alt="The Vivid Smiles Dentistry team" widths={[480, 800, 1200]} sizes="(max-width: 991px) 100vw, 50vw" />
         </div>
         <div class="membership-content" data-vs-reveal-batch>
           <span class="membership-eyebrow">No Insurance? No Problem</span>

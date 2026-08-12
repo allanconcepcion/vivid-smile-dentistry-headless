@@ -24,44 +24,27 @@ import { bookNowHref } from '../../data/contact';
 import '../../styles/pages/about-us.css';
 
 // Hero + section imagery.
-import drBryceMain from '../../assets/images/team/dr-bryce-richardson.webp';
 // Dr. Bryce inset — real candid Dr. Richardson moment. Replaces the previous
 // "parker-co-patient-previewing-porcelain-veneer-result.webp" which (despite
 // the filename) was actually a photo of a practice dog. Caught in the 2026-05
 // image audit.
-import drBryceInset from '../../assets/images/procedures/dr-rich-mid-procedure.webp';
-import drAnnieMain from '../../assets/images/team/dr-annie.webp';
-import drAnnieInset from '../../assets/images/team/dr-annie-candid.webp';
 
 // Credential logos.
-import aacdLogo from '../../assets/images/credentials/american-academy-of-cosmetic-dentistry.webp';
-import aaidLogo from '../../assets/images/credentials/american-academy-of-implant-dentistry.webp';
-import adaLogo from '../../assets/images/credentials/american-dental-association.webp';
-import iuLogo from '../../assets/images/credentials/indiana-university-school-of-dentistry.webp';
-import famLogo from '../../assets/images/credentials/full-arch-masters.webp';
-import yomiLogo from '../../assets/images/facility/yomi-robotics.webp';
-import googleLogo from '../../assets/images/credentials/google-reviews.png';
-import vsLogo from '../../assets/images/brand/vivid-logo-green.webp';
 
 // Team headshots (10 — hygienists, assistants, coordination, comfort officers).
-import teamMandy from '../../assets/images/team/mandy.webp';
-import teamSammie from '../../assets/images/team/sammie.webp';
-import teamLinh from '../../assets/images/team/linh.webp';
-import teamTina from '../../assets/images/team/tina.webp';
-import teamAlly from '../../assets/images/team/ally.webp';
-import teamSara from '../../assets/images/team/sara.webp';
-import teamKt from '../../assets/images/team/kt.webp';
-import teamCarol from '../../assets/images/team/carol.webp';
-import teamKnox from '../../assets/images/team/knox-dog.webp';
-import teamBirdie from '../../assets/images/team/birdie-dog.webp';
-import { getPageContent } from '../../lib/page-content';
+import { getPageContent, schemaImageUrl } from '../../lib/page-content';
 // Section copy is edited in WordPress (Pages -> this page -> Section copy).
 const { section, image, seo } = await getPageContent(Astro.url.pathname);
+
+// Person schema must reference this site's optimized copy, not the
+// WordPress media URL — the CMS host is noindexed and is not where
+// visitors are sent.
+const drBryceSchemaImage = await schemaImageUrl(image("drBryceMain"), Astro.site);
 
 
 const credentials = [
   {
-    logo: aacdLogo,
+    logo: image("aacdLogo"),
     alt: 'American Academy of Cosmetic Dentistry',
     title: 'AACD',
     body: 'American Academy of Cosmetic Dentistry.',
@@ -69,7 +52,7 @@ const credentials = [
     meta: 'Cosmetic Dentistry',
   },
   {
-    logo: aaidLogo,
+    logo: image("aaidLogo"),
     alt: 'American Academy of Implant Dentistry',
     title: 'AAID',
     body: 'American Academy of Implant Dentistry.',
@@ -77,7 +60,7 @@ const credentials = [
     meta: 'Implant Dentistry',
   },
   {
-    logo: famLogo,
+    logo: image("famLogo"),
     alt: 'Full Arch Masters',
     title: 'Full Arch Masters',
     body: 'Clinical mentor for advanced surgical and full-arch curriculum.',
@@ -85,7 +68,7 @@ const credentials = [
     meta: 'Clinical Mentor',
   },
   {
-    logo: iuLogo,
+    logo: image("iuLogo"),
     alt: 'Indiana University School of Dentistry',
     title: 'Indiana University',
     body: "School of Dentistry — Dr. Richardson's alma mater.",
@@ -93,7 +76,7 @@ const credentials = [
     meta: 'Doctorate',
   },
   {
-    logo: yomiLogo,
+    logo: image("yomiLogo"),
     alt: 'Yomi Robotics',
     title: 'Yomi Robotics',
     body: 'FDA-cleared robotic-guided implant surgery certification.',
@@ -101,7 +84,7 @@ const credentials = [
     meta: 'Certified Surgeon',
   },
   {
-    logo: adaLogo,
+    logo: image("adaLogo"),
     alt: 'American Dental Association',
     title: 'ADA',
     body: 'American Dental Association — ethical, evidence-based care.',
@@ -109,7 +92,7 @@ const credentials = [
     meta: 'Professional Standing',
   },
   {
-    logo: googleLogo,
+    logo: image("googleLogo"),
     alt: 'Google Reviews',
     title: '5.0 · 300+ Reviews',
     body: 'Google-verified patient reviews from across the Front Range.',
@@ -117,7 +100,7 @@ const credentials = [
     meta: 'Patient Rated',
   },
   {
-    logo: vsLogo,
+    logo: image("vsLogo"),
     alt: 'Vivid Smiles',
     title: 'Vivid Smile Process',
     body: 'Our signature, facially-driven cosmetic methodology.',
@@ -162,21 +145,21 @@ const teamGroups = [
         name: 'Sara',
         role: 'Office Manager',
         bio: "Bachelor's and master's in Healthcare Administration. Sets the tone of the practice and keeps every smile journey moving from first call to final visit.",
-        image: teamSara,
+        image: image("teamSara"),
         alt: 'Sara, Office Manager at Vivid Smiles',
       },
       {
         name: 'KT',
         role: 'Patient Care & Office Coordinator',
         bio: "Often the first friendly voice you'll hear. Ten years in healthcare and dentistry, recently transplanted to Parker from Colorado's Western Slope.",
-        image: teamKt,
+        image: image("teamKt"),
         alt: 'KT, Patient Care and Office Coordinator at Vivid Smiles',
       },
       {
         name: 'Carol',
         role: 'Patient Coordinator',
         bio: 'In dentistry since age 19. A Colorado native who hikes with her family and disappears to warm beaches whenever she gets the chance.',
-        image: teamCarol,
+        image: image("teamCarol"),
         alt: 'Carol, Patient Coordinator at Vivid Smiles',
       },
     ],
@@ -190,14 +173,14 @@ const teamGroups = [
         name: 'Mandy',
         role: 'Registered Dental Hygienist',
         bio: 'A Registered Dental Hygienist since 2011 who grew up in a military family — bringing warm, welcoming energy to every appointment.',
-        image: teamMandy,
+        image: image("teamMandy"),
         alt: 'Mandy, Registered Dental Hygienist at Vivid Smiles',
       },
       {
         name: 'Sammie',
         role: 'Registered Dental Hygienist',
         bio: 'UMKC graduate with seventeen years of hygiene experience and a focus on patient education and personalized oral health care.',
-        image: teamSammie,
+        image: image("teamSammie"),
         alt: 'Sammie, Registered Dental Hygienist at Vivid Smiles',
       },
     ],
@@ -211,21 +194,21 @@ const teamGroups = [
         name: 'Linh',
         role: 'Dental Assistant',
         bio: 'Skilled clinical support and patient education, ensuring every visit moves smoothly and every patient feels comfortable.',
-        image: teamLinh,
+        image: image("teamLinh"),
         alt: 'Linh, Dental Assistant at Vivid Smiles',
       },
       {
         name: 'Tina',
         role: 'Expanded Duties Dental Assistant',
         bio: 'An EDDA for nearly twenty years across every dental specialty, with deep experience in surgical work — and a side life of camping, fishing, and four-wheeling.',
-        image: teamTina,
+        image: image("teamTina"),
         alt: 'Tina, Expanded Duties Dental Assistant at Vivid Smiles',
       },
       {
         name: 'Ally',
         role: 'Expanded Duties Dental Assistant',
         bio: 'Fourteen years in dentistry, EDDA-certified, and always tracking the next piece of clinical technology that makes treatment safer and faster.',
-        image: teamAlly,
+        image: image("teamAlly"),
         alt: 'Ally, Expanded Duties Dental Assistant at Vivid Smiles',
       },
     ],
@@ -239,14 +222,14 @@ const teamGroups = [
         name: 'Knox',
         role: 'Director of Smiles',
         bio: 'Part of the practice family since puppyhood. Greets patients with a wagging tail and brightens every visit, one nuzzle at a time.',
-        image: teamKnox,
+        image: image("teamKnox"),
         alt: 'Knox, the Vivid Smiles dog and Director of Smiles',
       },
       {
         name: 'Birdie',
         role: 'Chief Comfort Officer',
         bio: 'Three-legged, rescued from Turkey through Tattered Paws & Golden Hearts. Uncannily good at finding patients who need an extra dose of comfort.',
-        image: teamBirdie,
+        image: image("teamBirdie"),
         alt: 'Birdie, the Vivid Smiles dog and Chief Comfort Officer',
       },
     ],
@@ -376,11 +359,15 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
           <article class="doc-grid" id="dr-richardson">
             <ImageFrame
               primary={{
-                src: drBryceMain,
+                src: image("drBryceMain").url,
+                width: image("drBryceMain").width,
+                height: image("drBryceMain").height,
                 alt: 'Dr. Bryce Richardson, founder of Vivid Smiles Dentistry',
               }}
               inset={{
-                src: drBryceInset,
+                src: image("drBryceInset").url,
+                width: image("drBryceInset").width,
+                height: image("drBryceInset").height,
                 alt: 'Dr. Richardson performing precise dental work in surgical loupes',
               }}
             />
@@ -471,11 +458,15 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
             </div>
             <ImageFrame
               primary={{
-                src: drAnnieMain,
+                src: image("drAnnieMain").url,
+                width: image("drAnnieMain").width,
+                height: image("drAnnieMain").height,
                 alt: 'Dr. Annelise Westermeier, general & holistic dentist at Vivid Smiles',
               }}
               inset={{
-                src: drAnnieInset,
+                src: image("drAnnieInset").url,
+                width: image("drAnnieInset").width,
+                height: image("drAnnieInset").height,
                 alt: 'Dr. Annelise Westermeier in the Vivid Smiles Dentistry office',
               }}
             />
@@ -515,7 +506,9 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
                     <article class="aus-team-card">
                       <div class="aus-team-pic">
                         <Image
-                          src={m.image}
+                          src={m.image.url}
+                          width={m.image.width}
+                          height={m.image.height}
                           alt={m.alt}
                           widths={[360, 540, 720]}
                           sizes="(min-width: 1100px) 380px, (min-width: 780px) 50vw, 100vw"
@@ -601,7 +594,9 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
             {
               credentials.map((c) => (
                 <CredentialBadge
-                  logoSrc={c.logo}
+                  logoSrc={c.logo.url}
+                  logoWidth={c.logo.width}
+                  logoHeight={c.logo.height}
                   logoAlt={c.alt}
                   title={c.title}
                   body={c.body}
@@ -693,7 +688,7 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
           'Full-Arch Implant Dentistry',
           'Full-Mouth Rehabilitation',
         ],
-        image: new URL(drBryceMain.src, Astro.site).href,
+        image: drBryceSchemaImage,
       })}
     />
 

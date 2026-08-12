@@ -28,7 +28,7 @@ const PAGES_DIR = process.env.VS_PAGES_DIR || path.join(SITE, "src/pages");
 const ASSETS_DIR = path.join(SITE, "src/assets");
 const OUT = path.join(HERE, "images-payload.json");
 
-const SKIP_ROUTES = new Set(["/design-system/", "/404/", "/blog/"]);
+const SKIP_ROUTES = new Set(["/design-system/", "/blog/"]);
 
 async function* walk(dir) {
   for (const entry of await readdir(dir, { withFileTypes: true })) {
