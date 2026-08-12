@@ -103,7 +103,9 @@ and `wordpress-seo` before `add-wpgraphql-seo`.
 | Yoast SEO | 28.2 | Editor-facing SEO fields |
 | WPGraphQL Yoast SEO Addon | 5.1.0 | Exposes Yoast fields to GraphQL |
 
-**The versions are pinned, and `bin/setup.sh` disables auto-updates.** WPGraphQL
+**The versions are pinned. `bin/setup.sh` disables auto-updates locally; on the
+hosted install they had to be turned off by hand — see [What is actually installed
+on the host](#what-is-actually-installed-on-the-host).** WPGraphQL
 for ACF does not officially support SCF. It works because its only dependency
 check is `class_exists('ACF')` and SCF declares `class ACF` — the compatibility
 is incidental, not contractual (wpgraphql-acf issue #264, open since Feb 2026,
@@ -111,6 +113,45 @@ no maintainer response). A release that tightens that check or branches on
 `ACF_VERSION` would break the Astro build with no warning. Upgrade deliberately,
 after testing a build, rather than letting an unattended update decide when the
 blog stops rendering.
+
+### What is actually installed on the host
+
+`bin/setup.sh` provisions the five plugins above. The hosted install carries
+eleven — the GoDaddy account and an earlier setup left the rest behind. Verified
+in wp-admin on 2026-08-13:
+
+| Plugin | Version | State | Part of this setup? |
+| --- | --- | --- | --- |
+| WPGraphQL | 2.19.0 | Active | Yes |
+| Secure Custom Fields | 6.9.5 | Active | Yes |
+| WPGraphQL for ACF | 2.7.0 | Active | Yes |
+| Yoast SEO | 28.2 | Active | Yes |
+| Add WPGraphQL SEO | 5.1.0 | Active | Yes |
+| Advanced Custom Fields | 6.8.7 | Installed, **inactive** | No |
+| All-in-One WP Migration | 7.109 | **Active** | No |
+| All-in-One WP Migration Unlimited Extension | 2.87 | **Active** | No |
+| WP File Manager | 8.0.4 | **Active** | No |
+| Akismet | 5.7 | Installed, inactive | No |
+| Hello Dolly | 1.7.2 | Installed, inactive | No |
+
+Two of those matter more than the others.
+
+**Advanced Custom Fields is installed alongside SCF.** It is inactive and must stay
+that way — they are the same plugin and would fight over the same hooks (see
+below). `bin/setup.sh` deactivates ACF when it finds it active, but nothing stops
+someone clicking Activate in wp-admin, and the result would surface as a failed
+build rather than an admin warning. Deleting it is the safer end state; that is a
+decision for whoever owns the hosting account.
+
+**All-in-One WP Migration and WP File Manager are active and undocumented.**
+Neither is needed by the build. A file manager and a full-site export/import tool
+on an internet-facing admin are both real attack surface, and nothing in this
+repository installed them. Review both before launch.
+
+Auto-updates are off for the five plugins above — set by hand on the host on
+2026-08-13 — and on for the six that are not part of this setup. Off is what the
+pinning argument requires: an unattended Yoast or SCF update is precisely the
+event that breaks the incidental ACF compatibility described below.
 
 ### Secure Custom Fields, not ACF
 
