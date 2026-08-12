@@ -31,6 +31,13 @@ const PAGES_QUERY = /* GraphQL */ `
         uri
         slug
         title
+        vsSeo {
+          title
+          description
+          canonical
+          noindex
+          ogImage
+        }
         pageFields {
           tocLinks {
             label
@@ -87,6 +94,13 @@ type PageNode = {
   uri: string | null;
   slug: string;
   title: string | null;
+  vsSeo: {
+    title: string | null;
+    description: string | null;
+    canonical: string | null;
+    noindex: boolean | null;
+    ogImage: string | null;
+  } | null;
   pageFields: {
     tocLinks: Array<{ label: string | null; anchor: string | null }> | null;
     processSteps: Array<{ tag: string | null; title: string | null; body: string | null }> | null;
@@ -156,6 +170,13 @@ export function pagesLoader(): Loader {
           data: {
             route,
             title: node.title ?? "",
+            seo: {
+              title: node.vsSeo?.title?.trim() ?? "",
+              description: node.vsSeo?.description?.trim() ?? "",
+              canonical: node.vsSeo?.canonical?.trim() ?? "",
+              noindex: Boolean(node.vsSeo?.noindex),
+              ogImage: node.vsSeo?.ogImage?.trim() ?? "",
+            },
             // Normalized to the shape the templates already use, so a template
             // swaps `const faqs = [...]` for a lookup and changes nothing else.
             tocLinks: (f?.tocLinks ?? [])

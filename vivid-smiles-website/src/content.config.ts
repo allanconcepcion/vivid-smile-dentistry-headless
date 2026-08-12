@@ -106,6 +106,16 @@ const pages = defineCollection({
   schema: z.object({
     route: z.string(),
     title: z.string(),
+    // Editor-managed SEO. Empty strings mean "no override" — the template
+    // keeps whatever it already had, so a blank field in WordPress can never
+    // blank out a page's title tag.
+    seo: z.object({
+      title: z.string(),
+      description: z.string(),
+      canonical: z.string(),
+      noindex: z.boolean(),
+      ogImage: z.string(),
+    }),
     // Shapes match what the templates already destructure, so adopting this
     // collection is a one-line change per page rather than a rewrite.
     tocLinks: z.array(z.object({ href: z.string(), label: z.string() })).default([]),

@@ -58,6 +58,11 @@ import logoYomi from "../assets/images/facility/yomi-robotics.webp";
 import logoADA from "../assets/images/credentials/american-dental-association.webp";
 import logoGoogle from "../assets/images/credentials/google-reviews.png";
 import { getPageContent } from '../lib/page-content';
+// faqs is edited in WordPress (Pages -> General Lp).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { faqs, image, seo } = await getPageContent(Astro.url.pathname);
+
 
 // ── Smile gallery — auto-loaded from src/assets/images/smiles/.
 const galleryTiles = getSmiles();
@@ -153,13 +158,9 @@ const trustTrack = [...trustBar, ...trustBar];
 const reinforcer =
   "Dr. Richardson and the Vivid Smiles team review your health, your goals, and give you an honest plan and exact cost — no obligation, completely free.";
 
-const pageTitle = "General & Family Dentistry in Parker, CO — Vivid Smiles Dentistry";
+const pageTitle = seo.title || "General & Family Dentistry in Parker, CO — Vivid Smiles Dentistry";
 const pageDescription =
-  "Comprehensive general and family dentistry in Parker, CO — cleanings, same-day crowns, periodontal care, and emergencies, led by Dr. Bryce Richardson. 300+ five-star reviews. Request a new-patient appointment.";
-// faqs is edited in WordPress (Pages -> General Lp).
-// The shapes are unchanged from the arrays that used to live here, so the
-// markup below is untouched.
-const { faqs, image } = await getPageContent(Astro.url.pathname);
+  seo.description || "Comprehensive general and family dentistry in Parker, CO — cleanings, same-day crowns, periodontal care, and emergencies, led by Dr. Bryce Richardson. 300+ five-star reviews. Request a new-patient appointment.";
 
 ---
 

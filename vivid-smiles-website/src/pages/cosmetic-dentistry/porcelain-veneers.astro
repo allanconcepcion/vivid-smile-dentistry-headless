@@ -35,13 +35,14 @@ import whatImg from '../../assets/images/procedures/veneer-shells-on-model.webp'
 // "Natural results" — the in-mouth result. Lab shells read opaque and
 // artificial, which is the opposite of what this section argues.
 import naturalImg from '../../assets/images/procedures/finished-veneers-lip-detail.webp';
-
 // Auto-loaded from src/assets/images/smiles/ — every photo in the folder is a
 // real Dr. Richardson patient case and appropriate for this page.
 // Table of contents, process steps and FAQs are edited in WordPress
 // (Pages -> Porcelain Veneers). The shapes are identical to the arrays that
 // used to live here, so the markup below is unchanged.
-const { tocLinks, processSteps, faqs, section, image } = await getPageContent(Astro.url.pathname);
+const { tocLinks, processSteps, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+
+
 
 const galleryTiles = getSmiles();
 const galleryTrack = [...galleryTiles, ...galleryTiles];
@@ -49,9 +50,9 @@ const galleryTrack = [...galleryTiles, ...galleryTiles];
 ---
 
 <BaseLayout
-  title="Porcelain Veneers in Parker, CO | Vivid Smiles Dentistry"
-  description="No-prep & minimal-prep porcelain veneers in Parker, CO with Dr. Bryce Richardson. Preview your smile with Digital Smile Design before any treatment begins."
->
+  title={seo.title || "Porcelain Veneers in Parker, CO | Vivid Smiles Dentistry"}
+  description={seo.description || "No-prep & minimal-prep porcelain veneers in Parker, CO with Dr. Bryce Richardson. Preview your smile with Digital Smile Design before any treatment begins."}
+ noindex={seo.noindex}>
   <div class="pveneers">
     {/* ---------- BREADCRUMB ---------- */}
     <nav class="crumbs" aria-label="Breadcrumb">

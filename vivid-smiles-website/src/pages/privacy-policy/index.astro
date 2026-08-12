@@ -26,20 +26,21 @@ import {
 } from "../../data/contact";
 import "../../styles/pages/privacy-policy.css";
 import { getPageContent } from '../../lib/page-content';
-
-const lastRevised = "July 12, 2024";
-
 // tocLinks is edited in WordPress (Pages -> Privacy Policy).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, section } = await getPageContent(Astro.url.pathname);
+const { tocLinks, section, seo } = await getPageContent(Astro.url.pathname);
+
+
+const lastRevised = "July 12, 2024";
+
 
 ---
 
 <BaseLayout
-  title="Privacy Policy — Vivid Smiles Dentistry"
-  description="Vivid Smiles Dentistry's combined HIPAA Notice of Privacy Practices and website privacy policy — how we collect, use, share, and protect your information, and the rights you have over it."
->
+  title={seo.title || "Privacy Policy — Vivid Smiles Dentistry"}
+  description={seo.description || "Vivid Smiles Dentistry's combined HIPAA Notice of Privacy Practices and website privacy policy — how we collect, use, share, and protect your information, and the rights you have over it."}
+ noindex={seo.noindex}>
   <div class="privacy">
 
     {/* ---------- BREADCRUMB ---------- */}

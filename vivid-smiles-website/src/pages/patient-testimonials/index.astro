@@ -56,14 +56,15 @@ import featuredImg from "../../assets/images/procedures/full-arch-restoration-mo
 import heroImg from "../../assets/images/team/vivid-smiles-team-candid.webp";
 import { getPageContent } from '../../lib/page-content';
 // Section copy is edited in WordPress (Pages -> this page -> Section copy).
-const { section, image } = await getPageContent(Astro.url.pathname);
+const { section, image, seo } = await getPageContent(Astro.url.pathname);
+
 
 ---
 
 <BaseLayout
-  title="Patient Testimonials — Vivid Smiles Dentistry · Parker, CO"
-  description="Real patient stories and Google reviews from Vivid Smiles Dentistry. Watch James, Chanel, and Josh share their All-On-X transformations, and read 5-star reviews from patients across Parker, CO."
->
+  title={seo.title || "Patient Testimonials — Vivid Smiles Dentistry · Parker, CO"}
+  description={seo.description || "Real patient stories and Google reviews from Vivid Smiles Dentistry. Watch James, Chanel, and Josh share their All-On-X transformations, and read 5-star reviews from patients across Parker, CO."}
+ noindex={seo.noindex}>
   <div class="patient-testimonials">
 
     {/* ---------- BREADCRUMB ---------- */}

@@ -64,6 +64,13 @@ import naturalImg from '../../assets/images/people/real/woman-blonde-warm-interi
 // Gallery pulls dynamically from the central smiles/ folder.
 import { getSmiles } from '../../lib/smiles';
 import { getPageContent } from '../../lib/page-content';
+// 4 FAQs — verbatim from the user's copy. First Q is `open: true` to match
+// the veneers/aligners default.
+// tocLinks, faqs are edited in WordPress (Pages -> Teeth Whitening in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+
 const galleryTiles = getSmiles();
 const galleryTrack = [...galleryTiles, ...galleryTiles];
 
@@ -108,19 +115,13 @@ const maintenanceBullets = [
   },
 ];
 
-// 4 FAQs — verbatim from the user's copy. First Q is `open: true` to match
-// the veneers/aligners default.
-// tocLinks, faqs are edited in WordPress (Pages -> Teeth Whitening in Parker, CO).
-// The shapes are unchanged from the arrays that used to live here, so the
-// markup below is untouched.
-const { tocLinks, faqs, section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
 <BaseLayout
-  title="Teeth Whitening in Parker, CO | Vivid Smiles Dentistry"
-  description="KöR and Opalescence professional teeth whitening in Parker, CO with Dr. Bryce Richardson. Four pricing tiers from $99, including KöR Ultra-T for tetracycline staining other systems can't reach."
->
+  title={seo.title || "Teeth Whitening in Parker, CO | Vivid Smiles Dentistry"}
+  description={seo.description || "KöR and Opalescence professional teeth whitening in Parker, CO with Dr. Bryce Richardson. Four pricing tiers from $99, including KöR Ultra-T for tetracycline staining other systems can't reach."}
+ noindex={seo.noindex}>
   <div class="twhitening">
     {/* ---------- BREADCRUMB ---------- */}
     <nav class="crumbs" aria-label="Breadcrumb">

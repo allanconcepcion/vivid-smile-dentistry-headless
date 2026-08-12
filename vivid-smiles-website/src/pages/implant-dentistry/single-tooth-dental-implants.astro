@@ -20,6 +20,12 @@ import heroImg from '../../assets/images/people/real/woman-blonde-warm-interior.
 import whatImg from '../../assets/images/procedures/implant-prosthesis-arch-detail.webp';
 import candidacyImg from '../../assets/images/people/real/woman-pines-portrait.webp';
 import { getPageContent } from '../../lib/page-content';
+// 8 FAQs verbatim from the brief.
+// tocLinks, processSteps, faqs are edited in WordPress (Pages -> Single Tooth Dental Implants in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks, processSteps, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+
 
 // Track doubled for seamless marquee loop.
 const galleryTiles = getSmiles();
@@ -91,18 +97,13 @@ const keyStats: [string, string][] = [
   ['10–15 yrs', 'Crown Lifespan'],
 ];
 
-// 8 FAQs verbatim from the brief.
-// tocLinks, processSteps, faqs are edited in WordPress (Pages -> Single Tooth Dental Implants in Parker, CO).
-// The shapes are unchanged from the arrays that used to live here, so the
-// markup below is untouched.
-const { tocLinks, processSteps, faqs, section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
 <BaseLayout
-  title="Single Tooth Dental Implants in Parker, CO | Vivid Smiles Dentistry"
-  description="Single tooth dental implants in Parker, CO with Dr. Bryce Richardson — robotic placement, CBCT planning, in-house crown fabrication. Free consultation."
->
+  title={seo.title || "Single Tooth Dental Implants in Parker, CO | Vivid Smiles Dentistry"}
+  description={seo.description || "Single tooth dental implants in Parker, CO with Dr. Bryce Richardson — robotic placement, CBCT planning, in-house crown fabrication. Free consultation."}
+ noindex={seo.noindex}>
   <div class="singletooth">
     {/* ---------- BREADCRUMB ---------- */}
     <nav class="crumbs" aria-label="Breadcrumb">

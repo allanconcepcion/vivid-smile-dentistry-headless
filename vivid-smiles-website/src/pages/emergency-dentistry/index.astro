@@ -87,6 +87,11 @@ import imgHero from "../../assets/images/people/real/woman-blonde-warm-interior.
 // as routine implant work, not emergency triage.
 import imgHow from "../../assets/images/procedures/same-day-emergency-dental-care.webp";
 import { getPageContent } from '../../lib/page-content';
+// tocLinks is edited in WordPress (Pages -> Emergency Dental Care in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks, section, image, seo } = await getPageContent(Astro.url.pathname);
+
 
 // 5 first-aid scenarios — each is a parallel "if this happens, do that" panel,
 // NOT a sequence. The first 4 are scenario-specific (knocked-out / pain /
@@ -159,17 +164,13 @@ const faqs = [
 // description.
 const heroLede =
   "Dental emergencies don't follow business hours, and knowing where to go in Parker can be the difference between saving a tooth and losing one. Vivid Smiles Dentistry offers same-day emergency appointments, 3D diagnostic imaging, and in-house surgical expertise to resolve most cases on the first visit. The following is how to recognize a dental emergency, what to do before you arrive, and why Vivid Smiles is equipped to handle it.";
-// tocLinks is edited in WordPress (Pages -> Emergency Dental Care in Parker, CO).
-// The shapes are unchanged from the arrays that used to live here, so the
-// markup below is untouched.
-const { tocLinks, section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
 <BaseLayout
-  title="Emergency Dental Care in Parker, CO | Vivid Smiles Dentistry"
-  description="Same-day emergency dental care in Parker, CO at Vivid Smiles Dentistry. CBCT 3D imaging, in-house milling, and surgical expertise to resolve most emergencies in a single visit. Call (303) 841-5313."
->
+  title={seo.title || "Emergency Dental Care in Parker, CO | Vivid Smiles Dentistry"}
+  description={seo.description || "Same-day emergency dental care in Parker, CO at Vivid Smiles Dentistry. CBCT 3D imaging, in-house milling, and surgical expertise to resolve most emergencies in a single visit. Call (303) 841-5313."}
+ noindex={seo.noindex}>
   <div class="emerg">
 
     <nav class="crumbs" aria-label="Breadcrumb">

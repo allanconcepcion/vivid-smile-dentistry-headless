@@ -60,6 +60,11 @@ import logoYomi from '../assets/images/facility/yomi-robotics.webp';
 import logoADA from '../assets/images/credentials/american-dental-association.webp';
 import logoGoogle from '../assets/images/credentials/google-reviews.png';
 import { getPageContent } from '../lib/page-content';
+// faqs is edited in WordPress (Pages -> Cosmetic Dentistry Lp).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { faqs, image, seo } = await getPageContent(Astro.url.pathname);
+
 
 // ── Smile gallery — auto-loaded from src/assets/images/smiles/.
 const galleryTiles = getSmiles();
@@ -218,11 +223,7 @@ const reinforcer =
 
 const pageTitle = 'Cosmetic Dentistry in Parker, CO — Vivid Smiles Dentistry';
 const pageDescription =
-  "The smile you've always wanted, designed by Colorado's #1 cosmetic dentist. Veneers, smile makeovers, implants and more — all natural-looking. Book a free smile consult and walk away with a custom plan and your exact cost.";
-// faqs is edited in WordPress (Pages -> Cosmetic Dentistry Lp).
-// The shapes are unchanged from the arrays that used to live here, so the
-// markup below is untouched.
-const { faqs, image } = await getPageContent(Astro.url.pathname);
+  seo.description || "The smile you've always wanted, designed by Colorado's #1 cosmetic dentist. Veneers, smile makeovers, implants and more — all natural-looking. Book a free smile consult and walk away with a custom plan and your exact cost.";
 
 ---
 

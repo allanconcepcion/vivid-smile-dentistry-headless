@@ -60,6 +60,11 @@ import editorialImg from '../../assets/images/procedures/berry-lip-smile-tilted.
 // Gallery pulls dynamically from the central smiles/ folder.
 import { getSmiles } from '../../lib/smiles';
 import { getPageContent } from '../../lib/page-content';
+// tocLinks, faqs are edited in WordPress (Pages -> Smile Makeover in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+
 const galleryTiles = getSmiles();
 const galleryTrack = [...galleryTiles, ...galleryTiles];
 
@@ -71,17 +76,13 @@ const issuesList = [
   'Disproportionate tooth-to-gum ratio (gummy smile)',
 ];
 
-// tocLinks, faqs are edited in WordPress (Pages -> Smile Makeover in Parker, CO).
-// The shapes are unchanged from the arrays that used to live here, so the
-// markup below is untouched.
-const { tocLinks, faqs, section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
 <BaseLayout
-  title="Smile Makeover in Parker, CO | Vivid Smiles Dentistry"
-  description="Custom smile makeovers in Parker, CO with Dr. Bryce Richardson. Combine porcelain veneers, Invisalign, and whitening with digital smile design to preview your results before any treatment begins."
->
+  title={seo.title || "Smile Makeover in Parker, CO | Vivid Smiles Dentistry"}
+  description={seo.description || "Custom smile makeovers in Parker, CO with Dr. Bryce Richardson. Combine porcelain veneers, Invisalign, and whitening with digital smile design to preview your results before any treatment begins."}
+ noindex={seo.noindex}>
   <div class="smilemakeover">
     {/* ---------- BREADCRUMB ---------- */}
     <nav class="crumbs" aria-label="Breadcrumb">

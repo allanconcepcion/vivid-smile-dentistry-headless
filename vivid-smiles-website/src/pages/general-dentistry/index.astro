@@ -74,6 +74,11 @@ import imgRestorative from '../../assets/images/procedures/dr-rich-mid-procedure
 import imgPeriodontal from '../../assets/images/procedures/smile-macro-front-view.webp';
 import imgEmergency from '../../assets/images/procedures/same-day-emergency-dental-care.webp';
 import { getPageContent } from '../../lib/page-content';
+// tocLinks, faqs are edited in WordPress (Pages -> General Dentistry in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+
 
 // 4-up service feature cards (unlinked — general dentistry has no child
 // detail pages). Each card is an <article> with the full description always
@@ -132,17 +137,13 @@ const offerCatalog = services.map((s) => {
   if (s.href) procedure.url = new URL(s.href, Astro.site).href;
   return { '@type': 'Offer', itemOffered: procedure };
 });
-// tocLinks, faqs are edited in WordPress (Pages -> General Dentistry in Parker, CO).
-// The shapes are unchanged from the arrays that used to live here, so the
-// markup below is untouched.
-const { tocLinks, faqs, section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
 <BaseLayout
-  title="General Dentistry in Parker, CO | Vivid Smiles Dentistry"
-  description="Comprehensive general dentistry in Parker, CO at Vivid Smiles. Preventive care, same-day crowns, periodontal treatment, and emergency services — backed by a dual-doctor model with CBCT 3D imaging, in-house milling, and 300+ five-star reviews."
->
+  title={seo.title || "General Dentistry in Parker, CO | Vivid Smiles Dentistry"}
+  description={seo.description || "Comprehensive general dentistry in Parker, CO at Vivid Smiles. Preventive care, same-day crowns, periodontal treatment, and emergency services — backed by a dual-doctor model with CBCT 3D imaging, in-house milling, and 300+ five-star reviews."}
+ noindex={seo.noindex}>
   <div class="gdent">
     <nav class="crumbs" aria-label="Breadcrumb">
       <div class="crumbs-inner">

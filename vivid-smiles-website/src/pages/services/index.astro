@@ -28,6 +28,11 @@ import imgSinusLift from '../../assets/images/facility/operating-room.webp';
 import imgGeneral from '../../assets/images/people/real/woman-portrait-office-lounge.webp';
 import imgEmergency from '../../assets/images/procedures/same-day-emergency-dental-care.webp';
 import { getPageContent } from '../../lib/page-content';
+// faqs is edited in WordPress (Pages -> Services in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { faqs, section, seo } = await getPageContent(Astro.url.pathname);
+
 
 // Cosmetic + implant cards are kicker-free; only the everyday + emergency
 // cards carry a `.svc-tag` pill where the kicker adds real signal.
@@ -140,17 +145,13 @@ const allServices = [...cosmeticServices, ...implantServices, ...everydayService
   url: s.href,
   image: s.img.src,
 }));
-// faqs is edited in WordPress (Pages -> Services in Parker, CO).
-// The shapes are unchanged from the arrays that used to live here, so the
-// markup below is untouched.
-const { faqs, section } = await getPageContent(Astro.url.pathname);
 
 ---
 
 <BaseLayout
-  title="Services in Parker, CO | Vivid Smiles Dentistry"
-  description="Cosmetic, implant, and family dentistry in Parker, CO with Dr. Bryce Richardson. Explore veneers, clear aligners, dental implants, full-mouth rehabilitation, and same-day emergency care."
->
+  title={seo.title || "Services in Parker, CO | Vivid Smiles Dentistry"}
+  description={seo.description || "Cosmetic, implant, and family dentistry in Parker, CO with Dr. Bryce Richardson. Explore veneers, clear aligners, dental implants, full-mouth rehabilitation, and same-day emergency care."}
+ noindex={seo.noindex}>
   <div class="services">
     <nav class="crumbs" aria-label="Breadcrumb">
       <div class="crumbs-inner">

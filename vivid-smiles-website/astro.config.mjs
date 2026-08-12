@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
+import wordpressSitemapAlias from './src/integrations/wordpress-sitemap-alias';
 
 // https://astro.build/config
 export default defineConfig({
@@ -36,6 +37,9 @@ export default defineConfig({
         return !excludeExact.includes(path);
       },
     }),
+    // Also serves the sitemap at sitemap_index.xml — the URL WordPress used and
+    // that Search Console already has on file for this domain.
+    wordpressSitemapAlias(),
   ],
   build: {
     assets: '_assets',

@@ -35,6 +35,11 @@ import roboticsImg from '../../assets/images/procedures/dr-richardson-performing
 // Candidacy — lifestyle patient portrait.
 import candidacyImg from '../../assets/images/people/real/woman-lakeside-seated.webp';
 import { getPageContent } from '../../lib/page-content';
+// tocLinks, processSteps, faqs are edited in WordPress (Pages -> Full Mouth Dental Implants in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks, processSteps, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+
 
 // Track doubled for seamless marquee loop.
 const galleryTiles = getSmiles();
@@ -106,17 +111,13 @@ const keyStats: [string, string][] = [
   ['20+ yrs', 'Prosthetic Bridge'],
 ];
 
-// tocLinks, processSteps, faqs are edited in WordPress (Pages -> Full Mouth Dental Implants in Parker, CO).
-// The shapes are unchanged from the arrays that used to live here, so the
-// markup below is untouched.
-const { tocLinks, processSteps, faqs, section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
 <BaseLayout
-  title="Full Mouth Dental Implants in Parker, CO | Vivid Smiles Dentistry"
-  description="Full mouth dental implants in Parker, CO with Dr. Bryce Richardson — robotic placement, CBCT planning, four-to-six titanium implants per arch with a fixed bridge. Free consultation."
->
+  title={seo.title || "Full Mouth Dental Implants in Parker, CO | Vivid Smiles Dentistry"}
+  description={seo.description || "Full mouth dental implants in Parker, CO with Dr. Bryce Richardson — robotic placement, CBCT planning, four-to-six titanium implants per arch with a fixed bridge. Free consultation."}
+ noindex={seo.noindex}>
   <div class="fmdi">
     {/* ---------- BREADCRUMB ---------- */}
     <nav class="crumbs" aria-label="Breadcrumb">

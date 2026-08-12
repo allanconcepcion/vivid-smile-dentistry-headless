@@ -23,6 +23,9 @@ import {
 import { officeHours, openingHoursSpecification, hoursCopyShort } from "../../data/hours";
 import "../../styles/pages/contact.css";
 import { getPageContent } from '../../lib/page-content';
+// Section copy is edited in WordPress (Pages -> this page -> Section copy).
+const { section, seo } = await getPageContent(Astro.url.pathname);
+
 
 // Google Maps embed — `output=embed` avoids needing an API key.
 const mapEmbedSrc = `https://maps.google.com/maps?q=${encodeURIComponent(addressLine)}&output=embed`;
@@ -86,15 +89,13 @@ const contactOptions = [
     href: emailHref,
   },
 ];
-// Section copy is edited in WordPress (Pages -> this page -> Section copy).
-const { section } = await getPageContent(Astro.url.pathname);
 
 ---
 
 <BaseLayout
-  title="Contact Vivid Smiles Dentistry — Parker, CO"
+  title={seo.title || "Contact Vivid Smiles Dentistry — Parker, CO"}
   description={`Get in touch with Vivid Smiles Dentistry in Parker, CO. Book online, call ${phoneLabel}, send a message through our contact form, or email ${emailAddress}.`}
->
+ noindex={seo.noindex}>
   <div class="contact">
 
     {/* ---------- BREADCRUMB ---------- */}

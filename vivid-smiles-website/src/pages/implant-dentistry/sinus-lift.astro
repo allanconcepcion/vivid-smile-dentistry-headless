@@ -18,6 +18,11 @@ import whatImg from '../../assets/images/procedures/sinus-lift-cross-section-dia
 import yomiImg from '../../assets/images/procedures/dr-richardson-performing-yomi-guided-implant-surgery.webp';
 import drRichardsonImg from '../../assets/images/team/dr-bryce-richardson.webp';
 import { getPageContent } from '../../lib/page-content';
+// tocLinks, processSteps, faqs are edited in WordPress (Pages -> Sinus Lift Procedure in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks, processSteps, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+
 
 // Gallery pulls dynamically from src/assets/images/smiles/ via the
 // central loader. Doubled for seamless marquee loop.
@@ -82,17 +87,13 @@ const costBullets = [
   },
 ];
 
-// tocLinks, processSteps, faqs are edited in WordPress (Pages -> Sinus Lift Procedure in Parker, CO).
-// The shapes are unchanged from the arrays that used to live here, so the
-// markup below is untouched.
-const { tocLinks, processSteps, faqs, section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
 <BaseLayout
-  title="Sinus Lift Procedure in Parker, CO | Vivid Smiles Dentistry"
-  description="Sinus lift in Parker, CO with Dr. Bryce Richardson — CBCT imaging, robotic implant placement, and 600-plus hours of advanced surgical training. Schedule a free consultation."
->
+  title={seo.title || "Sinus Lift Procedure in Parker, CO | Vivid Smiles Dentistry"}
+  description={seo.description || "Sinus lift in Parker, CO with Dr. Bryce Richardson — CBCT imaging, robotic implant placement, and 600-plus hours of advanced surgical training. Schedule a free consultation."}
+ noindex={seo.noindex}>
   <div class="sinuslift">
     {/* ---------- BREADCRUMB ---------- */}
     <nav class="crumbs" aria-label="Breadcrumb">

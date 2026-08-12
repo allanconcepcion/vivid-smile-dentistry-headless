@@ -35,6 +35,11 @@ import bentoE from "../../assets/images/people/real/patient-at-reception-check-i
 import techPrimary from "../../assets/images/procedures/dr-richardson-performing-yomi-guided-implant-surgery.webp";
 import techInset from "../../assets/images/procedures/hygienist-polishing-teeth.webp";
 import { getPageContent } from '../../lib/page-content';
+// faqs is edited in WordPress (Pages -> Our Office in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+
 
 // `output=embed` avoids needing a Google Maps API key.
 const mapEmbedSrc = `https://maps.google.com/maps?q=${encodeURIComponent(addressLine)}&output=embed`;
@@ -64,17 +69,13 @@ const expectTiles = [
 
 const description =
   "Tour our Parker, CO dental office. Free on-site parking, ground-floor entrance, a calm modern interior, and Yomi robotic-assisted implant surgery. 300+ five-star reviews.";
-// faqs is edited in WordPress (Pages -> Our Office in Parker, CO).
-// The shapes are unchanged from the arrays that used to live here, so the
-// markup below is untouched.
-const { faqs, section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
 <BaseLayout
-  title="Our Office in Parker, CO | Vivid Smiles Dentistry"
+  title={seo.title || "Our Office in Parker, CO | Vivid Smiles Dentistry"}
   description={description}
->
+ noindex={seo.noindex}>
   <div class="vs-office">
 
     {/* ---------- BREADCRUMB ---------- */}

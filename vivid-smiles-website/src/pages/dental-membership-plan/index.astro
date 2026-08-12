@@ -24,6 +24,9 @@ import step1Img from "../../assets/images/people/real/patient-at-reception-check
 import step2Img from "../../assets/images/procedures/hygienist-polishing-teeth.webp";
 import step3Img from "../../assets/images/facility/waiting-room-lounge-with-neon-smile.webp";
 import { getPageContent } from '../../lib/page-content';
+// Section copy is edited in WordPress (Pages -> this page -> Section copy).
+const { section, image, seo } = await getPageContent(Astro.url.pathname);
+
 
 const storyBullets = [
   "2 cleanings & exams per year",
@@ -112,15 +115,13 @@ const faqs = [
     a: "<b>Fully covered (no additional charge):</b> two cleanings and exams a year, two fluoride treatments, unlimited digital x-rays as clinically needed, oral cancer screenings, and complimentary consultations. <b>Discounted at 15%:</b> Invisalign and clear aligners, additional cleanings, fillings, crowns, veneers, whitening, implants, full-arch work, and emergency visits. The plan covers one adult; family pricing is available on request.",
   },
 ];
-// Section copy is edited in WordPress (Pages -> this page -> Section copy).
-const { section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
 <BaseLayout
-  title="Dental Membership Plan in Parker, CO | Vivid Smiles Dentistry"
-  description="Flat $500/year. Two cleanings, exams, x-rays — and 15% off everything else. No insurance, no claims, no waiting period. Activate the same day at Vivid Smiles in Parker, CO."
->
+  title={seo.title || "Dental Membership Plan in Parker, CO | Vivid Smiles Dentistry"}
+  description={seo.description || "Flat $500/year. Two cleanings, exams, x-rays — and 15% off everything else. No insurance, no claims, no waiting period. Activate the same day at Vivid Smiles in Parker, CO."}
+ noindex={seo.noindex}>
   <div class="membership">
 
     {/* ---------- BREADCRUMB ---------- */}

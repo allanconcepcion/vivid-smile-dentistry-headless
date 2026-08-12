@@ -2,3 +2,7 @@ User-agent: *
 Allow: /
 
 Sitemap: https://vividsmilesdentistry.com/sitemap-index.xml
+
+# Same sitemap, also served at the URL WordPress used, so an older
+# submission or a stale reference keeps resolving.
+Sitemap: https://vividsmilesdentistry.com/sitemap_index.xml

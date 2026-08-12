@@ -40,6 +40,15 @@ import imgGum from '../../assets/images/procedures/smile-macro-front-view.webp';
 import imgMakeover from '../../assets/images/people/real/woman-radiant-smile-green-dress.webp';
 import imgFullMouth from '../../assets/images/procedures/implant-prosthesis-arch-detail.webp';
 import { getPageContent } from '../../lib/page-content';
+// FAQ data — 8 questions, verbatim from approved SEO copy.
+// `a` values use HTML so set:html can render embedded <a class="vs-link"> anchors
+//. Composite bonding intentionally not enumerated in FAQ #1
+// to stay consistent with dropping its tile from the services grid above.
+// tocLinks, processSteps, faqs are edited in WordPress (Pages -> Cosmetic Dentistry in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks, processSteps, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+
 
 // Duplicate the track for seamless CSS infinite scroll.
 const galleryTiles = getSmiles();
@@ -156,21 +165,13 @@ const ledger = [
   },
 ];
 
-// FAQ data — 8 questions, verbatim from approved SEO copy.
-// `a` values use HTML so set:html can render embedded <a class="vs-link"> anchors
-//. Composite bonding intentionally not enumerated in FAQ #1
-// to stay consistent with dropping its tile from the services grid above.
-// tocLinks, processSteps, faqs are edited in WordPress (Pages -> Cosmetic Dentistry in Parker, CO).
-// The shapes are unchanged from the arrays that used to live here, so the
-// markup below is untouched.
-const { tocLinks, processSteps, faqs, section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
 <BaseLayout
-  title="Cosmetic Dentistry in Parker, CO | Vivid Smiles Dentistry"
-  description="Cosmetic dentistry in Parker, CO with Dr. Bryce Richardson. Porcelain veneers, clear aligners, teeth whitening, smile makeovers, gum contouring, and full-mouth rehabilitation — 600+ hours of specialized training and 300+ five-star Google reviews."
->
+  title={seo.title || "Cosmetic Dentistry in Parker, CO | Vivid Smiles Dentistry"}
+  description={seo.description || "Cosmetic dentistry in Parker, CO with Dr. Bryce Richardson. Porcelain veneers, clear aligners, teeth whitening, smile makeovers, gum contouring, and full-mouth rehabilitation — 600+ hours of specialized training and 300+ five-star Google reviews."}
+ noindex={seo.noindex}>
   <div class="cdent">
     <nav class="crumbs" aria-label="Breadcrumb">
       <div class="crumbs-inner">

@@ -69,6 +69,9 @@ import storyVeneersLength from "../assets/images/video-stories/veneers-story-len
 import notableAnnMarie from "../assets/images/people/real/ann-marie-muscarello-veneer-makeover.webp";
 import notableBrittany from "../assets/images/people/real/brittany-fanning-smile-makeover.webp";
 import { getPageContent } from '../lib/page-content';
+// Section copy is edited in WordPress (Pages -> this page -> Section copy).
+const { section, image, seo } = await getPageContent(Astro.url.pathname);
+
 
 const galleryTiles = getSmiles();
 
@@ -86,15 +89,13 @@ const trustBar = [
 
 // Duplicate trust bar so the marquee animation has seamless loop content
 const trustTrack = [...trustBar, ...trustBar];
-// Section copy is edited in WordPress (Pages -> this page -> Section copy).
-const { section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
 <BaseLayout
-  title="Vivid Smiles Dentistry — Cosmetic & Implant Dentistry, Parker CO"
-  description="Cosmetic, implant, general, and emergency dentistry in Parker, Colorado. Calm, premium, patient-centered care."
->
+  title={seo.title || "Vivid Smiles Dentistry — Cosmetic & Implant Dentistry, Parker CO"}
+  description={seo.description || "Cosmetic, implant, general, and emergency dentistry in Parker, Colorado. Calm, premium, patient-centered care."}
+ noindex={seo.noindex}>
   <div class="home">
 
     <main id="main">

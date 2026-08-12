@@ -27,6 +27,9 @@ import "../styles/pages/thank-you.css";
 
 import heroBg from "../assets/images/team/vivid-smiles-team-candid.webp";
 import { getPageContent } from '../lib/page-content';
+// Images are managed in WordPress (Pages -> this page -> Images).
+const { image, seo } = await getPageContent(Astro.url.pathname);
+
 
 const steps = [
   {
@@ -66,14 +69,12 @@ const explore = [
     href: "/blog/",
   },
 ];
-// Images are managed in WordPress (Pages -> this page -> Images).
-const { image } = await getPageContent(Astro.url.pathname);
 
 ---
 
 <BaseLayout
-  title="Thank you — Vivid Smiles Dentistry"
-  description="We've received your request. Here's what happens next at Vivid Smiles Dentistry in Parker, CO."
+  title={seo.title || "Thank you — Vivid Smiles Dentistry"}
+  description={seo.description || "We've received your request. Here's what happens next at Vivid Smiles Dentistry in Parker, CO."}
   noindex={true}
 >
   <div class="tyou">

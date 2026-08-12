@@ -12,6 +12,9 @@ import '../../styles/pages/smile-gallery.css';
 // on this page twice.
 import heroImg from '../../assets/images/procedures/smile-three-quarter-glossy-lip.webp';
 import { getPageContent } from '../../lib/page-content';
+// Section copy is edited in WordPress (Pages -> this page -> Section copy).
+const { section, image, seo } = await getPageContent(Astro.url.pathname);
+
 
 /*
  * Photo-only catalog of finished work. Tiles deliberately carry NO treatment
@@ -33,15 +36,13 @@ const cases = smiles.map((s, i) => ({ ...s, num: String(i + 1).padStart(2, '0') 
 const lightboxSrcs = await Promise.all(
   cases.map((c) => getImage({ src: c.src, width: 1280, format: 'webp' }).then((g) => g.src)),
 );
-// Section copy is edited in WordPress (Pages -> this page -> Section copy).
-const { section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
 <BaseLayout
-  title="Smile Gallery — Vivid Smiles Dentistry · Parker, CO"
-  description="Finished smiles from Dr. Bryce Richardson at Vivid Smiles Dentistry in Parker, CO. Porcelain veneers, smile makeovers and full-arch restorations, photographed up close."
->
+  title={seo.title || "Smile Gallery — Vivid Smiles Dentistry · Parker, CO"}
+  description={seo.description || "Finished smiles from Dr. Bryce Richardson at Vivid Smiles Dentistry in Parker, CO. Porcelain veneers, smile makeovers and full-arch restorations, photographed up close."}
+ noindex={seo.noindex}>
   <div class="sgal">
     {/* ---------- BREADCRUMB ---------- */}
     <nav class="crumbs" aria-label="Breadcrumb">

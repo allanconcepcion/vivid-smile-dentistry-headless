@@ -63,23 +63,24 @@ import gumlineImg from "../../assets/images/procedures/finished-veneers-lip-deta
 // the hero portrait; the alt describes the photograph, not an outcome.
 import resultsImg from "../../assets/images/people/real/woman-office-portrait.webp";
 import { getPageContent } from '../../lib/page-content';
+// tocLinks, processSteps, faqs are edited in WordPress (Pages -> Laser Gum Contouring in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks, processSteps, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+
 
 const whyCards = [
   { tag: "Digital Preview",   title: "Digital smile preview",                       body: "Before any work is scheduled, you see a preview of your projected gum line. This is a specific, patient-facing view of your planned outcome, not a generic illustration of general improvements." },
   { tag: "Laser Technology",  title: "Laser over scalpel",                          body: "Soft tissue laser technology means less discomfort, minimal bleeding, no sutures in most cases, and significantly faster healing compared to traditional gum surgery." },
 ];
 
-// tocLinks, processSteps, faqs are edited in WordPress (Pages -> Laser Gum Contouring in Parker, CO).
-// The shapes are unchanged from the arrays that used to live here, so the
-// markup below is untouched.
-const { tocLinks, processSteps, faqs, section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
 <BaseLayout
-  title="Laser Gum Contouring in Parker, CO | Vivid Smiles Dentistry"
-  description="Laser gum contouring in Parker, CO with Dr. Bryce Richardson. Reshape excess or uneven gum tissue with soft-tissue laser technology — minimal recovery, immediate results, permanent change."
->
+  title={seo.title || "Laser Gum Contouring in Parker, CO | Vivid Smiles Dentistry"}
+  description={seo.description || "Laser gum contouring in Parker, CO with Dr. Bryce Richardson. Reshape excess or uneven gum tissue with soft-tissue laser technology — minimal recovery, immediate results, permanent change."}
+ noindex={seo.noindex}>
   <div class="gcontouring">
 
     {/* ---------- BREADCRUMB ---------- */}

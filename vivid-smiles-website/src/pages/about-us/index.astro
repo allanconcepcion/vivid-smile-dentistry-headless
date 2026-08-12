@@ -58,6 +58,9 @@ import teamCarol from '../../assets/images/team/carol.webp';
 import teamKnox from '../../assets/images/team/knox-dog.webp';
 import teamBirdie from '../../assets/images/team/birdie-dog.webp';
 import { getPageContent } from '../../lib/page-content';
+// Section copy is edited in WordPress (Pages -> this page -> Section copy).
+const { section, image, seo } = await getPageContent(Astro.url.pathname);
+
 
 const credentials = [
   {
@@ -256,15 +259,13 @@ const teamGroups = [
 // Patient Voices — full reviews collection (newest first), rendered in a
 // seamless marquee. Mirrors the home-page testimonials section.
 const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +a.data.date);
-// Section copy is edited in WordPress (Pages -> this page -> Section copy).
-const { section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
 <BaseLayout
-  title="About Vivid Smiles Dentistry — Parker, CO"
-  description="Meet the doctors and team behind Vivid Smiles Dentistry — Colorado's premier destination for highly esthetic cosmetic and implant dentistry."
->
+  title={seo.title || "About Vivid Smiles Dentistry — Parker, CO"}
+  description={seo.description || "Meet the doctors and team behind Vivid Smiles Dentistry — Colorado's premier destination for highly esthetic cosmetic and implant dentistry."}
+ noindex={seo.noindex}>
   <div class="aus">
     {/* ---------- BREADCRUMB ---------- */}
     <nav class="crumbs" aria-label="Breadcrumb">

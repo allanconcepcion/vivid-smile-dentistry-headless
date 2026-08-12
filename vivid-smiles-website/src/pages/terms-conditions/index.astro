@@ -22,6 +22,11 @@ import {
 } from "../../data/contact";
 import "../../styles/pages/terms-conditions.css";
 import { getPageContent } from '../../lib/page-content';
+// tocLinks is edited in WordPress (Pages -> Terms & Conditions).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks, section, seo } = await getPageContent(Astro.url.pathname);
+
 
 // SMS support line in section 22 — distinct from the practice's main phone line
 // (legacy doc references a vendor / SMS HELP routing). Inlined here rather than
@@ -29,17 +34,13 @@ import { getPageContent } from '../../lib/page-content';
 const smsHelpLabel = "(303) 276-9932";
 const smsHelpHref = "tel:+13032769932";
 
-// tocLinks is edited in WordPress (Pages -> Terms & Conditions).
-// The shapes are unchanged from the arrays that used to live here, so the
-// markup below is untouched.
-const { tocLinks, section } = await getPageContent(Astro.url.pathname);
 
 ---
 
 <BaseLayout
-  title="Terms & Conditions — Vivid Smiles Dentistry"
-  description="The terms and conditions governing your use of the Vivid Smiles Dentistry website — rights, obligations, account terms, returns, SMS messaging, and contact information."
->
+  title={seo.title || "Terms & Conditions — Vivid Smiles Dentistry"}
+  description={seo.description || "The terms and conditions governing your use of the Vivid Smiles Dentistry website — rights, obligations, account terms, returns, SMS messaging, and contact information."}
+ noindex={seo.noindex}>
   <div class="terms">
 
     {/* ---------- BREADCRUMB ---------- */}

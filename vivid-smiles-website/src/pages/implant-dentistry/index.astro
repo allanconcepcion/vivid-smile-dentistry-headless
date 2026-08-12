@@ -47,6 +47,13 @@ import imgAllOn4 from "../../assets/images/people/real/man-bearded-natural-smile
 import imgBoneGrafting from "../../assets/images/people/real/woman-office-portrait.webp";
 import imgSinusLift from "../../assets/images/facility/operating-room.webp";
 import { getPageContent } from '../../lib/page-content';
+// Six FAQs verbatim from SEO copy. set:html lets inline <a class="vs-link">
+// render on the answers that benefit from internal linking.
+// tocLinks, processSteps, faqs are edited in WordPress (Pages -> Dental Implants in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks, processSteps, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+
 
 const services = [
   {
@@ -198,19 +205,13 @@ const ledger = [
   { n: "4", h: "Stable systemic health",     p: "Well-controlled conditions such as diabetes do not disqualify a candidate; uncontrolled conditions are reviewed first.", tag: "Systemic OK" },
 ];
 
-// Six FAQs verbatim from SEO copy. set:html lets inline <a class="vs-link">
-// render on the answers that benefit from internal linking.
-// tocLinks, processSteps, faqs are edited in WordPress (Pages -> Dental Implants in Parker, CO).
-// The shapes are unchanged from the arrays that used to live here, so the
-// markup below is untouched.
-const { tocLinks, processSteps, faqs, section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
 <BaseLayout
-  title="Dental Implants in Parker, CO | Vivid Smiles Dentistry"
-  description="Advanced dental implants in Parker, CO with Dr. Bryce Richardson. Robotic placement, CBCT planning, in-house surgery + restoration. Single tooth from $3,995, full mouth and All-on-4 from $19,995/arch. 600+ hours of surgical training, 300+ five-star reviews."
->
+  title={seo.title || "Dental Implants in Parker, CO | Vivid Smiles Dentistry"}
+  description={seo.description || "Advanced dental implants in Parker, CO with Dr. Bryce Richardson. Robotic placement, CBCT planning, in-house surgery + restoration. Single tooth from $3,995, full mouth and All-on-4 from $19,995/arch. 600+ hours of surgical training, 300+ five-star reviews."}
+ noindex={seo.noindex}>
   <div class="impd">
 
     <nav class="crumbs" aria-label="Breadcrumb">

@@ -17,6 +17,11 @@ import imgImplant from "../../assets/images/procedures/full-arch-model-in-hand.w
 import imgGeneral from "../../assets/images/people/real/woman-portrait-office-lounge.webp";
 import imgEmergency from "../../assets/images/procedures/same-day-emergency-dental-care.webp";
 import { getPageContent } from '../../lib/page-content';
+// faqs is edited in WordPress (Pages -> New Patients in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+
 
 // Full 5-star reviews collection (newest first) drives the swipe-draggable
 // testimonials marquee — same pattern as home + about pages.
@@ -96,17 +101,13 @@ const services = [
 // reinterpreted; copy is canonical, do not edit without source authority.
 const description =
   "Welcome to Vivid Smiles Dentistry in Parker, CO. An unhurried 90-minute first visit and a calm 6-step new-patient experience with Dr. Bryce Richardson. 300+ five-star reviews.";
-// faqs is edited in WordPress (Pages -> New Patients in Parker, CO).
-// The shapes are unchanged from the arrays that used to live here, so the
-// markup below is untouched.
-const { faqs, section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
 <BaseLayout
-  title="New Patients in Parker, CO | Vivid Smiles Dentistry"
+  title={seo.title || "New Patients in Parker, CO | Vivid Smiles Dentistry"}
   description={description}
->
+ noindex={seo.noindex}>
   <div class="np">
 
     {/* ---------- BREADCRUMB ---------- */}

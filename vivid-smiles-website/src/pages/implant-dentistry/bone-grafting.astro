@@ -34,6 +34,11 @@ import implantsImg from '../../assets/images/procedures/implant-prosthesis-arch-
 // Candidacy section — lifestyle patient portrait.
 import candidacyImg from '../../assets/images/people/real/woman-stone-wall-portrait.webp';
 import { getPageContent } from '../../lib/page-content';
+// tocLinks, processSteps, faqs are edited in WordPress (Pages -> Bone Grafting in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks, processSteps, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+
 
 // Track doubled for seamless marquee loop.
 const galleryTiles = getSmiles();
@@ -105,17 +110,13 @@ const keyStats: [string, string][] = [
   ['5.0★ · 300+', 'Google Reviews'],
 ];
 
-// tocLinks, processSteps, faqs are edited in WordPress (Pages -> Bone Grafting in Parker, CO).
-// The shapes are unchanged from the arrays that used to live here, so the
-// markup below is untouched.
-const { tocLinks, processSteps, faqs, section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
 <BaseLayout
-  title="Bone Grafting in Parker, CO | Vivid Smiles Dentistry"
-  description="Bone grafting in Parker, CO with Dr. Bryce Richardson — CBCT-guided assessment, socket preservation, ridge augmentation, and sinus lifts that prepare your jaw for dental implants."
->
+  title={seo.title || "Bone Grafting in Parker, CO | Vivid Smiles Dentistry"}
+  description={seo.description || "Bone grafting in Parker, CO with Dr. Bryce Richardson — CBCT-guided assessment, socket preservation, ridge augmentation, and sinus lifts that prepare your jaw for dental implants."}
+ noindex={seo.noindex}>
   <div class="bgraft">
     {/* ---------- BREADCRUMB ---------- */}
     <nav class="crumbs" aria-label="Breadcrumb">

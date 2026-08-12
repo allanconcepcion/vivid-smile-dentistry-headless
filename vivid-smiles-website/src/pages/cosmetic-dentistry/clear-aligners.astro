@@ -48,6 +48,12 @@ import naturalImg from '../../assets/images/people/real/woman-blonde-warm-interi
 // Gallery pulls dynamically from the central smiles/ folder.
 import { getSmiles } from '../../lib/smiles';
 import { getPageContent } from '../../lib/page-content';
+// 8 entries: 7 from the user's copy verbatim + Cost & Insurance as Q8.
+// tocLinks, processSteps, faqs are edited in WordPress (Pages -> Clear Aligners in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks, processSteps, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+
 const galleryTiles = getSmiles();
 const galleryTrack = [...galleryTiles, ...galleryTiles];
 
@@ -83,18 +89,13 @@ const careBullets = [
   },
 ];
 
-// 8 entries: 7 from the user's copy verbatim + Cost & Insurance as Q8.
-// tocLinks, processSteps, faqs are edited in WordPress (Pages -> Clear Aligners in Parker, CO).
-// The shapes are unchanged from the arrays that used to live here, so the
-// markup below is untouched.
-const { tocLinks, processSteps, faqs, section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
 <BaseLayout
-  title="Clear Aligners in Parker, CO | Vivid Smiles Dentistry"
-  description="Spark clear aligners in Parker, CO with Dr. Bryce Richardson. See your projected smile before treatment begins, with 3D scanning and digital smile planning at Vivid Smiles Dentistry."
->
+  title={seo.title || "Clear Aligners in Parker, CO | Vivid Smiles Dentistry"}
+  description={seo.description || "Spark clear aligners in Parker, CO with Dr. Bryce Richardson. See your projected smile before treatment begins, with 3D scanning and digital smile planning at Vivid Smiles Dentistry."}
+ noindex={seo.noindex}>
   <div class="caligners">
     {/* ---------- BREADCRUMB ---------- */}
     <nav class="crumbs" aria-label="Breadcrumb">

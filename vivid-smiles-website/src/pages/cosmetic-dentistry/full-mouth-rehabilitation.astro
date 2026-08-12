@@ -57,6 +57,11 @@ import whatImg from "../../assets/images/procedures/full-arch-restoration-model.
 // "Design section" — finished-smile macro in profile.
 import designImg from "../../assets/images/procedures/finished-veneers-side-smile-black.webp";
 import { getPageContent } from '../../lib/page-content';
+// tocLinks, processSteps, faqs are edited in WordPress (Pages -> Full-Mouth Rehabilitation in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks, processSteps, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+
 
 const whyUsCards = [
   {
@@ -81,17 +86,13 @@ const whyUsCards = [
   },
 ];
 
-// tocLinks, processSteps, faqs are edited in WordPress (Pages -> Full-Mouth Rehabilitation in Parker, CO).
-// The shapes are unchanged from the arrays that used to live here, so the
-// markup below is untouched.
-const { tocLinks, processSteps, faqs, section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
 <BaseLayout
-  title="Full-Mouth Rehabilitation in Parker, CO | Vivid Smiles Dentistry"
-  description="Full-mouth rehabilitation in Parker, CO with Dr. Bryce Richardson. Implants, crowns, bridges, veneers, and implant-supported dentures combined into one coordinated plan, with digital smile design preview."
->
+  title={seo.title || "Full-Mouth Rehabilitation in Parker, CO | Vivid Smiles Dentistry"}
+  description={seo.description || "Full-mouth rehabilitation in Parker, CO with Dr. Bryce Richardson. Implants, crowns, bridges, veneers, and implant-supported dentures combined into one coordinated plan, with digital smile design preview."}
+ noindex={seo.noindex}>
   <div class="fmrehab">
 
     {/* ---------- BREADCRUMB ---------- */}

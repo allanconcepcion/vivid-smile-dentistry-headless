@@ -24,6 +24,13 @@ export type Section = {
   cta_href: string;
 };
 export type Card = { group: string; title: string; body: string; meta: string; href: string };
+export type PageSeo = {
+  title: string;
+  description: string;
+  canonical: string;
+  noindex: boolean;
+  ogImage: string;
+};
 export type PageImage = {
   slot: string;
   url: string;
@@ -56,6 +63,7 @@ export type PageContent = {
    * missing FAQ row is a content gap the editor can see and fix; a hard failure
    * here would take the whole site's build down over one blank heading.
    */
+  seo: PageSeo;
   section: (id: string) => Section;
   /**
    * A page image by slot, for <Image src={…} width={…} height={…} />.
@@ -102,6 +110,7 @@ export async function getPageContent(route: string): Promise<PageContent> {
 
   return {
     title: entry.data.title,
+    seo: entry.data.seo,
     tocLinks: entry.data.tocLinks,
     processSteps: entry.data.processSteps,
     faqs: entry.data.faqs,

@@ -26,6 +26,11 @@ import roboticsImg from '../../assets/images/procedures/dr-richardson-performing
 // on the page; the alt describes the photograph, never a treatment.
 import candidacyImg from '../../assets/images/people/real/woman-mountain-portrait.webp';
 import { getPageContent } from '../../lib/page-content';
+// tocLinks, processSteps, faqs are edited in WordPress (Pages -> All-on-4 Single Arch Implants in Parker, CO).
+// The shapes are unchanged from the arrays that used to live here, so the
+// markup below is untouched.
+const { tocLinks, processSteps, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+
 
 // Track doubled for seamless marquee loop.
 const galleryTiles = getSmiles();
@@ -116,17 +121,13 @@ const archConfigs = [
   },
 ];
 
-// tocLinks, processSteps, faqs are edited in WordPress (Pages -> All-on-4 Single Arch Implants in Parker, CO).
-// The shapes are unchanged from the arrays that used to live here, so the
-// markup below is untouched.
-const { tocLinks, processSteps, faqs, section, image } = await getPageContent(Astro.url.pathname);
 
 ---
 
 <BaseLayout
-  title="All-on-4 Single Arch Implants in Parker, CO | Vivid Smiles Dentistry"
-  description="All-on-4 single arch implants in Parker, CO with Dr. Bryce Richardson — robotic placement, CBCT planning, same-day function for one jaw. Free consultation."
->
+  title={seo.title || "All-on-4 Single Arch Implants in Parker, CO | Vivid Smiles Dentistry"}
+  description={seo.description || "All-on-4 single arch implants in Parker, CO with Dr. Bryce Richardson — robotic placement, CBCT planning, same-day function for one jaw. Free consultation."}
+ noindex={seo.noindex}>
   <div class="aos4">
     {/* ---------- BREADCRUMB ---------- */}
     <nav class="crumbs" aria-label="Breadcrumb">
