@@ -1,5 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "installCommand": "cd vivid-smiles-website && npm install",
+  "buildCommand": "cd vivid-smiles-website && npm run build",
+  "outputDirectory": "vivid-smiles-website/dist",
   "trailingSlash": true,
   "headers": [
     {
