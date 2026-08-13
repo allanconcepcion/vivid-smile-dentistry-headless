@@ -276,6 +276,42 @@ remains in this repository's git history**, so making the repository private
 does not retire it. Any install restored from an older dump needs its password
 rotated.
 
+### Deploying mu-plugins
+
+Nothing else in this repository puts `cms/mu-plugins/` on the host, and that gap
+has cost real time: every CMS-side change stalled on someone hand-copying a file
+through a file-manager plugin, and the repo and the host drifted apart quietly
+enough that the handoff notes described `vs-deploy.php` as "never uploaded" a
+full day after it was uploaded.
+
+```bash
+export VS_SFTP_HOST=1230613.us28.myftpupload.com
+export VS_SFTP_USER=<from the GoDaddy dashboard, Settings, SFTP>
+
+DRY_RUN=1 bash cms/bin/deploy-mu-plugins.sh          # show the plan
+bash cms/bin/deploy-mu-plugins.sh                    # every file but vs-config.php
+bash cms/bin/deploy-mu-plugins.sh vs-content-model.php   # just one
+```
+
+No credential is stored or read from this repository. The password is typed at
+`sftp`'s own prompt, so it never reaches the script, the process list, or shell
+history; with an SSH key loaded there is no prompt at all.
+
+Two behaviours worth knowing:
+
+- **`vs-config.php` is skipped by default.** The host's copy defines
+  `VS_DEPLOY_HOOK_URL`, which this public repository deliberately does not carry.
+  Overwriting it would delete the constant and publishing would silently stop
+  rebuilding the front end — `vs-deploy.php` would keep loading and keep
+  returning early. Send it only with `VS_OVERWRITE_CONFIG=1`, and re-add the
+  constant afterwards.
+- **Every file is read back and compared byte-for-byte after upload.** A
+  truncated mu-plugin is a fatal error on every request to the CMS, so a
+  mismatch fails the run loudly rather than leaving it to be discovered later.
+
+mu-plugins are not activated. A file is live the moment it lands; confirm under
+Plugins, Must-Use.
+
 ### Wire the deploy hook
 
 Done in part. The Vercel project has a deploy hook named **WordPress publish**
@@ -287,15 +323,27 @@ change schedules one event two minutes out and later changes reuse it, so a
 session of editing produces one build rather than a queue of builds that cancel
 each other.
 
-Two steps remain, and both are on the host — nothing in this repository can do
-them:
+**Both remaining steps are done, verified 13 August 2026.** `vs-deploy.php` is on
+the host — wp-admin lists it under Plugins, Must-Use, as "Vivid Smiles — Deploy
+trigger" — and `VS_DEPLOY_HOOK_URL` is defined in
+`wp-content/mu-plugins/vs-config.php`. Publishing a page raised the plugin's own
+"Front-end rebuild queued" notice, which only renders when the cron event is
+scheduled, and `queue()` only schedules it when the constant is defined. Two
+minutes later Vercel recorded a Production deployment labelled `Created: Deploy
+Hook`. Trashing the page fired it again.
 
-1. Upload `cms/mu-plugins/vs-deploy.php` into `wp-content/mu-plugins/`.
+The two steps were:
+
+1. Upload `cms/mu-plugins/vs-deploy.php` into `wp-content/mu-plugins/`. See
+   [Deploying mu-plugins](#deploying-mu-plugins).
 2. Add the hook URL to `wp-content/mu-plugins/vs-config.php`:
 
    ```php
    define( 'VS_DEPLOY_HOOK_URL', 'https://api.vercel.com/v1/integrations/deploy/...' );
    ```
+
+   That line exists only on the host, which is why the deploy script refuses to
+   overwrite `vs-config.php` unless explicitly told to.
 
 Copy the value from Vercel with the Copy button next to the hook. It is a
 credential — anyone holding it can start builds — so it does not belong in this
@@ -327,7 +375,8 @@ A plain find/replace corrupts every serialized option whose URL changes length.
 See [../cms/README.md](../cms/README.md).
 
 - Copy `cms/uploads/` to the host's `wp-content/uploads/`.
-- Deploy `cms/mu-plugins/` to `wp-content/mu-plugins/`.
+- Deploy `cms/mu-plugins/` to `wp-content/mu-plugins/` — see
+  [Deploying mu-plugins](#deploying-mu-plugins).
 - Run the equivalent of `cms/bin/setup.sh` to install the pinned plugins.
 - Change `VS_FRONTEND_URL` in `cms/mu-plugins/vs-config.php` to
   `https://vividsmilesdentistry.com` and re-upload that one file.
