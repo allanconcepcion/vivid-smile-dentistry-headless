@@ -413,6 +413,10 @@ curl -sS -X POST https://cms.vividsmilesdentistry.com/graphql \
 
 Do this only after a production deployment renders correctly on the Vercel URL.
 
+[CUTOVER-PROMPT.md](CUTOVER-PROMPT.md) is this section rewritten as a briefing to
+hand a fresh session — same steps, ordered, with the three failure modes that are
+silent pulled to the top. Use it rather than reciting this section from memory.
+
 ### DNS, and the records that must not be touched
 
 `vividsmilesdentistry.com` is registered at GoDaddy. DNS is hosted at Cloudflare
