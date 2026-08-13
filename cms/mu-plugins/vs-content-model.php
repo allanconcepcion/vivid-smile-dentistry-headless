@@ -626,6 +626,67 @@ function register_field_groups(): void {
 add_action( 'acf/include_fields', __NAMESPACE__ . '\\register_field_groups' );
 
 /**
+ * The three field keys the importer owns.
+ *
+ * Each ties a repeater row to a fixed place in a designed template: section_id
+ * to a band of copy, slot to an image position, group to a set of cards. Editing
+ * one on an imported row detaches the content from the layout it belongs to,
+ * which is why all three are readonly.
+ */
+const IMPORTER_OWNED_KEYS = [
+	'field_vs_section_id',
+	'field_vs_image_slot',
+	'field_vs_card_group',
+];
+
+/**
+ * Unlock an importer-owned field on a row that does not have a value yet.
+ *
+ * These fields are `required` AND `readonly`, and those two settings together
+ * are a deadlock on any row the importer did not create. `readonly` renders the
+ * input with a readonly attribute, so it still posts — it posts an empty
+ * string, which then fails the required check with no way to fix it. On a new
+ * page an editor could add a Section copy row and never save it. The same held
+ * for Images and Cards. Three of the six tabs were shut by a rule written to
+ * protect the other three.
+ *
+ * The rule is right; its scope was wrong. There is nothing to protect on a row
+ * that has no value, so lock the field only once it holds one. The check runs on
+ * `acf/prepare_field` rather than `acf/load_field` because only prepare sees the
+ * row's value — load runs before values are attached, so it cannot tell an
+ * imported row from a new one.
+ *
+ * A repeater also renders one hidden blank template row that "Add row" clones.
+ * Its value is empty too, which is precisely the case that needs unlocking.
+ *
+ * Note this makes the field editable exactly once, by hand, and does not stop an
+ * editor clearing an imported value in some future ACF release that lets them.
+ * The durable fix is to key rows on something the editor cannot see at all.
+ */
+function unlock_empty_importer_field( $field ) {
+	// Another filter can suppress a field by returning false; pass that through.
+	if ( ! is_array( $field ) ) {
+		return $field;
+	}
+
+	if ( ! in_array( $field['key'] ?? '', IMPORTER_OWNED_KEYS, true ) ) {
+		return $field;
+	}
+
+	if ( '' !== trim( (string) ( $field['value'] ?? '' ) ) ) {
+		return $field;
+	}
+
+	$field['readonly']     = 0;
+	$field['instructions'] = 'Set this once. It ties the row to a place in the layout, '
+		. 'and is fixed afterwards. On a page with no hand-built template it is '
+		. 'just the anchor id, so any short lowercase name will do.';
+
+	return $field;
+}
+add_filter( 'acf/prepare_field', __NAMESPACE__ . '\\unlock_empty_importer_field' );
+
+/**
  * Expose the post's "last updated" timestamp to GraphQL.
  *
  * The Astro schema has an optional `updated` field which [slug].astro uses for
