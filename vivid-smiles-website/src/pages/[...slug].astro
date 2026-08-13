@@ -127,19 +127,31 @@ export const getStaticPaths = (async () => {
     if (claimed.has(route)) return [];
     claimed.add(route);
 
-    // A page with nothing in any field is one that exists to be filled in
-    // later. Publishing a URL with only a heading on it would be worse than
-    // leaving it out, so it is skipped and named in the log.
-    const { sections, processSteps, faqs, cards } = entry.data;
+    // A page with nothing in any field still gets built.
+    //
+    // It used to be skipped, on the reasoning that a URL with only a heading on
+    // it is worse than no URL at all. In practice the opposite was true: the
+    // editor had already published the page, so the address existed and was
+    // being handed out, and skipping it produced a 404 plus a silent drop from
+    // the sitemap — a worse failure than a thin page, and a much harder one to
+    // notice. Building it puts the page where the editor put it; filling it in
+    // is then an ordinary edit rather than a mystery.
+    //
+    // Note tocLinks counts as copy. It did not before, so a page using only the
+    // "On this page" tab — one of the three tabs a newly created page can
+    // actually use today — was skipped as empty.
+    const { sections, processSteps, faqs, cards, tocLinks } = entry.data;
     const hasCopy =
       sections.some((s) => s.heading.trim() || s.body.trim()) ||
       processSteps.length > 0 ||
       faqs.length > 0 ||
-      cards.length > 0;
+      cards.length > 0 ||
+      tocLinks.length > 0;
 
+    // Named in the log so an empty page is discoverable from the build output
+    // rather than by clicking. Informational: it is not a failure.
     if (!hasCopy) {
-      console.warn(`[wp-pages] ${route} has no content in any field — not building it.`);
-      return [];
+      console.info(`[wp-pages] ${route} has no content in any field — building it title-only.`);
     }
 
     return [{ params: { slug: route.slice(1, -1) }, props: { page: entry.data } }];
@@ -205,6 +217,16 @@ const description =
     .trim()
     .slice(0, 155) ||
   undefined;
+
+// A page whose fields are all empty renders as hero only. Without this the
+// body wrapper still emits, and its padding leaves a tall blank slab under the
+// heading that reads as a broken page rather than an unfinished one.
+const hasBody =
+  page.tocLinks.length > 0 ||
+  sections.length > 0 ||
+  steps.length > 0 ||
+  cardGroups.size > 0 ||
+  faqs.length > 0;
 ---
 
 <BaseLayout
@@ -231,75 +253,77 @@ const description =
         </div>
       </header>
 
-      <div class="wp-page-body">
-        <div class="wrap">
-          {page.tocLinks.length > 0 && (
-            <aside class="wp-page-toc" aria-label="On this page">
-              <span class="wp-page-toc-label">On this page</span>
-              <ul>
-                {page.tocLinks.map((link) => (
-                  <li><a href={link.href}>{link.label}</a></li>
-                ))}
-              </ul>
-            </aside>
-          )}
+      {hasBody && (
+        <div class="wp-page-body">
+          <div class="wrap">
+            {page.tocLinks.length > 0 && (
+              <aside class="wp-page-toc" aria-label="On this page">
+                <span class="wp-page-toc-label">On this page</span>
+                <ul>
+                  {page.tocLinks.map((link) => (
+                    <li><a href={link.href}>{link.label}</a></li>
+                  ))}
+                </ul>
+              </aside>
+            )}
 
-          {sections.map((section) => (
-            <section class="wp-page-section" id={section.section_id || undefined} data-vs-reveal>
-              {section.eyebrow && <span class="wp-page-eyebrow">{section.eyebrow}</span>}
-              {section.heading && <h2 class="vs-h3">{section.heading}</h2>}
-              {section.html && <div class="wp-page-prose" set:html={section.html}></div>}
-              {section.cta_label && section.cta_href && (
-                <a class="wp-page-cta" href={section.cta_href}>{section.cta_label}</a>
-              )}
-            </section>
-          ))}
+            {sections.map((section) => (
+              <section class="wp-page-section" id={section.section_id || undefined} data-vs-reveal>
+                {section.eyebrow && <span class="wp-page-eyebrow">{section.eyebrow}</span>}
+                {section.heading && <h2 class="vs-h3">{section.heading}</h2>}
+                {section.html && <div class="wp-page-prose" set:html={section.html}></div>}
+                {section.cta_label && section.cta_href && (
+                  <a class="wp-page-cta" href={section.cta_href}>{section.cta_label}</a>
+                )}
+              </section>
+            ))}
 
-          {steps.length > 0 && (
-            <section class="wp-page-section" data-vs-reveal>
-              <ol class="wp-page-steps">
-                {steps.map((step) => (
-                  <li>
-                    {step.tag && <span class="wp-page-step-tag">{step.tag}</span>}
-                    <h3 class="wp-page-step-title">{step.title}</h3>
-                    {step.html && <div class="wp-page-prose" set:html={step.html}></div>}
-                  </li>
-                ))}
-              </ol>
-            </section>
-          )}
+            {steps.length > 0 && (
+              <section class="wp-page-section" data-vs-reveal>
+                <ol class="wp-page-steps">
+                  {steps.map((step) => (
+                    <li>
+                      {step.tag && <span class="wp-page-step-tag">{step.tag}</span>}
+                      <h3 class="wp-page-step-title">{step.title}</h3>
+                      {step.html && <div class="wp-page-prose" set:html={step.html}></div>}
+                    </li>
+                  ))}
+                </ol>
+              </section>
+            )}
 
-          {Array.from(cardGroups).map(([group, cards]) => (
-            <section class="wp-page-section" data-vs-reveal>
-              <ul class="wp-page-cards" data-group={group}>
-                {cards.map((card) => (
-                  <li>
-                    {card.meta && <span class="wp-page-card-meta">{card.meta}</span>}
-                    <h3 class="wp-page-card-title">
-                      {card.href ? <a href={card.href}>{card.title}</a> : card.title}
-                    </h3>
-                    {card.body && <p>{card.body}</p>}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ))}
+            {Array.from(cardGroups).map(([group, cards]) => (
+              <section class="wp-page-section" data-vs-reveal>
+                <ul class="wp-page-cards" data-group={group}>
+                  {cards.map((card) => (
+                    <li>
+                      {card.meta && <span class="wp-page-card-meta">{card.meta}</span>}
+                      <h3 class="wp-page-card-title">
+                        {card.href ? <a href={card.href}>{card.title}</a> : card.title}
+                      </h3>
+                      {card.body && <p>{card.body}</p>}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            ))}
 
-          {faqs.length > 0 && (
-            <section class="wp-page-section" data-vs-reveal>
-              <h2 class="vs-h3">Frequently asked questions</h2>
-              <div class="wp-page-faqs">
-                {faqs.map((faq) => (
-                  <details open={faq.open}>
-                    <summary>{faq.q}</summary>
-                    <div class="wp-page-prose" set:html={faq.html}></div>
-                  </details>
-                ))}
-              </div>
-            </section>
-          )}
+            {faqs.length > 0 && (
+              <section class="wp-page-section" data-vs-reveal>
+                <h2 class="vs-h3">Frequently asked questions</h2>
+                <div class="wp-page-faqs">
+                  {faqs.map((faq) => (
+                    <details open={faq.open}>
+                      <summary>{faq.q}</summary>
+                      <div class="wp-page-prose" set:html={faq.html}></div>
+                    </details>
+                  ))}
+                </div>
+              </section>
+            )}
+          </div>
         </div>
-      </div>
+      )}
     </main>
   </div>
 </BaseLayout>
