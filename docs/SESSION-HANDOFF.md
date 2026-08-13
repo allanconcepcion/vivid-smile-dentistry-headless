@@ -32,9 +32,20 @@ Both open PRs are merged to `main` and live in production.
   route, assembling it from the page's structured fields (there is no `post_content` — see
   Gotchas). Ships with `src/styles/pages/wp-page.css`.
 
-Most recent production deployment: `2rHPzmNTJ`, Ready in 1m52s, triggered by a manual redeploy.
-Its log reported `Loaded 34 pages`, `Yoast sitemap: 43 URLs across 2 child sitemap(s), every one
-built`, and `49 page(s) built`.
+Production sat at `cddbf6d` with `49 page(s) built` and `Yoast sitemap: 43 URLs across 2 child
+sitemap(s), every one built`. Recent production deployments are **triggered by the deploy hook**,
+not by hand — Vercel labels them `Created: Deploy Hook`.
+
+**Four PRs merged on 13 August 2026:**
+
+- **#3 `wp-pages-title-only`**, merged as `3de80cd` — builds a page that has only a title instead
+  of skipping it. Verified end to end on the branch preview before merging. See Open issues 3.
+- **#4 `docs-handoff-correction`** — this file and `cms/README.md`.
+- **#5 `scf-unlock-empty-importer-ids`**, merged as `62c887c` — unlocks the importer-owned repeater
+  IDs on rows that hold no value yet. CMS-side only, so it has no build impact and **does nothing
+  until `vs-content-model.php` reaches the host.** See Open issues 2.
+- **#6 `deploy-mu-plugins-script`**, merged as `d9cc1a6` — `cms/bin/deploy-mu-plugins.sh`, which is
+  how that copy is now supposed to happen.
 
 ## The verification checklist
 
@@ -79,32 +90,84 @@ WPGraphQL for ACF resolves against SCF at all. Its dependency check is only
 Active (7): Add WPGraphQL SEO 5.1.0 · All-in-One WP Migration 7.109 · AIOWPM Unlimited Extension
 2.87 · Secure Custom Fields 6.9.5 · WPGraphQL 2.19.0 · WPGraphQL for ACF 2.7.0 · Yoast SEO 28.2
 
-Inactive (3): Advanced Custom Fields 6.8.7 · Akismet 5.7 · Hello Dolly 1.7.2
+Inactive (3): Advanced Custom Fields 6.8.7 · Akismet 5.7 · **WP File Manager 8.0.4**
 
-**README drift:** `cms/README.md` says eleven plugins. There are now **ten — WP File Manager has
-been removed.** That is a good change; the README should be updated to match. Auto-updates are
-off for the five setup plugins and on for the other five, which is correct.
+**Correction, 13 August 2026.** An earlier revision of this file said WP File Manager had been
+removed and listed Hello Dolly as inactive. Both were wrong, and the wrong one matters: **WP File
+Manager 8.0.4 is still installed, merely deactivated** — one click from live on an
+internet-facing admin, on a plugin with a long history of remote-code-execution bugs. Hello Dolly
+is the plugin that is actually gone. Verified in wp-admin: All (10), Active (7), Inactive (3).
 
-**Must-use plugins on the host = 9:** Object Cache Pro (MU), GoDaddy's System Plugin, and seven
-`vs-*` plugins. **`vs-deploy.php` is not among them.** It exists in the repo but was never
-uploaded, which is why publishing content does not trigger a rebuild.
+**README drift:** `cms/README.md` says eleven plugins and lists Hello Dolly. There are ten.
+Auto-updates are off for the five setup plugins and on for the other five, which is correct.
+
+**Must-use plugins on the host = 10:** Object Cache Pro (MU), GoDaddy's System Plugin, and eight
+`vs-*` plugins. **`vs-deploy.php` IS among them** — it appears in wp-admin under Must-Use as
+"Vivid Smiles — Deploy trigger 0.1.0". An earlier revision of this file claimed it had never been
+uploaded. That was wrong; see Open issues.
 
 ## Open issues
 
-1. **`vs-deploy.php` is missing on the host.** Until it is uploaded and `VS_DEPLOY_HOOK_URL` is
-   set in `vs-config.php`, every content change needs a manual Vercel redeploy. Highest-value fix.
+Numbered for reference, not ranked — other files link to these numbers, so they stay put. By
+severity, **5 is first**: a working WordPress password hash is published in this repository's
+history right now and nobody has rotated it.
+
+1. ~~**`vs-deploy.php` is missing on the host.**~~ **Resolved — and it was never true.** Both host
+   steps are done. Evidence, 13 August 2026: wp-admin lists "Vivid Smiles — Deploy trigger" under
+   Must-Use; publishing a page raised the plugin's own admin notice, "Front-end rebuild queued —
+   the live site updates in about 2 minutes", which `notice()` only prints when
+   `wp_next_scheduled('vs_deploy_build')` is set, and `queue()` returns early when
+   `VS_DEPLOY_HOOK_URL` is undefined — so the constant is defined in `vs-config.php` on the host.
+   Roughly two minutes later Vercel showed a Production deployment with **Created: Deploy Hook**,
+   Ready. Trashing the page fired it again. Publishing in WordPress rebuilds the front end. The
+   manual-redeploy instruction elsewhere in this repo is now only a fallback.
 2. **Section ID is both `required` and `readOnly`.** On a new page you can add a Section copy row
    but can never fill the ID, so the row cannot validate — the whole tab is unusable for pages the
    importer did not create. The same lock applies to `images.slot` and `cards.group`. Today a new
-   page can only use the On this page, Process and FAQ tabs.
+   page can only use the On this page, Process and FAQ tabs. The mechanism: `readonly` renders the
+   input with a readonly attribute, so it still posts — it posts an empty string, and `required`
+   then rejects it. This is not theoretical: on 13 August an editor filled in a section's eyebrow,
+   heading, body and button, could not type an ID, and lost the save. **Fixed in PR #5, merged as
+   `62c887c`** — the field locks only once it holds a value, via `acf/prepare_field`. The merge
+   alone changes nothing on the CMS: run `bash cms/bin/deploy-mu-plugins.sh vs-content-model.php`.
+   Until that file lands, the field is still readonly in wp-admin.
 3. **The catch-all skips pages with no copy in any field.** A page with only a title logs
    `[wp-pages] <route> has no content in any field`, is not built, 404s, and is dropped from the
-   sitemap. Worth rendering title-only pages instead.
-4. **A test page is still published** at `/test/`. Pages → Test → Move to Trash when finished,
-   then redeploy.
-5. **The repo is public** and contains `cms/uploads/` with roughly 74 identifiable patient
-   photographs, a 2.3 MB database dump, and a WordPress password hash in git history before commit
-   `9f41107`. Not addressed.
+   sitemap. **Fixed in PR #3, merged as `3de80cd`.** Verified end to end on the branch preview
+   before merging: a published `Title Only Test` page logged
+   `[wp-pages] /title-only-test/ has no content in any field — building it title-only.`, emitted
+   `/title-only-test/index.html`, and rendered as hero-only (50 pages built, 44 sitemap URLs, all
+   built). The same URL returned **404** on production, which still runs `main`. The PR also makes
+   `tocLinks` count as copy — it did not before, so a page using only the "On this page" tab was
+   also being skipped.
+4. ~~**A test page is still published** at `/test/`.~~ **Resolved 13 August 2026.** Moved to Trash.
+   No manual redeploy was needed: the deploy hook rebuilt production on its own, `/test/` now
+   returns 404, and `page-sitemap.xml` is down to 27 URLs from 28.
+5. **The repo is public, and a WordPress password hash is still retrievable from its history.**
+   Verified 13 August 2026 by cloning unauthenticated and running
+   `git show 9f41107^:cms/backup/database.sql`, which returns a dump containing `wp_users`,
+   `wp_usermeta` and one password hash. Commit `9f41107` removed those tables going forward. That
+   does not retire what is already published, and neither would making the repository private,
+   because anything already cloned or indexed stays out. **Rotate that password.** It is the only
+   remedy that works without rewriting history, and it has not been done.
+
+   Two claims an earlier revision of this file made about this issue did not survive checking:
+
+   - **The dump at HEAD is clean.** `cms/backup/database.sql` is 2.4 MB across 16 tables with no
+     `wp_users` and no `wp_usermeta` — `backup.sh`'s table-level exclusion works as its commit
+     message claims. The email addresses in it are 20 `@gutenbergtimes.com` (WordPress demo
+     content), 2 `@example.com` and 2 `@vividsmilesdentistry.com`. No patient data. The exposure
+     is in the 15 older revisions of that path, not the current one.
+   - **"Roughly 74 identifiable patient photographs" is not supported.** `cms/uploads/` holds 661
+     files, 31 MB, collapsing to 131 distinct base images: 25 `procedures-`, 19 `team-`,
+     17 `people-`, 9 `smiles-`, and the rest facility, video and diagram assets. The nine
+     `smiles-*` files are named `smiles-01-frontal-arch-berry-lip` and similar — art direction,
+     not clinical records. This was read from filenames, deliberately not from the images, so
+     whether any `team-*` or `people-*` portrait is a real patient rather than staff or stock
+     remains an open question for someone who knows the shoot.
+
+   Needing a person rather than a checker: rotate the password; decide whether to `git filter-repo`
+   the dump out of all 15 revisions, which force-pushes `main`; confirm the portraits' provenance.
 6. **All-in-One WP Migration and its Unlimited Extension are active and undocumented** on an
    internet-facing admin. Neither is needed by the build. Review before launch.
 7. **Cloudflare in front of the CMS** answers cold bursts with 429s. `warm-media-cache.mjs` and
@@ -137,9 +200,20 @@ uploaded, which is why publishing content does not trigger a rebuild.
 
 ## Suggested next steps
 
-1. Deploy `vs-deploy.php` and set `VS_DEPLOY_HOOK_URL` so publishing rebuilds the site
-   automatically. This is what makes the whole "editors can add pages" story actually true.
-2. Unlock Section ID for rows that do not yet have one, so new pages can use section copy.
-3. Render title-only pages instead of skipping them.
-4. Delete the `/test/` page and redeploy.
-5. Update `cms/README.md` for the ten-plugin reality.
+1. **Copy `vs-content-model.php` to the host.** This is the only thing between an editor and a page
+   with real content on it, and merging PR #5 did not do it:
+
+   ```bash
+   export VS_SFTP_HOST=1230613.us28.myftpupload.com VS_SFTP_USER=<GoDaddy, Settings, SFTP>
+   bash cms/bin/deploy-mu-plugins.sh vs-content-model.php
+   ```
+
+   Confirm afterwards in wp-admin: Pages, Add Page, Section copy — the Section ID on a new row
+   should be typeable. Until then the only workaround is unlocking the field in the browser by
+   hand, which does not survive a reload.
+2. **Rotate the WordPress password.** See issue 5 — a working hash is published in this
+   repository's history and removing it later did not retire it.
+3. Decide what to do about WP File Manager — delete it, or accept an inactive RCE-history plugin
+   on a public admin. Same question for All-in-One WP Migration, which is still active.
+4. Verify anything this file claims before acting on it. Two of its three highest-priority items
+   were stale within a day.
