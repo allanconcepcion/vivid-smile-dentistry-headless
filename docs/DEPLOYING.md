@@ -285,13 +285,29 @@ enough that the handoff notes described `vs-deploy.php` as "never uploaded" a
 full day after it was uploaded.
 
 ```bash
-export VS_SFTP_HOST=1230613.us28.myftpupload.com
-export VS_SFTP_USER=<from the GoDaddy dashboard, Settings, SFTP>
+# NOTE the ssh. in the hostname. SFTP and SSH are NOT on the web hostname —
+# 1230613.us28.myftpupload.com serves the site and refuses port 22.
+export VS_SFTP_HOST=1230613.us28.ssh.myftpupload.com
+export VS_SFTP_USER=<from the GoDaddy dashboard, Settings, SSH/SFTP>
 
 DRY_RUN=1 bash cms/bin/deploy-mu-plugins.sh          # show the plan
 bash cms/bin/deploy-mu-plugins.sh                    # every file but vs-config.php
 bash cms/bin/deploy-mu-plugins.sh vs-content-model.php   # just one
 ```
+
+If the host has SSH, pulling from GitHub on the host is shorter than pushing to
+it — this repository is public, so no credential is involved at all:
+
+```bash
+ssh <user>@1230613.us28.ssh.myftpupload.com
+cd ~/html/wp-content/mu-plugins
+cp vs-content-model.php ~/vs-content-model.php.bak    # rollback copy, kept OUT of mu-plugins
+curl -fsSL https://raw.githubusercontent.com/allanconcepcion/vivid-smile-dentistry-headless/main/cms/mu-plugins/vs-content-model.php -o vs-content-model.php
+php -l vs-content-model.php && md5sum vs-content-model.php
+```
+
+Check the sum against the file in this repo before trusting it. This is how
+`vs-content-model.php` was deployed on 13 August 2026.
 
 No credential is stored or read from this repository. The password is typed at
 `sftp`'s own prompt, so it never reaches the script, the process list, or shell
