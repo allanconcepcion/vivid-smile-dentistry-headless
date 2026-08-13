@@ -36,8 +36,14 @@ Production sat at `cddbf6d` with `49 page(s) built` and `Yoast sitemap: 43 URLs 
 sitemap(s), every one built`. Recent production deployments are **triggered by the deploy hook**,
 not by hand — Vercel labels them `Created: Deploy Hook`.
 
-**One PR is open and unmerged: #3, `wp-pages-title-only`**, commit `337dffc`. It builds a page
-that has only a title instead of skipping it. See Open issues 3.
+**Three PRs are open and unmerged:**
+
+- **#3 `wp-pages-title-only`**, commit `337dffc` — builds a page that has only a title instead of
+  skipping it. Verified end to end on the branch preview. See Open issues 3.
+- **#4 `docs-handoff-correction`** — this file and `cms/README.md`.
+- **#5 `scf-unlock-empty-importer-ids`** — unlocks the importer-owned repeater IDs on rows that
+  have no value yet. CMS-side only, so it has no build impact and its Vercel preview proves
+  nothing. See Open issues 2.
 
 ## The verification checklist
 
@@ -112,7 +118,11 @@ uploaded. That was wrong; see Open issues.
 2. **Section ID is both `required` and `readOnly`.** On a new page you can add a Section copy row
    but can never fill the ID, so the row cannot validate — the whole tab is unusable for pages the
    importer did not create. The same lock applies to `images.slot` and `cards.group`. Today a new
-   page can only use the On this page, Process and FAQ tabs.
+   page can only use the On this page, Process and FAQ tabs. The mechanism: `readonly` renders the
+   input with a readonly attribute, so it still posts — it posts an empty string, and `required`
+   then rejects it. **Fix open in PR #5** — locks the field only once it holds a value, via
+   `acf/prepare_field`. Lints clean and behaves correctly against stubs, but **it is unverified on
+   the host**, because nothing in this repo deploys `cms/mu-plugins/`.
 3. **The catch-all skips pages with no copy in any field.** A page with only a title logs
    `[wp-pages] <route> has no content in any field`, is not built, 404s, and is dropped from the
    sitemap. **Fix open in PR #3, `wp-pages-title-only`** — not merged. Verified end to end on the
@@ -122,8 +132,9 @@ uploaded. That was wrong; see Open issues.
    built). The same URL returned **404** on production, which still runs `main`. The PR also makes
    `tocLinks` count as copy — it did not before, so a page using only the "On this page" tab was
    also being skipped.
-4. **A test page is still published** at `/test/`. Pages → Test → Move to Trash when finished,
-   then redeploy.
+4. ~~**A test page is still published** at `/test/`.~~ **Resolved 13 August 2026.** Moved to Trash.
+   No manual redeploy was needed: the deploy hook rebuilt production on its own, `/test/` now
+   returns 404, and `page-sitemap.xml` is down to 27 URLs from 28.
 5. **The repo is public** and contains `cms/uploads/` with roughly 74 identifiable patient
    photographs, a 2.3 MB database dump, and a WordPress password hash in git history before commit
    `9f41107`. Not addressed.
@@ -161,10 +172,12 @@ uploaded. That was wrong; see Open issues.
 
 1. Review and merge PR #3 so title-only pages render. With the deploy hook already live, that is
    the remaining half of "an editor publishes a page and it appears".
-2. Unlock Section ID for rows that do not yet have one, so new pages can use section copy. This is
-   the last thing standing between an editor and a page with real content on it.
+2. Get PR #5 onto the host. It unlocks Section ID, `images.slot` and `cards.group` on rows that do
+   not have a value yet, which is the last thing standing between an editor and a page with real
+   content on it. The code change alone does nothing — `cms/mu-plugins/` is a source directory and
+   nothing in this repo deploys it. The file has to be copied into `wp-content/mu-plugins/` by
+   hand, and it takes effect the moment it lands; mu-plugins are not activated.
 3. Decide what to do about WP File Manager — delete it, or accept an inactive RCE-history plugin
    on a public admin. Same question for All-in-One WP Migration, which is still active.
-4. Delete the `/test/` page and let the deploy hook rebuild.
-5. Verify anything this file claims before acting on it. Two of its three highest-priority items
+4. Verify anything this file claims before acting on it. Two of its three highest-priority items
    were stale within a day.
