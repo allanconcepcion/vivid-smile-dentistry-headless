@@ -36,14 +36,16 @@ Production sat at `cddbf6d` with `49 page(s) built` and `Yoast sitemap: 43 URLs 
 sitemap(s), every one built`. Recent production deployments are **triggered by the deploy hook**,
 not by hand — Vercel labels them `Created: Deploy Hook`.
 
-**Three PRs are open and unmerged:**
+**Four PRs merged on 13 August 2026:**
 
-- **#3 `wp-pages-title-only`**, commit `337dffc` — builds a page that has only a title instead of
-  skipping it. Verified end to end on the branch preview. See Open issues 3.
+- **#3 `wp-pages-title-only`**, merged as `3de80cd` — builds a page that has only a title instead
+  of skipping it. Verified end to end on the branch preview before merging. See Open issues 3.
 - **#4 `docs-handoff-correction`** — this file and `cms/README.md`.
-- **#5 `scf-unlock-empty-importer-ids`** — unlocks the importer-owned repeater IDs on rows that
-  have no value yet. CMS-side only, so it has no build impact and its Vercel preview proves
-  nothing. See Open issues 2.
+- **#5 `scf-unlock-empty-importer-ids`**, merged as `62c887c` — unlocks the importer-owned repeater
+  IDs on rows that hold no value yet. CMS-side only, so it has no build impact and **does nothing
+  until `vs-content-model.php` reaches the host.** See Open issues 2.
+- **#6 `deploy-mu-plugins-script`**, merged as `d9cc1a6` — `cms/bin/deploy-mu-plugins.sh`, which is
+  how that copy is now supposed to happen.
 
 ## The verification checklist
 
@@ -124,13 +126,15 @@ history right now and nobody has rotated it.
    importer did not create. The same lock applies to `images.slot` and `cards.group`. Today a new
    page can only use the On this page, Process and FAQ tabs. The mechanism: `readonly` renders the
    input with a readonly attribute, so it still posts — it posts an empty string, and `required`
-   then rejects it. **Fix open in PR #5** — locks the field only once it holds a value, via
-   `acf/prepare_field`. Lints clean and behaves correctly against stubs, but **it is unverified on
-   the host**, because nothing in this repo deploys `cms/mu-plugins/`.
+   then rejects it. This is not theoretical: on 13 August an editor filled in a section's eyebrow,
+   heading, body and button, could not type an ID, and lost the save. **Fixed in PR #5, merged as
+   `62c887c`** — the field locks only once it holds a value, via `acf/prepare_field`. The merge
+   alone changes nothing on the CMS: run `bash cms/bin/deploy-mu-plugins.sh vs-content-model.php`.
+   Until that file lands, the field is still readonly in wp-admin.
 3. **The catch-all skips pages with no copy in any field.** A page with only a title logs
    `[wp-pages] <route> has no content in any field`, is not built, 404s, and is dropped from the
-   sitemap. **Fix open in PR #3, `wp-pages-title-only`** — not merged. Verified end to end on the
-   branch preview: a published `Title Only Test` page logged
+   sitemap. **Fixed in PR #3, merged as `3de80cd`.** Verified end to end on the branch preview
+   before merging: a published `Title Only Test` page logged
    `[wp-pages] /title-only-test/ has no content in any field — building it title-only.`, emitted
    `/title-only-test/index.html`, and rendered as hero-only (50 pages built, 44 sitemap URLs, all
    built). The same URL returned **404** on production, which still runs `main`. The PR also makes
@@ -196,13 +200,19 @@ history right now and nobody has rotated it.
 
 ## Suggested next steps
 
-1. Review and merge PR #3 so title-only pages render. With the deploy hook already live, that is
-   the remaining half of "an editor publishes a page and it appears".
-2. Get PR #5 onto the host. It unlocks Section ID, `images.slot` and `cards.group` on rows that do
-   not have a value yet, which is the last thing standing between an editor and a page with real
-   content on it. The code change alone does nothing — `cms/mu-plugins/` is a source directory and
-   nothing in this repo deploys it. The file has to be copied into `wp-content/mu-plugins/` by
-   hand, and it takes effect the moment it lands; mu-plugins are not activated.
+1. **Copy `vs-content-model.php` to the host.** This is the only thing between an editor and a page
+   with real content on it, and merging PR #5 did not do it:
+
+   ```bash
+   export VS_SFTP_HOST=1230613.us28.myftpupload.com VS_SFTP_USER=<GoDaddy, Settings, SFTP>
+   bash cms/bin/deploy-mu-plugins.sh vs-content-model.php
+   ```
+
+   Confirm afterwards in wp-admin: Pages, Add Page, Section copy — the Section ID on a new row
+   should be typeable. Until then the only workaround is unlocking the field in the browser by
+   hand, which does not survive a reload.
+2. **Rotate the WordPress password.** See issue 5 — a working hash is published in this
+   repository's history and removing it later did not retire it.
 3. Decide what to do about WP File Manager — delete it, or accept an inactive RCE-history plugin
    on a public admin. Same question for All-in-One WP Migration, which is still active.
 4. Verify anything this file claims before acting on it. Two of its three highest-priority items
