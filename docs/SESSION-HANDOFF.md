@@ -106,6 +106,10 @@ uploaded. That was wrong; see Open issues.
 
 ## Open issues
 
+Numbered for reference, not ranked — other files link to these numbers, so they stay put. By
+severity, **5 is first**: a working WordPress password hash is published in this repository's
+history right now and nobody has rotated it.
+
 1. ~~**`vs-deploy.php` is missing on the host.**~~ **Resolved — and it was never true.** Both host
    steps are done. Evidence, 13 August 2026: wp-admin lists "Vivid Smiles — Deploy trigger" under
    Must-Use; publishing a page raised the plugin's own admin notice, "Front-end rebuild queued —
@@ -135,9 +139,31 @@ uploaded. That was wrong; see Open issues.
 4. ~~**A test page is still published** at `/test/`.~~ **Resolved 13 August 2026.** Moved to Trash.
    No manual redeploy was needed: the deploy hook rebuilt production on its own, `/test/` now
    returns 404, and `page-sitemap.xml` is down to 27 URLs from 28.
-5. **The repo is public** and contains `cms/uploads/` with roughly 74 identifiable patient
-   photographs, a 2.3 MB database dump, and a WordPress password hash in git history before commit
-   `9f41107`. Not addressed.
+5. **The repo is public, and a WordPress password hash is still retrievable from its history.**
+   Verified 13 August 2026 by cloning unauthenticated and running
+   `git show 9f41107^:cms/backup/database.sql`, which returns a dump containing `wp_users`,
+   `wp_usermeta` and one password hash. Commit `9f41107` removed those tables going forward. That
+   does not retire what is already published, and neither would making the repository private,
+   because anything already cloned or indexed stays out. **Rotate that password.** It is the only
+   remedy that works without rewriting history, and it has not been done.
+
+   Two claims an earlier revision of this file made about this issue did not survive checking:
+
+   - **The dump at HEAD is clean.** `cms/backup/database.sql` is 2.4 MB across 16 tables with no
+     `wp_users` and no `wp_usermeta` — `backup.sh`'s table-level exclusion works as its commit
+     message claims. The email addresses in it are 20 `@gutenbergtimes.com` (WordPress demo
+     content), 2 `@example.com` and 2 `@vividsmilesdentistry.com`. No patient data. The exposure
+     is in the 15 older revisions of that path, not the current one.
+   - **"Roughly 74 identifiable patient photographs" is not supported.** `cms/uploads/` holds 661
+     files, 31 MB, collapsing to 131 distinct base images: 25 `procedures-`, 19 `team-`,
+     17 `people-`, 9 `smiles-`, and the rest facility, video and diagram assets. The nine
+     `smiles-*` files are named `smiles-01-frontal-arch-berry-lip` and similar — art direction,
+     not clinical records. This was read from filenames, deliberately not from the images, so
+     whether any `team-*` or `people-*` portrait is a real patient rather than staff or stock
+     remains an open question for someone who knows the shoot.
+
+   Needing a person rather than a checker: rotate the password; decide whether to `git filter-repo`
+   the dump out of all 15 revisions, which force-pushes `main`; confirm the portraits' provenance.
 6. **All-in-One WP Migration and its Unlimited Extension are active and undocumented** on an
    internet-facing admin. Neither is needed by the build. Review before launch.
 7. **Cloudflare in front of the CMS** answers cold bursts with 429s. `warm-media-cache.mjs` and
