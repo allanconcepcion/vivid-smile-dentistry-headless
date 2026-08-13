@@ -32,9 +32,12 @@ Both open PRs are merged to `main` and live in production.
   route, assembling it from the page's structured fields (there is no `post_content` — see
   Gotchas). Ships with `src/styles/pages/wp-page.css`.
 
-Most recent production deployment: `2rHPzmNTJ`, Ready in 1m52s, triggered by a manual redeploy.
-Its log reported `Loaded 34 pages`, `Yoast sitemap: 43 URLs across 2 child sitemap(s), every one
-built`, and `49 page(s) built`.
+Production sat at `cddbf6d` with `49 page(s) built` and `Yoast sitemap: 43 URLs across 2 child
+sitemap(s), every one built`. Recent production deployments are **triggered by the deploy hook**,
+not by hand — Vercel labels them `Created: Deploy Hook`.
+
+**One PR is open and unmerged: #3, `wp-pages-title-only`**, commit `337dffc`. It builds a page
+that has only a title instead of skipping it. See Open issues 3.
 
 ## The verification checklist
 
@@ -79,27 +82,46 @@ WPGraphQL for ACF resolves against SCF at all. Its dependency check is only
 Active (7): Add WPGraphQL SEO 5.1.0 · All-in-One WP Migration 7.109 · AIOWPM Unlimited Extension
 2.87 · Secure Custom Fields 6.9.5 · WPGraphQL 2.19.0 · WPGraphQL for ACF 2.7.0 · Yoast SEO 28.2
 
-Inactive (3): Advanced Custom Fields 6.8.7 · Akismet 5.7 · Hello Dolly 1.7.2
+Inactive (3): Advanced Custom Fields 6.8.7 · Akismet 5.7 · **WP File Manager 8.0.4**
 
-**README drift:** `cms/README.md` says eleven plugins. There are now **ten — WP File Manager has
-been removed.** That is a good change; the README should be updated to match. Auto-updates are
-off for the five setup plugins and on for the other five, which is correct.
+**Correction, 13 August 2026.** An earlier revision of this file said WP File Manager had been
+removed and listed Hello Dolly as inactive. Both were wrong, and the wrong one matters: **WP File
+Manager 8.0.4 is still installed, merely deactivated** — one click from live on an
+internet-facing admin, on a plugin with a long history of remote-code-execution bugs. Hello Dolly
+is the plugin that is actually gone. Verified in wp-admin: All (10), Active (7), Inactive (3).
 
-**Must-use plugins on the host = 9:** Object Cache Pro (MU), GoDaddy's System Plugin, and seven
-`vs-*` plugins. **`vs-deploy.php` is not among them.** It exists in the repo but was never
-uploaded, which is why publishing content does not trigger a rebuild.
+**README drift:** `cms/README.md` says eleven plugins and lists Hello Dolly. There are ten.
+Auto-updates are off for the five setup plugins and on for the other five, which is correct.
+
+**Must-use plugins on the host = 10:** Object Cache Pro (MU), GoDaddy's System Plugin, and eight
+`vs-*` plugins. **`vs-deploy.php` IS among them** — it appears in wp-admin under Must-Use as
+"Vivid Smiles — Deploy trigger 0.1.0". An earlier revision of this file claimed it had never been
+uploaded. That was wrong; see Open issues.
 
 ## Open issues
 
-1. **`vs-deploy.php` is missing on the host.** Until it is uploaded and `VS_DEPLOY_HOOK_URL` is
-   set in `vs-config.php`, every content change needs a manual Vercel redeploy. Highest-value fix.
+1. ~~**`vs-deploy.php` is missing on the host.**~~ **Resolved — and it was never true.** Both host
+   steps are done. Evidence, 13 August 2026: wp-admin lists "Vivid Smiles — Deploy trigger" under
+   Must-Use; publishing a page raised the plugin's own admin notice, "Front-end rebuild queued —
+   the live site updates in about 2 minutes", which `notice()` only prints when
+   `wp_next_scheduled('vs_deploy_build')` is set, and `queue()` returns early when
+   `VS_DEPLOY_HOOK_URL` is undefined — so the constant is defined in `vs-config.php` on the host.
+   Roughly two minutes later Vercel showed a Production deployment with **Created: Deploy Hook**,
+   Ready. Trashing the page fired it again. Publishing in WordPress rebuilds the front end. The
+   manual-redeploy instruction elsewhere in this repo is now only a fallback.
 2. **Section ID is both `required` and `readOnly`.** On a new page you can add a Section copy row
    but can never fill the ID, so the row cannot validate — the whole tab is unusable for pages the
    importer did not create. The same lock applies to `images.slot` and `cards.group`. Today a new
    page can only use the On this page, Process and FAQ tabs.
 3. **The catch-all skips pages with no copy in any field.** A page with only a title logs
    `[wp-pages] <route> has no content in any field`, is not built, 404s, and is dropped from the
-   sitemap. Worth rendering title-only pages instead.
+   sitemap. **Fix open in PR #3, `wp-pages-title-only`** — not merged. Verified end to end on the
+   branch preview: a published `Title Only Test` page logged
+   `[wp-pages] /title-only-test/ has no content in any field — building it title-only.`, emitted
+   `/title-only-test/index.html`, and rendered as hero-only (50 pages built, 44 sitemap URLs, all
+   built). The same URL returned **404** on production, which still runs `main`. The PR also makes
+   `tocLinks` count as copy — it did not before, so a page using only the "On this page" tab was
+   also being skipped.
 4. **A test page is still published** at `/test/`. Pages → Test → Move to Trash when finished,
    then redeploy.
 5. **The repo is public** and contains `cms/uploads/` with roughly 74 identifiable patient
@@ -137,9 +159,12 @@ uploaded, which is why publishing content does not trigger a rebuild.
 
 ## Suggested next steps
 
-1. Deploy `vs-deploy.php` and set `VS_DEPLOY_HOOK_URL` so publishing rebuilds the site
-   automatically. This is what makes the whole "editors can add pages" story actually true.
-2. Unlock Section ID for rows that do not yet have one, so new pages can use section copy.
-3. Render title-only pages instead of skipping them.
-4. Delete the `/test/` page and redeploy.
-5. Update `cms/README.md` for the ten-plugin reality.
+1. Review and merge PR #3 so title-only pages render. With the deploy hook already live, that is
+   the remaining half of "an editor publishes a page and it appears".
+2. Unlock Section ID for rows that do not yet have one, so new pages can use section copy. This is
+   the last thing standing between an editor and a page with real content on it.
+3. Decide what to do about WP File Manager — delete it, or accept an inactive RCE-history plugin
+   on a public admin. Same question for All-in-One WP Migration, which is still active.
+4. Delete the `/test/` page and let the deploy hook rebuild.
+5. Verify anything this file claims before acting on it. Two of its three highest-priority items
+   were stale within a day.
