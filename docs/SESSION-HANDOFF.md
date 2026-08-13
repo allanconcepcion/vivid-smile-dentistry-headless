@@ -128,9 +128,12 @@ history right now and nobody has rotated it.
    input with a readonly attribute, so it still posts — it posts an empty string, and `required`
    then rejects it. This is not theoretical: on 13 August an editor filled in a section's eyebrow,
    heading, body and button, could not type an ID, and lost the save. **Fixed in PR #5, merged as
-   `62c887c`** — the field locks only once it holds a value, via `acf/prepare_field`. The merge
-   alone changes nothing on the CMS: run `bash cms/bin/deploy-mu-plugins.sh vs-content-model.php`.
-   Until that file lands, the field is still readonly in wp-admin.
+   `62c887c`** — the field locks only once it holds a value, via `acf/prepare_field`.
+   **Deployed to the host and verified live, 13 August 2026** (`md5 ebc646b0…`, `php -l` clean).
+   On Pages, Add Page all three fields report `readonly: false` with the new instruction text; on
+   the imported Cosmetic Dentistry page all **9** saved section rows — `why`, `services`,
+   `technology`, `doctors`, `process` and the rest — still report `readonly: true`, and its blank
+   clone row is unlocked so a new row can be added. Both halves of the rule hold.
 3. **The catch-all skips pages with no copy in any field.** A page with only a title logs
    `[wp-pages] <route> has no content in any field`, is not built, 404s, and is dropped from the
    sitemap. **Fixed in PR #3, merged as `3de80cd`.** Verified end to end on the branch preview
@@ -200,19 +203,10 @@ history right now and nobody has rotated it.
 
 ## Suggested next steps
 
-1. **Copy `vs-content-model.php` to the host.** This is the only thing between an editor and a page
-   with real content on it, and merging PR #5 did not do it:
-
-   ```bash
-   export VS_SFTP_HOST=1230613.us28.myftpupload.com VS_SFTP_USER=<GoDaddy, Settings, SFTP>
-   bash cms/bin/deploy-mu-plugins.sh vs-content-model.php
-   ```
-
-   Confirm afterwards in wp-admin: Pages, Add Page, Section copy — the Section ID on a new row
-   should be typeable. Until then the only workaround is unlocking the field in the browser by
-   hand, which does not survive a reload.
-2. **Rotate the WordPress password.** See issue 5 — a working hash is published in this
-   repository's history and removing it later did not retire it.
+1. **Rotate two passwords.** The WordPress one whose hash is published in this repository's history
+   (issue 5), and the host's SSH/SFTP password, which was pasted into a chat transcript on
+   13 August. GoDaddy dashboard, site Settings, SSH/SFTP. A key would remove the second one
+   permanently.
 3. Decide what to do about WP File Manager — delete it, or accept an inactive RCE-history plugin
    on a public admin. Same question for All-in-One WP Migration, which is still active.
 4. Verify anything this file claims before acting on it. Two of its three highest-priority items
