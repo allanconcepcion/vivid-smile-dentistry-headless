@@ -117,8 +117,8 @@ blog stops rendering.
 ### What is actually installed on the host
 
 `bin/setup.sh` provisions the five plugins above. The hosted install carries
-eleven — the GoDaddy account and an earlier setup left the rest behind. Verified
-in wp-admin on 2026-08-13:
+ten — the GoDaddy account and an earlier setup left the rest behind. Verified in
+wp-admin on 2026-08-13: All (10), Active (7), Inactive (3).
 
 | Plugin | Version | State | Part of this setup? |
 | --- | --- | --- | --- |
@@ -130,9 +130,11 @@ in wp-admin on 2026-08-13:
 | Advanced Custom Fields | 6.8.7 | Installed, **inactive** | No |
 | All-in-One WP Migration | 7.109 | **Active** | No |
 | All-in-One WP Migration Unlimited Extension | 2.87 | **Active** | No |
-| WP File Manager | 8.0.4 | **Active** | No |
+| WP File Manager | 8.0.4 | Installed, **inactive** | No |
 | Akismet | 5.7 | Installed, inactive | No |
-| Hello Dolly | 1.7.2 | Installed, inactive | No |
+
+Hello Dolly has been removed since the previous revision of this table, and WP
+File Manager has been deactivated but **not** deleted.
 
 Two of those matter more than the others.
 
@@ -143,13 +145,16 @@ someone clicking Activate in wp-admin, and the result would surface as a failed
 build rather than an admin warning. Deleting it is the safer end state; that is a
 decision for whoever owns the hosting account.
 
-**All-in-One WP Migration and WP File Manager are active and undocumented.**
-Neither is needed by the build. A file manager and a full-site export/import tool
-on an internet-facing admin are both real attack surface, and nothing in this
-repository installed them. Review both before launch.
+**All-in-One WP Migration is active and undocumented, and WP File Manager is
+still installed.** Neither is needed by the build. A full-site export/import tool
+on an internet-facing admin is real attack surface, and nothing in this
+repository installed it. Deactivating WP File Manager, as someone has since done,
+is not the same as removing it: the code is still on disk and one click in
+wp-admin brings it back, on a plugin with a long history of remote-code-execution
+bugs. Delete both before launch, or decide deliberately to keep them.
 
 Auto-updates are off for the five plugins above — set by hand on the host on
-2026-08-13 — and on for the six that are not part of this setup. Off is what the
+2026-08-13 — and on for the five that are not part of this setup. Off is what the
 pinning argument requires: an unattended Yoast or SCF update is precisely the
 event that breaks the incidental ACF compatibility described below.
 
