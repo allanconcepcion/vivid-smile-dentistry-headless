@@ -1,9 +1,12 @@
 /*
  * General Dentistry LP — page-scoped styles. Namespace: .glp-*
  *
- * A near-1:1 clone of veneers-lp.css, re-namespaced vlp- →
- * glp- with general/family-dentistry content. Two structural swaps from the
- * veneers frame:
+ * A near-1:1 clone of the veneers LP frame, re-namespaced vlp- →
+ * glp- with general/family-dentistry content. That frame now lives in
+ * lp-shared.css; this sheet stays separate because it is only 87% of it — it
+ * carries a 150-line .story section the shared frame lacks and swaps a whole
+ * band — so folding it in would mean shipping each page a large slice of CSS
+ * that can never match. Two structural swaps from the veneers frame:
  *   • The NFL-cheerleader "featured transformations" band → a 6-card SERVICES
  *     grid (.glp-svc) drawn from the legacy WP /general-lp service blocks.
  *   • The veneers video-story band is dropped (no general-dentistry shorts).
