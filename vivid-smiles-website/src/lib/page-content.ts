@@ -12,6 +12,7 @@
 
 import { getEntry } from "astro:content";
 import { getImage } from "astro:assets";
+import { lookupBlock } from "../blocks/registry";
 
 export type TocLink = { href: string; label: string };
 export type ProcessStep = { tag: string; num: string; title: string; body: string };
@@ -40,6 +41,27 @@ export type PageImage = {
   alt: string;
 };
 
+/**
+ * One row of the `blocks` flexible-content field.
+ *
+ * Deliberately open. `__typename` is the layout name the renderer switches on
+ * (docs/PAGE-BLOCKS.md 2.1), and the preamble three are the only sub-fields
+ * every layout carries, so those are the ones named here; the rest belong to
+ * one layout each and are read by the component the registry picks for it.
+ *
+ * Even the preamble is optional, because a layout this build has never heard
+ * of — one added in PHP and deployed to the CMS before the Astro side ships,
+ * or left behind by a rollback of the Astro side alone — arrives carrying
+ * nothing but its name. That has to render as nothing, not throw.
+ */
+export type PageBlock = {
+  __typename: string;
+  anchor?: string | null;
+  navLabel?: string | null;
+  band?: string | null;
+  [field: string]: unknown;
+};
+
 const EMPTY_SECTION: Section = {
   section_id: "",
   eyebrow: "",
@@ -57,6 +79,31 @@ export type PageContent = {
   sections: Section[];
   /** Card rows grouped by their source array name, e.g. cards.whyCards. */
   cards: Record<string, Card[]>;
+  /**
+   * The page's sections, in the order an editor arranged them in wp-admin.
+   *
+   * Empty on every page today, and empty is the ordinary state of any page
+   * nobody has migrated yet: the template renders the body it always has and
+   * never looks at this array. See `hasBlocks`.
+   *
+   * Empty ALSO when WordPress has no `blocks` field at all. That field lives in
+   * a must-use plugin someone hand-deploys to the CMS host, while this code
+   * ships on the next build — so for a window of unknown length the front end
+   * builds against a WordPress that has never heard of it. That window has to
+   * look exactly like "no page is migrated", never like a failure.
+   */
+  blocks: PageBlock[];
+  /**
+   * The migration switch, one page at a time (docs/PAGE-BLOCKS.md 2.3):
+   *
+   *   {hasBlocks ? <PageBlocks blocks={blocks} /> : <the existing markup />}
+   *
+   * The rule is defined here rather than restated in each of the 33 templates
+   * so that it means the same thing everywhere. Un-migrating a page is meant to
+   * be "empty one field in wp-admin" — no deploy, no code change — and that
+   * only holds if every template asks the question the same way.
+   */
+  hasBlocks: boolean;
   /**
    * Copy for one band of the page, by its section id.
    *
@@ -76,6 +123,33 @@ export type PageContent = {
    */
   image: (slot: string) => PageImage;
 };
+
+/**
+ * The `blocks` rows off a page entry, defensively.
+ *
+ * Read through `unknown` rather than off the collection's inferred type on
+ * purpose: the rows come from a WordPress that may not have the field yet (see
+ * PageContent.blocks), and an absent field must never become a build failure on
+ * 33 pages that do not use it. An editor triggers every deploy and never sees
+ * the output, so nothing they can do — or fail to do — may break a build.
+ *
+ * A row with no `__typename` cannot be matched to a component or even named in
+ * a warning, so it is dropped rather than handed on. The worst that costs is a
+ * page whose rows were all malformed rendering its existing template body,
+ * which is the same safe direction an empty field already takes.
+ */
+function readBlocks(data: unknown): PageBlock[] {
+  const rows = (data as { blocks?: unknown }).blocks;
+
+  if (!Array.isArray(rows)) return [];
+
+  return rows.filter(
+    (row): row is PageBlock =>
+      typeof row === "object" &&
+      row !== null &&
+      typeof (row as PageBlock).__typename === "string",
+  );
+}
 
 /**
  * Fetch content for `route`.
@@ -109,6 +183,8 @@ export async function getPageContent(route: string): Promise<PageContent> {
 
   const images = entry.data.images;
 
+  const blocks = readBlocks(entry.data);
+
   return {
     title: entry.data.title,
     seo: entry.data.seo,
@@ -117,6 +193,17 @@ export async function getPageContent(route: string): Promise<PageContent> {
     faqs: entry.data.faqs,
     sections,
     cards,
+    blocks,
+    // Deliberately NOT `blocks.length > 0`. That asks "did WordPress send
+    // rows"; the templates are asking "should I stand aside and let PageBlocks
+    // draw this page", and those diverge exactly when it hurts. A row whose
+    // layout this build has no component for renders as nothing in production,
+    // so a page migrated in wp-admin against a layout that has not shipped yet
+    // would go blank rather than fall back to the markup it still has.
+    //
+    // Asking the registry instead means an unshipped layout degrades to "not
+    // migrated yet", which is the honest answer and a visible one.
+    hasBlocks: blocks.some((block) => lookupBlock(block.__typename) !== undefined),
     section: (sectionId: string) =>
       sections.find((s) => s.section_id === sectionId) ?? EMPTY_SECTION,
     image: (slot: string) => {

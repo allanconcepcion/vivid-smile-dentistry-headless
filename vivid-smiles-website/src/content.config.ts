@@ -1,4 +1,7 @@
 import { defineCollection, z } from "astro:content";
+// `astro:content` exports `z` as a value only, so the two type names below come
+// from the same zod that astro re-exports rather than from a direct dependency.
+import type { ZodLiteral, ZodObject } from "astro/zod";
 import { glob } from "astro/loaders";
 import { reviewsLoader } from "./loaders/reviews";
 import { blogLoader } from "./loaders/blog";
@@ -142,6 +145,106 @@ const blog = defineCollection({
 });
 
 /**
+ * A page section, exactly as WordPress hands it over.
+ *
+ * `blocks` is the ordered flexible-content field that replaces the six
+ * repeaters one page at a time. It is empty on all 33 pages today, and empty is
+ * load-bearing rather than incidental: `blocks.length === 0` means "this page
+ * has not been migrated" and the page renders from its template as it always
+ * has, so clearing the field in wp-admin rolls a page back with no deploy and
+ * no code change (docs/PAGE-BLOCKS.md 2.3).
+ *
+ * THIS SHAPE MUST NEVER REJECT A SECTION IT DOES NOT RECOGNISE. A layout can
+ * reach the CMS before the code that draws it — the mu-plugins are hand-copied
+ * to the host and the front end ships on its own schedule, and either side can
+ * be rolled back alone. Editors trigger these builds and never see the output
+ * (cms/mu-plugins/vs-deploy.php), so a layout this build has not been taught
+ * has to survive validation and be reported by the renderer, not take the whole
+ * site down. src/loaders/blog.ts and src/integrations/yoast-sitemap.ts hold the
+ * same line for the same reason.
+ *
+ * Hence a permissive member, and a very specific way of attaching it.
+ */
+const UNKNOWN_BLOCK = z.looseObject({ __typename: z.string().min(1) });
+
+/**
+ * The layouts this build knows how to draw.
+ *
+ * Empty in this phase: the field exists, no component does. Every section
+ * therefore parses through UNKNOWN_BLOCK, which is correct — nothing renders
+ * blocks yet, and nothing has filled one.
+ *
+ * A member joins this list in the same commit as its PHP layout, its fragment
+ * in src/loaders/pages.ts and its registry entry — and it must not lead them.
+ * A member naming fields the query does not select simply fails, and every
+ * section of that layout drops to UNKNOWN_BLOCK instead: no louder than
+ * success, and invisible until someone notices a band missing from a page.
+ *
+ *   z.object({
+ *     __typename: z.literal("PageFieldsBlocksFaqLayout"),
+ *     anchor: z.string(),
+ *     navLabel: z.string(),
+ *     band: z.string(),
+ *     items: z.array(z.object({ question: z.string(), answer: z.string() })),
+ *   })
+ *
+ * The guard below is not defensive tidiness. A zero-member discriminated union
+ * is not an empty union, it is a crash — z.discriminatedUnion("__typename", [])
+ * throws "Cannot read properties of undefined" while being constructed, which
+ * on this list's first day would mean the module never loads. It is the same
+ * rule the PHP side has for the flexible field itself (never register it with
+ * zero layouts), for the same underlying reason.
+ */
+const KNOWN_BLOCK_LAYOUTS: ZodObject<{ __typename: ZodLiteral<string> }>[] = [];
+
+const [firstKnownLayout, ...otherKnownLayouts] = KNOWN_BLOCK_LAYOUTS;
+
+/**
+ * Why the permissive member is NOT a member of the discriminated union.
+ *
+ * z.discriminatedUnion indexes its members by the literal value of the
+ * discriminator, so it can pick the right one directly and report errors
+ * against that one member instead of against every member at once. A member
+ * whose `__typename` is z.string() has no literal to index by, so it cannot go
+ * in that map — and Zod does not say so when the schema is built. Verified on
+ * zod 4.3.6, the version astro re-exports:
+ *
+ *   z.discriminatedUnion("__typename", [faqLayout, UNKNOWN_BLOCK])
+ *
+ * constructs without a word, then throws on the FIRST parse of ANY value —
+ * a known layout as readily as an unknown one — with
+ * `Invalid discriminated union option at index "1"`. It reads correctly, it
+ * type-checks, and it fails on the first page of the first build. Worse, it
+ * throws a plain Error rather than a ZodError, so it would not even arrive as
+ * the loader's "pages hold content WordPress cannot publish" report; it would
+ * surface as a stack trace with no page named.
+ *
+ * So the two sit side by side in a plain z.union. A union tries its members in
+ * order and keeps the first that parses: the discriminated union gets first
+ * refusal and gives precise, per-layout errors for what it knows, and whatever
+ * it turns down lands in UNKNOWN_BLOCK and reaches the renderer intact.
+ *
+ * Two consequences, both accepted deliberately:
+ *
+ *  - UNKNOWN_BLOCK is z.looseObject, not z.object. A plain object STRIPS the
+ *    keys it does not declare, which would hand the renderer a layout name with
+ *    no content behind it — nothing to draw, and nothing to describe in the
+ *    warning that says so.
+ *
+ *  - A KNOWN layout whose fields are malformed also falls through to
+ *    UNKNOWN_BLOCK rather than failing the build. That is what first-match-wins
+ *    costs, and it is the right price here — but it means a block component
+ *    must treat its own props as untrusted, exactly as if the layout were one
+ *    it had never heard of.
+ */
+const PAGE_BLOCK = firstKnownLayout
+  ? z.union([
+      z.discriminatedUnion("__typename", [firstKnownLayout, ...otherKnownLayouts]),
+      UNKNOWN_BLOCK,
+    ])
+  : UNKNOWN_BLOCK;
+
+/**
  * Page content — sourced from WordPress.
  *
  * Does NOT generate routes. The 35 routes under src/pages remain hand-built
@@ -169,6 +272,9 @@ const pages = defineCollection({
       noindex: z.boolean(),
       ogImage: z.string(),
     }),
+    // The ordered section list. Empty on every page until one is migrated,
+    // and empty again the moment an editor clears the field.
+    blocks: z.array(PAGE_BLOCK).default([]),
     // Shapes match what the templates already destructure, so adopting this
     // collection is a one-line change per page rather than a rewrite.
     tocLinks: z.array(z.object({ href: z.string(), label: z.string() })).default([]),

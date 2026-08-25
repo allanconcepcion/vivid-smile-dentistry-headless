@@ -11,9 +11,16 @@
  * which is WordPress's own `uri` for the page, so a template looks up its own
  * content with getPageContent(Astro.url.pathname).
  *
- * The design is deliberately conservative: WordPress changes the words, not the
- * layout. There is no section ordering and no free-form block list, because the
- * per-page CSS assumes a fixed structure.
+ * Two shapes of content live side by side here, and every page uses exactly one
+ * of them. The six repeaters (sections, cards, images, faqs, processSteps,
+ * tocLinks) are what all 33 pages use today: WordPress supplies the words, the
+ * template owns the order. `blocks` is the ordered flexible-content field that
+ * replaces them one page at a time — an empty `blocks` means "this page has not
+ * been migrated", which is the whole rollback story (docs/PAGE-BLOCKS.md 2.3).
+ * Both are read on every build; nothing here decides which one renders.
+ *
+ * `blocks` is also the one field this loader cannot simply ask for — see
+ * cmsSupportsBlocks below.
  *
  * Failure policy for images: a picture the build cannot place fails the build,
  * it is never dropped. Dropping it would remove a photo from a live page with
@@ -25,10 +32,42 @@
  * deploy, not an outage: the previous deployment carries on serving.
  */
 
-import type { Loader } from "astro/loaders";
-import { wpQueryAll, WordPressError } from "../lib/wp";
+import type { Loader, LoaderContext } from "astro/loaders";
+import { blockSelectionSet, hasRegisteredBlocks, type BlockNode } from "../blocks/registry";
+import { wpQuery, wpQueryAll, WordPressError } from "../lib/wp";
 
-const PAGES_QUERY = /* GraphQL */ `
+/**
+ * The `blocks` selection, indented to sit inside `pageFields { … }`.
+ *
+ * Assembled by src/blocks/registry.ts rather than written here. That file is
+ * the one place a layout's GraphQL type, its selection set and its component
+ * are bound together, so they cannot drift (docs/PAGE-BLOCKS.md 2.1); a loader
+ * holding its own copy of the field list would be the drift. It holds no
+ * layouts in this phase, which yields `blocks { __typename }` — a well-formed
+ * query for a field nothing renders yet.
+ *
+ * The registry offers `hasRegisteredBlocks` so a caller can leave `blocks` out
+ * of the query entirely until a layout exists. Not taken, deliberately: it
+ * would mean the capability check below never runs until the day the pilot
+ * page is migrated, and the whole point of shipping this phase inert is that
+ * the machinery is exercised on every build before anything depends on it. The
+ * build log says which side of the transition it is on from today.
+ *
+ * A wrong field name in the registry is not a local mistake. GraphQL validates
+ * a document before executing any of it, so a fragment naming a field its
+ * layout does not have fails every page at once — which the probe below reads
+ * as "no blocks" and turns into a site-wide fallback to the existing content.
+ * That is the safe direction to fail in, but it is a quiet one: the log line is
+ * the only thing that says so.
+ *
+ * The same string goes into the probe and into the real query, because the
+ * probe's only job is to find out whether the server will accept exactly what
+ * the real query is about to send.
+ */
+const BLOCKS_SELECTION = blockSelectionSet("          ");
+
+function pagesQuery(includeBlocks: boolean): string {
+  return /* GraphQL */ `
   query Pages($first: Int!, $after: String) {
     pages(first: $first, after: $after, where: { status: PUBLISH }) {
       pageInfo {
@@ -48,6 +87,7 @@ const PAGES_QUERY = /* GraphQL */ `
           ogImage
         }
         pageFields {
+${includeBlocks ? BLOCKS_SELECTION : ""}
           tocLinks {
             label
             anchor
@@ -96,6 +136,161 @@ const PAGES_QUERY = /* GraphQL */ `
     }
   }
 `;
+}
+
+/**
+ * The probe's answer, kept for the life of the process.
+ *
+ * The loader runs once per build, so this exists for a dev server that reloads
+ * the collection repeatedly: re-asking a rate-limited CMS the same settled
+ * question is a good way to earn a 429 on the query that matters. Only a real
+ * answer is remembered — a transport failure leaves it unset (see below).
+ * A dev server started before the mu-plugin was deployed needs a restart.
+ */
+let blocksSupport: boolean | undefined;
+
+/**
+ * Ask the CMS whether its schema carries `blocks` yet, and never fail doing so.
+ *
+ * The mu-plugin that adds the field is hand-deployed to the host (see
+ * cms/bin/deploy-mu-plugins.sh); this code ships on the next build. The two
+ * events are days or weeks apart and nobody coordinates them, so for an unknown
+ * stretch the front end is querying a WordPress that has never heard of the
+ * field. GraphQL offers no way to ask for a field "if it exists": naming one
+ * the schema lacks is a validation error that kills the whole document before a
+ * row is read. Verified against the live CMS while writing this:
+ *
+ *   { pages(first: 1) { nodes { pageFields { blocks { __typename } } } } }
+ *   -> HTTP 200, no `data`, errors: [{ message:
+ *      'Cannot query field "blocks" on type "PageFields".' }]
+ *
+ * Introspection cannot answer the question either — re-verified rather than
+ * assumed: `{ __schema { queryType { name } } }` comes back "GraphQL
+ * introspection is not allowed for public requests by default", and src/lib/wp.ts
+ * sends no credentials, so the build is one of those public requests.
+ *
+ * So the build asks the cheapest question there is. It sends the selection set
+ * the real query is about to use, over a single page, and looks at whether the
+ * server accepted it. Validation runs before execution, so a schema without the
+ * field rejects this having touched no data at all. Cost: one POST, ~0.4s and
+ * 272 bytes measured against the hosted CMS, on a build that takes ~3 minutes.
+ *
+ * ANY failure means "no blocks". The probe is not allowed to have an opinion
+ * about why it failed, because every reason lands in the same safe place — a
+ * build that renders all 33 pages exactly the way it renders them today. The
+ * message is read only to choose between an ordinary log line and a warning, so
+ * if a future WPGraphQL release rewords it the log tone changes and the
+ * behaviour does not.
+ *
+ * What this does NOT cover: a `blocks` row naming a layout the PHP no longer
+ * registers. That resolves at execution, not validation, so the probe cannot
+ * see it and the build fails. Only a developer deleting a layout can cause it —
+ * an editor cannot author a row for a layout that is not offered — which is why
+ * it is left to fail loudly instead of being guessed around.
+ */
+async function cmsSupportsBlocks(logger: LoaderContext["logger"]): Promise<boolean> {
+  if (blocksSupport !== undefined) return blocksSupport;
+
+  const query = /* GraphQL */ `
+  query PageBlocksProbe {
+    pages(first: 1) {
+      nodes {
+        pageFields {
+${BLOCKS_SELECTION}
+        }
+      }
+    }
+  }
+`;
+
+  try {
+    await wpQuery(query, {}, "page-blocks probe");
+    logger.info("Page sections: available in WordPress.");
+    blocksSupport = true;
+    return blocksSupport;
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+
+    // graphql-php's own wording for a field that is not on the type. Its only
+    // consequence is which of the two messages below gets logged.
+    if (/Cannot query field/i.test(detail)) {
+      logger.info(
+        "Page sections: not in WordPress yet, so every page is built from its " +
+          "existing content. Run cms/bin/deploy-mu-plugins.sh to add them.",
+      );
+      blocksSupport = false;
+      return blocksSupport;
+    }
+
+    // Everything else is "I could not ask", which is a different answer from
+    // "the field is not there" and stops being harmless the moment any page is
+    // actually migrated. Omitting `blocks` after a 429 or a timeout would build
+    // every migrated page from markup its editor has already replaced, and
+    // report success — a whole-site content regression caused by a network
+    // blip, with nothing in the log an editor would ever see.
+    //
+    // Which of those two worlds we are in is not a flag anyone has to remember:
+    // an empty registry means no page CAN be migrated, so guessing "no blocks"
+    // is provably safe. A non-empty one means it is not, and a failed build is
+    // the better outcome — the previous deployment keeps serving, unchanged,
+    // instead of being replaced by a wrong one.
+    if (hasRegisteredBlocks) {
+      throw new Error(
+        "Could not determine whether WordPress has page sections, and this build " +
+          "renders sections on at least one page. Refusing to build every page from " +
+          "its pre-migration markup on a guess. " +
+          `Reason: ${detail}`,
+      );
+    }
+
+    // Not remembered: this is an accident, not an answer, and the next build
+    // (or the next dev-server sync) should ask again rather than inherit it.
+    logger.warn(
+      "Could not tell whether WordPress has page sections yet, so this build leaves " +
+        "them out and every page is built from its existing content. No page renders " +
+        `sections yet, so the site is unaffected. Reason: ${detail}`,
+    );
+    return false;
+  }
+}
+
+/**
+ * Rows are carried in the registry's own BlockNode shape — `__typename` plus
+ * whatever else the selection set asked for.
+ *
+ * Deliberately open. If this loader named the fields of each layout, a layout
+ * it had not been taught would arrive stripped to nothing, and the whole point
+ * of the unknown-layout path (docs/PAGE-BLOCKS.md 2.4) is that the renderer can
+ * name what it could not draw. Whatever the query asked for is carried through
+ * verbatim; the permissive Zod member in src/content.config.ts keeps it that
+ * way through validation.
+ */
+
+/**
+ * Rows worth handing to the schema.
+ *
+ * A row that is not an object with a layout name cannot be rendered by anything
+ * and would fail validation for the entire page, taking the build down over a
+ * single malformed row. Editors trigger these builds and never see the output
+ * (cms/mu-plugins/vs-deploy.php), so it is skipped and reported instead.
+ */
+function usableBlocks(
+  rows: Array<BlockNode | null> | null | undefined,
+  where: string,
+  logger: LoaderContext["logger"],
+): BlockNode[] {
+  const usable: BlockNode[] = [];
+
+  (rows ?? []).forEach((row, i) => {
+    if (row && typeof row === "object" && typeof row.__typename === "string" && row.__typename) {
+      usable.push(row);
+      return;
+    }
+    logger.warn(`${where}: section ${i + 1} arrived without a layout name — skipping it.`);
+  });
+
+  return usable;
+}
 
 type PageNode = {
   /** Canonical Astro route from the importer — see vs-content-model.php. */
@@ -111,6 +306,12 @@ type PageNode = {
     ogImage: string | null;
   } | null;
   pageFields: {
+    /**
+     * Optional rather than nullable, and the difference matters: it is absent
+     * from the response entirely on a CMS whose schema predates the field, and
+     * null on one that has it but where the page has no sections.
+     */
+    blocks?: Array<BlockNode | null> | null;
     tocLinks: Array<{ label: string | null; anchor: string | null }> | null;
     processSteps: Array<{ tag: string | null; title: string | null; body: string | null }> | null;
     faqs: Array<{ question: string | null; answer: string | null; open: boolean | null }> | null;
@@ -197,7 +398,13 @@ export function pagesLoader(): Loader {
     async load({ store, logger, parseData }) {
       logger.info("Fetching pages from WordPress");
 
-      const nodes = await wpQueryAll<PageNode>(PAGES_QUERY, (data) => data.pages, "pages");
+      const includeBlocks = await cmsSupportsBlocks(logger);
+
+      const nodes = await wpQueryAll<PageNode>(
+        pagesQuery(includeBlocks),
+        (data) => data.pages,
+        "pages",
+      );
 
       if (nodes.length === 0) {
         throw new WordPressError(
@@ -308,6 +515,13 @@ export function pagesLoader(): Loader {
                 noindex: Boolean(node.vsSeo?.noindex),
                 ogImage: node.vsSeo?.ogImage?.trim() ?? "",
               },
+              // Passed through exactly as WordPress sent it, unlike everything
+              // below. The fields of a block belong to its layout, and a loader
+              // that reshaped them would have to know every layout — which is
+              // the one thing that must stay untrue if an unrecognised layout is
+              // to survive the build. Empty until a page is migrated, and empty
+              // again the moment an editor clears the field.
+              blocks: usableBlocks(f?.blocks, where, logger),
               // Normalized to the shape the templates already use, so a template
               // swaps `const faqs = [...]` for a lookup and changes nothing else.
               tocLinks: (f?.tocLinks ?? [])

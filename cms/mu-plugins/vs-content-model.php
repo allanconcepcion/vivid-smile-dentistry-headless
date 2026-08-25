@@ -181,11 +181,167 @@ function register_testimonial_tag_taxonomy(): void {
 add_action( 'init', __NAMESPACE__ . '\\register_testimonial_tag_taxonomy', 10 );
 
 /**
+ * The five backgrounds a section can paint itself.
+ *
+ * A CLOSED list, and the reason it is closed is measured: across the 34 page
+ * stylesheets `.alt` and `.dark` mean opposite things on different pages —
+ * porcelain-veneers.css:244 paints `.section.alt` charcoal green while
+ * teeth-whitening.css:237 paints it cream — so a section that inherits its
+ * background from an ancestor class is wrong on at least one page the moment it
+ * is reordered or moved. The background has to be a VALUE the section carries,
+ * and these five cover every background found in the corpus.
+ *
+ * The keys are the contract: they become the block's own modifier class in the
+ * Astro component (`vs-<block>--charcoal`), so renaming one silently unstyles
+ * every section already saved with the old value. The labels are editor-facing
+ * and safe to reword.
+ */
+const BLOCK_BANDS = [
+	'paper'     => 'Paper — white',
+	'cream'     => 'Cream',
+	'sage-pale' => 'Pale sage',
+	'sage'      => 'Sage',
+	'charcoal'  => 'Charcoal green — dark, white text',
+];
+
+/**
+ * The six controls every section layout opens with, in the same order.
+ *
+ * Shared rather than copied per layout for two reasons. The editor learns one
+ * control set and it is identical whichever kind of section they add — that is
+ * the whole point of the preamble. And the Astro side reads these six off every
+ * block regardless of type, so a layout that quietly diverged (a missing
+ * `band`, a `heading` renamed) would render wrong only on the one page that
+ * used it, which is the hardest kind of fault to find here.
+ *
+ * $slug only namespaces the field KEYS, which ACF requires to be globally
+ * unique. The field NAMES are identical across layouts on purpose: they are
+ * what the meta keys and the GraphQL selection set are built from.
+ */
+function block_preamble( string $slug ): array {
+	$k = 'field_vs_blk_' . $slug . '_';
+
+	return [
+		[
+			'key'          => $k . 'anchor',
+			'label'        => 'Anchor',
+			'name'         => 'anchor',
+			// Not required of the editor: fill_blank_row_id() below supplies one
+			// on save, exactly as it does for Section ID. Asking a non-technical
+			// person to invent a URL fragment is how you get two sections sharing
+			// one — which is invalid HTML and sends every jump link, and the
+			// scroll offset that goes with it, to the wrong section.
+			'required'     => 0,
+			'type'         => 'text',
+			'instructions' => 'The name of this section in the page address — the part after the #, as in '
+				. '…/clear-aligners/#process. Leave it blank and one is made for you when you save. '
+				. 'It is what the “On this page” rail jumps to and what anyone who has linked to or '
+				. 'bookmarked this section is using, so changing it afterwards breaks those links.',
+		],
+		[
+			'key'          => $k . 'nav_label',
+			'label'        => 'Rail label',
+			'name'         => 'nav_label',
+			'type'         => 'text',
+			'instructions' => 'What this section is called in the “On this page” rail down the side. '
+				. 'Leave it blank to keep the section out of the rail.',
+		],
+		[
+			'key'           => $k . 'band',
+			'label'         => 'Background',
+			'name'          => 'band',
+			'type'          => 'select',
+			'choices'       => BLOCK_BANDS,
+			// Applies only to a row an editor ADDS — a default on a sub-field of a
+			// flexible layout is read when that row is created, and there are no
+			// rows anywhere yet. It exists so a new section can never save with no
+			// background at all, which would render it unstyled.
+			'default_value' => 'paper',
+			'return_format' => 'value',
+			'allow_null'    => 0,
+			'multiple'      => 0,
+			'ui'            => 0,
+			'instructions'  => 'The colour behind this section. Alternating them is what gives the page its rhythm; '
+				. 'two of the same in a row read as one long section.',
+		],
+		[
+			'key'   => $k . 'eyebrow',
+			'label' => 'Eyebrow',
+			'name'  => 'eyebrow',
+			'type'  => 'text',
+		],
+		[
+			'key'          => $k . 'heading',
+			'label'        => 'Heading',
+			'name'         => 'heading',
+			'type'         => 'textarea',
+			'rows'         => 2,
+			'instructions' => 'May contain <em>…</em> for the accent styling.',
+		],
+		[
+			'key'          => $k . 'body',
+			'label'        => 'Body',
+			'name'         => 'body',
+			'type'         => 'textarea',
+			'rows'         => 4,
+			'instructions' => 'Plain text. The intro paragraph under the heading.',
+		],
+	];
+}
+
+/**
+ * A repeater that holds a plain list of lines — a checklist, a set of bullets.
+ *
+ * ACF has no "list of strings" field, so the shape is a repeater with a single
+ * text sub-field named `item`. Named here once so every list on every layout
+ * has the same shape and the Astro side can read `{ item }` off all of them.
+ */
+function block_list_field( string $key, string $label, string $name, string $button = 'Add line' ): array {
+	return [
+		'key'          => $key,
+		'label'        => $label,
+		'name'         => $name,
+		'type'         => 'repeater',
+		'layout'       => 'table',
+		'button_label' => $button,
+		'sub_fields'   => [
+			[
+				'key'   => $key . '_item',
+				'label' => 'Line',
+				'name'  => 'item',
+				'type'  => 'text',
+			],
+		],
+	];
+}
+
+/**
+ * The image sub-field used inside a section layout and by the hero.
+ *
+ * Identical settings to the Images repeater below, and for the identical
+ * reasons: the Astro loader needs a URL plus intrinsic dimensions because
+ * <Image> refuses a remote source without them, and the mime list keeps bmp and
+ * ico out of a build that hands every one of these URLs to sharp.
+ */
+function block_image_field( string $key, string $label = 'Image', string $name = 'image' ): array {
+	return [
+		'key'           => $key,
+		'label'         => $label,
+		'name'          => $name,
+		'type'          => 'image',
+		'return_format' => 'array',
+		'preview_size'  => 'thumbnail',
+		'library'       => 'all',
+		'mime_types'    => 'webp,jpg,jpeg,png',
+	];
+}
+
+/**
  * Field groups.
  *
  * Requires Secure Custom Fields (WordPress.org's ACF fork), not ACF free — the
- * page group below uses `repeater`, which ACF charges for and SCF ships free.
- * See cms/bin/setup.sh.
+ * page group below uses `repeater` and `flexible_content`, both of which ACF
+ * charges for and SCF ships free. See cms/bin/setup.sh.
  */
 function register_field_groups(): void {
 	if ( ! function_exists( 'acf_add_local_field_group' ) ) {
@@ -325,17 +481,25 @@ function register_field_groups(): void {
 	 * to a repeater here, one sub-field per object key, so the Astro template
 	 * keeps its markup and only changes where the array comes from.
 	 *
-	 * Deliberately NOT a free-form page builder. The layouts are bespoke and the
-	 * design system is the product; giving an editor arbitrary section ordering
-	 * would let them build pages the CSS was never written for. These fields
-	 * change the words, not the design.
+	 * Deliberately NOT a free-form page builder, and the `blocks` field added at
+	 * the foot of this group does not make it one. What an editor gains there is
+	 * the ORDER of a page's sections and a closed set of section kinds, each of
+	 * which the design system already draws. What they still cannot do is invent
+	 * a section, write markup, or set a colour, a width or a spacing. That
+	 * distinction is the whole design: reordering is nearly free here — no
+	 * stylesheet in the corpus has a vertical margin on a section wrapper, an
+	 * id-keyed selector or a :has() — while arbitrary authoring is what would
+	 * produce pages the CSS was never written for.
 	 *
-	 * There are deliberately NO hero fields here. An earlier version had them,
-	 * but nothing populated or rendered them — so an editor could type a new
-	 * headline, save, and see no change on the site. A field that silently does
-	 * nothing is worse than an absent one. Hero copy lives in the templates
-	 * along with the rest of the per-page prose; if it should become editable,
-	 * the template has to read it in the same change that adds the field.
+	 * THE HERO. An earlier version of this group had hero fields and they were
+	 * removed, because nothing populated or rendered them: an editor could type
+	 * a new headline, save, and see no change on the site, and a field that
+	 * silently does nothing is worse than an absent one. That rule stands. The
+	 * `hero` group below is added ahead of the templates that will read it — the
+	 * field has to exist before a page can be moved onto it — so it is shipped
+	 * carrying a message field that says so on the edit screen, in as many words.
+	 * That message is the debt. It comes down when the last template reads the
+	 * field, and not before.
 	 */
 	acf_add_local_field_group(
 		[
@@ -370,6 +534,11 @@ function register_field_groups(): void {
 				// of the six, which quietly told an editor that the section copy,
 				// the photos and the cards were somebody else's to touch. They are
 				// as much theirs as the FAQ. Add a tab, add it here.
+				//
+				// The last two tabs are named here as what they are — not connected
+				// to the site yet — rather than left out. An editor who finds a tab
+				// this note never mentioned has no way to tell whether they have
+				// found something new or something broken.
 				[
 					'key'     => 'field_vs_page_intro',
 					'label'   => '',
@@ -379,7 +548,9 @@ function register_field_groups(): void {
 						. "What you edit here is the content those templates pour in, a tab each: the “On this page” rail, "
 						. "the process steps, the heading and intro copy for each section, the photos, "
 						. "the cards and lists, and the FAQ.\n"
-						. "Changes go live on the next site build.",
+						. "Changes go live on the next site build.\n"
+						. "The last two tabs — <em>Hero</em> and <em>Page sections</em> — are part of the rebuild "
+						. "that is under way. Nothing on the site reads them yet, and each says so.",
 					'esc_html' => 0,
 					'new_lines' => 'wpautop',
 				],
@@ -667,6 +838,653 @@ function register_field_groups(): void {
 						],
 					],
 				],
+				[
+					'key'   => 'field_vs_hero_tab',
+					'label' => 'Hero',
+					'type'  => 'tab',
+				],
+				[
+					'key'       => 'field_vs_hero_intro',
+					'label'     => '',
+					'name'      => '',
+					'type'      => 'message',
+					'message'   => "<strong>Not connected yet.</strong> The hero is still written into each page's "
+						. "template, and the site does not read these boxes. Filling them in now changes nothing on "
+						. "the site — it is not broken, it is not finished.\n"
+						. "Each page starts reading its hero from here as it is rebuilt onto the new section system; "
+						. "this note comes down when the last one has been.",
+					'esc_html'  => 0,
+					'new_lines' => 'wpautop',
+				],
+				/**
+				 * The hero, deliberately a GROUP and not one of the section
+				 * layouts below.
+				 *
+				 * A page has exactly one hero, it is always the first thing on the
+				 * page, and it is never reordered — 35 uses across 33 pages, no
+				 * exceptions. Making it a section an editor can add would allow a
+				 * page with two heroes, and a page with none: no <h1>, which is
+				 * both an accessibility failure and the single strongest on-page
+				 * signal there is. A group gives exactly the same editable copy
+				 * with none of that surface.
+				 *
+				 * These fields are inert until a page's template reads them, which
+				 * is the rule the previous hero fields were REMOVED under (see the
+				 * group docblock above). The message field directly above is what
+				 * pays that debt in the meantime: an editor is told, on the screen,
+				 * that typing here does nothing yet. Delete both together.
+				 */
+				[
+					'key'        => 'field_vs_page_hero',
+					'label'      => 'Hero',
+					'name'       => 'hero',
+					'type'       => 'group',
+					'layout'     => 'block',
+					'sub_fields' => [
+						[
+							'key'   => 'field_vs_page_hero_eyebrow',
+							'label' => 'Eyebrow',
+							'name'  => 'eyebrow',
+							'type'  => 'text',
+						],
+						[
+							'key'          => 'field_vs_page_hero_h1',
+							'label'        => 'Headline',
+							'name'         => 'h1',
+							'type'         => 'textarea',
+							'rows'         => 2,
+							'instructions' => 'The page\'s main headline — its <h1>, and usually what Google shows. '
+								. 'May contain <em>…</em> for the accent styling.',
+						],
+						[
+							'key'          => 'field_vs_page_hero_sub',
+							'label'        => 'Sub-heading',
+							'name'         => 'sub',
+							'type'         => 'textarea',
+							'rows'         => 3,
+							'instructions' => 'Plain text. The paragraph under the headline.',
+						],
+						[
+							'key'          => 'field_vs_page_hero_ctas',
+							'label'        => 'Buttons',
+							'name'         => 'ctas',
+							'type'         => 'repeater',
+							'layout'       => 'table',
+							'button_label' => 'Add button',
+							// Every one of the 24 hero button rows on the site today
+							// holds exactly two buttons. The cap is that measurement,
+							// not a guess: a third button has no design and would wrap
+							// or overflow at the narrow widths.
+							'max'          => 2,
+							'instructions' => 'At most two. The first is the solid button, the second the outlined one.',
+							'sub_fields'   => [
+								[
+									'key'   => 'field_vs_page_hero_cta_label',
+									'label' => 'Label',
+									'name'  => 'label',
+									'type'  => 'text',
+								],
+								[
+									'key'          => 'field_vs_page_hero_cta_href',
+									'label'        => 'Link',
+									'name'         => 'href',
+									'type'         => 'text',
+									'instructions' => 'A path on this site like /contact/, an anchor like #process, or a full address.',
+								],
+							],
+						],
+						[
+							'key'          => 'field_vs_page_hero_ratings',
+							'label'        => 'Show the review line',
+							'name'         => 'ratings',
+							'type'         => 'true_false',
+							'ui'           => 1,
+							'instructions' => 'The five stars and Google review count under the buttons.',
+							// Nothing in this group declares a `default_value`, and that
+							// is deliberate. A group's sub-fields are read straight off
+							// the page, and ACF answers a field with no stored value
+							// with its default — so a default here is a value all 33
+							// pages would report having the moment this deploys, without
+							// anyone typing anything. Every one of them has to come back
+							// empty. (A switch is the one exception that cannot be
+							// avoided: ACF's own type default is off, which is the empty
+							// state anyway.)
+						],
+						block_image_field( 'field_vs_page_hero_image' ),
+						[
+							'key'          => 'field_vs_page_hero_image_alt',
+							'label'        => 'Alt text',
+							'name'         => 'image_alt',
+							'type'         => 'text',
+							// Named image_alt, not alt: a group prefixes its sub-fields
+							// with its own name, so `alt` here would store as hero_alt —
+							// the exact meta key the blog post group already uses for a
+							// different field on a different post type. They could not
+							// actually collide, and a reader should not have to work
+							// that out.
+							'instructions' => 'Leave blank to use the alt text stored on the file in the Media Library.',
+						],
+						[
+							'key'           => 'field_vs_page_hero_media_shape',
+							'label'         => 'Photo treatment',
+							'name'          => 'media_shape',
+							'type'          => 'select',
+							// A closed list, and short on purpose. These four are the
+							// hero media treatments that exist in the templates today:
+							// .hero-img (15 pages), .hero-stack (5), .hero-bg (3), and
+							// no media at all. The one-off heroes — the two inline
+							// Typeform embeds, the home page card — stay in code, so
+							// there is deliberately no value here that names them.
+							'choices'       => [
+								'none'       => 'No photo — copy only',
+								'image'      => 'Photo beside the copy',
+								'stack'      => 'Stacked photo panel',
+								'background' => 'Full-width photo behind the copy',
+							],
+							'return_format' => 'value',
+							'allow_null'    => 1,
+							'multiple'      => 0,
+							'ui'            => 0,
+						],
+					],
+				],
+				[
+					'key'   => 'field_vs_blocks_tab',
+					'label' => 'Page sections',
+					'type'  => 'tab',
+				],
+				[
+					'key'       => 'field_vs_blocks_intro',
+					'label'     => '',
+					'name'      => '',
+					'type'      => 'message',
+					'message'   => "<strong>This is how a page is built once it has been moved over.</strong> "
+						. "Pages are moved one at a time, by us. Until this one has been, the list stays empty and "
+						. "the page renders from its template exactly as it always has, using the other tabs — so "
+						. "adding a section here yourself does nothing yet.\n"
+						. "On a page that has been moved: drag a row to move that section up or down the page. "
+						. "Emptying the list puts the page straight back the way it was on the next build, "
+						. "with nothing to undo.",
+					'esc_html'  => 0,
+					'new_lines' => 'wpautop',
+				],
+				/**
+				 * The ordered list of sections a page is built from.
+				 *
+				 * ADDITIVE. The six repeaters above keep their fields, their 938
+				 * rows and their meaning; nothing here reads or writes them. The
+				 * storage keeps them apart with no help from us: a repeater writes
+				 * `sections` (its row count), `sections_0_heading`, `_sections`
+				 * (its field key) and so on, while a flexible field writes
+				 * `blocks`, `blocks_0_<sub>` and `_blocks`. Verified against the
+				 * database backup — cms/backup/database.sql holds rows for
+				 * `sections`, `sections_N_*` and `_sections` and not one meta key
+				 * beginning `blocks`. Different prefix, different rows, so adding
+				 * this field cannot touch a value an editor has saved.
+				 *
+				 * And an empty list is the safe state, not a broken one: with no
+				 * rows there is no `blocks` meta at all, GraphQL returns an empty
+				 * list, and src/components/PageBlocks.astro renders nothing. The
+				 * page keeps rendering from its template. That is the whole
+				 * migration switch — `blocks.length > 0`, one page at a time, and
+				 * a page is un-migrated by emptying this one field with no deploy
+				 * and no code change.
+				 *
+				 * TWO RULES THAT FAIL AT RUNTIME RATHER THAN AT SAVE TIME, so
+				 * neither shows up in wp-admin and both take a page down on the
+				 * site instead:
+				 *
+				 *   1. Never set `graphql_field_name` on a layout. WPGraphQL for
+				 *      ACF registers the layout's TYPE from the layout name, but
+				 *      resolves a row's __typename from the raw acf_fc_layout
+				 *      string stored in the database. Set one and the resolver
+				 *      names a type that was never registered — a schema that
+				 *      builds and a query that dies on whichever page uses that
+				 *      layout.
+				 *   2. Never register this field with zero layouts. The GraphQL
+				 *      field is a list of an interface, and with no layouts
+				 *      nothing implements it.
+				 *
+				 * Adding a layout here is half a change. The other half is its
+				 * entry in src/blocks/registry.ts, in the same commit — the query
+				 * is hand-written because introspection is off for public requests
+				 * on this host, and an unregistered layout renders as nothing.
+				 */
+				[
+					'key'          => 'field_vs_blocks',
+					'label'        => 'Sections',
+					'name'         => 'blocks',
+					'type'         => 'flexible_content',
+					'button_label' => 'Add a section',
+					'min'          => 0,
+					// Explicit, because the default is the only value that is safe:
+					// `required` on this field would make all 33 pages unsavable
+					// until somebody added a section to each of them.
+					'required'     => 0,
+					'instructions' => 'The page, in order, one section per row. Drag a row to move that section up or '
+						. 'down the page; the “On this page” rail follows automatically.',
+					'layouts'      => [
+						/**
+						 * FAQ.
+						 *
+						 * `pull` is the short aside beside the questions. It is a
+						 * field of its own rather than reusing the preamble's `body`
+						 * because the two are different places on the page — on the
+						 * pages that have both today, the template puts the section
+						 * row's `body` into the aside, so the backfill maps
+						 * sections.faq.body → pull, NOT → body.
+						 */
+						[
+							'key'        => 'layout_vs_blk_faq',
+							'name'       => 'faq',
+							'label'      => 'FAQ',
+							'display'    => 'block',
+							'sub_fields' => array_merge(
+								block_preamble( 'faq' ),
+								[
+									[
+										'key'          => 'field_vs_blk_faq_pull',
+										'label'        => 'Aside',
+										'name'         => 'pull',
+										'type'         => 'textarea',
+										'rows'         => 3,
+										'instructions' => 'The short paragraph in the column beside the questions.',
+									],
+									[
+										'key'          => 'field_vs_blk_faq_items',
+										'label'        => 'Questions',
+										'name'         => 'items',
+										'type'         => 'repeater',
+										'layout'       => 'row',
+										'button_label' => 'Add question',
+										'instructions' => 'These also generate the page\'s FAQ structured data, '
+											. 'so keep answers factual and self-contained.',
+										'sub_fields'   => [
+											[
+												'key'   => 'field_vs_blk_faq_q',
+												'label' => 'Question',
+												'name'  => 'question',
+												'type'  => 'text',
+											],
+											[
+												'key'   => 'field_vs_blk_faq_a',
+												'label' => 'Answer',
+												'name'  => 'answer',
+												'type'  => 'textarea',
+												'rows'  => 4,
+											],
+											[
+												'key'           => 'field_vs_blk_faq_open',
+												'label'         => 'Open by default',
+												'name'          => 'open',
+												'type'          => 'true_false',
+												'ui'            => 1,
+												'default_value' => 0,
+											],
+										],
+									],
+									[
+										'key'   => 'field_vs_blk_faq_cta_label',
+										'label' => 'Button label',
+										'name'  => 'cta_label',
+										'type'  => 'text',
+									],
+									[
+										'key'   => 'field_vs_blk_faq_cta_href',
+										'label' => 'Button link',
+										'name'  => 'cta_href',
+										'type'  => 'text',
+									],
+								]
+							),
+						],
+						/**
+						 * A grid of cards.
+						 *
+						 * Backfills from the `cards` repeater above, whose rows are
+						 * grouped by a `group` name; one card_grid section consumes
+						 * one group.
+						 */
+						[
+							'key'        => 'layout_vs_blk_card_grid',
+							'name'       => 'card_grid',
+							'label'      => 'Card grid',
+							'display'    => 'block',
+							'sub_fields' => array_merge(
+								block_preamble( 'cards' ),
+								[
+									[
+										'key'           => 'field_vs_blk_cards_columns',
+										'label'         => 'Columns',
+										'name'          => 'columns',
+										'type'          => 'select',
+										'choices'       => [
+											'2' => '2',
+											'3' => '3',
+											'4' => '4',
+										],
+										'default_value' => '3',
+										'return_format' => 'value',
+										'allow_null'    => 0,
+										'multiple'      => 0,
+										'ui'            => 0,
+										'instructions'  => 'How many cards sit across a row on a desktop screen. '
+											. 'They stack on a phone whichever you choose.',
+									],
+									[
+										'key'          => 'field_vs_blk_cards_numbered',
+										'label'        => 'Number the cards',
+										'name'         => 'numbered',
+										'type'         => 'true_false',
+										'ui'           => 1,
+										'default_value' => 0,
+									],
+									[
+										'key'          => 'field_vs_blk_cards_cards',
+										'label'        => 'Cards',
+										'name'         => 'cards',
+										'type'         => 'repeater',
+										'layout'       => 'row',
+										'button_label' => 'Add card',
+										'sub_fields'   => [
+											[
+												'key'          => 'field_vs_blk_cards_card_meta',
+												'label'        => 'Meta',
+												'name'         => 'meta',
+												'type'         => 'text',
+												'instructions' => 'Secondary line — a price, a stat value, a label.',
+											],
+											[
+												'key'   => 'field_vs_blk_cards_card_title',
+												'label' => 'Title',
+												'name'  => 'title',
+												'type'  => 'text',
+											],
+											[
+												'key'          => 'field_vs_blk_cards_card_lead',
+												'label'        => 'Lead',
+												'name'         => 'lead',
+												'type'         => 'text',
+												'instructions' => 'One line under the title, above the body.',
+											],
+											[
+												'key'   => 'field_vs_blk_cards_card_body',
+												'label' => 'Body',
+												'name'  => 'body',
+												'type'  => 'textarea',
+												'rows'  => 3,
+											],
+											[
+												'key'   => 'field_vs_blk_cards_card_href',
+												'label' => 'Link',
+												'name'  => 'href',
+												'type'  => 'text',
+											],
+										],
+									],
+								]
+							),
+						],
+						/**
+						 * Copy on one side, a photo on the other.
+						 *
+						 * `media_side` and `ratio` are values on the row rather than
+						 * variants of separate layouts because flipping a band is
+						 * the commonest edit there is on these pages, and it should
+						 * not cost the editor their content.
+						 */
+						[
+							'key'        => 'layout_vs_blk_media_split',
+							'name'       => 'media_split',
+							'label'      => 'Photo and copy',
+							'display'    => 'block',
+							'sub_fields' => array_merge(
+								block_preamble( 'media' ),
+								[
+									block_image_field( 'field_vs_blk_media_image' ),
+									[
+										'key'          => 'field_vs_blk_media_image_alt',
+										'label'        => 'Alt text',
+										'name'         => 'image_alt',
+										'type'         => 'text',
+										// The Images repeater this backfills from carries a
+										// per-slot alt, so without this the migration would
+										// drop it. Same fallback as there.
+										'instructions' => 'Leave blank to use the alt text stored on the file in the Media Library.',
+									],
+									[
+										'key'           => 'field_vs_blk_media_side',
+										'label'         => 'Photo on the',
+										'name'          => 'media_side',
+										'type'          => 'select',
+										'choices'       => [
+											'left'  => 'Left',
+											'right' => 'Right',
+										],
+										'default_value' => 'left',
+										'return_format' => 'value',
+										'allow_null'    => 0,
+										'multiple'      => 0,
+										'ui'            => 0,
+									],
+									[
+										'key'           => 'field_vs_blk_media_ratio',
+										'label'         => 'Split',
+										'name'          => 'ratio',
+										'type'          => 'select',
+										'choices'       => [
+											'even'       => 'Even',
+											'wide-text'  => 'More room for the words',
+											'wide-media' => 'More room for the photo',
+										],
+										'default_value' => 'even',
+										'return_format' => 'value',
+										'allow_null'    => 0,
+										'multiple'      => 0,
+										'ui'            => 0,
+									],
+									[
+										'key'          => 'field_vs_blk_media_quote',
+										'label'        => 'Pull quote',
+										'name'         => 'quote',
+										'type'         => 'textarea',
+										'rows'         => 3,
+										'instructions' => 'Optional. Set larger, beside or under the copy.',
+									],
+									block_list_field(
+										'field_vs_blk_media_checklist',
+										'Checklist',
+										'checklist',
+										'Add a point'
+									),
+									[
+										'key'   => 'field_vs_blk_media_cta_label',
+										'label' => 'Button label',
+										'name'  => 'cta_label',
+										'type'  => 'text',
+									],
+									[
+										'key'   => 'field_vs_blk_media_cta_href',
+										'label' => 'Button link',
+										'name'  => 'cta_href',
+										'type'  => 'text',
+									],
+								]
+							),
+						],
+						/**
+						 * Numbered process steps. Backfills from the Process tab's
+						 * repeater above.
+						 */
+						[
+							'key'        => 'layout_vs_blk_process_steps',
+							'name'       => 'process_steps',
+							'label'      => 'Process steps',
+							'display'    => 'block',
+							'sub_fields' => array_merge(
+								block_preamble( 'steps' ),
+								[
+									[
+										// `layout` is this sub-field's NAME — the shape the
+										// steps are drawn in — not ACF's own `layout`
+										// setting, which only applies to repeaters and
+										// groups.
+										'key'           => 'field_vs_blk_steps_layout',
+										'label'         => 'Shape',
+										'name'          => 'layout',
+										'type'          => 'select',
+										'choices'       => [
+											'grid'    => 'Grid',
+											'card'    => 'Cards',
+											'divided' => 'Divided list',
+										],
+										'default_value' => 'grid',
+										'return_format' => 'value',
+										'allow_null'    => 0,
+										'multiple'      => 0,
+										'ui'            => 0,
+									],
+									[
+										'key'           => 'field_vs_blk_steps_columns',
+										'label'         => 'Columns',
+										'name'          => 'columns',
+										'type'          => 'select',
+										'choices'       => [
+											'2' => '2',
+											'3' => '3',
+											'4' => '4',
+										],
+										'default_value' => '4',
+										'return_format' => 'value',
+										'allow_null'    => 0,
+										'multiple'      => 0,
+										'ui'            => 0,
+									],
+									[
+										'key'          => 'field_vs_blk_steps_steps',
+										'label'        => 'Steps',
+										'name'         => 'steps',
+										'type'         => 'repeater',
+										'layout'       => 'row',
+										'button_label' => 'Add step',
+										'sub_fields'   => [
+											[
+												'key'          => 'field_vs_blk_steps_step_tag',
+												'label'        => 'Tag',
+												'name'         => 'tag',
+												'type'         => 'text',
+												'instructions' => 'e.g. "Step One".',
+											],
+											[
+												'key'          => 'field_vs_blk_steps_step_num',
+												'label'        => 'Number',
+												'name'         => 'num',
+												'type'         => 'text',
+												// Text, not number: the site prints these
+												// verbatim and some are written "01".
+												'instructions' => 'The figure shown on the step, exactly as it should read.',
+											],
+											[
+												'key'   => 'field_vs_blk_steps_step_title',
+												'label' => 'Title',
+												'name'  => 'title',
+												'type'  => 'text',
+											],
+											[
+												'key'   => 'field_vs_blk_steps_step_body',
+												'label' => 'Body',
+												'name'  => 'body',
+												'type'  => 'textarea',
+												'rows'  => 3,
+											],
+										],
+									],
+								]
+							),
+						],
+						/**
+						 * The scrolling strip of smile photographs.
+						 *
+						 * No fields beyond the preamble on purpose: the tiles are
+						 * files in the repository, read by src/lib/smiles.ts, and
+						 * there is nothing here for an editor to fill in or get
+						 * wrong.
+						 */
+						[
+							'key'        => 'layout_vs_blk_gallery_marquee',
+							'name'       => 'gallery_marquee',
+							'label'      => 'Smile gallery strip',
+							'display'    => 'block',
+							'sub_fields' => block_preamble( 'gallery' ),
+						],
+						/**
+						 * Side-by-side comparison cards — this against that,
+						 * treatment levels, materials.
+						 */
+						[
+							'key'        => 'layout_vs_blk_comparison_cards',
+							'name'       => 'comparison_cards',
+							'label'      => 'Comparison cards',
+							'display'    => 'block',
+							'sub_fields' => array_merge(
+								block_preamble( 'compare' ),
+								[
+									[
+										'key'          => 'field_vs_blk_compare_cards',
+										'label'        => 'Cards',
+										'name'         => 'cards',
+										'type'         => 'repeater',
+										'layout'       => 'row',
+										'button_label' => 'Add card',
+										'sub_fields'   => [
+											[
+												'key'          => 'field_vs_blk_compare_card_tag',
+												'label'        => 'Tag',
+												'name'         => 'tag',
+												'type'         => 'text',
+												'instructions' => 'The small label above the title.',
+											],
+											[
+												'key'   => 'field_vs_blk_compare_card_title',
+												'label' => 'Title',
+												'name'  => 'title',
+												'type'  => 'text',
+											],
+											[
+												'key'   => 'field_vs_blk_compare_card_body',
+												'label' => 'Body',
+												'name'  => 'body',
+												'type'  => 'textarea',
+												'rows'  => 3,
+											],
+											block_list_field(
+												'field_vs_blk_compare_bullets',
+												'Bullets',
+												'bullets',
+												'Add a bullet'
+											),
+											[
+												'key'          => 'field_vs_blk_compare_card_ribbon',
+												'label'        => 'Ribbon',
+												'name'         => 'ribbon',
+												'type'         => 'text',
+												'instructions' => 'Optional flash across the corner — "Most chosen", "Best value".',
+											],
+											[
+												'key'           => 'field_vs_blk_compare_card_featured',
+												'label'         => 'Highlight this card',
+												'name'          => 'featured',
+												'type'          => 'true_false',
+												'ui'            => 1,
+												'default_value' => 0,
+											],
+										],
+									],
+								]
+							),
+						],
+					],
+				],
 			],
 		]
 	);
@@ -699,11 +1517,43 @@ const IMPORTER_OWNED_KEYS = [
  * cards.group is deliberately NOT here. Whether the cards repeater is wired up
  * or removed is still an open question with the client, so its behaviour is left
  * exactly as it was: still required, still typed by hand.
+ *
+ * blocks[].anchor gets the same treatment and is not in this list either, for a
+ * mechanical reason: every section layout declares its own `anchor` sub-field
+ * with its own key, so listing them would mean six entries here and a seventh
+ * thing to remember each time a layout is added. block_anchor_meta_pattern()
+ * below recognises them by shape instead.
  */
 const GENERATED_ID_FIELDS = [
 	'field_vs_section_id' => '/^sections_\d+_section_id$/',
 	'field_vs_image_slot' => '/^images_\d+_slot$/',
 ];
+
+/**
+ * The postmeta pattern for a section anchor, or null if this is not one.
+ *
+ * Matches on structure rather than on a list of keys: any sub-field named
+ * `anchor` whose parent is the `blocks` field. ACF stamps `parent` on every
+ * sub-field of a flexible layout when the group is registered, so this holds for
+ * a layout added tomorrow without anyone editing this function.
+ *
+ * All layouts share the one meta shape — blocks_0_anchor, blocks_1_anchor — so
+ * the numbering that next_generated_id() hands out is unique across the whole
+ * page rather than per layout. That is what it has to be: two sections with the
+ * same anchor is invalid HTML, and it sends both the rail link and the scroll
+ * offset that goes with it to whichever one the browser finds first.
+ */
+function block_anchor_meta_pattern( array $field ): ?string {
+	if ( 'anchor' !== ( $field['name'] ?? '' ) ) {
+		return null;
+	}
+
+	if ( 'field_vs_blocks' !== ( $field['parent'] ?? '' ) ) {
+		return null;
+	}
+
+	return '/^blocks_\d+_anchor$/';
+}
 
 /**
  * Namespace for generated ids.
@@ -819,7 +1669,8 @@ function next_generated_id( int $post_id, string $meta_pattern ): string {
 }
 
 /**
- * Give a blank Section ID or Slot a value on the way into the database.
+ * Give a blank Section ID, Slot or section Anchor a value on the way into the
+ * database.
  *
  * Unlocking the field was only half the fix. An editor adding a row was still
  * handed a box labelled "Section ID" and left to guess what belongs in it, and a
@@ -831,6 +1682,13 @@ function next_generated_id( int $post_id, string $meta_pattern ): string {
  * It never overwrites: a row that already has an id — imported, generated
  * earlier, or typed — passes through untouched, which is what keeps the id
  * stable across saves and keeps the importer's ownership intact.
+ *
+ * For a section anchor "never overwrites" is the point rather than a side
+ * effect. An anchor is a public address: it is in the “On this page” rail, in
+ * any link a patient or another site has to that section, and in the scroll
+ * offset the page applies when someone arrives on one. Regenerating it when a
+ * heading is edited or a section is dragged would detach every one of those,
+ * silently. Generated once, then permanent.
  */
 function fill_blank_row_id( $value, $post_id, $field ) {
 	if ( ! is_array( $field ) ) {
@@ -840,12 +1698,14 @@ function fill_blank_row_id( $value, $post_id, $field ) {
 	$generated = GENERATED_ID_FIELDS;
 	$key       = (string) ( $field['key'] ?? '' );
 
-	if ( ! isset( $generated[ $key ] ) ) {
+	$pattern = $generated[ $key ] ?? block_anchor_meta_pattern( $field );
+
+	if ( null === $pattern ) {
 		return $value;
 	}
 
 	// ACF also saves against option and term ids, which have no postmeta to
-	// scan. These two fields only ever live on a page, so anything else is not
+	// scan. These fields only ever live on a page, so anything else is not
 	// ours to touch.
 	if ( ! is_numeric( $post_id ) ) {
 		return $value;
@@ -857,7 +1717,7 @@ function fill_blank_row_id( $value, $post_id, $field ) {
 		return $value;
 	}
 
-	return next_generated_id( (int) $post_id, $generated[ $key ] );
+	return next_generated_id( (int) $post_id, $pattern );
 }
 add_filter( 'acf/update_value', __NAMESPACE__ . '\\fill_blank_row_id', 10, 3 );
 

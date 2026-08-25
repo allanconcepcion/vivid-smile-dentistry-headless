@@ -1,0 +1,104 @@
+---
+/**
+ * PageBlocks — renders `pageFields.blocks` in array order.
+ *
+ * This is the whole consumption side of the block system: take the ordered list
+ * the CMS returned, look each row up in the registry, render it. Order is the
+ * array's order and nothing else. That is safe because the repeater order
+ * already IS the DOM order on all 27 pages that have sections — measured, 27 of
+ * 27, zero exceptions (docs/PAGE-BLOCKS.md §0, Fact 1) — so swapping
+ * page-content.ts's `find()` for iteration is provably a no-op against current
+ * content.
+ *
+ * PHASE 1: nothing invokes this. `blocks` is empty on all 33 pages, and the
+ * per-page switch (§2.3) is `blocks.length > 0`, so every page still renders
+ * its existing template body. An empty list renders exactly nothing here — no
+ * wrapper, no marker element — which is what keeps the site byte-identical.
+ *
+ * There is deliberately no wrapper element even when blocks are present. Each
+ * block owns its own <section>, its own band and its own padding (§2.5,
+ * modelled on FinalBand.astro), so a wrapper here would only reintroduce the
+ * inter-section rhythm that blocks exist to remove.
+ *
+ * NOTHING IN HERE THROWS. An editor triggers deploys and never sees the output
+ * (cms/mu-plugins/vs-deploy.php:142-158), so every degenerate input an editor
+ * can produce — an unknown layout, two sections with the same anchor, a blank
+ * anchor, a missing list — degrades to something renderable and a console
+ * warning in the build log. Same rule as src/loaders/blog.ts and
+ * src/integrations/yoast-sitemap.ts.
+ *
+ * Spec: docs/PAGE-BLOCKS.md §2.2.
+ */
+import { lookupBlock, type BlockNode } from "./registry";
+import UnknownBlock from "./UnknownBlock.astro";
+
+interface Props {
+  /**
+   * `pageFields.blocks`. Optional and nullable on purpose: a page that has
+   * never been touched returns null for a flexible-content field with no rows,
+   * and a caller that guards with `blocks.length > 0` should not also have to
+   * guard the type.
+   */
+  blocks?: BlockNode[] | null;
+  /** Route, for warnings. Defaults to the page being built. */
+  route?: string;
+}
+
+const { blocks, route = Astro.url.pathname } = Astro.props;
+
+const rows = Array.isArray(blocks) ? blocks : [];
+
+/**
+ * Resolve anchors before rendering, because deduplication needs to see the
+ * whole list.
+ *
+ * Duplicate anchors are deduplicated, not fatal. Two bands with id="faq" is
+ * invalid HTML, and it sends `scroll-margin-top` (61 declarations across 16
+ * files) and every "On this page" link to whichever element the browser happens
+ * to find first. It is worth a loud warning. It is not worth failing a build an
+ * editor triggered — so the second #faq becomes #faq-2 and the deploy goes out.
+ *
+ * The deduped value is passed back as `anchor` as well as `id`, so a block that
+ * builds its own rail entry cannot link to a name the dedup pass just renamed.
+ */
+const seen = new Map<string, number>();
+
+const resolved = rows.map((block, index) => {
+  const definition = lookupBlock(block?.__typename);
+
+  const raw = block?.anchor;
+  let anchor = typeof raw === "string" ? raw.trim() : "";
+
+  if (anchor !== "") {
+    const nth = (seen.get(anchor) ?? 0) + 1;
+    seen.set(anchor, nth);
+    if (nth > 1) {
+      const deduped = `${anchor}-${nth}`;
+      console.warn(
+        `[blocks] duplicate anchor "${anchor}" on ${route} at position ${index + 1} — rendering as "${deduped}"`,
+      );
+      anchor = deduped;
+    }
+  }
+
+  return { block, definition, anchor, index };
+});
+---
+
+{
+  resolved.map(({ block, definition, anchor, index }) => {
+    // Capitalised so the Astro compiler treats it as a component rather than an
+    // HTML tag name.
+    const Block = definition?.component;
+
+    // No entry in the registry: a layout deployed to WordPress before this
+    // build shipped, or an Astro rollback. Never a hard failure — see §2.4.
+    if (!Block) {
+      return <UnknownBlock block={block} index={index} route={route} />;
+    }
+
+    // `id={anchor || undefined}` is exactly the pattern [...slug].astro:271
+    // already ships: never emit id="" for a section whose anchor is blank.
+    return <Block {...block} anchor={anchor || undefined} id={anchor || undefined} />;
+  })
+}
