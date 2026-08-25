@@ -18,6 +18,7 @@
  */
 
 import { getImage } from "astro:assets";
+import { mediaFetchable } from "./media-probe";
 
 /** Widths to emit for in-body images — narrower than heroes; these sit in prose. */
 const BODY_WIDTHS = [480, 768, 1024, 1440];
@@ -76,6 +77,26 @@ export async function optimizeBodyImages(html: string): Promise<string> {
     const width = Number(attr(tag, "width")) || 0;
     const height = Number(attr(tag, "height")) || 0;
     const hasDimensions = width > 0 && height > 0;
+
+    // Probe BEFORE getImage(), because the try/catch below does not cover this
+    // case and reads as though it does. With an explicit width and height,
+    // getImage() fetches nothing — it registers the asset and returns a
+    // descriptor, and the fetch happens later in the build pipeline, well
+    // outside this block. A picture deleted from the Media Library therefore
+    // sails past the catch and kills the whole build from somewhere else
+    // entirely, taking all 48 pages down over one image in one old post.
+    //
+    // Only a definite 404/410/3xx drops the tag; see media-probe.ts. A slow or
+    // rate-limited CMS returns "unknown" and the image is kept and optimized as
+    // normal.
+    if ((await mediaFetchable(src)) === "gone") {
+      console.warn(
+        `[wp-body-images] Removed <img> for ${src} — the file is no longer in the Media Library. ` +
+          `The post still publishes; re-upload the picture and re-save the post to bring it back.`,
+      );
+      rewrites.set(tag, "");
+      continue;
+    }
 
     try {
       const optimized = await getImage({

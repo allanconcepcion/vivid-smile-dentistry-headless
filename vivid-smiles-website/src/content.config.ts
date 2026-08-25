@@ -48,11 +48,15 @@ const reviews = defineCollection({
  *
  * Filter the hub by category via /blog/?category=<Category>.
  *
- * Categories are a CLOSED enum, and the same five names are seeded in
- * cms/mu-plugins/vs-content-model.php. They are also the runtime keys for the
- * client-side hub filter and appear verbatim in shared URLs, so adding a
- * category means editing both places; renaming one breaks existing links.
- * A post in any other category is skipped by the loader with a warning.
+ * ALWAYS PUBLISH — read src/loaders/blog.ts before loosening or tightening
+ * anything below. That loader never drops a post: every field it hands over has
+ * already been degraded to something valid (a placeholder hero, an empty alt, a
+ * fallback date, "Untitled post"). So this schema's job has changed. It is no
+ * longer the gate that decides which posts exist — it is the assertion that the
+ * loader did its job. A failure here now means a bug in the loader, not bad
+ * editor input, which is why the remaining constraints are deliberately tight
+ * (.min(1), .positive(), an explicit heroImage shape) rather than relaxed to
+ * z.string()/z.any(). Loosen one and a real loader regression ships silently.
  *
  * Requires WP_GRAPHQL_ENDPOINT. For local development: cd cms && npm start
  */
@@ -60,30 +64,79 @@ const blog = defineCollection({
   loader: blogLoader(),
   schema: () =>
     z.object({
-      title: z.string(),
+      // .min(1) rather than a bare string: the loader substitutes "Untitled post"
+      // for a blank title, so an empty one reaching here is a loader bug.
+      title: z.string().min(1),
       description: z.string().max(200),
       date: z.coerce.date(),
       updated: z.coerce.date().optional(),
       author: z.string().default("Slate"),
-      category: z.enum([
-        "Dental Tips",
-        "Cosmetic Dentistry",
-        "Implant Dentistry",
-        "General Dentistry",
-        "Emergency Dentistry",
-      ]),
-      // A URL string rather than image(). The image() helper resolves paths
-      // relative to an entry's source file, and a WordPress-backed entry has
-      // none — so it cannot be used from a remote loader. Astro still optimizes
-      // these at build time and emits local hashed assets, because the CMS host
-      // is authorized in astro.config.mjs under image.remotePatterns.
-      heroImage: z.string().url(),
+      /**
+       * OPEN, not an enum — and this is the one deliberate loosening.
+       *
+       * It used to be a closed z.enum of the five categories seeded in
+       * cms/mu-plugins/vs-content-model.php, which meant a post in any other
+       * category was dropped from the site entirely. A category is a label, not
+       * a gate: an unexpected one must never cost the practice a publication.
+       *
+       * The five live in KNOWN_CATEGORIES in src/loaders/blog.ts, which is the
+       * single source of truth (getCategories() in src/lib/blog.ts orders the
+       * hub's chip rail by the same list). The loader keeps an unexpected
+       * category verbatim and logs a warning explaining that it gets no chip.
+       *
+       * Consequence to know about: BlogCategory in src/lib/blog.ts is derived
+       * from this type, so it is now `string`. Nothing switches exhaustively on
+       * it. .min(1) still holds — the loader defaults an absent category to
+       * "Dental Tips", so an empty string here is a loader bug.
+       */
+      category: z.string().min(1),
+      /**
+       * A URL string rather than image(). The image() helper resolves paths
+       * relative to an entry's source file, and a WordPress-backed entry has
+       * none — so it cannot be used from a remote loader. Astro still optimizes
+       * these at build time and emits local hashed assets, because the CMS host
+       * is authorized in astro.config.mjs under image.remotePatterns.
+       *
+       * Two shapes are legal, and only two. An absolute http(s) URL (a real
+       * featured image from the media library), or the inline data: URI the
+       * loader substitutes when there is no usable hero — see HERO_PLACEHOLDER
+       * in src/loaders/blog.ts for why that is a data: URI and not a file.
+       *
+       * This is TIGHTER than the z.string().url() it replaces, which also
+       * accepted ftp:, mailto: and file: — none of which <Image> can render.
+       */
+      heroImage: z
+        .string()
+        .refine((src) => /^https?:\/\//i.test(src) || src.startsWith("data:image/"), {
+          message:
+            "heroImage must be an absolute http(s) URL or the loader's inline placeholder data: URI",
+        }),
       // <Image> requires explicit dimensions for a remote src. Without them it
       // either throws or (with inferSize) downloads every image at build just
-      // to measure it. WordPress reports these from the media library.
+      // to measure it. WordPress reports these from the media library; when it
+      // cannot, the loader measures the file or falls back to the placeholder,
+      // so these are always real positive integers by the time they land here.
       heroWidth: z.number().int().positive(),
       heroHeight: z.number().int().positive(),
+      /**
+       * May be the empty string, and that is meaningful rather than sloppy:
+       * alt="" is the WAI convention for a decorative image. A hero whose alt
+       * text nobody wrote is better left unlabelled than narrated as a filename,
+       * and the missing text is reported as a build warning (and, on the PHP
+       * side, on the post edit screen) rather than swallowed.
+       */
       heroAlt: z.string(),
+      /**
+       * True when heroImage is the loader's placeholder plate rather than an
+       * image the author chose. Consumers that must not present a stand-in as
+       * real content branch on this: blog/[slug].astro omits the post hero
+       * figure entirely, drops `image` from the BlogPosting JSON-LD, and lets
+       * og:image fall through to BaseLayout's site-logo default.
+       *
+       * BlogCard.astro deliberately does NOT branch on it — the hub grid needs
+       * every tile to have a media well or the layout goes ragged.
+       */
+      heroPlaceholder: z.boolean().default(false),
       draft: z.boolean().default(false),
     }),
 });
