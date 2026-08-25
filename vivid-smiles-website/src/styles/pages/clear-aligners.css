@@ -9,6 +9,24 @@
  *
  * Reveals are wired by src/scripts/animations.js — these rules are layout,
  * color, and rhythm only.
+ *
+ * BLOCK OWNERSHIP — READ BEFORE DELETING ANYTHING IN HERE.
+ *
+ * Seven of this page's bands now also exist as block components with their own
+ * co-located styles (src/blocks/*.astro): card_grid, media_split,
+ * process_steps, comparison_cards, stat_callout, gallery_marquee, faq. The
+ * rules below marked `[block: X]` are the ones those components reproduce.
+ *
+ * They are dead ONLY while the page is rendering from `blocks`, and it is not:
+ * the `blocks` field is not on the CMS host yet, so `hasBlocks` is false and
+ * clear-aligners.astro renders every band from this sheet, exactly as it always
+ * has. It goes on doing that whenever an editor empties the field — which is
+ * the whole rollback story (docs/PAGE-BLOCKS.md 2.3), and it has no deploy
+ * behind it, so this sheet has to keep working forever, not until the backfill.
+ *
+ * So the markers are a map for the Phase 5 dead-CSS sweep, not permission. A
+ * rule deleted here does not fail a build or a type check; it silently breaks
+ * the one path nobody exercises until the day they need it.
  */
 
 .caligners {
@@ -235,7 +253,12 @@
   scroll-margin-top: calc(var(--nav-h) + var(--toc-h) + 12px);
 }
 
-/* ---------- SECTIONS (band system) ---------- */
+/* ---------- SECTIONS (band system) ----------
+   [block: every one of the seven] The band shell — padding, the alt/dark
+   backgrounds and the text colors they invert, and `.section-head`. Each block
+   carries this as a `band` prop on its own <section>, which is what lets a
+   band keep its colours when an editor moves it (docs/PAGE-BLOCKS.md 2.5,
+   R2). `.prose` below is media_split's. */
 .caligners .section { padding: 110px 0; }
 .caligners .section.alt { background: var(--vs-charcoal-green); }
 .caligners .section.alt h1,
@@ -282,7 +305,8 @@
 .caligners .prose p { font-size: 16.5px; line-height: 1.85; max-width: 70ch; }
 .caligners .prose p + p { margin-top: 18px; }
 
-/* ---------- WHY ---------- */
+/* ---------- WHY ----------
+   [block: card_grid] .why-grid / .why-card. */
 .caligners .why-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
 .caligners .why-card {
   background: #fff;
@@ -310,7 +334,8 @@
 }
 .caligners .why-card p { font-size: 15px; line-height: 1.75; }
 
-/* ---------- WHAT ---------- */
+/* ---------- WHAT ----------
+   [block: media_split] .what-grid / .what-img / .what-text. */
 .caligners .what-grid {
   display: grid; grid-template-columns: 1fr 1fr;
   gap: 80px; align-items: center;
@@ -333,6 +358,7 @@
 .caligners .what-text h2 { margin: 22px 0 26px; max-width: 14ch; }
 
 /* ---------- PROCESS ----------
+   [block: process_steps] .process-grid / .process-card / .step-tag.
    4 cards on this page (veneers has 5). The grid auto-fits; the underlying
    `repeat(4, 1fr)` keeps cards balanced at desktop. Mobile collapses via
    the responsive block below — same behavior as veneers. */
@@ -371,7 +397,8 @@
   color: var(--vs-ink-soft); font-size: 14px; line-height: 1.65;
 }
 
-/* ---------- COMPARE ---------- */
+/* ---------- COMPARE ----------
+   [block: comparison_cards] .compare / .compare-card / .ribbon / .tag. */
 .caligners .compare {
   display: grid; grid-template-columns: repeat(3, 1fr);
   gap: 22px;
@@ -411,7 +438,10 @@
   padding: 5px 10px; border-radius: 999px;
 }
 
-/* ---------- NATURAL ---------- */
+/* ---------- NATURAL ----------
+   [block: media_split] .natural-grid / .natural-text / .natural-img /
+   .natural-quote — the mirrored variant of WHAT above, which is why both are
+   one layout with a `media_side` prop rather than two. */
 .caligners .natural-grid {
   display: grid; grid-template-columns: 1fr 1.1fr;
   gap: 80px; align-items: center;
@@ -443,7 +473,9 @@
   max-width: 36ch;
 }
 
-/* ---------- CTA ROW ---------- */
+/* ---------- CTA ROW ----------
+   [block: media_split, comparison_cards, faq] Every .cta-row on this page sits
+   inside one of those three bands; each block ships its own. */
 .caligners .cta-row {
   margin-top: 56px;
   display: flex; flex-direction: column;
@@ -462,7 +494,9 @@
 }
 .caligners .section.dark .cta-row .cta-note { color: var(--vs-ink-soft); }
 
-/* ---------- INLINE CTA ---------- */
+/* ---------- INLINE CTA ----------
+   [block: process_steps] The only .inline-cta on this page is the one inside
+   the process band. */
 .caligners .inline-cta {
   margin-top: 44px;
   background: var(--cream);
@@ -491,6 +525,8 @@
 .caligners .inline-cta.dark .ic-text em { color: var(--vs-eyebrow-on-sage); }
 
 /* ---------- LASTING ----------
+   [block: stat_callout] .lasting-card / .lasting-stat / .lasting-body,
+   including the care-list typography at the end of this section.
    Adapted from veneers: this page hosts the 6-bullet care list inside
    `.lasting-body`. The shell is unchanged; the small block at the bottom of
    this section adds list-specific typography. */
@@ -548,7 +584,8 @@
   color: var(--ink); font-weight: 600;
 }
 
-/* ---------- GALLERY ---------- */
+/* ---------- GALLERY ----------
+   [block: gallery_marquee] .gallery-marquee / .gallery-track / .smile-tile. */
 .caligners .gallery-marquee {
   margin-top: 40px;
   --vs-marquee-gap: 22px;
@@ -566,7 +603,8 @@
   width: 100%; height: 100%; object-fit: cover; display: block;
 }
 
-/* ---------- FAQ ---------- */
+/* ---------- FAQ ----------
+   [block: faq] .faq-list / .faq / summary / .answer / .pull. */
 .caligners .faq-list {
   border: 1px solid var(--line);
   border-radius: var(--r-lg);
@@ -673,7 +711,12 @@
   justify-content: flex-end;
 }
 
-/* ---------- RESPONSIVE ---------- */
+/* ---------- RESPONSIVE ----------
+   Mixed ownership, so read the selector before deleting a line. The hero, keys
+   and toc rules stay whichever way the page renders; .why-grid, .what-grid,
+   .natural-grid, .process-grid, .compare, .lasting-*, .inline-cta, .cta-row,
+   .faq, .smile-tile and .pull are [block: …] and each block carries its own
+   breakpoints (2.5). */
 @media (max-width: 991px) {
   .caligners .hero-inner { grid-template-columns: 1fr; gap: 50px; }
   .caligners .hero-img { max-width: 540px; }
@@ -725,7 +768,9 @@
   .caligners .final-band-phone { font-size: 18px; }
 }
 
-/* ---------- Reduced-motion safety ---------- */
+/* ---------- Reduced-motion safety ----------
+   .keys-item and .toc-list a stay; .why-card, .compare-card, .process-card,
+   .what-img img and .natural-img img are [block: …]. */
 @media (prefers-reduced-motion: reduce) {
   .caligners .keys-item,
   .caligners .why-card,
@@ -739,7 +784,13 @@
 /* ---------- band-color refresh source-order overrides ----------
    Source-order tie-breakers so charcoal-on-alt and sage-pale-on-dark text
    colors win against page-specific selectors of the same specificity. See
-   porcelain-veneers.css for the full explanation. */
+   porcelain-veneers.css for the full explanation.
+
+   [block: every one of the seven] These exist because the band colour is
+   applied from an ancestor `.section.alt` / `.section.dark` rather than from
+   the band's own element — the R2 hazard in docs/PAGE-BLOCKS.md, and the
+   reason a block computes its colours from its own `band` class instead. The
+   trailing `.caligners h2` rule is page-wide and stays either way. */
 .caligners .section.alt h1,
 .caligners .section.alt h2,
 .caligners .section.alt h3,

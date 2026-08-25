@@ -1,0 +1,511 @@
+---
+/**
+ * FaqBlock — the `faq` layout: a native <details> accordion, an aside, and a
+ * closing CTA pair.
+ *
+ * EXTRACTED, NOT DESIGNED. The markup below is the `#faq` band of
+ * src/pages/cosmetic-dentistry/clear-aligners.astro, element for element,
+ * attribute for attribute. That is the requirement, not a style preference:
+ * this page's stylesheet still carries `.caligners .faq-list`, `.caligners
+ * .faq summary` and the rest, and it keeps carrying them until the page is
+ * converted. A component that emitted `vs-faq__list` instead would render the
+ * band unstyled the moment an editor's backfill flipped `blocks` from empty to
+ * populated — and it would do it on a live page, between deploys, with nobody
+ * watching. So the class names stay, the co-located rules below are the same
+ * rules with the `.caligners` prefix stripped, and the page sheet's copies are
+ * deleted by the stylesheet pass, not by this file.
+ *
+ * WHY THE ANSWER IS `set:html` AND WHY THAT IS SAFE HERE.
+ *
+ * The template this replaces renders `{f.a}` — escaped. Seven of the site's
+ * templates do that and the rest use `set:html`, so the block library has to
+ * pick one, and it has to pick the permissive one: an editor writing
+ * "<strong>20 to 22 hours</strong>" into an answer on any page must not see
+ * the tags printed at the patient.
+ *
+ * On THIS page adopting it is a verified no-op — the pilot has zero
+ * tag-bearing answers, so every answer renders byte-identically either way
+ * (docs/PAGE-BLOCKS.md, Phase 2). That is what makes it safe to change here.
+ *
+ * IT IS NOT AUTOMATICALLY SAFE ON THE OTHER SIX. Any escaped-FAQ template
+ * whose answers contain a literal `<`, an ampersand-entity, or a stray
+ * unclosed tag will start rendering that as markup the day its band becomes
+ * this block. Before converting each of them, grep that page's answers for
+ * `<` and `&`; a page with a hit needs its content fixed in wp-admin first,
+ * not this component softened. The trust boundary is the practice's own
+ * editors — this is not public input — so sanitizing is not the answer;
+ * knowing which pages carry tags is.
+ *
+ * ONE THING THIS BLOCK DOES NOT OWN: the FAQPage JSON-LD. The pilot template
+ * builds it from `faqs` off page-content.ts. When the page is converted, that
+ * script has to be rebuilt from this block's `items` instead, or the structured
+ * data silently describes the pre-migration content. Structured data lives on
+ * the page, not in the band, so it cannot move here.
+ *
+ * Styles are co-located per docs/PAGE-BLOCKS.md 2.5, modelled on
+ * FinalBand.astro: no page namespace, `--vs-*` tokens directly, band as a
+ * prop, self-owned padding, zero margin.
+ */
+import Button from "../components/Button.astro";
+import { phoneHref, phoneLabel } from "../data/contact";
+
+/** One row of the layout's `items` repeater. */
+export interface FaqItem {
+  question?: string | null;
+  answer?: string | null;
+  open?: boolean | null;
+}
+
+interface Props {
+  /** DOM id, already deduplicated by PageBlocks.astro. */
+  id?: string;
+  /** The same value as `id`. Accepted so the spread in PageBlocks is lossless. */
+  anchor?: string | null;
+  /** Rail label. Read by the page that builds the rail, not by this band. */
+  navLabel?: string | null;
+  band?: string | null;
+  eyebrow?: string | null;
+  /** May contain `<em>`, and nothing else (docs/PAGE-BLOCKS.md, Fact 3). */
+  heading?: string | null;
+  /** The paragraph under the heading. Absent on the pilot — see `.section-head`. */
+  body?: string | null;
+  /** The aside under the accordion. Maps from `sections.faq.body`, not `body`. */
+  pull?: string | null;
+  items?: FaqItem[] | null;
+  ctaLabel?: string | null;
+  ctaHref?: string | null;
+}
+
+/**
+ * band value -> the modifier class the page's markup already uses.
+ *
+ * `paper` maps to nothing because the pilot's paper bands are a bare
+ * `class="section"`, and emitting `class="section paper"` would be a different
+ * string in the HTML diff for no gain.
+ *
+ * `alt` and `dark` are inherited names, and they are inherited liabilities:
+ * `.section.alt` is charcoal on porcelain-veneers.css and cream on
+ * teeth-whitening.css (Fact 4). That is exactly why the value lives on the row
+ * and the colour is written here, against the value — the class is only the
+ * hook the un-migrated page sheet still needs. When the last page in a family
+ * is converted, this map collapses to `vs-band-*` and the two ambiguous names
+ * go with it.
+ *
+ * `cream` and `sage` have no legacy class on this page. They get names of
+ * their own, which no page stylesheet defines, so they cannot collide.
+ */
+const BAND_CLASS: Record<string, string | undefined> = {
+  paper: undefined,
+  cream: "cream",
+  "sage-pale": "dark",
+  sage: "sage",
+  charcoal: "alt",
+};
+
+/**
+ * Hover labels, by destination.
+ *
+ * `hoverLabel` renders as a `data-hover` attribute and as the second label span
+ * inside the button, so it is part of the markup this block has to reproduce —
+ * and there is no CMS field for it. Deriving it from the destination is not a
+ * guess: `href="#consult"` is paired with "Get a Video" in 52 of the 54 places
+ * that label appears across src/pages, and the phone and booking links are
+ * unanimous. An unknown destination yields `undefined`, which is what
+ * Button.astro already treats as "reuse the visible label".
+ */
+const CTA_HOVER: Record<string, string> = {
+  "#consult": "Get a Video",
+  "#process": "View Steps",
+  "#faq": "See Answers",
+  [phoneHref]: "Tap to Dial",
+};
+
+const {
+  id,
+  band = "paper",
+  eyebrow,
+  heading,
+  body,
+  pull,
+  items,
+  ctaLabel,
+  ctaHref,
+} = Astro.props;
+
+const bandKey = typeof band === "string" && band !== "" ? band : "paper";
+const bandClass = BAND_CLASS[bandKey];
+
+/**
+ * The eyebrow carries `light` on the two bands the page happens to spell
+ * `.section.dark`, and only there. It is inert under the current cascade —
+ * `.section.dark .eyebrow` (0,3,0) already beats `.eyebrow.light` (0,2,0) — but
+ * it is in the HTML, so it has to be in the HTML here too or the diff that
+ * verifies this phase is not empty.
+ */
+const eyebrowLight = bandKey === "sage-pale" || bandKey === "sage";
+
+/** Solid button on a dark band has to be the light variant, not the sage one. */
+const isDarkBand = bandKey === "charcoal" || bandKey === "sage";
+
+const rows = Array.isArray(items) ? items : [];
+
+const hasHead = Boolean(eyebrow || heading || body);
+const hasCta = typeof ctaLabel === "string" && ctaLabel.trim() !== "";
+---
+
+<section class:list={["section", bandClass]} id={id} data-vs-reveal-batch>
+  <div class="wrap">
+    {
+      hasHead && (
+        <div class="section-head">
+          {eyebrow && <span class:list={["eyebrow", eyebrowLight && "light"]}>{eyebrow}</span>}
+          {heading && (
+            <h2>
+              <Fragment set:html={heading} />
+            </h2>
+          )}
+          {body && <p>{body}</p>}
+        </div>
+      )
+    }
+
+    {
+      rows.length > 0 && (
+        <div class="faq-list">
+          {rows.map((f) => (
+            <details class="faq" open={f.open ?? false}>
+              <summary>
+                <h3>{f.question}</h3>
+                <span class="icon" aria-hidden="true">
+                  +
+                </span>
+              </summary>
+              {/* See the header: escaped on this template today, tag-free on
+                  this page, so the switch is invisible here and deliberate. */}
+              <div class="answer" set:html={f.answer ?? ""} />
+            </details>
+          ))}
+        </div>
+      )
+    }
+
+    {
+      pull && (
+        <div class="pull">
+          <p>{pull}</p>
+        </div>
+      )
+    }
+
+    {
+      hasCta && (
+        <div class="cta-row">
+          <div class="cta-buttons">
+            <Button
+              variant={isDarkBand ? "light" : "sage"}
+              href={ctaHref ?? "#"}
+              hoverLabel={CTA_HOVER[ctaHref ?? ""]}
+            >
+              {ctaLabel}
+            </Button>
+            {/* The second button is the practice's phone number, which is site
+                data (src/data/contact.ts), not page content — every FAQ band in
+                the detail-page family pairs its CTA with exactly this button.
+                Giving an editor a field for it would let them publish a wrong
+                phone number on one page. */}
+            <Button
+              variant={isDarkBand ? "ghost-light" : "ghost"}
+              href={phoneHref}
+              hoverLabel="Tap to Dial"
+            >
+              Call {phoneLabel}
+            </Button>
+          </div>
+        </div>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  /* ---------- band shell ----------
+     `.section` owns its padding and has no margin at all, so this band cannot
+     collapse into whichever band an editor drags above or below it. Same rule
+     as FinalBand.astro. */
+  .section {
+    margin: 0;
+    padding: 110px 0;
+    background: var(--vs-paper);
+  }
+  .section.cream {
+    background: var(--vs-cream);
+  }
+  .section.dark {
+    background: var(--vs-sage-pale);
+  }
+  .section.sage {
+    background: var(--vs-sage);
+  }
+  .section.alt {
+    background: var(--vs-charcoal-green);
+  }
+
+  .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  .eyebrow {
+    font-family: var(--vs-font-body);
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+  }
+  .eyebrow.light {
+    color: var(--vs-eyebrow-on-sage);
+  }
+
+  /* h2 resolves to ink, h3 to ink. The page sheet reaches the same two colours
+     only via a trailing override block whose comment says it works because of
+     its file position (clear-aligners.css, end of file). A block that owns its
+     own cascade states the outcome once instead of inheriting a source-order
+     argument it can no longer see. */
+  h2 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    color: var(--vs-ink);
+    margin: 0;
+    line-height: 1.1;
+    letter-spacing: -0.022em;
+    font-size: clamp(32px, 4.2vw, 54px);
+  }
+  /* `:global()` because the `<em>` arrives through `set:html` and therefore
+     carries no scope attribute — a plain `h2 em` compiles to `em[data-astro-cid]`
+     and silently misses it, dropping the accent colour on every heading on the
+     site. Same reason FinalBand.astro reaches slotted content this way. */
+  h2 :global(em) {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+
+  p {
+    margin: 0;
+    color: var(--vs-ink-soft);
+  }
+
+  .section-head {
+    max-width: 760px;
+    margin: 0 auto 64px;
+    text-align: center;
+  }
+  .section-head .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .section-head .eyebrow::before,
+  .section-head .eyebrow::after {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+  .section-head h2 {
+    margin: 22px 0 22px;
+  }
+  .section-head p {
+    font-size: 17px;
+    line-height: 1.7;
+    max-width: 60ch;
+    margin: 0 auto;
+  }
+
+  /* ---------- band inversions ----------
+     Deliberately scoped to `.section-head` rather than written as
+     `.section.alt h3`. The accordion sits on its own white card whatever the
+     band is, so a band-wide `h3 { color: #fff }` would tie on specificity with
+     `.faq summary h3` once Astro appends the scope attribute to both, and the
+     winner would be whichever rule came later in this file. That is precisely
+     the patch general-dentistry.css:1128 exists to undo — white-on-white FAQ
+     titles on a dark band. Scoping the inversion to the head removes the tie
+     rather than winning it. */
+  .section.alt .section-head h2,
+  .section.sage .section-head h2 {
+    color: #fff;
+  }
+  .section.alt .section-head h2 :global(em),
+  .section.sage .section-head h2 :global(em) {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .section.alt .section-head p,
+  .section.sage .section-head p {
+    color: rgba(255, 255, 255, 0.85);
+  }
+  .section.alt .section-head .eyebrow,
+  .section.sage .section-head .eyebrow {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .section.alt .section-head .eyebrow::before,
+  .section.alt .section-head .eyebrow::after,
+  .section.sage .section-head .eyebrow::before,
+  .section.sage .section-head .eyebrow::after {
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  .section.dark .section-head h2 {
+    color: var(--vs-ink);
+  }
+  .section.dark .section-head h2 :global(em) {
+    color: var(--vs-sage);
+  }
+  .section.dark .section-head p,
+  .section.dark .section-head .eyebrow {
+    color: var(--vs-ink-soft);
+  }
+  .section.dark .section-head .eyebrow::before,
+  .section.dark .section-head .eyebrow::after {
+    background: var(--vs-ink-soft);
+  }
+
+  /* ---------- accordion ---------- */
+  .faq-list {
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-lg);
+    overflow: hidden;
+    max-width: 920px;
+    margin: 0 auto;
+    background: #fff;
+  }
+  .faq {
+    border-bottom: 1px solid var(--vs-line);
+  }
+  .faq:last-child {
+    border-bottom: 0;
+  }
+  .faq summary {
+    padding: 28px 32px;
+    cursor: pointer;
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 28px;
+    gap: 24px;
+    align-items: center;
+    transition: background 0.2s ease;
+  }
+  .faq summary::-webkit-details-marker {
+    display: none;
+  }
+  .faq summary h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: 20px;
+    color: var(--vs-ink);
+    letter-spacing: -0.005em;
+    transition: color 0.2s ease;
+    margin: 0;
+  }
+  .faq[open] summary h3 {
+    color: var(--vs-sage);
+  }
+  .faq[open] {
+    background: var(--vs-cream);
+  }
+  .faq summary:hover h3 {
+    color: var(--vs-sage);
+  }
+  .faq summary .icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--vs-line);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--vs-sage);
+    font-family: var(--vs-font-display);
+    font-size: 16px;
+    line-height: 1;
+    transition:
+      background 0.25s ease,
+      color 0.25s ease,
+      border-color 0.25s ease,
+      transform 0.25s ease;
+  }
+  .faq[open] summary .icon {
+    background: var(--vs-sage);
+    color: #fff;
+    border-color: var(--vs-sage);
+    transform: rotate(45deg);
+  }
+  .faq .answer {
+    padding: 0 32px 28px;
+    font-size: 15.5px;
+    line-height: 1.8;
+    color: var(--vs-ink-soft);
+    max-width: 70ch;
+  }
+
+  /* ---------- aside ---------- */
+  .pull {
+    margin: 50px auto 0;
+    max-width: 920px;
+    padding: 36px 40px;
+    border-radius: var(--vs-r-lg);
+    background: var(--vs-cream);
+    border-left: 3px solid var(--vs-sage);
+  }
+  .pull p {
+    font-family: var(--vs-font-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(20px, 2.1vw, 26px);
+    color: var(--vs-sage);
+    line-height: 1.45;
+    letter-spacing: -0.005em;
+  }
+
+  /* ---------- CTA ---------- */
+  .cta-row {
+    margin-top: 56px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+  }
+  .cta-row .cta-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Base and breakpoint rules live together, unlike the page sheets where 24
+     files keep a trailing "responsive" section physically separated from what
+     it modifies. 780px is the block set's breakpoint (FinalBand.astro) and the
+     one this band already uses. */
+  @media (max-width: 780px) {
+    .section {
+      padding: 70px 0;
+    }
+    .wrap {
+      padding: 0 22px;
+    }
+    .faq summary {
+      padding: 22px 24px;
+    }
+    .faq .answer {
+      padding: 0 24px 22px;
+    }
+    .pull {
+      padding: 28px 24px;
+    }
+    .cta-row {
+      margin-top: 36px;
+    }
+  }
+</style>

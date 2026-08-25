@@ -44,12 +44,14 @@ import '../../styles/pages/clear-aligners.css';
 
 // Gallery pulls dynamically from the central smiles/ folder.
 import { getSmiles } from '../../lib/smiles';
-import { getPageContent } from '../../lib/page-content';
+import { getPageContent, type TocLink } from '../../lib/page-content';
+import PageBlocks from '../../blocks/PageBlocks.astro';
 // 8 entries: 7 from the user's copy verbatim + Cost & Insurance as Q8.
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Clear Aligners in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, processSteps, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+const { blocks, hasBlocks, tocLinks, processSteps, faqs, section, image, seo } =
+  await getPageContent(Astro.url.pathname);
 
 const galleryTiles = getSmiles();
 const galleryTrack = [...galleryTiles, ...galleryTiles];
@@ -86,6 +88,63 @@ const careBullets = [
   },
 ];
 
+/**
+ * The "On this page" rail, derived from the blocks themselves (docs/PAGE-BLOCKS.md 1.2).
+ *
+ * Used only when this page renders from `blocks`. The `toc_links` repeater is
+ * eight rows that restate the order of the eight bands below it, so a reorder
+ * in wp-admin moves a band and leaves its rail entry pointing at the old
+ * neighbour — the single largest way a reorder breaks a link. Reading the
+ * anchors off the blocks makes that unrepresentable: there is one ordering and
+ * the rail is a projection of it.
+ *
+ * Three rules, in the order they bite:
+ *
+ * 1. A blank anchor is skipped. Not tidiness — src/scripts/toc-spy.ts:24 feeds
+ *    each rendered href straight to document.querySelector(), and
+ *    querySelector("") throws a SyntaxError that kills the whole spy, not just
+ *    the one entry. PageBlocks.astro emits no id at all for a blank anchor
+ *    (`id={anchor || undefined}`), so there is nothing to link to either.
+ * 2. An anchor that is not a valid id selector is skipped for the same reason —
+ *    "#3-reasons" is legal HTML and an illegal CSS selector. Dropping one rail
+ *    entry costs one link; letting it through costs every link on the page,
+ *    plus the mobile pill auto-centering.
+ * 3. Duplicate anchors follow PageBlocks.astro's dedup exactly, second
+ *    occurrence onward suffixed `-2`, `-3`. The counter has to advance on every
+ *    non-blank anchor, including blocks with no nav_label, or the rail's idea
+ *    of "the second #faq" drifts from the id the renderer actually emitted.
+ *
+ * A blank nav_label means "leave this block out of the rail" (1.2), which is
+ * how a band that should not be navigable opts out.
+ */
+const ANCHOR_IS_ID_SELECTOR = /^[A-Za-z_][A-Za-z0-9_-]*$/;
+
+const anchorsSeen = new Map<string, number>();
+// Typed as TocLink[] rather than an equivalent inline shape so the ternary in
+// the rail below collapses to one type instead of a union of two array types,
+// which TypeScript will not let you call .map() on.
+const derivedTocLinks: TocLink[] = [];
+
+for (const block of blocks) {
+  const anchor = typeof block.anchor === 'string' ? block.anchor.trim() : '';
+  if (anchor === '') continue;
+
+  const nth = (anchorsSeen.get(anchor) ?? 0) + 1;
+  anchorsSeen.set(anchor, nth);
+
+  const label = typeof block.navLabel === 'string' ? block.navLabel.trim() : '';
+  if (label === '') continue;
+
+  if (!ANCHOR_IS_ID_SELECTOR.test(anchor)) {
+    console.warn(
+      `[blocks] anchor "${anchor}" on ${Astro.url.pathname} cannot be used as a selector — ` +
+        `omitting "${label}" from the On this page rail so toc-spy keeps working`,
+    );
+    continue;
+  }
+
+  derivedTocLinks.push({ href: `#${nth > 1 ? `${anchor}-${nth}` : anchor}`, label });
+}
 
 ---
 
@@ -162,20 +221,52 @@ const careBullets = [
         </div>
       </section>
 
-      {/* ---------- ON-THIS-PAGE TOC ---------- */}
+      {
+        /* ---------- ON-THIS-PAGE TOC ----------
+         The rail itself is never a block (spec 7: "Not a block, even though it
+         is a band") — only its contents move. Derived from the blocks when
+         they are drawing the page, read from the `toc_links` repeater when the
+         template is. Same markup either way, which is what lets
+         src/scripts/toc-spy.ts go on reading its section list off the rendered
+         links without knowing which source produced them. */
+      }
       <nav class="toc" id="toc" aria-label="On this page">
         <div class="toc-inner">
           <span class="toc-label">On this page</span>
           <div class="toc-scroll">
             <div class="toc-list">
-              {tocLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+              {(hasBlocks ? derivedTocLinks : tocLinks).map((l) => <a href={l.href}>{l.label}</a>)}
             </div>
           </div>
         </div>
       </nav>
 
-      {/* ---------- WHY (paper) ---------- */}
-      <section class="section" id="why" data-vs-reveal-batch>
+      {
+        /* ---------- WHY (paper) ----------
+
+         THE MIGRATION SWITCH (docs/PAGE-BLOCKS.md 2.3) starts here. `hasBlocks`
+         means "this build can draw this page from its blocks" — not "WordPress
+         sent rows" (src/lib/page-content.ts). When it is true PageBlocks draws
+         the eight bands in the order an editor arranged them; when it is false
+         — which is every build until the mu-plugin is deployed and the backfill
+         has run, and again the moment an editor empties the field — every band
+         below renders exactly as it always has.
+
+         Written as one guard per band rather than one guard around all eight
+         on purpose, and it is not a style choice. Astro's compressHTML pass
+         treats an Astro comment expression differently inside a component slot
+         than at element level: wrapping these bands in a Fragment silently
+         drops one space at every comment boundary below, and
+         scripts/vr-html.mjs compares exact bytes and calls that a difference.
+         A guard sitting exactly where its section sat emits byte-identical
+         HTML — checked against the compiler, both ways.
+
+         The LOCAL band below is deliberately NOT guarded: `map_visit` is a
+         Wave-B layout that does not land until Phase 4, so it is still template
+         markup and must keep rendering on both sides of the switch. It follows
+         the block stack rather than sitting inside it until then. */
+      }
+      {hasBlocks ? <PageBlocks blocks={blocks} /> : <section class="section" id="why" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("why").eyebrow}</span>
@@ -215,10 +306,10 @@ const careBullets = [
             </article>
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* ---------- WHAT (cream) ---------- */}
-      <section class="section alt" id="what" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section alt" id="what" data-vs-reveal-batch>
         <div class="wrap">
           <div class="what-grid">
             <div class="what-img" data-vs-parallax data-parallax="-25">
@@ -248,10 +339,10 @@ const careBullets = [
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* ---------- PROCESS (sage) ---------- */}
-      <section class="section dark" id="process" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section dark" id="process" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow light">Your Treatment Process</span>
@@ -285,10 +376,10 @@ const careBullets = [
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* ---------- COMPARE (paper) ---------- */}
-      <section class="section" id="compare" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section" id="compare" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("compare").eyebrow}</span>
@@ -334,10 +425,10 @@ const careBullets = [
             <span class="cta-note">No commitment · Personal video reply</span>
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* ---------- NATURAL (cream) — Candidacy ---------- */}
-      <section class="section alt" id="natural" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section alt" id="natural" data-vs-reveal-batch>
         <div class="wrap">
           <div class="natural-grid">
             <div class="natural-text">
@@ -358,7 +449,7 @@ const careBullets = [
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       {
         /* ---------- LASTING (paper) — Daily Care ----------
@@ -366,7 +457,7 @@ const careBullets = [
          the daily wear requirement (the single most load-bearing care
          habit), and the body hosts the 6 verbatim care bullets. */
       }
-      <section class="section" id="lasting" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section" id="lasting" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("lasting").eyebrow}</span>
@@ -397,7 +488,7 @@ const careBullets = [
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* ---------- LOCAL (cream) ---------- */}
       <LocalTrust
@@ -414,7 +505,7 @@ const careBullets = [
          src/assets/images/smiles/. The mechanic, band, and
          "smile gallery" framing match the veneers page. */
       }
-      <section class="section dark" id="gallery">
+      {hasBlocks ? null : <section class="section dark" id="gallery">
         <div class="wrap">
           <div class="section-head" data-vs-reveal>
             <span class="eyebrow light">Smile Gallery</span>
@@ -441,10 +532,10 @@ const careBullets = [
             }
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* ---------- FAQ (paper) — native details/summary, zero JS ---------- */}
-      <section class="section" id="faq" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section" id="faq" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("faq").eyebrow}</span>
@@ -484,7 +575,7 @@ const careBullets = [
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       {
         /* ---------- VIRTUAL CONSULT — primary closing conversion.

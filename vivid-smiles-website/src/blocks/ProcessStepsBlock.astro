@@ -1,0 +1,485 @@
+---
+/**
+ * ProcessStepsBlock — the `process_steps` layout: a centred head, a row of
+ * numbered step cards, and the inline CTA that closes the band.
+ *
+ * EXTRACTED, NOT DESIGNED. This is the `#process` band of
+ * src/pages/cosmetic-dentistry/clear-aligners.astro — `.process-grid` wrapping
+ * `.process-card`, each card a `.step-tag`, a `.num`, an `<h3>` and a `<p>`,
+ * followed by `.inline-cta.dark`. The class names are the page's own because
+ * the page stylesheet still styles them and keeps styling them until the
+ * stylesheet pass removes its copies.
+ *
+ * THE INLINE CTA IS PART OF THIS BAND AND THE CMS HAS NOWHERE TO PUT ITS
+ * SENTENCE. All eight pages in the family close their process band with the
+ * same card: one line of copy, then "Book Online" and "Call" — and the two
+ * buttons are identical on all eight because they are site data
+ * (src/data/contact.ts), not page content. The sentence is not: it is
+ * "Ready for the next step? …" here and on porcelain-veneers, and something
+ * page-specific on the other six.
+ *
+ * So the buttons are written in, and the sentence is a prop — `ctaText` — that
+ * the `process_steps` layout does not define yet. Until a `cta_text` field is
+ * added in cms/mu-plugins/vs-content-model.php, this band backfills WITHOUT its
+ * closing CTA, which is a visible change on the pilot page.
+ *
+ *   DO NOT ADD `ctaText` TO THE REGISTRY'S SELECTION SET UNTIL THE PHP FIELD
+ *   EXISTS. GraphQL validates the whole document before executing any of it, so
+ *   a field name the schema does not carry does not break this one band — it
+ *   fails the query, and with it every page in the build.
+ *
+ * `layout` — the shape the steps are drawn in — offers grid, card and divided.
+ * Only `grid` has markup anywhere in src/pages today, so only `grid` is drawn
+ * here; the other two are extracted from whichever page first needs them. An
+ * unknown value renders as a grid and says so in the build log rather than
+ * rendering nothing, because a band that quietly disappears is the failure mode
+ * this library is built to avoid.
+ *
+ * Styles are co-located per docs/PAGE-BLOCKS.md 2.5, modelled on
+ * FinalBand.astro: no page namespace, `--vs-*` tokens directly, band as a
+ * prop, self-owned padding, zero margin.
+ */
+import Button from "../components/Button.astro";
+import { phoneHref, phoneLabel, bookNowHref } from "../data/contact";
+
+/** One row of the layout's `steps` repeater. */
+export interface ProcessStep {
+  /** e.g. "Step One". */
+  tag?: string | null;
+  /** Text, not a number: the site prints these verbatim and some read "01". */
+  num?: string | null;
+  title?: string | null;
+  body?: string | null;
+}
+
+interface Props {
+  /** DOM id, already deduplicated by PageBlocks.astro. */
+  id?: string;
+  /** The same value as `id`. Accepted so the spread in PageBlocks is lossless. */
+  anchor?: string | null;
+  /** Rail label. Read by the page that builds the rail, not by this band. */
+  navLabel?: string | null;
+  band?: string | null;
+  eyebrow?: string | null;
+  /** May contain `<em>`, and nothing else (docs/PAGE-BLOCKS.md, Fact 3). */
+  heading?: string | null;
+  body?: string | null;
+  /** "grid" | "card" | "divided" — only `grid` is drawn. See the header. */
+  layout?: string | null;
+  /** "2" | "3" | "4" — ACF returns the select's value as a string. */
+  columns?: string | number | null;
+  steps?: ProcessStep[] | null;
+  /**
+   * The sentence in the closing card. NOT A CMS FIELD YET — see the header, and
+   * do not add it to the registry's selection set before the PHP layout has it.
+   * `<em>` and `<strong>` are permitted, as they are in the eight hand-written
+   * instances this replaces.
+   */
+  ctaText?: string | null;
+}
+
+/**
+ * band value -> the modifier class the page's markup already uses.
+ *
+ * `paper` maps to nothing because the pilot's paper bands are a bare
+ * `class="section"`. `alt` and `dark` are inherited names and inherited
+ * liabilities — `.section.alt` is charcoal on porcelain-veneers.css and cream
+ * on teeth-whitening.css (Fact 4) — which is why the colour below is written
+ * against the band VALUE and the class is only the hook the un-migrated page
+ * sheet still needs.
+ */
+const BAND_CLASS: Record<string, string | undefined> = {
+  paper: undefined,
+  cream: "cream",
+  "sage-pale": "dark",
+  sage: "sage",
+  charcoal: "alt",
+};
+
+const {
+  id,
+  band = "sage-pale",
+  eyebrow,
+  heading,
+  body,
+  layout = "grid",
+  columns,
+  steps,
+  ctaText,
+} = Astro.props;
+
+const bandKey = typeof band === "string" && band !== "" ? band : "sage-pale";
+const bandClass = BAND_CLASS[bandKey];
+
+/**
+ * The eyebrow carries `light` on the two bands the page spells `.section.dark`
+ * — which is exactly where this band sits on the pilot, so the class is in the
+ * HTML there and has to be in the HTML here. It is inert under the current
+ * cascade (`.section.dark .eyebrow` at 0,3,0 already beats `.eyebrow.light` at
+ * 0,2,0); it is reproduced because the phase is verified by an HTML diff, not
+ * by a rendering.
+ */
+const eyebrowLight = bandKey === "sage-pale" || bandKey === "sage";
+
+if (layout !== "grid" && layout !== null && layout !== undefined && layout !== "") {
+  console.warn(
+    `[blocks] process_steps shape "${layout}" on ${Astro.url.pathname}${id ? `#${id}` : ""} has no markup yet — drawing it as a grid`,
+  );
+}
+
+/**
+ * Four across is the base, and the grid carries a modifier only when it is not.
+ *
+ * Four matches both the PHP field's default and this page's own band, so a
+ * missing value degrades to the layout the markup already has. Emitting nothing
+ * at 4 is what keeps `class="process-grid"` the exact string the page ships.
+ */
+const cols = String(columns ?? "4");
+const colsClass = cols === "2" || cols === "3" ? `cols-${cols}` : undefined;
+
+const rows = Array.isArray(steps) ? steps : [];
+
+const hasHead = Boolean(eyebrow || heading || body);
+const hasCta = typeof ctaText === "string" && ctaText.trim() !== "";
+---
+
+<section class:list={["section", bandClass]} id={id} data-vs-reveal-batch>
+  <div class="wrap">
+    {
+      hasHead && (
+        <div class="section-head">
+          {eyebrow && <span class:list={["eyebrow", eyebrowLight && "light"]}>{eyebrow}</span>}
+          {heading && (
+            <h2>
+              <Fragment set:html={heading} />
+            </h2>
+          )}
+          {body && <p>{body}</p>}
+        </div>
+      )
+    }
+
+    {
+      rows.length > 0 && (
+        <div class:list={["process-grid", colsClass]}>
+          {rows.map((s) => (
+            <div class="process-card">
+              {s.tag && <span class="step-tag">{s.tag}</span>}
+              {s.num && <div class="num">{s.num}</div>}
+              {s.title && <h3>{s.title}</h3>}
+              {s.body && <p>{s.body}</p>}
+            </div>
+          ))}
+        </div>
+      )
+    }
+
+    {
+      hasCta && (
+        /* Always `.inline-cta.dark`: the card is a sage-deep plate on every one
+           of the eight bands it appears in, and the cream `.inline-cta` variant
+           in the page sheets is matched by no markup anywhere in src. The two
+           buttons are site data, identical on all eight, and deliberately not
+           editable — a per-page field for them is a per-page chance to publish
+           the wrong phone number. */
+        <div class="inline-cta dark">
+          <div class="ic-text" set:html={ctaText} />
+          <div class="ic-buttons">
+            <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">
+              Book Online
+            </Button>
+            <Button variant="ghost-light" href={phoneHref} hoverLabel="Tap to Dial">
+              Call {phoneLabel}
+            </Button>
+          </div>
+        </div>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  /* ---------- band shell ----------
+     `.section` owns its padding and has no margin at all, so this band cannot
+     collapse into whichever band an editor drags above or below it. Same rule
+     as FinalBand.astro. */
+  .section {
+    margin: 0;
+    padding: 110px 0;
+    background: var(--vs-paper);
+  }
+  .section.cream {
+    background: var(--vs-cream);
+  }
+  .section.dark {
+    background: var(--vs-sage-pale);
+  }
+  .section.sage {
+    background: var(--vs-sage);
+  }
+  .section.alt {
+    background: var(--vs-charcoal-green);
+  }
+
+  .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  .eyebrow {
+    font-family: var(--vs-font-body);
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+  }
+  .eyebrow.light {
+    color: var(--vs-eyebrow-on-sage);
+  }
+
+  /* h2 resolves to ink. The page sheet reaches that colour only through a
+     trailing override block whose comment says it works because of its file
+     position; a block that owns its cascade states the outcome once. */
+  h2 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    color: var(--vs-ink);
+    margin: 0;
+    line-height: 1.1;
+    letter-spacing: -0.022em;
+    font-size: clamp(32px, 4.2vw, 54px);
+  }
+  /* `:global()` because the `<em>` arrives through `set:html` and carries no
+     scope attribute — a plain `h2 em` compiles to `em[data-astro-cid]`, misses
+     it, and drops the accent colour from every heading on the site. */
+  h2 :global(em) {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+
+  p {
+    margin: 0;
+    color: var(--vs-ink-soft);
+  }
+
+  .section-head {
+    max-width: 760px;
+    margin: 0 auto 64px;
+    text-align: center;
+  }
+  .section-head .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .section-head .eyebrow::before,
+  .section-head .eyebrow::after {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+  .section-head h2 {
+    margin: 22px 0 22px;
+  }
+  .section-head p {
+    font-size: 17px;
+    line-height: 1.7;
+    max-width: 60ch;
+    margin: 0 auto;
+  }
+
+  /* ---------- band inversions ----------
+     Scoped to `.section-head`. The step cards and the closing plate are both
+     surfaces of their own with colours of their own, so a band-wide inversion
+     would tie on specificity with `.process-card h3` once Astro appends the
+     scope attribute to both compounds, and the winner would be whichever rule
+     happened to come later in this file. Scoping removes the tie instead of
+     winning it — the same fault general-dentistry.css:1128 exists to patch. */
+  .section.alt .section-head h2,
+  .section.sage .section-head h2 {
+    color: #fff;
+  }
+  .section.alt .section-head h2 :global(em),
+  .section.sage .section-head h2 :global(em) {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .section.alt .section-head p,
+  .section.sage .section-head p {
+    color: rgba(255, 255, 255, 0.85);
+  }
+  .section.alt .section-head .eyebrow,
+  .section.sage .section-head .eyebrow {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .section.alt .section-head .eyebrow::before,
+  .section.alt .section-head .eyebrow::after,
+  .section.sage .section-head .eyebrow::before,
+  .section.sage .section-head .eyebrow::after {
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  .section.dark .section-head h2 {
+    color: var(--vs-ink);
+  }
+  .section.dark .section-head h2 :global(em) {
+    color: var(--vs-sage);
+  }
+  .section.dark .section-head p,
+  .section.dark .section-head .eyebrow {
+    color: var(--vs-ink-soft);
+  }
+  .section.dark .section-head .eyebrow::before,
+  .section.dark .section-head .eyebrow::after {
+    background: var(--vs-ink-soft);
+  }
+
+  /* ---------- steps ---------- */
+  .process-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+  }
+  .process-grid.cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .process-grid.cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* The card is a translucent white plate, so it reads on every one of the five
+     bands without a per-band variant — which is why there is none here even
+     though the pilot only ever pairs it with sage-pale. */
+  .process-card {
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: var(--vs-r-lg);
+    padding: 28px 24px 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: relative;
+    min-height: 280px;
+    transition:
+      background 0.3s ease,
+      transform 0.3s ease,
+      border-color 0.3s ease;
+  }
+  .process-card:hover {
+    background: rgba(255, 255, 255, 0.75);
+    border-color: #fff;
+    transform: translateY(-3px);
+  }
+  .process-card .step-tag {
+    font-size: 10px;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--vs-ink-soft);
+    font-weight: 500;
+  }
+  .process-card .num {
+    font-family: var(--vs-font-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: 52px;
+    color: var(--vs-sage);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .process-card h3 {
+    font-family: var(--vs-font-display);
+    color: var(--vs-ink);
+    font-weight: 500;
+    font-size: 19px;
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+    margin: 0;
+  }
+  .process-card p {
+    color: var(--vs-ink-soft);
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  /* ---------- closing plate ---------- */
+  .inline-cta {
+    margin-top: 44px;
+    background: var(--vs-cream);
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-lg);
+    padding: 28px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+    flex-wrap: wrap;
+  }
+  .inline-cta .ic-text {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    font-size: clamp(18px, 1.8vw, 22px);
+    color: var(--vs-ink);
+    letter-spacing: -0.005em;
+    line-height: 1.35;
+    max-width: 46ch;
+  }
+  /* `:global()` for the same reason as the heading: the sentence is injected
+     with `set:html`, so its `<em>` and `<strong>` carry no scope attribute. */
+  .inline-cta .ic-text :global(em) {
+    font-style: italic;
+    color: var(--vs-sage);
+    font-weight: 300;
+  }
+  .inline-cta .ic-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .inline-cta.dark {
+    background: var(--vs-sage-deep);
+    border-color: var(--vs-sage-deep);
+  }
+  .inline-cta.dark .ic-text {
+    color: #fff;
+  }
+  .inline-cta.dark .ic-text :global(em) {
+    color: var(--vs-eyebrow-on-sage);
+  }
+
+  /* Base and breakpoint rules live together, unlike the page sheets where 24
+     files keep a trailing "responsive" section physically separated from what
+     it modifies. */
+  @media (max-width: 991px) {
+    .process-grid,
+    .process-grid.cols-3 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 780px) {
+    .section {
+      padding: 70px 0;
+    }
+    .wrap {
+      padding: 0 22px;
+    }
+    .process-grid,
+    .process-grid.cols-2,
+    .process-grid.cols-3 {
+      grid-template-columns: 1fr;
+    }
+    .inline-cta {
+      padding: 24px 22px;
+    }
+  }
+
+  /* The card lift is the only motion in this band, and it is decorative. */
+  @media (prefers-reduced-motion: reduce) {
+    .process-card {
+      transition: none !important;
+    }
+  }
+</style>

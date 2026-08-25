@@ -1,0 +1,353 @@
+---
+/**
+ * GalleryMarqueeBlock — the `gallery_marquee` layout: the swipe-draggable strip
+ * of finished-smile photos.
+ *
+ * Extracted from the `gallery` band of
+ * src/pages/cosmetic-dentistry/clear-aligners.astro:416-445, not designed anew.
+ * That band is byte-identical to the one on porcelain-veneers.astro:400-428 and
+ * eight other templates, so this block lands ready-made across the family.
+ *
+ * ── The behaviour, and why it survives extraction unchanged ────────────────
+ * This is the one band on the pilot page that carries JavaScript. It is worth
+ * being precise about what drives it, because a component that changed any of
+ * the following would still LOOK right in a screenshot and be broken to the
+ * touch:
+ *
+ *   src/scripts/animations.js:356  initDraggableMarquee() collects every
+ *                                  [data-vs-marquee] in the document, finds its
+ *                                  [data-vs-marquee-track], and takes the loop
+ *                                  over with gsap.ticker + Draggable(type:"x")
+ *                                  with inertia. It adds `.is-gsap-marquee` to
+ *                                  the track to kill the CSS keyframe, and
+ *                                  `.is-dragging` to the container while held.
+ *   src/styles/components/marquee.css  owns ALL of the structure and the
+ *                                  reduced-motion fallback, keyed on those two
+ *                                  data attributes. Mounted globally by
+ *                                  BaseLayout.astro:17, so it is not page CSS
+ *                                  and does not need to move.
+ *
+ * Both are *document-wide and attribute-keyed*, not page-scoped and not
+ * class-keyed. Nothing in either reaches for `.caligners`, for a section, or
+ * for the tile class. So the contract this component has to keep is exactly
+ * three things, and it keeps all three verbatim:
+ *
+ *   1. `data-vs-marquee` on the container and `data-vs-marquee-track` on the
+ *      track, in that nesting.
+ *   2. A DOUBLED tile set. measureHalf() computes one copy's width as
+ *      (scrollWidth - padding + gap) / 2 and wraps on it (animations.js:376).
+ *      A track that forgets to double loops at the wrong seam — the failure is
+ *      a visible jump, not an error.
+ *   3. At least two children, or initDraggableMarquee returns early
+ *      (animations.js:362) and the strip falls back to the CSS keyframe.
+ *
+ * The two runtime classes are safe under Astro's scoping for a reason worth
+ * writing down: `.is-gsap-marquee` and `.is-dragging` are added to elements
+ * this component authored, so those elements already carry the scope attribute
+ * — and in any case the rules that read them live in the global sheet, which is
+ * not scoped at all. Nothing here restyles the track, so there is no rule to
+ * get scoped away.
+ *
+ * ── The tiles ─────────────────────────────────────────────────────────────
+ * They are not CMS content on this field. The photos come from the central
+ * gallery (wp-admin -> Practice Settings -> Smile gallery) via src/lib/smiles.ts
+ * and appear in every marquee on the site, which is why the layout has no
+ * sub-fields beyond the preamble (vs-content-model.php:1413-1419) — there is
+ * nothing here for an editor to fill in or get wrong.
+ *
+ * This block reads the `smiles` array rather than calling `getSmiles()`.
+ * getSmiles() throws when the gallery is empty (smiles.ts:67-74), which is the
+ * right contract for a page template and the wrong one for a block: an editor
+ * emptying a media field in wp-admin must not be able to fail a deploy they
+ * never see the log of (R5, and the same rule PageBlocks.astro runs on). Empty
+ * gallery here means a warning and a band with its heading and no strip.
+ *
+ * ── One thing the backfill has to supply ──────────────────────────────────
+ * The template hard-codes the eyebrow "Smile Gallery"; the CMS `gallery`
+ * section row's eyebrow is EMPTY on the pilot (and on its siblings). Backfill
+ * that row as-is and the eyebrow disappears from the band. The value to write
+ * into the block's `eyebrow` is the literal "Smile Gallery". Not defaulted
+ * here, because a default that fires on blank would make "no eyebrow"
+ * unsayable for every other page that adopts the block.
+ *
+ * Spec: docs/PAGE-BLOCKS.md 1.2, 1.3 (Wave A), 2.5, 3.3.
+ */
+import { Image } from "astro:assets";
+import { smiles } from "../lib/smiles";
+
+/**
+ * The five bands, mapped to the modifier this block writes on its own section.
+ *
+ * Read this map, not an ancestor class. `.section.alt` is charcoal green on
+ * clear-aligners.css:240 and cream on teeth-whitening.css:237 — Fact 4 — so a
+ * block that inherits its band is wrong on at least one page the moment a
+ * section is reordered (R2).
+ *
+ * `alt` and `dark` survive as modifier *names* because the acceptance test for
+ * this phase is that the block's markup matches the band it replaces, class
+ * attribute included; the pilot's gallery band is `class="section dark"`. Their
+ * meaning now comes from the rules in <style> below, which travel with the
+ * block, not from any page sheet.
+ */
+const BAND_MODIFIER: Record<string, string | null> = {
+  paper: null,
+  cream: "cream",
+  "sage-pale": "dark",
+  sage: "sage",
+  charcoal: "alt",
+};
+
+interface Props {
+  /** The DOM id, already deduplicated by PageBlocks.astro. Absent when blank. */
+  id?: string;
+  /** Passed by PageBlocks alongside `id`; declared so the spread of the whole
+   *  block row has somewhere to land. */
+  anchor?: string;
+  band?: string | null;
+  eyebrow?: string | null;
+  /** May contain `<em>` and nothing else (Fact 3), so it is rendered set:html. */
+  heading?: string | null;
+  body?: string | null;
+}
+
+const { id, band, eyebrow, heading, body } = Astro.props;
+
+// `?? null` rather than a default: an unknown band from a future PHP choice
+// falls through to the paper shell rather than emitting a class with no rule.
+const bandModifier = BAND_MODIFIER[band ?? "paper"] ?? null;
+
+const text = (input: unknown): string =>
+  typeof input === "string" ? input.trim() : "";
+
+const eyebrowText = text(eyebrow);
+const headingHtml = text(heading);
+const bodyText = text(body);
+
+/**
+ * The doubled track, exactly as the templates build it.
+ *
+ * The second copy is the seam: animations.js wraps on one copy's width, so the
+ * clones are what makes the loop look continuous. They are duplicates of
+ * content a screen reader has already read, hence aria-hidden + inert on the
+ * clone half only — `inert` also takes their links and images out of the tab
+ * order, which aria-hidden alone does not.
+ *
+ * Two tiles is the floor: below it initDraggableMarquee bails and the strip
+ * falls back to the CSS keyframe, so one photo in the gallery is reported
+ * rather than silently degraded.
+ */
+const galleryTiles = smiles;
+const galleryTrack = [...galleryTiles, ...galleryTiles];
+
+if (galleryTiles.length === 0) {
+  console.warn(
+    `[blocks] gallery_marquee on ${Astro.url.pathname} has no photos — ` +
+      "rendering the heading without the strip. Add photos at " +
+      "wp-admin -> Practice Settings -> Smile gallery.",
+  );
+}
+---
+
+<section class:list={["section", bandModifier]} id={id}>
+  <div class="wrap">
+    <div class="section-head" data-vs-reveal>
+      {eyebrowText && <span class="eyebrow light">{eyebrowText}</span>}
+      {headingHtml && <h2><Fragment set:html={headingHtml} /></h2>}
+      {bodyText && <p>{bodyText}</p>}
+    </div>
+  </div>
+
+  {
+    galleryTiles.length > 0 && (
+      <div class="gallery-marquee" data-vs-marquee aria-label="Vivid Smiles smile gallery">
+        <div class="gallery-track" data-vs-marquee-track>
+          {galleryTrack.map((tile, i) => {
+            const isClone = i >= galleryTiles.length;
+            return (
+              <div
+                class="smile-tile"
+                aria-hidden={isClone || undefined}
+                inert={isClone || undefined}
+              >
+                <Image src={tile.src} width={tile.width} height={tile.height} alt={tile.alt} widths={[420, 640, 840]} sizes="420px" />
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    )
+  }
+</section>
+
+<style>
+  /* ── Band shell ───────────────────────────────────────────────────────────
+     Lifted from src/styles/pages/clear-aligners.css:228-283 with the
+     `.caligners` prefix stripped and the page's local `--sage` / `--ink` / …
+     aliases resolved back to the `--vs-*` tokens they alias one-for-one
+     (clear-aligners.css:24-42). Rendered values are unchanged.
+
+     Repeated per block rather than shared: a shared sheet is an ancestor by
+     another name, and the property that makes a block safe to drop on any page
+     is that nothing outside it decides how it looks (R3). */
+  .section {
+    padding: 110px 0;
+    background: var(--vs-paper);
+  }
+  .section.cream { background: var(--vs-cream); }
+  .section.dark { background: var(--vs-sage-pale); }
+  .section.sage { background: var(--vs-sage); }
+  .section.alt { background: var(--vs-charcoal-green); }
+
+  /* Keep the heading clear of the stacked global Nav + sticky TOC when a rail
+     chip is clicked. Both custom properties are written onto the page wrapper
+     at runtime and inherit down; the fallbacks are the desktop measurements. */
+  .section[id] {
+    scroll-margin-top: calc(var(--nav-h, 77px) + var(--toc-h, 68px) + 12px);
+  }
+
+  /* The heading sits in the 1240px column; the strip deliberately does not, so
+     it can run off both edges of the viewport. */
+  .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  .section-head {
+    max-width: 760px;
+    margin: 0 auto 64px;
+    text-align: center;
+  }
+  /* h2 is ink, not sage: the page sheet sets sage in its base rule and flips h2
+     to ink in its end-of-file override (clear-aligners.css:766). Collapsed to
+     the value that actually renders. */
+  .section-head h2 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    font-size: clamp(32px, 4.2vw, 54px);
+    letter-spacing: -0.022em;
+    line-height: 1.1;
+    color: var(--vs-ink);
+    margin: 22px 0 22px;
+  }
+  /* :global because the `<em>` arrives through set:html and carries no scope
+     attribute — the same reason FinalBand.astro:87 reaches for it. The scope
+     stays on `h2`, so this cannot leak off the block. */
+  .section-head h2 :global(em) {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+  .section-head p {
+    font-size: 17px;
+    line-height: 1.7;
+    max-width: 60ch;
+    margin: 0 auto;
+    color: var(--vs-ink-soft);
+  }
+
+  .eyebrow {
+    font-family: var(--vs-font-body);
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+  }
+  /* `.light` is the pale-sage eyebrow used on the dark bands. Kept because the
+     band it replaces emits it, and it still wins on a paper band; on the two
+     dark bands the band rules below out-specify it, which is exactly the order
+     the page sheet resolves to today. */
+  .eyebrow.light { color: var(--vs-eyebrow-on-sage); }
+  .section-head .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .section-head .eyebrow::before,
+  .section-head .eyebrow::after {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+
+  /* Band-conditional text, computed from this block's own modifier. */
+  .section.alt h2 { color: #fff; }
+  .section.alt h2 :global(em) { color: var(--vs-eyebrow-on-sage); }
+  .section.alt p { color: rgba(255, 255, 255, 0.85); }
+  .section.alt .eyebrow { color: var(--vs-eyebrow-on-sage); }
+  .section.alt .section-head .eyebrow::before,
+  .section.alt .section-head .eyebrow::after {
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  .section.dark h2 { color: var(--vs-ink); }
+  .section.dark h2 :global(em) { color: var(--vs-sage); }
+  .section.dark p { color: var(--vs-ink-soft); }
+  .section.dark .eyebrow { color: var(--vs-ink-soft); }
+  .section.dark .section-head .eyebrow::before,
+  .section.dark .section-head .eyebrow::after {
+    background: var(--vs-ink-soft);
+  }
+
+  .section.sage h2 { color: #fff; }
+  .section.sage h2 :global(em) { color: var(--vs-eyebrow-on-sage); }
+  .section.sage p { color: rgba(255, 255, 255, 0.85); }
+  .section.sage .eyebrow { color: var(--vs-eyebrow-on-sage); }
+  .section.sage .section-head .eyebrow::before,
+  .section.sage .section-head .eyebrow::after {
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  /* ── The strip ──────────────────────────────────────────────────────────
+     clear-aligners.css:552-566. Deliberately small: the container's layout,
+     the drag cursor, the edge mask, the keyframe fallback and the
+     reduced-motion native-scroll fallback all live in
+     src/styles/components/marquee.css, which BaseLayout mounts globally. This
+     block owns only its tile size and the three per-marquee knobs that sheet
+     reads, which is the division of labour that file documents at its head.
+
+     Do not restyle the track here. Astro would scope the rule to this
+     component while the global sheet's attribute rules stay unscoped, and the
+     two would fight over a loop that is being driven by GSAP at 60fps. */
+  .gallery-marquee {
+    margin-top: 40px;
+    --vs-marquee-gap: 22px;
+    --vs-marquee-speed: 60s;
+    --vs-marquee-pad: 8px 0;
+  }
+  .smile-tile {
+    width: 380px;
+    height: 285px;
+    flex-shrink: 0;
+    border-radius: var(--vs-r-lg);
+    overflow: hidden;
+    position: relative;
+    box-shadow: 0 12px 30px -16px rgba(0, 0, 0, 0.5);
+  }
+  /* <Image> renders a plain <img>, authored here, so it carries the scope
+     attribute and needs no :global. */
+  .smile-tile img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  /* ── Responsive ─────────────────────────────────────────────────────────
+     Re-united with the rules they modify rather than left in a trailing
+     "responsive" section 200 lines away (3.2, step 3). Breakpoints normalised
+     to the block set — 780 / 479 (FinalBand.astro:117, global.css). */
+  @media (max-width: 780px) {
+    .section { padding: 70px 0; }
+    .wrap { padding: 0 22px; }
+  }
+
+  @media (max-width: 479px) {
+    .smile-tile {
+      width: 280px;
+      height: 210px;
+    }
+  }
+</style>

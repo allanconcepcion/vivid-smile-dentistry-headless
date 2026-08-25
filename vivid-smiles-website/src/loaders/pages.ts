@@ -33,13 +33,13 @@
  */
 
 import type { Loader, LoaderContext } from "astro/loaders";
-import { blockSelectionSet, hasRegisteredBlocks, type BlockNode } from "../blocks/registry";
+import { blockSelectionSet, hasRegisteredBlocks, type BlockNode } from "../blocks/manifest";
 import { wpQuery, wpQueryAll, WordPressError } from "../lib/wp";
 
 /**
  * The `blocks` selection, indented to sit inside `pageFields { … }`.
  *
- * Assembled by src/blocks/registry.ts rather than written here. That file is
+ * Assembled by src/blocks/manifest.ts rather than written here. That file is
  * the one place a layout's GraphQL type, its selection set and its component
  * are bound together, so they cannot drift (docs/PAGE-BLOCKS.md 2.1); a loader
  * holding its own copy of the field list would be the drift. It holds no

@@ -1,0 +1,570 @@
+---
+/**
+ * MediaSplitBlock — the `media_split` layout: a photograph on one side, copy on
+ * the other.
+ *
+ * ONE COMPONENT, TWO BANDS. The pilot page uses this shape twice — `#what` and
+ * `#natural` — and they are not the same markup. `#what` is
+ * `.what-grid > .what-img + .what-text`; `#natural` is
+ * `.natural-grid > .natural-text + .natural-img`. Both class families exist on
+ * every sibling sheet, so the difference could not be papered over by picking
+ * one name; and neither could be hardcoded, because a component that only knew
+ * `.what-*` would render the candidacy band as a landscape 5:4 photo on the
+ * wrong side of the page.
+ *
+ * WHAT ACTUALLY DIFFERS, AND WHY IT IS ONE PROP RATHER THAN SIX.
+ *
+ * Measured across the six detail-page sheets that carry both (porcelain-veneers,
+ * teeth-whitening, smile-makeover, clear-aligners, and the two they were lifted
+ * from), the two families differ in exactly five ways and all five move
+ * together:
+ *
+ *              .what-*                     .natural-*
+ *   DOM order  media first                 text first
+ *   columns    1fr 1fr                     1fr 1.1fr
+ *   photo      aspect-ratio 5/4            aspect-ratio 4/5
+ *   heading    margin-bottom 26px          margin-bottom 28px
+ *   quote      never present               `.natural-quote` above the prose
+ *
+ * There is no page anywhere in src/pages that mixes them — no `.what-grid` with
+ * the image second, no `.natural-img` in landscape. The families are one design
+ * decision seen from two sides, and the decision is which side the photo is on.
+ * So `media_side` selects the family, and the other four follow from it. The
+ * pilot page's own comment says the same thing from the content end: the `#what`
+ * photo is "Landscape source, which suits this 5:4 slot; the 4:5 portraits do
+ * not."
+ *
+ * `ratio` is then a genuine second axis, and it is expressed as a departure
+ * from whatever the family's own split already is: `even` is what `.what-grid`
+ * ships, `wide-media` is what `.natural-grid` ships, so the pilot's two bands
+ * need no modifier class at all and the HTML diff stays empty. A modifier is
+ * emitted only when the editor asks for a split the family does not already
+ * have.
+ *
+ * A GAP THIS BLOCK CANNOT CLOSE, AND WHOEVER RUNS THE BACKFILL NEEDS TO KNOW.
+ * The `#what` band ships TWO buttons — "Free Virtual Consult" to `#consult` and
+ * "How It Works" to `#process`. The `media_split` layout has one `cta_label` /
+ * `cta_href` pair, so backfilling this band as-is loses the second button. That
+ * is a PHP change (a second CTA pair on the layout), not something to fake
+ * here: hardcoding a secondary button would put "How It Works" on every
+ * media_split band on the site, including the eleven that have no process
+ * section to point it at.
+ *
+ * Styles are co-located per docs/PAGE-BLOCKS.md 2.5, modelled on
+ * FinalBand.astro: no page namespace, `--vs-*` tokens directly, band as a
+ * prop, self-owned padding, zero margin.
+ */
+import { Image } from "astro:assets";
+import Button from "../components/Button.astro";
+import { phoneHref } from "../data/contact";
+
+/** The layout's image sub-field, as wpgraphql-acf returns an ACF image. */
+export interface MediaSplitImage {
+  node?: {
+    sourceUrl?: string | null;
+    altText?: string | null;
+    mediaDetails?: { width?: number | null; height?: number | null } | null;
+  } | null;
+}
+
+interface Props {
+  /** DOM id, already deduplicated by PageBlocks.astro. */
+  id?: string;
+  /** The same value as `id`. Accepted so the spread in PageBlocks is lossless. */
+  anchor?: string | null;
+  /** Rail label. Read by the page that builds the rail, not by this band. */
+  navLabel?: string | null;
+  band?: string | null;
+  eyebrow?: string | null;
+  /** May contain `<em>`, and nothing else (docs/PAGE-BLOCKS.md, Fact 3). */
+  heading?: string | null;
+  body?: string | null;
+  image?: MediaSplitImage | null;
+  /** Overrides the media item's own alt text when the editor filled it in. */
+  imageAlt?: string | null;
+  /** "left" | "right" — selects the class family. See the header. */
+  mediaSide?: string | null;
+  /** "even" | "wide-text" | "wide-media" */
+  ratio?: string | null;
+  quote?: string | null;
+  ctaLabel?: string | null;
+  ctaHref?: string | null;
+}
+
+/**
+ * band value -> the modifier class the page's markup already uses.
+ *
+ * `paper` maps to nothing because the pilot's paper bands are a bare
+ * `class="section"`. `alt` and `dark` are inherited names and inherited
+ * liabilities — `.section.alt` is charcoal on porcelain-veneers.css and cream
+ * on teeth-whitening.css (Fact 4) — which is why the colour below is written
+ * against the band VALUE and the class is only the hook the un-migrated page
+ * sheet still needs.
+ */
+const BAND_CLASS: Record<string, string | undefined> = {
+  paper: undefined,
+  cream: "cream",
+  "sage-pale": "dark",
+  sage: "sage",
+  charcoal: "alt",
+};
+
+/**
+ * Hover labels, by destination.
+ *
+ * `hoverLabel` renders as a `data-hover` attribute and as the button's second
+ * label span, so it is part of the markup this block has to reproduce — and
+ * there is no CMS field for it. Deriving it from the destination is not a
+ * guess: `href="#consult"` is paired with "Get a Video" in 52 of the 54 places
+ * that label appears across src/pages, and the phone and booking links are
+ * unanimous. An unknown destination yields `undefined`, which Button.astro
+ * already treats as "reuse the visible label".
+ */
+const CTA_HOVER: Record<string, string> = {
+  "#consult": "Get a Video",
+  "#process": "View Steps",
+  "#faq": "See Answers",
+  [phoneHref]: "Tap to Dial",
+};
+
+const {
+  id,
+  band = "paper",
+  eyebrow,
+  heading,
+  body,
+  image,
+  imageAlt,
+  mediaSide = "left",
+  ratio = "even",
+  quote,
+  ctaLabel,
+  ctaHref,
+} = Astro.props;
+
+const bandKey = typeof band === "string" && band !== "" ? band : "paper";
+const bandClass = BAND_CLASS[bandKey];
+
+/**
+ * The eyebrow carries `light` on the two bands the page spells `.section.dark`,
+ * and only there — the pilot's two media splits are charcoal and carry a plain
+ * eyebrow. Inert under the current cascade, but it is in the HTML.
+ */
+const eyebrowLight = bandKey === "sage-pale" || bandKey === "sage";
+
+/** Solid button on a dark band has to be the light variant, not the sage one. */
+const isDarkBand = bandKey === "charcoal" || bandKey === "sage";
+
+/** The class family, and with it the column split, the photo shape and the order. */
+const mediaRight = mediaSide === "right";
+const fam = mediaRight ? "natural" : "what";
+
+/**
+ * A ratio modifier is emitted only when the editor asked for a split the family
+ * does not already have. `.what-grid` is even; `.natural-grid` is wide-media.
+ * Emitting nothing in those two cases is what keeps `class="what-grid"` and
+ * `class="natural-grid"` the exact strings the page ships today.
+ */
+const familyRatio = mediaRight ? "wide-media" : "even";
+const ratioKey = typeof ratio === "string" && ratio !== "" ? ratio : familyRatio;
+const ratioClass = ratioKey === familyRatio ? undefined : `ratio-${ratioKey}`;
+
+/**
+ * The picture, or nothing.
+ *
+ * `<Image>` refuses a remote source without explicit intrinsic dimensions, so a
+ * media item WordPress recorded no size for cannot be rendered at all — an SVG,
+ * or an upload that did not finish. That has to degrade to a one-column band
+ * rather than fail a build an editor triggered (the same rule
+ * src/loaders/blog.ts and UnknownBlock.astro run on), so the media element is
+ * simply omitted and the omission is reported to the build log where an
+ * engineer will see it.
+ */
+const node = image?.node ?? null;
+const src = typeof node?.sourceUrl === "string" ? node.sourceUrl : "";
+const width = node?.mediaDetails?.width ?? 0;
+const height = node?.mediaDetails?.height ?? 0;
+const hasMedia = src !== "" && width > 0 && height > 0;
+
+if (!hasMedia) {
+  console.warn(
+    `[blocks] media_split on ${Astro.url.pathname}${id ? `#${id}` : ""} has no usable picture — rendering the copy alone`,
+  );
+}
+
+/** Editor override first, then the alt text stored on the file itself. */
+const alt = (imageAlt ?? "").trim() || (node?.altText ?? "").trim() || "";
+
+const hasCta = typeof ctaLabel === "string" && ctaLabel.trim() !== "";
+---
+
+<section class:list={["section", bandClass]} id={id} data-vs-reveal-batch>
+  <div class="wrap">
+    <div class:list={[`${fam}-grid`, ratioClass]}>
+      {
+        !mediaRight && hasMedia && (
+          <div class="what-img" data-vs-parallax data-parallax="-25">
+            <Image
+              src={src}
+              width={width}
+              height={height}
+              alt={alt}
+              widths={[500, 800, 1100]}
+              sizes="(max-width: 991px) 100vw, 50vw"
+            />
+          </div>
+        )
+      }
+
+      <div class={`${fam}-text`}>
+        {eyebrow && <span class:list={["eyebrow", eyebrowLight && "light"]}>{eyebrow}</span>}
+        {
+          heading && (
+            <h2>
+              <Fragment set:html={heading} />
+            </h2>
+          )
+        }
+        {/* `.natural-quote` whichever side the photo is on. The rule is the
+            family's only pull-quote treatment and no `.what-quote` has ever
+            existed, so naming it after the side it happens to appear on today
+            would invent a second class for one appearance. */}
+        {quote && <div class="natural-quote">{quote}</div>}
+        {
+          body && (
+            <div class="prose">
+              <p>{body}</p>
+            </div>
+          )
+        }
+        {
+          hasCta && (
+            <div class="cta-row left">
+              <div class="cta-buttons">
+                <Button
+                  variant={isDarkBand ? "light" : "sage"}
+                  href={ctaHref ?? "#"}
+                  hoverLabel={CTA_HOVER[ctaHref ?? ""]}
+                >
+                  {ctaLabel}
+                </Button>
+              </div>
+            </div>
+          )
+        }
+      </div>
+
+      {
+        mediaRight && hasMedia && (
+          <div class="natural-img" data-vs-parallax data-parallax="-25">
+            <Image
+              src={src}
+              width={width}
+              height={height}
+              alt={alt}
+              widths={[500, 800, 1100]}
+              sizes="(max-width: 991px) 100vw, 50vw"
+            />
+          </div>
+        )
+      }
+    </div>
+  </div>
+</section>
+
+<style>
+  /* ---------- band shell ----------
+     `.section` owns its padding and has no margin at all, so this band cannot
+     collapse into whichever band an editor drags above or below it. Same rule
+     as FinalBand.astro. */
+  .section {
+    margin: 0;
+    padding: 110px 0;
+    background: var(--vs-paper);
+  }
+  .section.cream {
+    background: var(--vs-cream);
+  }
+  .section.dark {
+    background: var(--vs-sage-pale);
+  }
+  .section.sage {
+    background: var(--vs-sage);
+  }
+  .section.alt {
+    background: var(--vs-charcoal-green);
+  }
+
+  .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  .eyebrow {
+    font-family: var(--vs-font-body);
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+  }
+  .eyebrow.light {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  /* The eyebrow's single rule is a leading hairline, not the head band's pair —
+     this layout's copy column is left-aligned, so a trailing rule would run into
+     the gutter. */
+  .what-text .eyebrow,
+  .natural-text .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .what-text .eyebrow::before,
+  .natural-text .eyebrow::before {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+
+  /* h2 resolves to ink. The page sheet reaches that colour only through a
+     trailing override block whose comment says it works because of its file
+     position; a block that owns its cascade states the outcome once. */
+  h2 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    color: var(--vs-ink);
+    margin: 0;
+    line-height: 1.1;
+    letter-spacing: -0.022em;
+    font-size: clamp(32px, 4.2vw, 54px);
+  }
+  /* `:global()` because the `<em>` arrives through `set:html` and carries no
+     scope attribute — a plain `h2 em` compiles to `em[data-astro-cid]`, misses
+     it, and drops the accent colour from every heading on the site. */
+  h2 :global(em) {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+
+  p {
+    margin: 0;
+    color: var(--vs-ink-soft);
+  }
+
+  /* The two families' headings differ by 2px of bottom margin. Preserved rather
+     than levelled: this file's job is to reproduce, and a 2px change is exactly
+     the size of thing a screenshot diff flags and nobody can explain a year
+     later. */
+  .what-text h2 {
+    margin: 22px 0 26px;
+    max-width: 14ch;
+  }
+  .natural-text h2 {
+    margin: 22px 0 28px;
+    max-width: 14ch;
+  }
+
+  .prose p {
+    font-size: 16.5px;
+    line-height: 1.85;
+    max-width: 70ch;
+  }
+  .prose p + p {
+    margin-top: 18px;
+  }
+
+  /* ---------- band inversions ----------
+     Written band-wide here, unlike the head-scoped inversions in FaqBlock and
+     CardGridBlock: this layout has no card sitting on its own surface, so every
+     piece of type in it genuinely does sit on the band and genuinely does have
+     to invert. The pilot's two media splits are both charcoal, and this is the
+     rule set that keeps them white-on-charcoal. */
+  .section.alt h2,
+  .section.sage h2 {
+    color: #fff;
+  }
+  .section.alt h2 :global(em),
+  .section.sage h2 :global(em) {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .section.alt p,
+  .section.sage p {
+    color: rgba(255, 255, 255, 0.85);
+  }
+  .section.alt .eyebrow,
+  .section.sage .eyebrow {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .section.alt .eyebrow::before,
+  .section.sage .eyebrow::before {
+    background: rgba(255, 255, 255, 0.6);
+  }
+  .section.alt .natural-quote,
+  .section.sage .natural-quote {
+    color: #fff;
+    border-top-color: rgba(255, 255, 255, 0.25);
+    border-bottom-color: rgba(255, 255, 255, 0.25);
+  }
+
+  .section.dark h2 {
+    color: var(--vs-ink);
+  }
+  .section.dark h2 :global(em) {
+    color: var(--vs-sage);
+  }
+  .section.dark p,
+  .section.dark .eyebrow {
+    color: var(--vs-ink-soft);
+  }
+  .section.dark .eyebrow::before {
+    background: var(--vs-ink-soft);
+  }
+
+  /* ---------- the split ----------
+     Photo left: even columns, landscape plate. Photo right: the copy gets the
+     narrower track and the plate is a portrait. See the header for why these
+     travel together. */
+  .what-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+  .natural-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 80px;
+    align-items: center;
+  }
+
+  /* A modifier only ever fires when the editor asked for a split the family
+     does not already have — `.what-grid.ratio-even` and
+     `.natural-grid.ratio-wide-media` are never emitted. The tracks are written
+     photo-relative, so `wide-media` widens whichever track holds the photo. */
+  .what-grid.ratio-wide-media {
+    grid-template-columns: 1.1fr 1fr;
+  }
+  .what-grid.ratio-wide-text {
+    grid-template-columns: 1fr 1.1fr;
+  }
+  .natural-grid.ratio-even {
+    grid-template-columns: 1fr 1fr;
+  }
+  .natural-grid.ratio-wide-text {
+    grid-template-columns: 1.1fr 1fr;
+  }
+
+  .what-img {
+    aspect-ratio: 5/4;
+    border-radius: var(--vs-r-xl);
+    overflow: hidden;
+    position: relative;
+    box-shadow: var(--vs-shadow);
+  }
+  .what-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.6s ease;
+  }
+  .what-img:hover img {
+    transform: scale(1.03);
+  }
+
+  .natural-img {
+    aspect-ratio: 4/5;
+    border-radius: var(--vs-r-xl);
+    overflow: hidden;
+    box-shadow: var(--vs-shadow);
+  }
+  .natural-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s ease;
+  }
+  .natural-img:hover img {
+    transform: scale(1.03);
+  }
+
+  .natural-quote {
+    font-family: var(--vs-font-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: clamp(22px, 2.2vw, 28px);
+    color: var(--vs-sage);
+    line-height: 1.4;
+    letter-spacing: -0.005em;
+    padding: 24px 0 26px;
+    border-top: 1px solid var(--vs-line);
+    border-bottom: 1px solid var(--vs-line);
+    margin-bottom: 26px;
+    max-width: 36ch;
+  }
+
+  /* ---------- CTA ---------- */
+  .cta-row {
+    margin-top: 56px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+  }
+  .cta-row .cta-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+    justify-content: center;
+  }
+  .cta-row.left {
+    align-items: flex-start;
+  }
+  .cta-row.left .cta-buttons {
+    justify-content: flex-start;
+  }
+
+  /* Base and breakpoint rules live together, unlike the page sheets where 24
+     files keep a trailing "responsive" section physically separated from what
+     it modifies. */
+  @media (max-width: 991px) {
+    /* Both families stack, and the ratio modifiers have to be neutralised too
+       or a `1.1fr` track survives into a one-column layout as a phantom second
+       column. */
+    .what-grid,
+    .natural-grid,
+    .what-grid.ratio-wide-media,
+    .what-grid.ratio-wide-text,
+    .natural-grid.ratio-even,
+    .natural-grid.ratio-wide-text {
+      grid-template-columns: 1fr;
+      gap: 50px;
+    }
+  }
+
+  @media (max-width: 780px) {
+    .section {
+      padding: 70px 0;
+    }
+    .wrap {
+      padding: 0 22px;
+    }
+    .cta-row {
+      margin-top: 36px;
+    }
+  }
+
+  /* The two photo plates and their hover scale are the only motion in this
+     band, and both are decorative. */
+  @media (prefers-reduced-motion: reduce) {
+    .what-img img,
+    .natural-img img {
+      transition: none !important;
+    }
+  }
+</style>

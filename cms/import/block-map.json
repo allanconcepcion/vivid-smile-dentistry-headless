@@ -1,0 +1,490 @@
+{
+  "version": 1,
+  "what_this_is": [
+    "How an existing page's repeater rows become an ordered list of `blocks` rows.",
+    "Data, not code: Phase 3 adds routes here, it does not add PHP. cms/import/backfill-blocks.php",
+    "is the only reader, and everything it knows about a page is in this file.",
+    "",
+    "Reviewable in a pull request BEFORE it runs, which is the point — the script writes one",
+    "field on one page and is undone by emptying that field in wp-admin, but it is still the",
+    "step that decides what the page is made of. docs/PAGE-BLOCKS.md 1.4."
+  ],
+  "the_rule_that_governs_every_value_below": [
+    "A backfilled page must render markup IDENTICAL to the template band it replaces — class",
+    "names, element order, attributes. So a value here is only ever one of three things:",
+    "",
+    "  1. a row that already exists in the CMS, moved (never copied, never re-typed);",
+    "  2. a value the template hardcodes TODAY, transcribed verbatim, with the source line",
+    "     named in `from_template` so a reviewer can diff it against the file;",
+    "  3. a layout switch (`band`, `columns`, `ratio`) read off the page's own stylesheet,",
+    "     with the rule that proves it named in `band_evidence`.",
+    "",
+    "Nothing here is authored. If a value is not in the CMS and not in the template, it does",
+    "not belong in this file — it is content the client has yet to write, and inventing it",
+    "here would change the page the moment the backfill ran."
+  ],
+  "source_kinds": {
+    "_": "The closed set of sources a `fields` entry may name. The backfill rejects anything else.",
+    "{ \"section\": \"<name>\" }": "A sub-field of the `sections` row this block is built from: eyebrow, heading, body, cta_label, cta_href.",
+    "{ \"literal\": <scalar> }": "A fixed value. Pair it with `from_template` naming the line it was transcribed from.",
+    "{ \"toc_label\": true }": "The `toc_links` row whose anchor equals this block's anchor. The default for nav_label.",
+    "{ \"image\": \"<slot>\", \"part\": \"id\" }": "The attachment id in the `images` row with that slot.",
+    "{ \"image\": \"<slot>\", \"part\": \"alt\" }": "That row's alt text."
+  },
+  "row_kinds": {
+    "_": "The closed set of sources a `rows` entry may name — these fill a repeater INSIDE a block.",
+    "{ \"literal\": [ … ] }": "Rows given here in full. Same rule as above: transcription, not authoring.",
+    "{ \"cards\": \"<group>\", \"fields\": { … }, \"literal\": [ … ] }": "The `cards` rows in that group, in order. `fields` maps block sub-field <- card sub-field. `literal`, if present, is zipped onto them positionally and must be the same length — that is how a list whose text lives in the CMS but whose labels live in the template is reassembled without losing either.",
+    "{ \"process_steps\": true, \"fields\": { … } }": "Every `process_steps` row on the page, in order.",
+    "{ \"faqs\": true, \"fields\": { … } }": "Every `faqs` row on the page, in order.",
+    "@index2": "The one derivation allowed on the right-hand side of `fields`: the 1-based row number, zero-padded to two digits. It exists because the legacy `process_steps` repeater has no `num` sub-field — src/loaders/pages.ts:537 derives it as String(i+1).padStart(2,'0') and the page prints that. Anything else would renumber the steps."
+  },
+  "defaults": {
+    "anchor": "the block's `section_id`, unless the block sets `anchor` explicitly. Carried across so existing #fragment links, the derived rail and every scroll-margin-top target keep pointing at the same element.",
+    "nav_label": "{ \"toc_label\": true } — blank when the page has no toc_links row for this anchor, which keeps the block out of the rail exactly as it is out of it today."
+  },
+  "pending_layouts": {
+    "_": [
+      "Layouts this map names that vs-content-model.php does not register. The backfill checks",
+      "every one before it plans anything and stops while any is missing, rather than writing",
+      "rows whose sub-fields ACF would drop without a word.",
+      "",
+      "Empty: all seven layouts the pilot needs are registered in the repository. That is not",
+      "the same as being on the CMS host, which is a separate check the backfill makes first",
+      "and which fails today — see the file header of backfill-blocks.php."
+    ]
+  },
+  "routes": {
+    "/cosmetic-dentistry/clear-aligners/": {
+      "template": "vivid-smiles-website/src/pages/cosmetic-dentistry/clear-aligners.astro",
+      "stylesheet": "vivid-smiles-website/src/styles/pages/clear-aligners.css",
+      "wrapper_class": "caligners",
+      "notes": [
+        "The pilot. Its 8 `sections` rows are in exactly the order of its 8 template bands, so",
+        "the list below is the page top to bottom with nothing reordered.",
+        "",
+        "BAND VOCABULARY IS INVERTED ON THIS PAGE, as it is on several others. `.section.alt`",
+        "is the DARK one (clear-aligners.css:240 -> --vs-charcoal-green) and `.section.dark` is",
+        "the PALE one (clear-aligners.css:249 -> --vs-sage-pale). Every `band` below is resolved",
+        "from those two rules, not from the class name. Reading the class would put charcoal",
+        "where sage-pale belongs on three of the eight.",
+        "",
+        "CTA ROWS SPLIT TWO WAYS, and the split is decided by the block components, not here.",
+        "Four bands on this page draw one. `compare` and `process` draw theirs entirely from the",
+        "component — fixed pairs, plus a note on `compare` — and their layouts have no cta",
+        "sub-fields at all, so this map supplies nothing for them. `faq` and `what` gate their",
+        "CTA row on cta_label being filled: leave it blank and the row disappears. So those two",
+        "carry a cta_label/cta_href here, transcribed from the template like any other literal.",
+        "The CMS itself has 0/213 section rows carrying a CTA, so there was never anything to",
+        "move — every one of these is a transcription.",
+        "",
+        "ONE BUTTON IS LOST ON `what`, and it is lost here rather than quietly. That band ships",
+        "two buttons; media_split has one cta_label/cta_href pair; MediaSplitBlock.astro:43-51",
+        "says so in as many words and refuses to hardcode a second, because \"How It Works\" would",
+        "then appear on all eleven media_split bands that have no process section to point at.",
+        "The fix is a second CTA pair on the layout in vs-content-model.php, and until it exists",
+        "this map gets the primary button right and the secondary is gone. Named in",
+        "`known_gaps` on that block so the harness diff has an explanation waiting for it.",
+        "",
+        "THE LOCALTRUST BAND SITS BETWEEN `lasting` AND `gallery` AND IS NOT IN THIS LIST. See",
+        "`exempt.toc_links` below — it is the one thing on this route that a blocks-derived rail",
+        "does not reproduce, and it is called out rather than left to be discovered."
+      ],
+      "blocks": [
+        {
+          "section_id": "why",
+          "layout": "card_grid",
+          "band": "paper",
+          "band_evidence": "clear-aligners.astro:178 <section class=\"section\"> — .caligners .section (clear-aligners.css:239) sets padding only, no background, so the body paper shows through.",
+          "fields": {
+            "eyebrow": {
+              "section": "eyebrow"
+            },
+            "heading": {
+              "section": "heading"
+            },
+            "body": {
+              "section": "body"
+            },
+            "columns": {
+              "literal": "2"
+            },
+            "numbered": {
+              "literal": true
+            }
+          },
+          "columns_evidence": ".caligners .why-grid is grid-template-columns: 1fr 1fr (clear-aligners.css:286). Two, not the three the sibling pages use.",
+          "rows": {
+            "cards": {
+              "literal": [
+                {
+                  "title": "Digital Smile Preview Before You Commit",
+                  "lead": "See your finished smile on screen before you wear a single aligner — built from your own anatomy, not a template.",
+                  "body": "Before you wear a single aligner, you will see a digital projection of your finished smile built from the precise 3D model of your own teeth, not a generic template. This preview is generated from your consultation scan, so the outcome you see is specific to your actual anatomy and goals, not an approximation."
+                },
+                {
+                  "title": "Advanced Technology for Comfortable Treatment",
+                  "lead": "3D scanning replaces messy impressions, and planning software maps every stage before tray one.",
+                  "body": "Our digital scanners create a precise 3D model of your teeth in minutes, no impression trays required. Planning software then maps every stage of tooth movement before the first aligner is fabricated, resulting in an accurate fit from tray one. That precision also keeps your treatment timeline on track."
+                }
+              ],
+              "from_template": "clear-aligners.astro:186-215 — the two .why-card articles. This page has NO `cards` rows for `why`; the two cards are hardcoded, which is why they are transcribed rather than moved.",
+              "num_note": "The `num` divs read 01 and 02. They are not transcribed: `numbered` above is what draws them, from the row's position, so a reorder cannot leave the numbering out of sequence."
+            }
+          }
+        },
+        {
+          "section_id": "what",
+          "layout": "media_split",
+          "band": "charcoal",
+          "band_evidence": "clear-aligners.astro:221 <section class=\"section alt\"> — .caligners .section.alt { background: var(--vs-charcoal-green) } at clear-aligners.css:240. Dark, white text.",
+          "fields": {
+            "eyebrow": {
+              "section": "eyebrow"
+            },
+            "heading": {
+              "section": "heading"
+            },
+            "body": {
+              "section": "body"
+            },
+            "image": {
+              "image": "whatImg",
+              "part": "id"
+            },
+            "image_alt": {
+              "image": "whatImg",
+              "part": "alt"
+            },
+            "media_side": {
+              "literal": "left"
+            },
+            "ratio": {
+              "literal": "even"
+            },
+            "cta_label": {
+              "literal": "Free Virtual Consult",
+              "from_template": "clear-aligners.astro:245-247 — the first of the two buttons in .cta-row.left."
+            },
+            "cta_href": {
+              "literal": "#consult"
+            }
+          },
+          "layout_evidence": ".what-img precedes .what-text in the DOM (clear-aligners.astro:224,232) and .caligners .what-grid is 1fr 1fr (clear-aligners.css:314) — photo left, even split.",
+          "known_gaps": [
+            "The second button — \"How It Works\" to #process, clear-aligners.astro:248-250 — has",
+            "nowhere to go. media_split carries one cta_label/cta_href pair, so this band comes",
+            "back with one button where it had two. Expect exactly that in the HTML diff, and",
+            "expect nothing else from this block.",
+            "Closing it is a PHP change: a second CTA pair on the media_split layout in",
+            "cms/mu-plugins/vs-content-model.php, plus the fields on MediaSplitBlock.astro. Then",
+            "add cta_label_2 / cta_href_2 here and the band is whole."
+          ]
+        },
+        {
+          "section_id": "process",
+          "layout": "process_steps",
+          "band": "sage-pale",
+          "band_evidence": "clear-aligners.astro:254 <section class=\"section dark\"> — .caligners .section.dark { background: var(--vs-sage-pale) } at clear-aligners.css:249. PALE, despite the class name.",
+          "fields": {
+            "eyebrow": {
+              "literal": "Your Treatment Process",
+              "from_template": "clear-aligners.astro:257 <span class=\"eyebrow light\">. The CMS `process` row has eyebrow null, so without this the eyebrow disappears on migration."
+            },
+            "heading": {
+              "section": "heading"
+            },
+            "body": {
+              "section": "body"
+            },
+            "layout": {
+              "literal": "grid"
+            },
+            "columns": {
+              "literal": "4"
+            }
+          },
+          "columns_evidence": ".caligners .process-grid is repeat(4, 1fr) (clear-aligners.css:339), and the page carries 4 steps rather than the 5 its siblings use.",
+          "rows": {
+            "steps": {
+              "process_steps": true,
+              "fields": {
+                "tag": "tag",
+                "num": "@index2",
+                "title": "title",
+                "body": "body"
+              },
+              "note": "All 4 rows, in order. `num` is derived because the legacy repeater has no such sub-field — see row_kinds.@index2."
+            }
+          },
+          "known_gaps": [
+            "The closing CTA plate is lost. All eight pages in this family end the band",
+            "with .inline-cta.dark — clear-aligners.astro's sentence plus two buttons. The",
+            "buttons are site data and identical across all eight, but the sentence is page",
+            "content and process_steps has no field for it, so the whole plate is omitted.",
+            "Expect exactly that in the HTML diff, and expect nothing else from this block.",
+            "Closing it is a PHP change: a cta_text field on the process_steps layout in",
+            "cms/mu-plugins/vs-content-model.php, which ProcessStepsBlock.astro already",
+            "accepts as its ctaText prop and is simply never given. Then add cta_text here."
+          ]
+        },
+        {
+          "section_id": "compare",
+          "layout": "comparison_cards",
+          "band": "paper",
+          "band_evidence": "clear-aligners.astro:291 <section class=\"section\"> — no background rule, body paper.",
+          "fields": {
+            "eyebrow": {
+              "section": "eyebrow"
+            },
+            "heading": {
+              "section": "heading"
+            },
+            "body": {
+              "section": "body"
+            }
+          },
+          "rows": {
+            "cards": {
+              "literal": [
+                {
+                  "tag": "No Restrictions",
+                  "title": "Eat what you like",
+                  "body": "Removable aligners mean you eat whatever you like at every meal, with no food restrictions. Take them out, eat, brush, reinsert.",
+                  "ribbon": "Patient Favorite",
+                  "featured": true
+                },
+                {
+                  "tag": "Hygiene",
+                  "title": "Brush & floss as before",
+                  "body": "Brushing and flossing remain exactly as before treatment — no wire threading, no special tools, no compromise on daily oral care."
+                },
+                {
+                  "tag": "Discretion",
+                  "title": "Removable for occasions",
+                  "body": "For presentations, photographs, or any occasion where you prefer to go without, the trays come out in seconds and go back in just as easily."
+                }
+              ],
+              "from_template": "clear-aligners.astro:300-330 — the three .compare-card articles, the first .featured with a .ribbon. No `cards` rows exist for this band either.",
+              "escaping_note": "\"Brush & floss as before\" is stored with a literal ampersand. The template writes &amp; because it is hand-written HTML; the component escapes on output, so storing &amp; here would render a visible \"&amp;\"."
+            }
+          }
+        },
+        {
+          "section_id": "natural",
+          "layout": "media_split",
+          "band": "charcoal",
+          "band_evidence": "clear-aligners.astro:340 <section class=\"section alt\"> — --vs-charcoal-green, clear-aligners.css:240.",
+          "fields": {
+            "eyebrow": {
+              "section": "eyebrow"
+            },
+            "heading": {
+              "section": "heading"
+            },
+            "body": {
+              "section": "body"
+            },
+            "image": {
+              "image": "naturalImg",
+              "part": "id"
+            },
+            "image_alt": {
+              "image": "naturalImg",
+              "part": "alt"
+            },
+            "media_side": {
+              "literal": "right"
+            },
+            "ratio": {
+              "literal": "wide-media"
+            },
+            "quote": {
+              "literal": "Both teens and adults qualify in most cases.",
+              "from_template": "clear-aligners.astro:346 <div class=\"natural-quote\">. Hardcoded today; there is no CMS field it could have come from."
+            }
+          },
+          "layout_evidence": ".natural-text precedes .natural-img (clear-aligners.astro:343,351) and .caligners .natural-grid is 1fr 1.1fr (clear-aligners.css:415) — photo right, media column the wider one.",
+          "eyebrow_note": "The template hardcodes \"Candidacy\" at :344 and the CMS row also reads \"Candidacy\". Same string, so this takes the CMS one — moving a row beats transcribing a literal whenever both exist."
+        },
+        {
+          "section_id": "lasting",
+          "layout": "stat_callout",
+          "band": "paper",
+          "band_evidence": "clear-aligners.astro:369 <section class=\"section\"> — no background rule, body paper.",
+          "fields": {
+            "eyebrow": {
+              "section": "eyebrow"
+            },
+            "heading": {
+              "section": "heading"
+            },
+            "body": {
+              "section": "body"
+            },
+            "value": {
+              "literal": "20–22",
+              "from_template": "clear-aligners.astro:459 .lasting-stat .big — en dash U+2013, not a hyphen."
+            },
+            "unit": {
+              "literal": "hrs",
+              "from_template": "clear-aligners.astro:459 the <em> inside .big."
+            },
+            "caption": {
+              "literal": "Daily wear for results",
+              "from_template": "clear-aligners.astro:460 .lasting-stat .label."
+            },
+            "intro": {
+              "literal": "Aligners should be worn 20 to 22 hours each day, removed only for eating, drinking anything besides water, and brushing. The habits below keep the trays clear and your teeth healthy across treatment:",
+              "from_template": "clear-aligners.astro:463-467 — the paragraph that opens .lasting-body. `body` above is the section-head paragraph; these are two paragraphs in two places and the layout carries both."
+            }
+          },
+          "rows": {
+            "points": {
+              "cards": "careBullets",
+              "fields": {
+                "body": "body"
+              },
+              "literal": [
+                {
+                  "lead": "Rinse every time you remove them"
+                },
+                {
+                  "lead": "Clean with a soft toothbrush and clear, unscented soap"
+                },
+                {
+                  "lead": "Use cool or lukewarm water only"
+                },
+                {
+                  "lead": "Store in the case when not wearing"
+                },
+                {
+                  "lead": "Brush before reinserting"
+                },
+                {
+                  "lead": "Avoid staining beverages while wearing"
+                }
+              ],
+              "no_trailing_colon": "The template prints <strong>{lead}:</strong>, so the colon belongs to StatCalloutBlock.astro and not to the value. A colon typed here would render two.",
+              "why_the_zip": [
+                "The 6 careBullets rows are in the CMS and carry the explanation, but ONLY the",
+                "explanation: build-sections-payload.mjs had nowhere to put the bold label, because",
+                "the legacy `cards` repeater has group/title/body/meta/href and no `lead`. Verified",
+                "against the live CMS — all six rows come back with title, meta and href null.",
+                "",
+                "So the bodies are moved and the labels are transcribed from the careBullets array",
+                "at clear-aligners.astro:63-86, zipped in template order. Dropping the labels would",
+                "turn six bolded care instructions into six unlabelled sentences — a visible change,",
+                "which is what this whole phase is verified against."
+              ]
+            }
+          }
+        },
+        {
+          "section_id": "gallery",
+          "layout": "gallery_marquee",
+          "band": "sage-pale",
+          "band_evidence": "clear-aligners.astro:417 <section class=\"section dark\"> — --vs-sage-pale, clear-aligners.css:249.",
+          "fields": {
+            "eyebrow": {
+              "literal": "Smile Gallery",
+              "from_template": "clear-aligners.astro:420 <span class=\"eyebrow light\">. The CMS `gallery` row has eyebrow null."
+            },
+            "heading": {
+              "section": "heading"
+            },
+            "body": {
+              "section": "body"
+            }
+          },
+          "nav_label_note": "There is no toc_links row for #gallery, so nav_label resolves blank and the block stays out of the rail — which is where it is today.",
+          "tiles_note": "No sub-fields beyond the preamble by design: the tiles are files in src/assets/images/smiles/, read by src/lib/smiles.ts. Nothing to move."
+        },
+        {
+          "section_id": "faq",
+          "layout": "faq",
+          "band": "paper",
+          "band_evidence": "clear-aligners.astro:447 <section class=\"section\"> — no background rule, body paper.",
+          "fields": {
+            "eyebrow": {
+              "section": "eyebrow"
+            },
+            "heading": {
+              "section": "heading"
+            },
+            "body": {
+              "literal": ""
+            },
+            "pull": {
+              "section": "body"
+            },
+            "cta_label": {
+              "literal": "Still Have Questions? Free Virtual Consult",
+              "from_template": "clear-aligners.astro:477-479. FaqBlock.astro draws its second button — Call + the practice number — from src/data/contact.ts, because a phone number is site data and not page content, so it is not transcribed here."
+            },
+            "cta_href": {
+              "literal": "#consult"
+            }
+          },
+          "body_to_pull_note": "sections.faq.body -> `pull`, NOT -> `body`. The template puts it in .pull (clear-aligners.astro:472-474), the aside beside the questions, and the FAQ section-head has no paragraph at all (:450-453). Writing it to `body` would print it twice.",
+          "rows": {
+            "items": {
+              "faqs": true,
+              "fields": {
+                "question": "question",
+                "answer": "answer",
+                "open": "open"
+              },
+              "note": "All 8 rows, in order. The block renders answers with set:html; this page has zero tag-bearing answers, so that is a no-op here."
+            }
+          }
+        }
+      ],
+      "exempt": {
+        "_": [
+          "Every repeater row on this page that no block above claims. The backfill fails, before",
+          "writing anything, on any row that is neither claimed nor listed here — that is what",
+          "keeps 938 rows from being quietly dropped one page at a time. A row listed here has",
+          "been looked at and has somewhere else to be; saying so is the whole job of this block."
+        ],
+        "sections": [],
+        "cards": [],
+        "process_steps": [],
+        "faqs": [],
+        "images": [
+          {
+            "slot": "heroImg",
+            "reason": "The hero is not a block. It is a `hero` group field on group_vs_page — one per page, always first, never reordered (docs/PAGE-BLOCKS.md 1.3, 7).",
+            "destination": "hero.image, filled by whatever moves the hero across. Not this script's field and not this script's business.",
+            "renders_today": "clear-aligners.astro hero <header class=\"hero\">"
+          }
+        ],
+        "toc_links": [
+          {
+            "anchor": "local",
+            "label": "Parker, CO",
+            "reason": "It points at the LocalTrust band, which sits between `lasting` and `gallery` (clear-aligners.astro:395-400). That band is a shared component with no `sections` row behind it and no layout registered for it yet — `map_visit`, Wave B, Phase 4.",
+            "read_this_before_running": [
+              "This is the one row on this route with a consequence, so it is spelled out rather",
+              "than filed away.",
+              "",
+              "The rail is derived from blocks[].anchor + nav_label in block order. The 8 blocks",
+              "above produce 7 rail entries — gallery has no toc_links row — and #local is not",
+              "among them, because no block covers the band it points at. A page that renders its",
+              "rail from blocks alone therefore loses the \"Parker, CO\" entry, while the LocalTrust",
+              "section itself still renders, still carries id=\"local\" (LocalTrust.astro:66 default),",
+              "and is still reachable by anyone holding that link.",
+              "",
+              "One rail entry, and it is a visible difference the harness will report. Whoever ships",
+              "the pilot renderer has to decide it deliberately, one of:",
+              "  a. keep the LocalTrust band and its rail entry in the template alongside PageBlocks;",
+              "  b. bring `map_visit` forward from Phase 4 and add a 9th block here at position 7;",
+              "  c. accept losing the entry, and say so.",
+              "Nothing in this file or in backfill-blocks.php picks for them."
+            ]
+          }
+        ]
+      }
+    }
+  }
+}

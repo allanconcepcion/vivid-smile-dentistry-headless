@@ -1483,6 +1483,102 @@ function register_field_groups(): void {
 								]
 							),
 						],
+						/**
+						 * One large figure beside a paragraph and a list of habits
+						 * — the `.lasting-card` shell. Aftercare on the treatment
+						 * pages, cost and insurance on the fee pages.
+						 *
+						 * Deliberately narrow. Every sub-field is something the
+						 * band already draws: `value` and `unit` are the two halves
+						 * of `.lasting-stat .big` (the unit is its `<em>`),
+						 * `caption` is the line under them, `intro` is the
+						 * paragraph that opens `.lasting-body` and `points` is the
+						 * `<ul>` beneath it. A general-purpose stat block would
+						 * offer a second figure or a rich body that nothing in the
+						 * markup knows how to place, and the editor would only
+						 * discover that after publishing.
+						 *
+						 * `intro` is its own field rather than the preamble's
+						 * `body` because they are two paragraphs in two places —
+						 * `body` sits under the section heading, `intro` inside the
+						 * card, and the pilot page uses both. Same reason the FAQ
+						 * layout carries `pull`, and the same warning for the
+						 * backfill: sections.lasting.body maps to `body`, and the
+						 * card's opening paragraph to `intro`.
+						 */
+						[
+							'key'        => 'layout_vs_blk_stat_callout',
+							'name'       => 'stat_callout',
+							'label'      => 'Figure and list',
+							'display'    => 'block',
+							'sub_fields' => array_merge(
+								block_preamble( 'stat' ),
+								[
+									[
+										'key'          => 'field_vs_blk_stat_value',
+										'label'        => 'Figure',
+										'name'         => 'value',
+										'type'         => 'text',
+										// Text, not number: the figures in the corpus are
+										// written "20–22" and "10+", and the dash is an
+										// en dash the copy is specific about.
+										'instructions' => 'The large number, exactly as it should read — for example 20–22.',
+									],
+									[
+										'key'          => 'field_vs_blk_stat_unit',
+										'label'        => 'Unit',
+										'name'         => 'unit',
+										'type'         => 'text',
+										'instructions' => 'The small word set tight against the figure — hrs, yrs, months. '
+											. 'Leave it blank for a figure that reads without one.',
+									],
+									[
+										'key'          => 'field_vs_blk_stat_caption',
+										'label'        => 'Caption',
+										'name'         => 'caption',
+										'type'         => 'text',
+										'instructions' => 'The single line under the figure saying what it measures.',
+									],
+									[
+										'key'          => 'field_vs_blk_stat_intro',
+										'label'        => 'Card intro',
+										'name'         => 'intro',
+										'type'         => 'textarea',
+										'rows'         => 4,
+										'instructions' => 'Plain text. The paragraph inside the card, above the list — not the one '
+											. 'under the section heading, which is Body above.',
+									],
+									[
+										'key'          => 'field_vs_blk_stat_points',
+										'label'        => 'List',
+										'name'         => 'points',
+										'type'         => 'repeater',
+										'layout'       => 'row',
+										'button_label' => 'Add a point',
+										'instructions' => 'The list under that paragraph. Each line opens bold and continues in plain text.',
+										'sub_fields'   => [
+											[
+												'key'          => 'field_vs_blk_stat_point_lead',
+												'label'        => 'Lead',
+												'name'         => 'lead',
+												'type'         => 'text',
+												// The colon belongs to the template, which
+												// prints "<strong>lead:</strong> body". Typing
+												// one here puts two on the page.
+												'instructions' => 'The bold opening of the line. Do not end it with a colon — one is added for you.',
+											],
+											[
+												'key'   => 'field_vs_blk_stat_point_body',
+												'label' => 'Body',
+												'name'  => 'body',
+												'type'  => 'textarea',
+												'rows'  => 2,
+											],
+										],
+									],
+								]
+							),
+						],
 					],
 				],
 			],

@@ -1,0 +1,410 @@
+---
+/**
+ * CardGridBlock — the `card_grid` layout: a centred head over a grid of cards.
+ *
+ * EXTRACTED, NOT DESIGNED. This is the `#why` band of
+ * src/pages/cosmetic-dentistry/clear-aligners.astro — `.why-grid` wrapping
+ * `<article class="why-card">`, each card a `.num`, an `<h3>`, a `p.lead` and a
+ * `<p>`. The class names are the page's own on purpose: the page stylesheet
+ * still styles them and keeps styling them until the stylesheet pass removes
+ * its copies, so a component that renamed them to `vs-card-grid__card` would
+ * unstyle the band the moment an editor's backfill filled `blocks`.
+ *
+ * `.why-grid` is the family's name for this grid on all sixteen pages that
+ * carry one, including the four implant pages where it holds four cards rather
+ * than two. It is not a name about the word "why".
+ *
+ * CARDS ARE NOT UNIFORM ACROSS THE FAMILY and the emptiness is meaningful:
+ * full-mouth-rehabilitation's cards carry a `.lead` and no `<p>`;
+ * single-tooth-dental-implants' carry a `<p>` and no `.lead`; this page's carry
+ * both. So every part of a card is rendered only when it has content. Emitting
+ * an empty `<p>` instead would add a 14px gap-flex row to two thirds of the
+ * cards on the site.
+ *
+ * SUB-FIELD WITH NO RENDERING: `cards[].href`. Nothing in the `.why-card`
+ * family is a link — there is no hover affordance, no arrow, no focus style for
+ * one — so inventing markup for it here would be designing, which this phase
+ * does not do. It is deliberately left out of the selection set as well: a
+ * field that is queried and dropped is worse than one that is not queried,
+ * because it reads as supported. When a link treatment is designed, it arrives
+ * as a PHP change, a registry change and a change here, together.
+ *
+ * Styles are co-located per docs/PAGE-BLOCKS.md 2.5, modelled on
+ * FinalBand.astro: no page namespace, `--vs-*` tokens directly, band as a
+ * prop, self-owned padding, zero margin.
+ */
+
+/** One row of the layout's `cards` repeater. */
+export interface CardGridCard {
+  /** Secondary line — a price, a stat value, a label. Drawn in `.num`. */
+  meta?: string | null;
+  title?: string | null;
+  lead?: string | null;
+  body?: string | null;
+}
+
+interface Props {
+  /** DOM id, already deduplicated by PageBlocks.astro. */
+  id?: string;
+  /** The same value as `id`. Accepted so the spread in PageBlocks is lossless. */
+  anchor?: string | null;
+  /** Rail label. Read by the page that builds the rail, not by this band. */
+  navLabel?: string | null;
+  band?: string | null;
+  eyebrow?: string | null;
+  /** May contain `<em>`, and nothing else (docs/PAGE-BLOCKS.md, Fact 3). */
+  heading?: string | null;
+  body?: string | null;
+  /** "2" | "3" | "4" — ACF returns the select's value as a string. */
+  columns?: string | number | null;
+  numbered?: boolean | null;
+  cards?: CardGridCard[] | null;
+}
+
+/**
+ * band value -> the modifier class the page's markup already uses.
+ *
+ * `paper` maps to nothing because the pilot's paper bands are a bare
+ * `class="section"`. `alt` and `dark` are inherited names and inherited
+ * liabilities — `.section.alt` is charcoal on porcelain-veneers.css and cream
+ * on teeth-whitening.css (Fact 4) — which is why the colour below is written
+ * against the band VALUE and the class is only the hook the un-migrated page
+ * sheet still needs.
+ */
+const BAND_CLASS: Record<string, string | undefined> = {
+  paper: undefined,
+  cream: "cream",
+  "sage-pale": "dark",
+  sage: "sage",
+  charcoal: "alt",
+};
+
+const {
+  id,
+  band = "paper",
+  eyebrow,
+  heading,
+  body,
+  columns,
+  numbered,
+  cards,
+} = Astro.props;
+
+const bandKey = typeof band === "string" && band !== "" ? band : "paper";
+const bandClass = BAND_CLASS[bandKey];
+
+/**
+ * The eyebrow carries `light` on the two bands the page spells `.section.dark`,
+ * and only there. Inert under the current cascade — `.section.dark .eyebrow`
+ * (0,3,0) already beats `.eyebrow.light` (0,2,0) — but it is in the HTML, so it
+ * has to be here or the diff that verifies this phase is not empty.
+ */
+const eyebrowLight = bandKey === "sage-pale" || bandKey === "sage";
+
+/**
+ * Two columns is the base, and the grid carries a modifier only when it is not.
+ *
+ * The default is 2 rather than the PHP field's 3 because a missing value has to
+ * degrade to the layout the markup already has, not to the editor-facing
+ * default. If the backfill ever failed to write `columns` for this band, a
+ * default of 3 would silently reflow a two-card grid into thirds, and the
+ * screenshot diff would be the first thing to notice.
+ *
+ * Emitting nothing at 2 is what keeps `class="why-grid"` the exact string the
+ * page ships today.
+ */
+const cols = String(columns ?? "2");
+const colsClass = cols === "3" || cols === "4" ? `cols-${cols}` : undefined;
+
+const rows = Array.isArray(cards) ? cards : [];
+
+const hasHead = Boolean(eyebrow || heading || body);
+
+/**
+ * The figure in `.num`.
+ *
+ * Numbered grids count from 01 — two digits, zero-padded, exactly as the
+ * fifteen hand-written instances in src/pages spell them. When the grid is not
+ * numbered the same slot holds `meta`, which is what the field's own help text
+ * describes it as ("a price, a stat value, a label"): one slot, one rule, and
+ * no card that shows both a number and a label.
+ */
+function figure(card: CardGridCard, index: number): string | null {
+  if (numbered) return String(index + 1).padStart(2, "0");
+  const meta = typeof card.meta === "string" ? card.meta.trim() : "";
+  return meta === "" ? null : meta;
+}
+---
+
+<section class:list={["section", bandClass]} id={id} data-vs-reveal-batch>
+  <div class="wrap">
+    {
+      hasHead && (
+        <div class="section-head">
+          {eyebrow && <span class:list={["eyebrow", eyebrowLight && "light"]}>{eyebrow}</span>}
+          {heading && (
+            <h2>
+              <Fragment set:html={heading} />
+            </h2>
+          )}
+          {body && <p>{body}</p>}
+        </div>
+      )
+    }
+
+    {
+      rows.length > 0 && (
+        <div class:list={["why-grid", colsClass]}>
+          {rows.map((card, i) => {
+            const num = figure(card, i);
+            return (
+              <article class="why-card">
+                {num && <div class="num">{num}</div>}
+                {card.title && <h3>{card.title}</h3>}
+                {card.lead && <p class="lead">{card.lead}</p>}
+                {card.body && <p>{card.body}</p>}
+              </article>
+            );
+          })}
+        </div>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  /* ---------- band shell ----------
+     `.section` owns its padding and has no margin at all, so this band cannot
+     collapse into whichever band an editor drags above or below it. Same rule
+     as FinalBand.astro. */
+  .section {
+    margin: 0;
+    padding: 110px 0;
+    background: var(--vs-paper);
+  }
+  .section.cream {
+    background: var(--vs-cream);
+  }
+  .section.dark {
+    background: var(--vs-sage-pale);
+  }
+  .section.sage {
+    background: var(--vs-sage);
+  }
+  .section.alt {
+    background: var(--vs-charcoal-green);
+  }
+
+  .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  .eyebrow {
+    font-family: var(--vs-font-body);
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+  }
+  .eyebrow.light {
+    color: var(--vs-eyebrow-on-sage);
+  }
+
+  /* h2 resolves to ink. The page sheet reaches that colour only through a
+     trailing override block whose comment says it works because of its file
+     position; a block that owns its cascade states the outcome once. */
+  h2 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    color: var(--vs-ink);
+    margin: 0;
+    line-height: 1.1;
+    letter-spacing: -0.022em;
+    font-size: clamp(32px, 4.2vw, 54px);
+  }
+  /* `:global()` because the `<em>` arrives through `set:html` and carries no
+     scope attribute — a plain `h2 em` compiles to `em[data-astro-cid]`, misses
+     it, and drops the accent colour from every heading on the site. */
+  h2 :global(em) {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+
+  p {
+    margin: 0;
+    color: var(--vs-ink-soft);
+  }
+
+  .section-head {
+    max-width: 760px;
+    margin: 0 auto 64px;
+    text-align: center;
+  }
+  .section-head .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .section-head .eyebrow::before,
+  .section-head .eyebrow::after {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+  .section-head h2 {
+    margin: 22px 0 22px;
+  }
+  .section-head p {
+    font-size: 17px;
+    line-height: 1.7;
+    max-width: 60ch;
+    margin: 0 auto;
+  }
+
+  /* ---------- band inversions ----------
+     Scoped to `.section-head`, not written band-wide. The cards sit on their
+     own white surface whatever the band is, so a band-wide
+     `.section.alt p { color: rgba(255,255,255,.85) }` — which is what the page
+     sheets do — paints white body copy onto a white card the first time an
+     editor drags this grid onto a charcoal band. The page sheets get away with
+     it only because no page currently pairs the two. This block has to survive
+     the pairing, because making it possible is the entire point of the phase. */
+  .section.alt .section-head h2,
+  .section.sage .section-head h2 {
+    color: #fff;
+  }
+  .section.alt .section-head h2 :global(em),
+  .section.sage .section-head h2 :global(em) {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .section.alt .section-head p,
+  .section.sage .section-head p {
+    color: rgba(255, 255, 255, 0.85);
+  }
+  .section.alt .section-head .eyebrow,
+  .section.sage .section-head .eyebrow {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .section.alt .section-head .eyebrow::before,
+  .section.alt .section-head .eyebrow::after,
+  .section.sage .section-head .eyebrow::before,
+  .section.sage .section-head .eyebrow::after {
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  .section.dark .section-head h2 {
+    color: var(--vs-ink);
+  }
+  .section.dark .section-head h2 :global(em) {
+    color: var(--vs-sage);
+  }
+  .section.dark .section-head p,
+  .section.dark .section-head .eyebrow {
+    color: var(--vs-ink-soft);
+  }
+  .section.dark .section-head .eyebrow::before,
+  .section.dark .section-head .eyebrow::after {
+    background: var(--vs-ink-soft);
+  }
+
+  /* ---------- grid ----------
+     Two across at 30px is this page's rule; three and four across carry the
+     tighter 18px gutter the four-card implant pages already use
+     (all-on-4-single-arch.css, bone-grafting.css), because four 30px gutters
+     inside 1240px leave the cards too narrow for a three-line title. */
+  .why-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+  }
+  .why-grid.cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+  }
+  .why-grid.cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+  }
+
+  .why-card {
+    background: #fff;
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-lg);
+    padding: 42px 38px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition:
+      transform 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+  .why-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--vs-shadow);
+  }
+  .why-card .num {
+    font-family: var(--vs-font-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: 36px;
+    color: var(--vs-sage-soft);
+    line-height: 1;
+  }
+  .why-card h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: 22px;
+    color: var(--vs-ink);
+    margin: 0;
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+  }
+  .why-card .lead {
+    font-family: var(--vs-font-display);
+    font-style: italic;
+    font-weight: 300;
+    color: var(--vs-sage);
+    font-size: 17px;
+    line-height: 1.45;
+    letter-spacing: -0.005em;
+  }
+  .why-card p {
+    font-size: 15px;
+    line-height: 1.75;
+    color: var(--vs-ink-soft);
+  }
+
+  /* Base and breakpoint rules live together, unlike the page sheets where 24
+     files keep a trailing "responsive" section physically separated from what
+     it modifies. */
+  @media (max-width: 991px) {
+    /* Two across collapses straight to one — two 42px-padded cards side by side
+       stop fitting their own type before they stop fitting the viewport. Three
+       and four go via two, which is what the implant sheets do. */
+    .why-grid {
+      grid-template-columns: 1fr;
+    }
+    .why-grid.cols-3,
+    .why-grid.cols-4 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  @media (max-width: 780px) {
+    .section {
+      padding: 70px 0;
+    }
+    .wrap {
+      padding: 0 22px;
+    }
+    .why-grid.cols-3,
+    .why-grid.cols-4 {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

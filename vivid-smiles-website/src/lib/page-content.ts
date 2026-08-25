@@ -12,7 +12,7 @@
 
 import { getEntry } from "astro:content";
 import { getImage } from "astro:assets";
-import { lookupBlock } from "../blocks/registry";
+import { isRegisteredLayout } from "../blocks/manifest";
 
 export type TocLink = { href: string; label: string };
 export type ProcessStep = { tag: string; num: string; title: string; body: string };
@@ -203,7 +203,7 @@ export async function getPageContent(route: string): Promise<PageContent> {
     //
     // Asking the registry instead means an unshipped layout degrades to "not
     // migrated yet", which is the honest answer and a visible one.
-    hasBlocks: blocks.some((block) => lookupBlock(block.__typename) !== undefined),
+    hasBlocks: blocks.some((block) => isRegisteredLayout(block.__typename)),
     section: (sectionId: string) =>
       sections.find((s) => s.section_id === sectionId) ?? EMPTY_SECTION,
     image: (slot: string) => {

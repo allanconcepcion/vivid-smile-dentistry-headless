@@ -1,0 +1,456 @@
+---
+/**
+ * ComparisonCardsBlock — the `comparison_cards` layout: this against that.
+ *
+ * Extracted from the `compare` band of
+ * src/pages/cosmetic-dentistry/clear-aligners.astro:290-336, not designed anew.
+ * The markup below is that band's markup — same elements, same order, same
+ * class names — because the phase is verified by diffing built HTML and a
+ * different wrapper changes the page the moment it is backfilled
+ * (docs/PAGE-BLOCKS.md 3.3).
+ *
+ * The same `.compare` / `.compare-card` shell is inline on nine templates
+ * today (both cosmetic and implant families), so this block lands ready-made
+ * on the whole Phase 3 list.
+ *
+ * ── The CTA row is component-owned, and why that is not "designing" ───────
+ * The band ends with a `.cta-row`: two Buttons and a `.cta-note`. The
+ * `comparison_cards` layout carries no CTA sub-fields (unlike `faq`, which has
+ * `cta_label`/`cta_href`), so there is nothing in the CMS to render it from —
+ * and 0 of 213 live section rows carry a CTA anyway, which is why the backfill
+ * map states the same conclusion at cms/import/block-map.json:90.
+ *
+ * It is drawn here as a literal because it is literally the same on every page
+ * that has it. All five `compare` bands in the detail-page family —
+ * clear-aligners, porcelain-veneers, teeth-whitening,
+ * full-mouth-dental-implants, single-tooth-dental-implants, all-on-4-single-arch
+ * — emit the identical pair and the identical note, character for character.
+ * That is the same argument FaqBlock.astro:211 makes for its phone button:
+ * unanimous site data, not page content, and giving an editor a field for it
+ * would only let them get it wrong on one page.
+ *
+ * PHASE 3 CAVEAT, so it is found before it bites: `smile-makeover.astro:288`
+ * and `full-mouth-rehabilitation.astro:233` reuse this same `.compare` shell
+ * for their `options` band and draw NO cta-row. Mapping those bands onto this
+ * layout adds a CTA row they never had. The fix is a `show_cta` boolean on the
+ * PHP layout, read here — not a heuristic on the anchor, which an editor can
+ * rename.
+ *
+ * `bullets` renders the `<ul>` variant the implant pages use
+ * (implant-dentistry.css:734-762). The pilot's three cards have no bullets, so
+ * on the pilot this branch never fires — it is here so Phase 3 does not have to
+ * reopen the component.
+ *
+ * NOTHING HERE THROWS. An editor triggers deploys and never sees the output
+ * (cms/mu-plugins/vs-deploy.php:142-158), so every field is read as if it might
+ * be missing, blank or the wrong type. Same rule as PageBlocks.astro.
+ *
+ * Spec: docs/PAGE-BLOCKS.md 1.2, 1.3 (Wave A), 2.5, 3.3.
+ */
+import Button from "../components/Button.astro";
+
+/**
+ * The five bands, mapped to the modifier this block writes on its own section.
+ *
+ * Read this map, not an ancestor class. `.section.alt` is charcoal green on
+ * clear-aligners.css:240 and cream on teeth-whitening.css:237 — Fact 4 — so a
+ * block that inherits its band is wrong on at least one page the moment a
+ * section is reordered, and the eyebrow rules below would paint themselves the
+ * colour of their own background (R2).
+ *
+ * `alt` and `dark` are kept as the modifier *names* for charcoal and pale sage
+ * because the acceptance test for this phase is that the block's markup matches
+ * the band it replaces, class attribute included. They no longer mean what the
+ * page sheets mean by them: the meaning is the four rules in <style> below,
+ * which this block carries onto any page it is dropped on.
+ *
+ * `paper` deliberately maps to no modifier at all — the pilot emits
+ * `class="section"` for a paper band, so adding one would be the diff.
+ */
+const BAND_MODIFIER: Record<string, string | null> = {
+  paper: null,
+  cream: "cream",
+  "sage-pale": "dark",
+  sage: "sage",
+  charcoal: "alt",
+};
+
+/** One line of a card's bullet list. ACF has no list-of-strings, so it is a
+ *  repeater with a single `item` sub-field (vs-content-model.php:299-315). */
+interface BulletRow {
+  item?: string | null;
+}
+
+interface CardRow {
+  tag?: string | null;
+  title?: string | null;
+  body?: string | null;
+  bullets?: BulletRow[] | null;
+  ribbon?: string | null;
+  featured?: boolean | null;
+}
+
+interface Props {
+  /** The DOM id, already deduplicated by PageBlocks.astro. Absent when blank. */
+  id?: string;
+  /** Passed by PageBlocks alongside `id`; unused here, accepted so the spread
+   *  of the whole block row does not land in the rest props of a typed
+   *  component that never declared it. */
+  anchor?: string;
+  band?: string | null;
+  eyebrow?: string | null;
+  /** May contain `<em>` and nothing else (Fact 3), so it is rendered set:html. */
+  heading?: string | null;
+  body?: string | null;
+  cards?: CardRow[] | null;
+}
+
+const { id, band, eyebrow, heading, body, cards } = Astro.props;
+
+// `?? null` rather than a default value: an unknown band from a future PHP
+// choice must fall through to the paper shell rather than emit a class with no
+// rule behind it.
+const bandKey = band ?? "paper";
+const bandModifier = BAND_MODIFIER[bandKey] ?? null;
+
+/** A solid button on a dark band has to be the light variant, not the sage one.
+ *  Same test as FaqBlock.astro:148, so the two bands agree on any page. */
+const isDarkBand = bandKey === "charcoal" || bandKey === "sage";
+
+const cardRows = Array.isArray(cards) ? cards : [];
+
+/** Trim once, here, so every `{x && …}` guard below is a test for real content
+ *  rather than for a field an editor left as a single space. */
+const text = (value: unknown): string =>
+  typeof value === "string" ? value.trim() : "";
+
+const eyebrowText = text(eyebrow);
+const headingHtml = text(heading);
+const bodyText = text(body);
+---
+
+<section class:list={["section", bandModifier]} id={id} data-vs-reveal-batch>
+  <div class="wrap">
+    <div class="section-head">
+      {eyebrowText && <span class="eyebrow">{eyebrowText}</span>}
+      {headingHtml && <h2><Fragment set:html={headingHtml} /></h2>}
+      {bodyText && <p>{bodyText}</p>}
+    </div>
+
+    <div class="compare">
+      {
+        cardRows.map((card) => {
+          const bullets = (Array.isArray(card?.bullets) ? card.bullets : [])
+            .map((row) => text(row?.item))
+            .filter((line) => line !== "");
+
+          const tag = text(card?.tag);
+          const title = text(card?.title);
+          const cardBody = text(card?.body);
+          const ribbon = text(card?.ribbon);
+
+          return (
+            <article class:list={["compare-card", card?.featured && "featured"]}>
+              {ribbon && <span class="ribbon">{ribbon}</span>}
+              {tag && <span class="tag">{tag}</span>}
+              {title && <h3>{title}</h3>}
+              {cardBody && <p>{cardBody}</p>}
+              {bullets.length > 0 && (
+                <ul>
+                  {bullets.map((line) => (
+                    <li>{line}</li>
+                  ))}
+                </ul>
+              )}
+            </article>
+          );
+        })
+      }
+    </div>
+
+    <div class="cta-row">
+      <div class="cta-buttons">
+        <Button
+          variant={isDarkBand ? "light" : "sage"}
+          href="#consult"
+          hoverLabel="Get a Video">Free Virtual Consult</Button
+        >
+        <Button
+          variant={isDarkBand ? "ghost-light" : "ghost"}
+          href="#faq"
+          hoverLabel="See Answers">Read FAQ</Button
+        >
+      </div>
+      <span class="cta-note">No commitment · Personal video reply</span>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* ── Band shell ───────────────────────────────────────────────────────────
+     Lifted from src/styles/pages/clear-aligners.css:228-283 with the
+     `.caligners` prefix stripped and the page's local `--sage` / `--ink` / …
+     aliases resolved back to the `--vs-*` tokens they alias one-for-one
+     (clear-aligners.css:24-42). Rendered values are unchanged.
+
+     The shell is repeated in each block rather than shared, because a shared
+     sheet is an ancestor by another name: the property that makes a block safe
+     to drop on any page is that nothing outside it decides how it looks (R3).
+     Astro scopes all of this to this component's elements. */
+  .section {
+    padding: 110px 0;
+    background: var(--vs-paper);
+  }
+  .section.cream { background: var(--vs-cream); }
+  .section.dark { background: var(--vs-sage-pale); }
+  .section.sage { background: var(--vs-sage); }
+  .section.alt { background: var(--vs-charcoal-green); }
+
+  /* Keep the heading clear of the stacked global Nav + sticky TOC when a rail
+     chip is clicked. The two custom properties are written onto the page
+     wrapper at runtime by the page script and inherit down; the fallbacks are
+     the desktop measurements, so a page that does not set them still lands in
+     the right place instead of under the nav. */
+  .section[id] {
+    scroll-margin-top: calc(var(--nav-h, 77px) + var(--toc-h, 68px) + 12px);
+  }
+
+  .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  /* ── Typography ─────────────────────────────────────────────────────────
+     h2 is ink rather than sage: the page sheet sets sage in its base rule and
+     then flips h2 to ink in its end-of-file override block
+     (clear-aligners.css:766). Collapsed to the value that actually renders,
+     which is the whole point of owning it here instead of inheriting a
+     source-order tie-break. */
+  .section-head h2 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    font-size: clamp(32px, 4.2vw, 54px);
+    letter-spacing: -0.022em;
+    line-height: 1.1;
+    color: var(--vs-ink);
+    margin: 22px 0 22px;
+  }
+  /* :global because the `<em>` arrives through set:html and therefore carries
+     no scope attribute — the same reason FinalBand.astro:87 reaches for it for
+     slotted content. Scope stays on `h2`, so this cannot leak. */
+  .section-head h2 :global(em) {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+  .section-head p {
+    font-size: 17px;
+    line-height: 1.7;
+    max-width: 60ch;
+    margin: 0 auto;
+    color: var(--vs-ink-soft);
+  }
+
+  .section-head {
+    max-width: 760px;
+    margin: 0 auto 64px;
+    text-align: center;
+  }
+  .eyebrow {
+    font-family: var(--vs-font-body);
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+  }
+  .section-head .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .section-head .eyebrow::before,
+  .section-head .eyebrow::after {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+
+  /* Band-conditional text, computed from this block's own modifier. */
+  .section.alt h2 { color: #fff; }
+  .section.alt h2 :global(em) { color: var(--vs-eyebrow-on-sage); }
+  .section.alt p { color: rgba(255, 255, 255, 0.85); }
+  .section.alt .eyebrow { color: var(--vs-eyebrow-on-sage); }
+  .section.alt .section-head .eyebrow::before,
+  .section.alt .section-head .eyebrow::after {
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  .section.dark h2 { color: var(--vs-ink); }
+  .section.dark h2 :global(em) { color: var(--vs-sage); }
+  .section.dark p { color: var(--vs-ink-soft); }
+  .section.dark .eyebrow { color: var(--vs-ink-soft); }
+  .section.dark .section-head .eyebrow::before,
+  .section.dark .section-head .eyebrow::after {
+    background: var(--vs-ink-soft);
+  }
+
+  .section.sage h2 { color: #fff; }
+  .section.sage h2 :global(em) { color: var(--vs-eyebrow-on-sage); }
+  .section.sage p { color: rgba(255, 255, 255, 0.85); }
+  .section.sage .eyebrow { color: var(--vs-eyebrow-on-sage); }
+  .section.sage .section-head .eyebrow::before,
+  .section.sage .section-head .eyebrow::after {
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  /* ── The cards ──────────────────────────────────────────────────────────
+     clear-aligners.css:374-410. Three columns is the pilot's value and the
+     value on porcelain-veneers; the implant family draws the same cards two
+     across. That is a `columns` sub-field the layout does not have yet, so it
+     is a Phase 3 decision, not something to guess at from the card count. */
+  .compare {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+  }
+  .compare-card {
+    background: var(--vs-paper);
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-lg);
+    padding: 36px 32px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: relative;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .compare-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--vs-shadow);
+  }
+  .compare-card .tag {
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+  }
+  .compare-card h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: 24px;
+    color: var(--vs-ink);
+    letter-spacing: -0.005em;
+    line-height: 1.1;
+    margin: 0;
+  }
+  .compare-card p {
+    font-size: 14.5px;
+    line-height: 1.75;
+    color: var(--vs-ink-soft);
+    margin: 0;
+  }
+  .compare-card.featured {
+    background: var(--vs-sage);
+    border-color: var(--vs-sage);
+  }
+  .compare-card.featured .tag { color: var(--vs-eyebrow-on-sage); }
+  .compare-card.featured h3 { color: #fff; }
+  .compare-card.featured p { color: rgba(255, 255, 255, 0.88); }
+  .compare-card .ribbon {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    border-radius: 999px;
+  }
+
+  /* The bullet variant, from implant-dentistry.css:734-762. `margin: auto 0 0`
+     is load-bearing: it pushes the list to the bottom of the flex column so
+     cards with different amounts of copy still line their lists up. */
+  .compare-card ul {
+    list-style: none;
+    padding: 0;
+    margin: auto 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .compare-card ul li {
+    position: relative;
+    padding-left: 22px;
+    font-family: var(--vs-font-body);
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: var(--vs-ink-soft);
+  }
+  .compare-card ul li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.72em;
+    width: 12px;
+    height: 1px;
+    background: var(--vs-ink-soft);
+  }
+  .compare-card.featured ul li { color: rgba(255, 255, 255, 0.88); }
+  .compare-card.featured ul li::before { background: rgba(255, 255, 255, 0.6); }
+
+  /* ── The CTA row ────────────────────────────────────────────────────────
+     clear-aligners.css:446-463. `.cta-note` is the one part of this band whose
+     colour the page sheet reads off the ancestor band (`.section.dark .cta-row
+     .cta-note`); computed from this block's own modifier instead, which is R2
+     fixed at the source rather than patched per page. */
+  .cta-row {
+    margin-top: 56px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+  }
+  .cta-row .cta-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+    justify-content: center;
+  }
+  .cta-row .cta-note {
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--vs-muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section.dark .cta-row .cta-note { color: var(--vs-ink-soft); }
+  .section.alt .cta-row .cta-note,
+  .section.sage .cta-row .cta-note { color: rgba(255, 255, 255, 0.7); }
+
+  /* ── Responsive ─────────────────────────────────────────────────────────
+     Re-united with the rules they modify rather than left in a trailing
+     "responsive" section 300 lines away (3.2, step 3). Breakpoints normalised
+     to the block set — 991 / 780 / 479 (FinalBand.astro:109,117). */
+  @media (max-width: 991px) {
+    .compare { grid-template-columns: 1fr; }
+  }
+
+  @media (max-width: 780px) {
+    .section { padding: 70px 0; }
+    .wrap { padding: 0 22px; }
+    .cta-row { margin-top: 36px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .compare-card { transition: none; }
+  }
+</style>
