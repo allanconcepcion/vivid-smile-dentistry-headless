@@ -213,7 +213,30 @@ ${BLOCKS_SELECTION}
 
     // graphql-php's own wording for a field that is not on the type. Its only
     // consequence is which of the two messages below gets logged.
-    if (/Cannot query field/i.test(detail)) {
+    // "Cannot query field \"blocks\"" means the mu-plugin is not deployed yet.
+    // "Cannot query field \"tag\" on type \"PageFieldsBlocksCards\"" means the
+    // mu-plugin IS deployed and one of OUR fragments asks for something that
+    // does not exist — a typo, or two layouts colliding on a repeater name so
+    // that one of them silently lost its sub-fields.
+    //
+    // graphql-php words both the same way, and treating the second as the first
+    // is how the whole feature switches itself off and reports a friendly
+    // message: that is exactly what happened the first time this ran against a
+    // deployed host. Only an error naming `blocks` itself is the benign one.
+    const missingBlocksField = /Cannot query field ["']blocks["']/i.test(detail);
+
+    if (!missingBlocksField && /Cannot query field/i.test(detail)) {
+      throw new Error(
+        "WordPress has the page-sections field, but this build asked it for something " +
+          "it does not have. That is a mismatch between the selection sets in " +
+          "src/blocks/manifest.ts and the layouts in cms/mu-plugins/vs-content-model.php — " +
+          "most often two layouts sharing a repeater name, which makes WPGraphQL merge " +
+          "their types and drop one side's fields.\n\n" +
+          detail,
+      );
+    }
+
+    if (missingBlocksField) {
       logger.info(
         "Page sections: not in WordPress yet, so every page is built from its " +
           "existing content. Run cms/bin/deploy-mu-plugins.sh to add them.",

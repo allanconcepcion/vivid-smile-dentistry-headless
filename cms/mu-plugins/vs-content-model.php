@@ -343,6 +343,62 @@ function block_image_field( string $key, string $label = 'Image', string $name =
  * page group below uses `repeater` and `flexible_content`, both of which ACF
  * charges for and SCF ships free. See cms/bin/setup.sh.
  */
+/**
+ * Refuse to let two block layouts share a repeater or group sub-field name.
+ *
+ * WPGraphQL for ACF derives a type name from the FIELD name, not from the
+ * layout that contains it. So two layouts that both call a repeater `cards`
+ * both want to be `PageFieldsBlocksCards`, one registration wins, and the
+ * loser's sub-fields become unqueryable — while the type itself still exists,
+ * so the schema looks fine.
+ *
+ * That is not a hypothetical. `card_grid.cards` and `comparison_cards.cards`
+ * collided exactly this way; the symptom was four "Cannot query field" errors
+ * naming fields the PHP plainly declares, and because the blocks capability
+ * probe cannot tell that apart from "the field is not deployed yet", the whole
+ * feature silently switched itself off and reported a friendly message.
+ *
+ * The cost of finding that again in Phase 3, with twenty more layouts, is a
+ * day. The cost of this function is a notice in the error log at registration.
+ * Sub-field names within a layout are free to repeat — only repeaters and
+ * groups mint types.
+ */
+function assert_unique_block_container_names( array $layouts ): void {
+	$owners = [];
+
+	foreach ( $layouts as $layout ) {
+		foreach ( ( $layout['sub_fields'] ?? [] ) as $field ) {
+			if ( ! in_array( $field['type'] ?? '', [ 'repeater', 'group' ], true ) ) {
+				continue;
+			}
+
+			$name = (string) ( $field['name'] ?? '' );
+			if ( '' === $name ) {
+				continue;
+			}
+
+			$owners[ $name ][] = (string) ( $layout['name'] ?? '?' );
+		}
+	}
+
+	foreach ( $owners as $name => $layout_names ) {
+		if ( count( $layout_names ) < 2 ) {
+			continue;
+		}
+
+		error_log(
+			sprintf(
+				'vs-content-model: block layouts %s all define a %s named "%s". '
+					. 'WPGraphQL names the type after the field, so only one of them will be '
+					. 'queryable. Rename all but one.',
+				implode( ', ', $layout_names ),
+				'repeater/group',
+				$name
+			)
+		);
+	}
+}
+
 function register_field_groups(): void {
 	if ( ! function_exists( 'acf_add_local_field_group' ) ) {
 		return;
@@ -1432,7 +1488,7 @@ function register_field_groups(): void {
 									[
 										'key'          => 'field_vs_blk_compare_cards',
 										'label'        => 'Cards',
-										'name'         => 'cards',
+										'name'         => 'tiers',
 										'type'         => 'repeater',
 										'layout'       => 'row',
 										'button_label' => 'Add card',
@@ -2466,3 +2522,24 @@ function register_post_warning_graphql(): void {
 	);
 }
 add_action( 'graphql_register_types', __NAMESPACE__ . '\\register_post_warning_graphql' );
+
+/**
+ * Run the collision check once ACF has the group, at a priority after the one
+ * that registers it. Reading the registered field rather than the literal means
+ * the check cannot drift from what was actually registered.
+ */
+add_action(
+	'acf/init',
+	static function (): void {
+		if ( ! function_exists( 'acf_get_local_field' ) ) {
+			return;
+		}
+
+		$field = acf_get_local_field( 'field_vs_blocks' );
+
+		if ( is_array( $field ) && ! empty( $field['layouts'] ) ) {
+			assert_unique_block_container_names( array_values( $field['layouts'] ) );
+		}
+	},
+	99
+);

@@ -102,10 +102,12 @@ interface Props {
   /** May contain `<em>` and nothing else (Fact 3), so it is rendered set:html. */
   heading?: string | null;
   body?: string | null;
-  cards?: CardRow[] | null;
+  /** Named `tiers` in PHP, not `cards`: card_grid.cards already mints
+   *  PageFieldsBlocksCards, and a second repeater of that name merges into it. */
+  tiers?: CardRow[] | null;
 }
 
-const { id, band, eyebrow, heading, body, cards } = Astro.props;
+const { id, band, eyebrow, heading, body, tiers } = Astro.props;
 
 // `?? null` rather than a default value: an unknown band from a future PHP
 // choice must fall through to the paper shell rather than emit a class with no
@@ -117,7 +119,7 @@ const bandModifier = BAND_MODIFIER[bandKey] ?? null;
  *  Same test as FaqBlock.astro:148, so the two bands agree on any page. */
 const isDarkBand = bandKey === "charcoal" || bandKey === "sage";
 
-const cardRows = Array.isArray(cards) ? cards : [];
+const cardRows = Array.isArray(tiers) ? tiers : [];
 
 /** Trim once, here, so every `{x && …}` guard below is a test for real content
  *  rather than for a field an editor left as a single space. */

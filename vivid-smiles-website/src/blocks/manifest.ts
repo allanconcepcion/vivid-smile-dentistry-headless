@@ -201,7 +201,7 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    */
   PageFieldsBlocksComparisonCardsLayout: {
     typeName: "PageFieldsBlocksComparisonCardsLayout",
-    fields: `${BLOCK_PREAMBLE_FIELDS} cards { tag title body bullets { item } ribbon featured }`,
+    fields: `${BLOCK_PREAMBLE_FIELDS} tiers { tag title body ribbon featured }`,
   },
 
   /**

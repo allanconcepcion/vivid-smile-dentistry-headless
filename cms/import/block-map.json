@@ -245,7 +245,7 @@
             }
           },
           "rows": {
-            "cards": {
+            "tiers": {
               "literal": [
                 {
                   "tag": "No Restrictions",
