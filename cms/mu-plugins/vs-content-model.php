@@ -429,56 +429,284 @@ function block_image_field( string $key, string $label = 'Image', string $name =
  * charges for and SCF ships free. See cms/bin/setup.sh.
  */
 /**
- * Refuse to let two block layouts share a repeater or group sub-field name.
+ * Refuse to let two containers mint the same GraphQL type.
  *
- * WPGraphQL for ACF derives a type name from the FIELD name, not from the
- * layout that contains it. So two layouts that both call a repeater `cards`
- * both want to be `PageFieldsBlocksCards`, one registration wins, and the
- * loser's sub-fields become unqueryable — while the type itself still exists,
- * so the schema looks fine.
+ * WPGraphQL for ACF names the type after the PATH OF FIELD NAMES, not after the
+ * layout that happens to contain them. Confirmed against the live schema by
+ * asking each container for a field it does not have and reading the type back
+ * out of the error:
  *
- * That is not a hypothetical. `card_grid.cards` and `comparison_cards.cards`
- * collided exactly this way; the symptom was four "Cannot query field" errors
- * naming fields the PHP plainly declares, and because the blocks capability
- * probe cannot tell that apart from "the field is not deployed yet", the whole
- * feature silently switched itself off and reported a friendly message.
+ *   pageFields > cards                         → PageFieldsCards
+ *   pageFields > hero > ctas                   → PageFieldsHeroCtas
+ *   pageFields > blocks > [card_grid] > cards  → PageFieldsBlocksCards
+ *   pageFields > blocks > [comparison_cards] > tiers > bullets
+ *                                              → PageFieldsBlocksTiersBullets
+ *   practiceSettingsFields > office_hours      → PracticeSettingsFieldsOfficeHours
  *
- * The cost of finding that again in Phase 3, with twenty more layouts, is a
- * day. The cost of this function is a notice in the error log at registration.
- * Sub-field names within a layout are free to repeat — only repeaters and
- * groups mint types.
+ * Three things follow, and all three are why this check is not a name tally.
+ *
+ * The LAYOUT contributes nothing. That is the card_grid/comparison_cards bug:
+ * both called a repeater `cards`, both wanted PageFieldsBlocksCards, card_grid
+ * registered first and won, and comparison_cards' sub-fields became unqueryable
+ * while the type itself still existed — so the schema looked healthy and the
+ * blocks capability probe read the resulting error as "not deployed yet" and
+ * switched the whole feature off.
+ *
+ * DEPTH DOES count, because every ancestor field name is in the type name. The
+ * top-level `cards` repeater (187 rows) and card_grid's `cards` are
+ * PageFieldsCards and PageFieldsBlocksCards — same name, different types, no
+ * collision. Both are queryable on the live schema right now, `group` on one and
+ * `lead` on the other, which is the proof. A guard that flagged that pair would
+ * cost a rename of 187 rows of live content for nothing.
+ *
+ * But the segments are CONCATENATED, so paths that are different can still
+ * arrive at one string: a top-level repeater named `blocks_cards` also mints
+ * PageFieldsBlocksCards. Hence the collision key here is the assembled type
+ * name, which catches the aliases as well as the obvious cases.
+ *
+ * Sub-field names within one container are free to repeat — only repeaters,
+ * groups and flexible-content layouts mint types.
+ *
+ * The cost of finding this again in Phase 3, with twenty more layouts, is a day.
+ * The cost of this function is a notice in the error log at registration. It
+ * logs and never throws: this is a must-use plugin, and one that dies takes
+ * wp-admin with it. A naming problem is not worth that.
  */
-function assert_unique_block_container_names( array $layouts ): void {
-	$owners = [];
 
-	foreach ( $layouts as $layout ) {
-		foreach ( ( $layout['sub_fields'] ?? [] ) as $field ) {
-			if ( ! in_array( $field['type'] ?? '', [ 'repeater', 'group' ], true ) ) {
-				continue;
-			}
+/**
+ * One segment of a GraphQL type name, formatted the way the schema will format
+ * it — `office_hours` becomes `OfficeHours`.
+ *
+ * Delegates to WPGraphQL's own formatter when it is loaded, because this string
+ * has to match the schema exactly and a private reimplementation that drifts
+ * from theirs would report collisions that do not exist. The fallback is only
+ * for the case where this runs before WPGraphQL does.
+ */
+function graphql_type_segment( string $name ): string {
+	if ( class_exists( '\WPGraphQL\Utils\Utils' ) ) {
+		if ( method_exists( '\WPGraphQL\Utils\Utils', 'format_type_name' ) ) {
+			return (string) \WPGraphQL\Utils\Utils::format_type_name( $name );
+		}
 
-			$name = (string) ( $field['name'] ?? '' );
-			if ( '' === $name ) {
-				continue;
-			}
-
-			$owners[ $name ][] = (string) ( $layout['name'] ?? '?' );
+		if ( method_exists( '\WPGraphQL\Utils\Utils', 'format_field_name' ) ) {
+			return ucfirst( (string) \WPGraphQL\Utils\Utils::format_field_name( $name ) );
 		}
 	}
 
-	foreach ( $owners as $name => $layout_names ) {
-		if ( count( $layout_names ) < 2 ) {
+	return str_replace( ' ', '', ucwords( (string) preg_replace( '/[^a-zA-Z0-9]+/', ' ', $name ) ) );
+}
+
+/**
+ * What a container holds, as a comparable string: each direct sub-field's name
+ * and type, sorted.
+ *
+ * Name AND type, because two containers merged under one type name resolve
+ * their values through whichever ACF field definition registered first. Same
+ * names carrying different types would hand a row to the wrong formatter.
+ *
+ * Direct sub-fields only. A container nested deeper mints a type of its own and
+ * is compared on its own terms by the walk below.
+ */
+function container_shape( array $fields ): string {
+	$shape = [];
+
+	foreach ( $fields as $field ) {
+		$shape[] = ( $field['name'] ?? '?' ) . ':' . ( $field['type'] ?? '?' );
+	}
+
+	sort( $shape );
+
+	return implode( ',', $shape );
+}
+
+/**
+ * Walk one level of the local field store, recording the type every container
+ * will mint, and recurse.
+ *
+ * Reads ACF's FLATTENED store rather than the literal arrays passed to
+ * acf_add_local_field_group(). acf_add_local_fields() runs every field through
+ * acf/prepare_field_for_import, and the repeater and flexible-content types use
+ * that hook to lift their children out into siblings carrying `parent` (and, for
+ * a layout's children, `parent_layout`) — class-acf-field-flexible-content.php
+ * calls acf_extract_var( $layout, 'sub_fields' ), which UNSETS them. So a
+ * registered layout has no sub_fields to read, and the previous version of this
+ * check — which walked `$field['layouts'][n]['sub_fields']` — iterated an empty
+ * array on every layout and could never have reported anything. It passed its
+ * own self-test because the test handed it the literal arrays.
+ *
+ * The flat store happens to model the type naming exactly: a layout's children
+ * hang off the flexible field, not off the layout, which is precisely why the
+ * layout name is absent from their type names.
+ *
+ * $layouts maps layout key to layout name, and is used only to write a path a
+ * human can follow back to the PHP. It never enters a type name.
+ */
+function walk_graphql_containers( array $fields, string $type_prefix, string $path, array $layouts, array &$found, int $depth = 0 ): void {
+	// The store is a tree, so this cannot recurse forever unless the store is
+	// malformed — in which case a must-use plugin looping is a white screen on
+	// wp-admin. Ten is far deeper than any field group here.
+	if ( $depth > 10 ) {
+		error_log( 'vs-content-model: field nesting deeper than 10 at ' . $path . '; the type-name check stopped there.' );
+
+		return;
+	}
+
+	foreach ( $fields as $field ) {
+		$type = (string) ( $field['type'] ?? '' );
+		$name = (string) ( $field['name'] ?? '' );
+
+		$is_container = in_array( $type, [ 'repeater', 'group' ], true );
+		$is_flexible  = 'flexible_content' === $type;
+
+		if ( '' === $name || ( ! $is_container && ! $is_flexible ) ) {
+			continue;
+		}
+
+		// A field kept out of the schema mints no type and cannot collide.
+		if ( isset( $field['show_in_graphql'] ) && ! $field['show_in_graphql'] ) {
+			continue;
+		}
+
+		$in_layout = (string) ( $layouts[ $field['parent_layout'] ?? '' ] ?? '' );
+		$here      = $path . ( '' !== $in_layout ? ' > [' . $in_layout . ']' : '' ) . ' > ' . $name;
+
+		// wpgraphql-acf builds the segment from `graphql_field_name` when a field
+		// carries one, and falls back to the field name. Nothing here sets it, but
+		// reading it means the guard stays right if something ever does.
+		$type_name = $type_prefix . graphql_type_segment( (string) ( $field['graphql_field_name'] ?? $name ) );
+		$children  = function_exists( 'acf_get_local_fields' ) ? array_values( acf_get_local_fields( (string) ( $field['key'] ?? '' ) ) ) : [];
+
+		if ( $is_container ) {
+			$found[ $type_name ][] = [
+				'path'  => $here,
+				'shape' => container_shape( $children ),
+			];
+		}
+
+		$child_layouts = [];
+
+		if ( $is_flexible ) {
+			foreach ( ( $field['layouts'] ?? [] ) as $layout ) {
+				$layout_key  = (string) ( $layout['key'] ?? '' );
+				$layout_name = (string) ( $layout['name'] ?? '' );
+
+				if ( '' === $layout_name ) {
+					continue;
+				}
+
+				$child_layouts[ $layout_key ] = $layout_name;
+
+				// Layouts mint a type each, on the pattern confirmed live by
+				// PageFieldsBlocksCardGridLayout. Two layouts sharing a name would
+				// merge the same way a repeater pair does, and ACF does not stop
+				// you registering the same layout name twice.
+				$found[ $type_name . graphql_type_segment( $layout_name ) . 'Layout' ][] = [
+					// The key as well as the name, because the one way two layouts land
+					// on one type is by sharing a name — and then the name alone names
+					// both sides of the report identically.
+					'path'  => $here . ' > [' . $layout_name . ' / ' . $layout_key . ']',
+					'shape' => container_shape(
+						array_filter(
+							$children,
+							static function ( array $child ) use ( $layout_key ): bool {
+								return ( $child['parent_layout'] ?? '' ) === $layout_key;
+							}
+						)
+					),
+				];
+			}
+		}
+
+		walk_graphql_containers( $children, $type_name, $here, $child_layouts, $found, $depth + 1 );
+	}
+}
+
+/**
+ * Every container type the locally registered field groups will mint, keyed by
+ * type name.
+ *
+ * All groups, not just the page group's `blocks` field: the page group has six
+ * other repeaters and a group, Practice Settings has one, and any of them can
+ * be the other half of a collision.
+ */
+function collect_graphql_container_types(): array {
+	if ( ! function_exists( 'acf_get_local_field_groups' ) || ! function_exists( 'acf_get_local_fields' ) ) {
+		return [];
+	}
+
+	$found = [];
+
+	foreach ( acf_get_local_field_groups() as $group ) {
+		// A group kept out of the schema mints no types at all.
+		if ( empty( $group['show_in_graphql'] ) ) {
+			continue;
+		}
+
+		$prefix = graphql_type_segment( (string) ( $group['graphql_field_name'] ?? '' ) );
+		$key    = (string) ( $group['key'] ?? '' );
+
+		if ( '' === $prefix || '' === $key ) {
+			continue;
+		}
+
+		walk_graphql_containers(
+			array_values( acf_get_local_fields( $key ) ),
+			$prefix,
+			(string) ( $group['graphql_field_name'] ?? $key ),
+			[],
+			$found
+		);
+	}
+
+	return $found;
+}
+
+/**
+ * Report every type name claimed by more than one container.
+ *
+ * Two shapes under one name is the bug that cost Phase 2 a day. One shape under
+ * one name is reported too, but worded differently and deliberately not as the
+ * same fault: the query still validates, so nothing is visibly broken today.
+ * What is NOT established is which of the two ACF definitions backs the
+ * resolver once rows exist — the Phase 2 confirmation was schema-level, taken
+ * while every `blocks` field was still empty. Either way it is a trap with a
+ * fuse on it: add a sub-field to one side and it is silently unqueryable, with
+ * a healthy-looking schema saying otherwise.
+ */
+function assert_unique_graphql_type_names(): void {
+	foreach ( collect_graphql_container_types() as $type_name => $sites ) {
+		if ( count( $sites ) < 2 ) {
+			continue;
+		}
+
+		$paths  = implode( ' and ', array_column( $sites, 'path' ) );
+		$shapes = array_unique( array_column( $sites, 'shape' ) );
+		$verb   = count( $sites ) > 2 ? 'all mint' : 'both mint';
+
+		if ( count( $shapes ) > 1 ) {
+			error_log(
+				sprintf(
+					'vs-content-model: %s %s the GraphQL type "%s", and their fields differ. '
+						. 'Only the one registered first is queryable; the others keep the type and lose '
+						. 'their fields, so the schema still looks healthy. Rename all but one.',
+					$paths,
+					$verb,
+					$type_name
+				)
+			);
+
 			continue;
 		}
 
 		error_log(
 			sprintf(
-				'vs-content-model: block layouts %s all define a %s named "%s". '
-					. 'WPGraphQL names the type after the field, so only one of them will be '
-					. 'queryable. Rename all but one.',
-				implode( ', ', $layout_names ),
-				'repeater/group',
-				$name
+				'vs-content-model: %s %s the GraphQL type "%s" with identical fields. '
+					. 'Queries validate today, but they are one type: give any side a sub-field the '
+					. 'others lack and it will be unqueryable with nothing in the schema to say so. '
+					. 'Rename all but one.',
+				$paths,
+				$verb,
+				$type_name
 			)
 		);
 	}
@@ -1734,8 +1962,8 @@ function register_field_groups(): void {
 						 * should meet the seven they can fill in first.
 						 *
 						 * No repeater and no group, so it mints no GraphQL type of its
-						 * own and gives assert_unique_block_container_names() nothing
-						 * to catch.
+						 * own and gives assert_unique_graphql_type_names() nothing to
+						 * catch.
 						 *
 						 * FOR THE ASTRO SIDE: pass this row's `anchor` into the
 						 * component as its id rather than letting the component keep
@@ -2672,22 +2900,12 @@ function register_post_warning_graphql(): void {
 add_action( 'graphql_register_types', __NAMESPACE__ . '\\register_post_warning_graphql' );
 
 /**
- * Run the collision check once ACF has the group, at a priority after the one
- * that registers it. Reading the registered field rather than the literal means
- * the check cannot drift from what was actually registered.
+ * Run the collision check once every group is registered.
+ *
+ * `acf/include_fields` is where all five groups register — this one, Practice
+ * Settings and the menu group — and ACF fires it earlier in the same `init`
+ * callback that ends with `acf/init`, so by here the local store is complete.
+ * Reading the store rather than the literal arrays means the check sees what
+ * ACF actually kept, which is not the same shape as what was handed to it.
  */
-add_action(
-	'acf/init',
-	static function (): void {
-		if ( ! function_exists( 'acf_get_local_field' ) ) {
-			return;
-		}
-
-		$field = acf_get_local_field( 'field_vs_blocks' );
-
-		if ( is_array( $field ) && ! empty( $field['layouts'] ) ) {
-			assert_unique_block_container_names( array_values( $field['layouts'] ) );
-		}
-	},
-	99
-);
+add_action( 'acf/init', __NAMESPACE__ . '\\assert_unique_graphql_type_names', 99 );
