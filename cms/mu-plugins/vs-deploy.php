@@ -76,6 +76,17 @@ const DEBOUNCE_SECONDS = 120;
  */
 const RETRY_SECONDS = 60;
 
+/**
+ * How long a due-but-unrun build is treated as merely in progress.
+ *
+ * WP-Cron is not a scheduler; it runs on an incoming request. A build a few
+ * seconds past due is normal on a quiet site and means nothing is wrong. Past
+ * this, on a site with any traffic at all, the event is not late — it is stuck,
+ * usually because DISABLE_WP_CRON is set on the host with no system cron behind
+ * it. That is worth saying out loud rather than counting down forever.
+ */
+const OVERDUE_SECONDS = 300;
+
 const CRON_HOOK      = 'vs_deploy_build';
 const PENDING_OPTION = 'vs_deploy_pending';
 const RESULT_OPTION  = 'vs_deploy_last_result';
@@ -164,18 +175,23 @@ add_action( 'acf/save_post', __NAMESPACE__ . '\\on_options_save', 20 );
  * Call the hook. Runs on cron, never inside an editor's request.
  */
 function build(): void {
+	// State is consumed with the event that carried it, BEFORE the hook URL is
+	// checked. Doing it the other way round leaks both flags whenever the
+	// constant has gone missing between the edit and the build — which is not
+	// hypothetical: docs/CUTOVER-PROMPT.md documents a step that removes it. The
+	// leak is quiet and it bites later, because a stale retry flag makes the
+	// next genuine first attempt believe it has already retried, and silently
+	// spend the one retry it was entitled to.
+	$pending = get_option( PENDING_OPTION );
+	delete_option( PENDING_OPTION );
+
+	$is_retry = (bool) get_option( RETRY_OPTION );
+	delete_option( RETRY_OPTION );
+
 	$url = hook_url();
 	if ( '' === $url ) {
 		return;
 	}
-
-	$pending = get_option( PENDING_OPTION );
-	delete_option( PENDING_OPTION );
-
-	// Consumed with the event that carried it, exactly like the pending record.
-	// Whatever happens below, this run has spent the one retry.
-	$is_retry = (bool) get_option( RETRY_OPTION );
-	delete_option( RETRY_OPTION );
 
 	$response = wp_remote_post(
 		$url,
@@ -254,6 +270,43 @@ function pending_notice(): void {
 		return;
 	}
 
+	$seconds_late = time() - $next;
+
+	// Overdue past the grace window: scheduled tasks are not running on this
+	// site, so the build is not coming. The old `max( 1, ... )` here reported
+	// "about 1 minute" forever in exactly this state — a countdown that never
+	// counted down, which is worse than saying nothing.
+	if ( $seconds_late > OVERDUE_SECONDS ) {
+		// failure_notice() covers this same ground and carries the diagnosis an
+		// administrator needs, so it speaks alone when there is a failure on
+		// record. Two warnings agreeing with each other is still two warnings,
+		// and the second one teaches the reader to skim.
+		$result = get_option( RESULT_OPTION );
+
+		if ( is_array( $result ) && isset( $result['ok'] ) && ! $result['ok'] ) {
+			return;
+		}
+
+		printf(
+			'<div class="notice notice-warning"><p>%s</p></div>',
+			esc_html__(
+				'The website rebuild has not started. Your changes are saved, but the live '
+				. 'site has not been updated — please pass this on to whoever looks after the website.'
+			)
+		);
+
+		return;
+	}
+
+	if ( $seconds_late >= 0 ) {
+		printf(
+			'<div class="notice notice-info"><p>%s</p></div>',
+			esc_html__( 'Front-end rebuild in progress — the live site updates shortly.' )
+		);
+
+		return;
+	}
+
 	$minutes = max( 1, (int) ceil( ( $next - time() ) / 60 ) );
 
 	printf(
@@ -316,7 +369,13 @@ function failure_notice(): void {
 	// about to be superseded one way or the other. Two notices contradicting
 	// each other on the same screen would teach an editor to read neither. If
 	// the queued build fails as well, this comes straight back.
-	if ( wp_next_scheduled( CRON_HOOK ) ) {
+	// Deliberately `> time()` rather than a bare truthiness test. A stalled
+	// WP-Cron leaves the event scheduled in the past forever, and treating that
+	// as "a build is coming" would suppress this notice permanently — the exact
+	// silence this function exists to break.
+	$next = wp_next_scheduled( CRON_HOOK );
+
+	if ( $next && $next > time() ) {
 		return;
 	}
 
