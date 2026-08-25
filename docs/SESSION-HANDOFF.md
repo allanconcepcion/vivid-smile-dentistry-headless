@@ -98,8 +98,10 @@ Manager 8.0.4 is still installed, merely deactivated** — one click from live o
 internet-facing admin, on a plugin with a long history of remote-code-execution bugs. Hello Dolly
 is the plugin that is actually gone. Verified in wp-admin: All (10), Active (7), Inactive (3).
 
-**README drift:** `cms/README.md` says eleven plugins and lists Hello Dolly. There are ten.
-Auto-updates are off for the five setup plugins and on for the other five, which is correct.
+**README drift: resolved.** Re-checked 13 August 2026 — `cms/README.md` lists the same ten
+plugins as the table above and records that Hello Dolly was removed, so the two no longer
+disagree. Auto-updates are off for the five setup plugins and on for the other five, which
+is correct.
 
 **Must-use plugins on the host = 10:** Object Cache Pro (MU), GoDaddy's System Plugin, and eight
 `vs-*` plugins. **`vs-deploy.php` IS among them** — it appears in wp-admin under Must-Use as
@@ -207,7 +209,7 @@ history right now and nobody has rotated it.
    (issue 5), and the host's SSH/SFTP password, which was pasted into a chat transcript on
    13 August. GoDaddy dashboard, site Settings, SSH/SFTP. A key would remove the second one
    permanently.
-3. Decide what to do about WP File Manager — delete it, or accept an inactive RCE-history plugin
+2. Decide what to do about WP File Manager — delete it, or accept an inactive RCE-history plugin
    on a public admin. Same question for All-in-One WP Migration, which is still active.
-4. Verify anything this file claims before acting on it. Two of its three highest-priority items
+3. Verify anything this file claims before acting on it. Two of its three highest-priority items
    were stale within a day.
