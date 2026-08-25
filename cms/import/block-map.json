@@ -49,10 +49,26 @@
       "every one before it plans anything and stops while any is missing, rather than writing",
       "rows whose sub-fields ACF would drop without a word.",
       "",
-      "Empty: all seven layouts the pilot needs are registered in the repository. That is not",
-      "the same as being on the CMS host, which is a separate check the backfill makes first",
-      "and which fails today — see the file header of backfill-blocks.php."
-    ]
+      "Not empty. Seven of the eight layouts the pilot needs are registered in the repository;",
+      "`code_section` is the eighth and is registered nowhere — not in vs-content-model.php, not",
+      "in src/blocks/manifest.ts, not in src/blocks/registry.ts. Phase 1 deferred it reasoning",
+      "that the pilot needed none of them; the pilot needs exactly one, and the page moved a band",
+      "while it was missing. See the `code_section` row in the route below.",
+      "",
+      "Being registered in the repository is also not the same as being on the CMS host, which",
+      "is a separate check the backfill makes first — see the file header of backfill-blocks.php."
+    ],
+    "code_section": {
+      "spec": "docs/PAGE-BLOCKS.md 1.3, \"The escape hatch — code_section\". A layout with no editable content: it names a band that stays in code, and an editor can move it and delete it but cannot author it. That is the whole difference between \"stays in code\" and \"cannot be positioned\", and conflating the two is what put LocalTrust at the bottom of this page.",
+      "sub_fields": {
+        "anchor": "text. The band's DOM id. Carried, not generated: it is a public address — inbound links, the derived rail, and every scroll-margin-top target key off it.",
+        "nav_label": "text. Filled by the backfill from the `toc_links` row whose anchor matches, exactly as it is for every other layout. This is what puts a code-owned band back in the rail.",
+        "band": "select, readonly. The band's own background, so the page's rhythm is visible in the editor without being editable — the component owns the colour.",
+        "band_key": "select, readonly label, closed list. Names which bespoke band this row holds the place of. One choice is needed today: local_trust -> vivid-smiles-website/src/components/LocalTrust.astro."
+      },
+      "no_preamble": "No eyebrow/heading/body. src/blocks/manifest.ts:85-88 says so in as many words — code_section is `anchor navLabel band bandKey` and nothing else, and asking it for `heading` fails query validation for every page on the site rather than for this one.",
+      "no_containers": "No repeaters and no groups, so assert_unique_block_container_names() (vs-content-model.php:366) has nothing to collide here. It is the one layout that cannot trip that check."
+    }
   },
   "routes": {
     "/cosmetic-dentistry/clear-aligners/": {
@@ -61,7 +77,9 @@
       "wrapper_class": "caligners",
       "notes": [
         "The pilot. Its 8 `sections` rows are in exactly the order of its 8 template bands, so",
-        "the list below is the page top to bottom with nothing reordered.",
+        "the list below is the page top to bottom with nothing reordered. It is 9 rows and not 8:",
+        "the extra one is a `code_section` at position 7, holding the place of the LocalTrust band,",
+        "which has no `sections` row and never had one. Last note in this list.",
         "",
         "BAND VOCABULARY IS INVERTED ON THIS PAGE, as it is on several others. `.section.alt`",
         "is the DARK one (clear-aligners.css:240 -> --vs-charcoal-green) and `.section.dark` is",
@@ -86,9 +104,16 @@
         "this map gets the primary button right and the secondary is gone. Named in",
         "`known_gaps` on that block so the harness diff has an explanation waiting for it.",
         "",
-        "THE LOCALTRUST BAND SITS BETWEEN `lasting` AND `gallery` AND IS NOT IN THIS LIST. See",
-        "`exempt.toc_links` below — it is the one thing on this route that a blocks-derived rail",
-        "does not reproduce, and it is called out rather than left to be discovered."
+        "THE LOCALTRUST BAND SITS BETWEEN `lasting` AND `gallery` AND IS NOW IN THIS LIST, at",
+        "position 7, as a `code_section`. It was left out on the first pass and the page paid for",
+        "it: PageBlocks draws the whole block run where `why` used to start (clear-aligners.astro:269)",
+        "while the template's <LocalTrust> stays at :494, so the band that belongs between `lasting`",
+        "and `gallery` came out after `faq`. Template order stopped being page order the moment the",
+        "blocks took over, and a band that is not in the list has no position in it.",
+        "",
+        "Nothing about the band itself changes. It is still drawn by LocalTrust.astro with the props",
+        "clear-aligners.astro gives it, and it is still not editable. Only its POSITION moves into",
+        "the ordered list, which is what code_section is for — docs/PAGE-BLOCKS.md 1.3 and 1.4 step 5."
       ],
       "blocks": [
         {
@@ -381,6 +406,55 @@
           }
         },
         {
+          "anchor": "local",
+          "layout": "code_section",
+          "band": "cream",
+          "band_evidence": "LocalTrust.astro:81 <section class:list={[\"vs-lt\", `vs-lt--${background}`]}> with `background` defaulted to \"cream\" at :65 — clear-aligners.astro:494 passes no `background`. .vs-lt { background: var(--vs-cream) } at LocalTrust.astro:142. Read off the component's own stylesheet, same rule as every other band here.",
+          "fields": {
+            "band_key": {
+              "literal": "local_trust",
+              "from_template": "clear-aligners.astro:494-499 — the <LocalTrust ... /> invocation this row holds the place of. The key names the component; it does not carry the component's copy."
+            }
+          },
+          "no_section_id_note": "Every other block here opens with `section_id` because it is built from a `sections` row. This one is not built from anything, so it names its `anchor` directly — which `defaults.anchor` already permits, and which is the only address this band has ever had: LocalTrust.astro:64 defaults `id` to \"local\".",
+          "position_evidence": "clear-aligners.astro:494 — the invocation sits after the `lasting` guard closes and before the `gallery` guard opens. Position 7 in this list is that spot. The pre-migration build renders lasting, local, gallery, faq; the blocks build rendered local last, because PageBlocks sits at :269 and the invocation is outside it.",
+          "one_row_not_two": [
+            "A CLASS-PREFIX READING OF THE BUILT HTML FINDS LOCAL-TRUST TWICE. There is one band.",
+            "The first hit is the scoped <style> Astro hoists into <head> for LocalTrust.astro —",
+            "`.vs-lt { ... }`, which on the built page precedes <body> — and a stylesheet is not a",
+            "band. It reads at position 1 both before and after the migration, which is the tell: the",
+            "band moved and that did not, because a rule in <head> has nowhere to move to. Anything",
+            "counting bands by class prefix has to skip <head>, or it will keep reporting this.",
+            "",
+            "clear-aligners.astro imports LocalTrust once (:34) and invokes it once (:494), and the",
+            "built page carries exactly one id=\"local\" and one <section class=\"vs-lt\">. So this is ONE",
+            "row. A second one would put an empty LocalTrust band on the page, and PageBlocks would",
+            "rename its anchor to #local-2 (PageBlocks.astro:72-82) — breaking the rail entry and the",
+            "inbound links that this row exists to keep pointing at the same element."
+          ],
+          "nav_label_note": "Resolves to \"Parker, CO\" from the `toc_links` row whose anchor is `local`, by the same default every other block uses. That is the row that used to sit under `exempt.toc_links`; claiming the anchor here is what brings the rail entry back, and it is why that list is now empty.",
+          "known_gaps": [
+            "code_section is registered nowhere, so `pending_layouts` above is no longer empty and the",
+            "migration screen stops at preflight until vs-content-model.php registers it. That is a",
+            "deploy, and the contract it has to satisfy is written out in that entry.",
+            "",
+            "vs_bb_plan_route() requires a `sections` row for every block — backfill-blocks.php:438-460",
+            "fails a block with no `section_id`, and then fails one whose `section_id` names no row. A",
+            "code_section has no row by definition, so the planner needs to let a block that names an",
+            "`anchor` and no `section_id` through with an empty section. Nothing else in the planner",
+            "needs to know: `fields` here asks for nothing from a section, and the toc_links claim is",
+            "already keyed on the anchor rather than on the section id (:476-479).",
+            "",
+            "THE BAND'S COPY STAYS IN THE TEMPLATE, and band_key does not carry it. heading,",
+            "headingItalic, intro and body are hardcoded at clear-aligners.astro:494-499, so a renderer",
+            "that drew LocalTrust from band_key alone would print some other page's heading here — a",
+            "visible change, which is the one thing this file exists to prevent. Whoever writes the",
+            "code_section renderer keeps the invocation where it is and renders it at this row's",
+            "position. Moving that copy into the CMS is `map_visit`, Wave B, Phase 4, and that layout",
+            "REPLACES this row rather than joining it — two rows for one band is the #local-2 fault above."
+          ]
+        },
+        {
           "section_id": "gallery",
           "layout": "gallery_marquee",
           "band": "sage-pale",
@@ -459,30 +533,26 @@
             "renders_today": "clear-aligners.astro hero <header class=\"hero\">"
           }
         ],
-        "toc_links": [
-          {
-            "anchor": "local",
-            "label": "Parker, CO",
-            "reason": "It points at the LocalTrust band, which sits between `lasting` and `gallery` (clear-aligners.astro:395-400). That band is a shared component with no `sections` row behind it and no layout registered for it yet — `map_visit`, Wave B, Phase 4.",
-            "read_this_before_running": [
-              "This is the one row on this route with a consequence, so it is spelled out rather",
-              "than filed away.",
-              "",
-              "The rail is derived from blocks[].anchor + nav_label in block order. The 8 blocks",
-              "above produce 7 rail entries — gallery has no toc_links row — and #local is not",
-              "among them, because no block covers the band it points at. A page that renders its",
-              "rail from blocks alone therefore loses the \"Parker, CO\" entry, while the LocalTrust",
-              "section itself still renders, still carries id=\"local\" (LocalTrust.astro:66 default),",
-              "and is still reachable by anyone holding that link.",
-              "",
-              "One rail entry, and it is a visible difference the harness will report. Whoever ships",
-              "the pilot renderer has to decide it deliberately, one of:",
-              "  a. keep the LocalTrust band and its rail entry in the template alongside PageBlocks;",
-              "  b. bring `map_visit` forward from Phase 4 and add a 9th block here at position 7;",
-              "  c. accept losing the entry, and say so.",
-              "Nothing in this file or in backfill-blocks.php picks for them."
-            ]
-          }
+        "toc_links": [],
+        "toc_links_decision": [
+          "EMPTY ON PURPOSE, AND IT USED TO HOLD THE `local` ROW. That row — anchor `local`, label",
+          "\"Parker, CO\" — was listed here as not migrated, on the reasoning that it points at the",
+          "LocalTrust band and no block covered that band. The reasoning was sound and the premise",
+          "is now false: position 7 above is a `code_section` whose anchor is `local`, so the block",
+          "list covers the band and vs_bb_plan_route() claims the row on the anchor",
+          "(backfill-blocks.php:476-479).",
+          "",
+          "The rail is derived from blocks[].anchor + nav_label in block order. Nine blocks now",
+          "produce 8 rail entries — `gallery` still has no toc_links row and still stays out — and",
+          "\"Parker, CO\" is among them, in its old position between \"Daily Care\" and \"FAQ\". The",
+          "template build produces the same 8, so the rail is no longer a difference at all.",
+          "",
+          "Leaving the row here as well would not fail the run, but it would print \"not migrated —",
+          "toc_links \"local\"\" on every migration from now on (backfill-blocks.php:682-699), which is",
+          "a warning that stopped being true. Of the three choices this list used to offer — keep the",
+          "band in the template, bring `map_visit` forward, or accept losing the entry — none was",
+          "taken. `code_section` is a fourth: the band keeps its position and its rail entry without",
+          "becoming editable, which is the one thing the other three each had to give up."
         ]
       }
     }

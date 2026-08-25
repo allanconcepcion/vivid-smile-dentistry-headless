@@ -74,11 +74,6 @@
 // The map is located the way every other importer locates its payload, off
 // WP_CONTENT_DIR.
 
-if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
-	fwrite( STDERR, "Run through WP-CLI.\n" );
-	exit( 1 );
-}
-
 /**
  * The page whose _vs_route meta matches, or 0.
  *
@@ -444,8 +439,55 @@ function vs_bb_plan_route( $route, $config, $shapes ) {
 		$layout     = (string) ( $block['layout'] ?? '' );
 		$where      = sprintf( 'block %d (%s)', $index + 1, $section_id !== '' ? $section_id : $layout );
 
-		if ( '' === $section_id || '' === $layout ) {
-			$plan['errors'][] = "{$where}: needs both section_id and layout";
+		// A block that draws none of the page's copy has no sections row to come
+		// from, and demanding one would make it unmappable. code_section is the
+		// case: its whole content is a band_key naming a band the SITE draws, so
+		// it exists in the list purely to hold that band's POSITION among the
+		// rows an editor can reorder.
+		//
+		// Detected by shape rather than by layout name — a hard-coded
+		// "code_section" here would have to be extended for every future
+		// position-only layout, and the thing that actually matters is whether
+		// this block claims any of the page's content.
+		// "Draws content" means READS FROM THE PAGE, not "has a mapping". A
+		// literal is written by the map itself and needs no sections row —
+		// code_section's whole content is `band_key: {literal: …}`, so counting
+		// literals here made the one layout this branch exists for fail
+		// validation.
+		$draws_content = false;
+
+		foreach ( (array) ( $block['fields'] ?? [] ) as $mapping ) {
+			if ( is_array( $mapping ) && ! array_key_exists( 'literal', $mapping ) ) {
+				$draws_content = true;
+				break;
+			}
+		}
+
+		if ( ! $draws_content ) {
+			foreach ( (array) ( $block['rows'] ?? [] ) as $mapping ) {
+				if ( is_array( $mapping ) && ! array_key_exists( 'literal', $mapping ) ) {
+					$draws_content = true;
+					break;
+				}
+			}
+		}
+
+		if ( '' === $layout ) {
+			$plan['errors'][] = "{$where}: needs a layout";
+			continue;
+		}
+
+		if ( '' === $section_id && $draws_content ) {
+			$plan['errors'][] = "{$where}: needs a section_id, because it maps fields or rows off the page";
+			continue;
+		}
+
+		if ( '' === $section_id && '' === (string) ( $block['anchor'] ?? '' ) ) {
+			$plan['errors'][] = sprintf(
+				'%s: a block with no section_id must name an `anchor`, or it cannot be linked to and '
+					. 'drops out of the "On this page" rail.',
+				$where
+			);
 			continue;
 		}
 
@@ -461,13 +503,17 @@ function vs_bb_plan_route( $route, $config, $shapes ) {
 
 		$shape = $shapes[ $layout ];
 
-		if ( ! isset( $sources['sections'][ $section_id ] ) ) {
-			$plan['errors'][] = "{$where}: the page has no sections row with section_id \"{$section_id}\"";
-			continue;
-		}
+		$section = [];
 
-		$section = $sources['sections'][ $section_id ];
-		$claimed['sections'][ $section_id ] = true;
+		if ( '' !== $section_id ) {
+			if ( ! isset( $sources['sections'][ $section_id ] ) ) {
+				$plan['errors'][] = "{$where}: the page has no sections row with section_id \"{$section_id}\"";
+				continue;
+			}
+
+			$section = $sources['sections'][ $section_id ];
+			$claimed['sections'][ $section_id ] = true;
+		}
 
 		// The anchor is the whole reason section_id survives ordering. It is a
 		// public address — inbound links, the derived rail, and the
@@ -710,6 +756,34 @@ function vs_bb_plan_route( $route, $config, $shapes ) {
 	}
 
 	return $plan;
+}
+
+// ---------------------------------------------------------------------------
+// The library ends here. Everything below is the WP-CLI driver.
+// ---------------------------------------------------------------------------
+//
+// The guard sits HERE rather than at the top of the file, which is the whole
+// reason wp-admin can reuse this.
+//
+// At the top it made the file unusable from anywhere but WP-CLI: including it
+// to reach vs_bb_plan_route() blanked the including screen with an exit(1).
+// Deleting the guard instead would be worse — the driver below would then run
+// on include, so merely OPENING the Tools screen would migrate pages.
+//
+// Splitting the difference: under WP-CLI nothing changes, the condition is
+// false and execution falls straight through to the arguments. Anywhere else
+// the file defines its functions, announces itself as a library, and returns
+// before the driver can do anything.
+//
+// `return` rather than exit, because this file is also run through
+// `wp eval-file`, which eval()s it — there, return simply ends the eval.
+
+if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) {
+	if ( ! defined( 'VS_BACKFILL_LIBRARY' ) ) {
+		define( 'VS_BACKFILL_LIBRARY', true );
+	}
+
+	return;
 }
 
 // ---------------------------------------------------------------------------

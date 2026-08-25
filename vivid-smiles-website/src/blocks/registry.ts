@@ -1,8 +1,10 @@
 /**
  * layout `__typename` → the component that draws it.
  *
- * THIS FILE IS IMPORTED BY PageBlocks.astro AND NOTHING ELSE. It reaches seven
- * .astro files, and Astro ships a component's scoped CSS for anything in the
+ * THIS FILE IS IMPORTED BY PageBlocks.astro AND NOTHING ELSE. It reaches eight
+ * .astro files — nine counting src/components/LocalTrust.astro, which
+ * CodeSectionBlock pulls in behind them — and Astro ships a component's scoped
+ * CSS for anything in the
  * module graph whether or not it renders — so importing this from page-content.ts
  * or from a loader puts block CSS on all 48 routes and moves every page's asset
  * hashes. Metadata lives in ./manifest.ts precisely so those callers have
@@ -17,6 +19,7 @@
 import type { AstroComponentFactory } from "astro/runtime/server/index.js";
 
 import CardGridBlock from "./CardGridBlock.astro";
+import CodeSectionBlock from "./CodeSectionBlock.astro";
 import ComparisonCardsBlock from "./ComparisonCardsBlock.astro";
 import FaqBlock from "./FaqBlock.astro";
 import GalleryMarqueeBlock from "./GalleryMarqueeBlock.astro";
@@ -36,6 +39,12 @@ const COMPONENTS: Record<string, AstroComponentFactory> = {
   PageFieldsBlocksComparisonCardsLayout: ComparisonCardsBlock,
   PageFieldsBlocksGalleryMarqueeLayout: GalleryMarqueeBlock,
   PageFieldsBlocksStatCalloutLayout: StatCalloutBlock,
+
+  // The escape hatch. Unlike every entry above, this component draws no band of
+  // its own — it looks its row's `band_key` up in its own BANDS map and renders
+  // the code-owned component that key names, unwrapped. A new bespoke band is an
+  // entry in that map, not a line here.
+  PageFieldsBlocksCodeSectionLayout: CodeSectionBlock,
 };
 
 export interface BlockDefinition extends BlockManifestEntry {

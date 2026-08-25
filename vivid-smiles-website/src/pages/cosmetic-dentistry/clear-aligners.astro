@@ -490,13 +490,25 @@ for (const block of blocks) {
         </div>
       </section>}
 
-      {/* ---------- LOCAL (cream) ---------- */}
-      <LocalTrust
-        heading="Why Patients Choose Vivid Smiles"
-        headingItalic="for Clear Aligners"
-        intro="Dr. Bryce Richardson is a Parker resident who built Vivid Smiles Dentistry on the values of his hometown — and that shows in every visit, whether patients drive across town or fly in for treatment."
-        body="With 300+ five-star Google reviews and a welcoming office at 17167 Cedar Gulch Pkwy Ste 102, patients receive individual attention that larger groups cannot replicate. Many patients discover additional smile possibilities during treatment."
-      />
+      {/* ---------- LOCAL (cream) ----------
+       Guarded like every other band on this page. When the page renders from
+       blocks, this band comes back through a `code_section` row whose band_key
+       is `local_trust`, so CodeSectionBlock draws it — in the position the
+       editor put it in, rather than wherever the template happens to sit.
+
+       Leaving it unguarded rendered it TWICE: once mid-page from PageBlocks and
+       once here, both carrying id="local", which is invalid and sends the "On
+       this page" rail and every #local link to whichever the browser picks. The
+       props stay here; CodeSectionBlock reproduces them rather than reading
+       them, so the two copies must be changed together. */}
+      {hasBlocks ? null : (
+        <LocalTrust
+          heading="Why Patients Choose Vivid Smiles"
+          headingItalic="for Clear Aligners"
+          intro="Dr. Bryce Richardson is a Parker resident who built Vivid Smiles Dentistry on the values of his hometown — and that shows in every visit, whether patients drive across town or fly in for treatment."
+          body="With 300+ five-star Google reviews and a welcoming office at 17167 Cedar Gulch Pkwy Ste 102, patients receive individual attention that larger groups cannot replicate. Many patients discover additional smile possibilities during treatment."
+        />
+      )}
 
       {
         /* ---------- GALLERY (sage) — marquee, doubled track.

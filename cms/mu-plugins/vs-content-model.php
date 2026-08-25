@@ -205,6 +205,38 @@ const BLOCK_BANDS = [
 ];
 
 /**
+ * The bands an editor can place but not author.
+ *
+ * Some sections have to stay in code — they carry JavaScript, a third-party
+ * embed, or a data contract, and docs/PAGE-BLOCKS.md §7 lists them. But "stays in
+ * code" and "cannot be positioned by an editor" are two different claims, and
+ * treating them as one is what moved the practice band on the pilot page: the
+ * template drew LocalTrust outside the `blocks` switch, so PageBlocks rendered
+ * the eight editor-ordered sections and the ninth band landed wherever the
+ * template happened to put it — the bottom. A code_section row is that band's
+ * PLACE in the list. Movable, removable, not editable.
+ *
+ * A SELECT, never free text. The value names a component. Free text would let an
+ * editor name a band that does not exist, and an unrecognised key renders as
+ * nothing — on a layout that has no other content, that is a section which
+ * silently is not there, with nothing in wp-admin to say why.
+ *
+ * The keys are the contract, exactly as in BLOCK_BANDS above: each is looked up
+ * on the Astro side in src/blocks/registry.ts, in the same commit. Adding the
+ * next of the ~45 bespoke bands is one line here and one entry there. Renaming a
+ * key orphans every row already saved with the old one. REMOVING a key is worse
+ * than it looks — the rows keep the value, the select can no longer display it,
+ * and the band stops rendering with no error anywhere; deprecate instead, which
+ * here means leaving the key registered so saved rows keep drawing (R4).
+ *
+ * The labels are editor-facing and safe to reword. Write them as the section a
+ * client would recognise on the page, not as the component name.
+ */
+const BLOCK_CODE_BANDS = [
+	'local_trust' => 'Why patients choose us — map, reviews and address',
+];
+
+/**
  * The six controls every section layout opens with, in the same order.
  *
  * Shared rather than copied per layout for two reasons. The editor learns one
@@ -287,6 +319,59 @@ function block_preamble( string $slug ): array {
 			'instructions' => 'Plain text. The intro paragraph under the heading.',
 		],
 	];
+}
+
+/**
+ * The preamble a code-owned section gets: the two controls that still mean
+ * something, and not the four that do not.
+ *
+ * `anchor` and `nav_label` stay because neither is about the band's CONTENT —
+ * they are how the rest of the page reaches it. The "On this page" rail is built
+ * from `blocks[].anchor` + `blocks[].nav_label` in block order, so without them
+ * a code-owned band cannot be linked to and drops out of a rail it has always
+ * been listed in. Both survive a reorder, which is the entire point of the row.
+ *
+ * `band`, `eyebrow`, `heading` and `body` are dropped because the component
+ * already draws all four and nothing here can reach them. A control that posts a
+ * value the renderer never reads is precisely the fault this field group keeps
+ * removing: the editor sets Background to charcoal, saves, waits for the deploy,
+ * and the section is still cream. Note LocalTrust.astro does take a `background`
+ * prop, which makes `band` look wire-able — it is not, because this one layout
+ * stands in for every band in BLOCK_CODE_BANDS and almost none of the ~45 has
+ * such a prop. One band honouring the control and forty-four ignoring it, with
+ * no way for the editor to tell which they are looking at, is worse than not
+ * offering it.
+ *
+ * Derived from block_preamble() rather than written out so the two instruction
+ * strings keep one author. If a preamble sub-field is ever renamed this returns
+ * fewer than two fields and says so in the log, instead of registering a layout
+ * that quietly lost its anchor.
+ */
+function block_code_preamble( string $slug ): array {
+	$keep = [ 'anchor', 'nav_label' ];
+
+	$fields = array_values(
+		array_filter(
+			block_preamble( $slug ),
+			static function ( array $field ) use ( $keep ): bool {
+				return in_array( $field['name'] ?? '', $keep, true );
+			}
+		)
+	);
+
+	if ( count( $fields ) !== count( $keep ) ) {
+		error_log(
+			sprintf(
+				'vs-content-model: block_code_preamble() matched %d of %d sub-fields. '
+					. 'A preamble field has been renamed, so the code_section layout is '
+					. 'registering without one of anchor/nav_label.',
+				count( $fields ),
+				count( $keep )
+			)
+		);
+	}
+
+	return $fields;
 }
 
 /**
@@ -1631,6 +1716,69 @@ function register_field_groups(): void {
 												'rows'  => 2,
 											],
 										],
+									],
+								]
+							),
+						],
+						/**
+						 * A section the site builds itself.
+						 *
+						 * The escape hatch of docs/PAGE-BLOCKS.md 1.3, and the only
+						 * layout with no editable content. It holds a place in the
+						 * order for one of the bands in BLOCK_CODE_BANDS; the
+						 * component that has always drawn that band still draws it,
+						 * with the props it has always had.
+						 *
+						 * Last in the picker on purpose. It is the exception, and an
+						 * editor scanning the list for the section they want to add
+						 * should meet the seven they can fill in first.
+						 *
+						 * No repeater and no group, so it mints no GraphQL type of its
+						 * own and gives assert_unique_block_container_names() nothing
+						 * to catch.
+						 *
+						 * FOR THE ASTRO SIDE: pass this row's `anchor` into the
+						 * component as its id rather than letting the component keep
+						 * its own default. LocalTrust.astro defaults to id="local"
+						 * while the rail link is built from `anchor`, so a generated
+						 * `custom-3` anchor beside a hardcoded `local` id is a rail
+						 * entry that jumps nowhere. One id, and the CMS owns it.
+						 */
+						[
+							'key'        => 'layout_vs_blk_code_section',
+							'name'       => 'code_section',
+							'label'      => 'Built-in section',
+							'display'    => 'block',
+							'sub_fields' => array_merge(
+								block_code_preamble( 'code' ),
+								[
+									[
+										'key'           => 'field_vs_blk_code_band_key',
+										'label'         => 'Which section',
+										'name'          => 'band_key',
+										'type'          => 'select',
+										'choices'       => BLOCK_CODE_BANDS,
+										'return_format' => 'value',
+										'allow_null'    => 0,
+										'multiple'      => 0,
+										'ui'            => 0,
+										// Deliberately NOT required. With allow_null off and
+										// at least one choice the select has no blank option,
+										// so every save already posts a real key and
+										// `required` adds nothing to the normal path. What it
+										// would add is a lockout: a page holding a row whose
+										// key was later retired could not be saved at all
+										// until somebody picked a different section — the
+										// same shape of deadlock unlock_empty_importer_field()
+										// below exists to undo.
+										'required'      => 0,
+										'instructions'  => 'This row is a section the site builds for itself — the map, '
+											. 'reviews and address band, for instance. Pick which one it is; there is '
+											. 'nothing else to fill in, because its wording, its pictures and its '
+											. 'background are all part of the design rather than content. Drag this row '
+											. 'to move that section up or down the page, or delete it to take the section '
+											. 'off the page — but you cannot change what is inside it from here. Ask us '
+											. 'if it needs to say something different.',
 									],
 								]
 							),

@@ -3,8 +3,9 @@
  *
  * SPLIT OUT OF registry.ts DELIBERATELY, AND THE REASON IS NOT TIDINESS.
  *
- * registry.ts binds each layout to its Astro component, so it imports seven
- * .astro files. Astro ships a component's scoped CSS whenever the component is
+ * registry.ts binds each layout to its Astro component, so it imports eight
+ * .astro files — and, through CodeSectionBlock, the bespoke bands those name.
+ * Astro ships a component's scoped CSS whenever the component is
  * in the module graph — imported is enough, rendered is not required. Because
  * src/lib/page-content.ts and src/loaders/pages.ts both consume block data, and
  * every page consumes page-content.ts, importing the component map from either
@@ -215,6 +216,33 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
   PageFieldsBlocksStatCalloutLayout: {
     typeName: "PageFieldsBlocksStatCalloutLayout",
     fields: `${BLOCK_PREAMBLE_FIELDS} value unit caption intro points { lead body }`,
+  },
+
+  /**
+   * The escape hatch — a position in the ordered list for a band that stays in
+   * code (§1.3, §7). `band_key` names one of the registered bespoke bands and
+   * CodeSectionBlock draws it with the props it has always had. An editor can
+   * move this row and delete it; there is nothing in it to author.
+   *
+   * DOES NOT USE BLOCK_PREAMBLE_FIELDS, and this is the layout that comment
+   * warns about: the layout has no `eyebrow`, `heading` or `body`, because the
+   * band supplies its own. Naming a field the deployed layout does not have
+   * fails query validation for every page on the site, not for this one row —
+   * so the four fields below are the whole selection set and stay that way.
+   *
+   * It never grows either. A new bespoke band is one entry in
+   * CodeSectionBlock's BANDS map plus one choice in the PHP select; nothing
+   * per-band ever arrives over GraphQL, which is what "not editable" means
+   * here.
+   */
+  PageFieldsBlocksCodeSectionLayout: {
+    typeName: "PageFieldsBlocksCodeSectionLayout",
+    // Three fields, and it never grows: a code-owned band draws its own
+    // heading and background, so there is nothing per-band to query. `band`
+    // was here and the layout has no such sub-field — GraphQL validates the
+    // whole document before executing any of it, so that one word failed the
+    // build for all 48 routes, not for this row.
+    fields: "anchor navLabel bandKey",
   },
 };
 

@@ -1,0 +1,233 @@
+---
+/**
+ * CodeSectionBlock — the `code_section` layout: a row that holds a POSITION in
+ * the ordered list for a band this build draws in code.
+ *
+ * ── The regression this exists to fix ─────────────────────────────────────
+ * "Stays in code" and "cannot be positioned by an editor" are different facts.
+ * Conflating them moved a band on a live page. The pilot's LocalTrust band sits
+ * between `lasting` and `gallery` (clear-aligners.astro:493-499), and the
+ * template renders it OUTSIDE the migration switch — so the moment PageBlocks
+ * started drawing the eight blocks, the bespoke band fell to wherever the
+ * template happens to put it:
+ *
+ *   before   why what process compare natural lasting LOCAL gallery faq
+ *   after    why what process compare natural lasting gallery faq LOCAL
+ *
+ * A `code_section` row at position 7 puts it back, and puts it back under the
+ * same editor control every other band has. An editor can move this row and
+ * delete it; there is nothing in it to author, and that is the whole design
+ * (docs/PAGE-BLOCKS.md 1.3 "The escape hatch", 7 "What not to do").
+ *
+ * ── What it emits ─────────────────────────────────────────────────────────
+ * The named component and NOTHING ELSE. No <section>, no wrapper div, no
+ * marker element. Every band registered below already owns its own <section>,
+ * its own band background and its own padding — LocalTrust.astro:80 is a
+ * `<section class="vs-lt …">` — so a wrapper here would nest two sections
+ * inside one another and change the markup this block exists to preserve.
+ * Same rule PageBlocks.astro follows for the list as a whole (2.5).
+ *
+ * Because the band keeps its place inside `<main>` inside `.caligners`, the
+ * page-scoped sheet still cascades into it exactly as it did from the template.
+ *
+ * ── Why there is no <style> block ─────────────────────────────────────────
+ * This component authors no markup of its own in production, so it has nothing
+ * to style. The dev placeholder below therefore uses inline `style` attributes
+ * rather than a co-located <style>: Astro extracts a <style> block statically
+ * and ships it wherever the component is in the module graph, which would put
+ * diagnostic CSS into the stylesheet of every page that renders any block, for
+ * markup no visitor can ever reach. This is the one block where §2.5's
+ * co-location rule buys nothing and costs bytes.
+ *
+ * ── The CSS this DOES pull in ─────────────────────────────────────────────
+ * Importing LocalTrust here puts its scoped CSS in the module graph of every
+ * page that renders blocks, whether or not that page's blocks include a
+ * `code_section` row. Currently free: the pilot is the only page importing
+ * PageBlocks and it already imports LocalTrust directly. It stops being free
+ * when a page that has no LocalTrust band adopts blocks. If that ever shows up
+ * in a build diff, the fix is a dynamic import here, not a new indirection in
+ * manifest.ts — the manifest must keep importing zero .astro files.
+ *
+ * ── Do not let the band render twice ──────────────────────────────────────
+ * A page whose template still calls the component directly AND carries a
+ * `code_section` row for it renders the band twice. The template's bespoke
+ * invocation has to sit behind the same `hasBlocks` guard every other migrated
+ * band sits behind.
+ *
+ * Spec: docs/PAGE-BLOCKS.md 1.3, 2.2, 2.4, 7.
+ */
+import type { AstroComponentFactory } from "astro/runtime/server/index.js";
+
+import LocalTrust from "../components/LocalTrust.astro";
+
+/** One registered bespoke band. */
+interface CodeBand {
+  /** The component that has always drawn this band. */
+  component: AstroComponentFactory;
+  /**
+   * Its props, verbatim from the template that used to invoke it. This is the
+   * band's content, and it is code-owned on purpose: the editor moves the row,
+   * the developer owns what is in it.
+   */
+  props?: Record<string, unknown>;
+  /**
+   * Which prop the row's (already deduplicated) anchor feeds. Defaults to `id`,
+   * which is what every band component in this codebase calls it. Set to `null`
+   * for a component that takes no DOM id — passing one would be inert in Astro,
+   * but saying so is cheaper than rediscovering it.
+   */
+  anchorProp?: string | null;
+}
+
+/**
+ * band key → the band it names.
+ *
+ * ADDING THE NEXT BAND IS ONE ENTRY HERE AND ONE CHOICE IN THE PHP. Nothing
+ * else changes: `code_section` is already in manifest.ts and registry.ts, and
+ * its selection set never grows, because the layout has no per-band fields to
+ * ask for.
+ *
+ * KEYS ARE PER BAND INSTANCE, NOT PER COMPONENT. The heading below says "for
+ * Clear Aligners"; the same component draws a differently-worded band on nine
+ * other pages. So the key is `<page>_<anchor>` — mechanical, collision-free,
+ * and it reads correctly in the wp-admin select next to the anchor an editor
+ * can already see. `map_visit` (Wave B, Phase 4) is what eventually turns these
+ * into one editable layout; until then each instance is its own key.
+ */
+const BANDS: Record<string, CodeBand> = {
+  /**
+   * The pilot's "Parker, CO" trust band — map embed, review summary, address,
+   * two CTAs. Reproduced verbatim from clear-aligners.astro:493-499, including
+   * the omitted `background` (LocalTrust defaults to cream, which is the band
+   * this has always drawn) and the omitted `eyebrow` (defaults to "Our
+   * Practice"). Both are left omitted rather than restated: a default that is
+   * spelled out here and changed there is a difference nobody would look for.
+   */
+  local_trust: {
+    component: LocalTrust,
+    props: {
+      heading: "Why Patients Choose Vivid Smiles",
+      headingItalic: "for Clear Aligners",
+      intro:
+        "Dr. Bryce Richardson is a Parker resident who built Vivid Smiles Dentistry on the values of his hometown — and that shows in every visit, whether patients drive across town or fly in for treatment.",
+      body: "With 300+ five-star Google reviews and a welcoming office at 17167 Cedar Gulch Pkwy Ste 102, patients receive individual attention that larger groups cannot replicate. Many patients discover additional smile possibilities during treatment.",
+    },
+  },
+};
+
+interface Props {
+  /** The DOM id, already deduplicated by PageBlocks.astro. Absent when blank. */
+  id?: string;
+  /**
+   * Passed by PageBlocks alongside `id`, and `navLabel`/`band` arrive from the
+   * spread of the whole row. Declared so they have somewhere to land, not
+   * because this component reads them — see the note on `band` below.
+   */
+  anchor?: string;
+  navLabel?: string | null;
+  /**
+   * The registered band this row names.
+   *
+   * A LIST, despite the ACF select being single-value. WPGraphQL for ACF
+   * exposes a select as a list of its choices regardless of `multiple`, so
+   * the live CMS returns ["local_trust"] where the field holds one value.
+   * Typed for both because a `typeof === "string"` check silently produced
+   * an empty key against real data, and an empty key renders nothing — a
+   * blank band on a live page with no error anywhere.
+   */
+  bandKey?: string | string[] | null;
+}
+
+const { id, bandKey } = Astro.props;
+
+// `band` is deliberately NOT forwarded to the component. On this layout it is a
+// readonly label, so the wp-admin row and the "on this page" preview can show
+// what colour the band is — it is not a control. The band a code-owned
+// component paints is part of that band's definition, which lives in BANDS
+// above. Forwarding it would let a stale readonly value repaint a live band on
+// a save nobody reviewed, which is exactly the editability this layout exists
+// to withhold.
+
+/**
+ * Normalised so a dash/underscore drift between the PHP choice and the key
+ * above is not a missing band. The value crosses a system boundary as a bare
+ * string and nothing validates it on the way — `local-trust` and `local_trust`
+ * would otherwise be a silently blank band on a live page.
+ */
+const rawKey = Array.isArray(bandKey) ? bandKey[0] : bandKey;
+
+const key =
+  typeof rawKey === "string" ? rawKey.trim().toLowerCase().replace(/-/g, "_") : "";
+
+const entry = key !== "" && Object.hasOwn(BANDS, key) ? BANDS[key] : undefined;
+
+// Capitalised so the Astro compiler treats it as a component, not a tag name.
+const Band = entry?.component;
+
+// The anchor is honoured rather than left to the component's default because
+// the "on this page" rail is derived from `blocks[].anchor` — including
+// PageBlocks' duplicate-anchor rename. A band that keeps its own default id
+// while the rail links the deduped one is a rail entry that scrolls nowhere.
+const anchorProp = entry?.anchorProp === undefined ? "id" : entry.anchorProp;
+const bandProps: Record<string, unknown> = {
+  ...(entry?.props ?? {}),
+  ...(anchorProp && id ? { [anchorProp]: id } : {}),
+};
+
+/**
+ * An unregistered key is the same class of event as an unknown layout (2.4) and
+ * gets the same treatment: warn everywhere, render nothing in production,
+ * render something visible in dev. NEVER THROW. An editor picks the key from a
+ * select, triggers a deploy, and never sees the log
+ * (cms/mu-plugins/vs-deploy.php:142-158) — so a key this build has not heard of
+ * yet, or one left behind by an Astro rollback, must cost one missing band and
+ * not the whole deploy.
+ *
+ * Position is not reported the way UnknownBlock reports it: PageBlocks passes a
+ * row's fields, not its index. The anchor identifies the row at least as well
+ * for someone about to open wp-admin.
+ */
+const route = Astro.url.pathname;
+
+if (!Band) {
+  const named = key !== "" ? `"${key}"` : "(no band key set)";
+  console.warn(
+    `[blocks] code_section names ${named} on ${route}${id ? ` at #${id}` : ""} — no such band is registered in src/blocks/CodeSectionBlock.astro`,
+  );
+}
+
+// Same switch UnknownBlock.astro runs on, and for the same reasons: Vite
+// replaces both reads with literals at transform time, so the placeholder is
+// eliminated outright from a production build. PUBLIC_VS_BLOCK_DEBUG=1 turns it
+// on for a Vercel preview, which is a production build like any other.
+const showPlaceholder =
+  import.meta.env.DEV || import.meta.env.PUBLIC_VS_BLOCK_DEBUG === "1";
+---
+
+{Band && <Band {...bandProps} />}
+
+{
+  !Band && showPlaceholder && (
+    <aside
+      role="note"
+      style="margin:0;padding:40px;background:var(--vs-cream);border:2px dashed var(--vs-sage);border-radius:var(--vs-r-md);font-family:var(--vs-font-body);color:var(--vs-ink)"
+    >
+      <p style="margin:0;font-size:12px;letter-spacing:0.28em;text-transform:uppercase;font-weight:500;color:var(--vs-sage)">
+        Unregistered code section
+      </p>
+      <p style="margin:10px 0 0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:18px;font-weight:600;word-break:break-all">
+        {key !== "" ? key : "(no band key set)"}
+      </p>
+      <p style="margin:6px 0 0;font-size:14px;color:var(--vs-ink-soft)">
+        {route}
+        {id && <> · #{id}</>}
+      </p>
+      <p style="margin:14px 0 0;font-size:14px;line-height:1.6;color:var(--vs-muted);max-width:60ch">
+        A code_section row names a band this build does not register. Add it to
+        BANDS in src/blocks/CodeSectionBlock.astro, or remove the section in
+        wp-admin. This box does not render in production — the band is simply
+        absent there.
+      </p>
+    </aside>
+  )
+}
