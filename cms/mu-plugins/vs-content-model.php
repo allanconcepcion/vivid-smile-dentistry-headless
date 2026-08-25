@@ -339,6 +339,13 @@ function register_field_groups(): void {
 					],
 				],
 			],
+			// Renders the group directly under the title. This is the half of the
+			// arrangement pages_use_classic_editor() above exists for, and what its
+			// comment has always described; without this key the group was an
+			// ordinary meta box — draggable, collapsible, and liable to sit below
+			// the fold. A page's entire editable content lives in this one box, so
+			// an editor who cannot find it concludes the page has nothing in it.
+			'position'                              => 'acf_after_title',
 			'show_in_graphql'                       => true,
 			'graphql_field_name'                    => 'pageFields',
 			'map_graphql_types_from_location_rules' => true,
@@ -347,13 +354,20 @@ function register_field_groups(): void {
 				// Explains the model up front. Without it the first impression
 				// of this screen is an empty editor canvas above an unfamiliar
 				// box, which reads as broken.
+				//
+				// It has to name every tab below it. An earlier version named three
+				// of the six, which quietly told an editor that the section copy,
+				// the photos and the cards were somebody else's to touch. They are
+				// as much theirs as the FAQ. Add a tab, add it here.
 				[
 					'key'     => 'field_vs_page_intro',
 					'label'   => '',
 					'name'    => '',
 					'type'    => 'message',
 					'message' => "<strong>This page's layout and body copy live in the site templates.</strong><br>\n"
-						. "What you edit here is the repeating content: the “On this page” rail, the process steps, and the FAQ.\n"
+						. "What you edit here is the content those templates pour in, a tab each: the “On this page” rail, "
+						. "the process steps, the heading and intro copy for each section, the photos, "
+						. "the cards and lists, and the FAQ.\n"
 						. "Changes go live on the next site build.",
 					'esc_html' => 0,
 					'new_lines' => 'wpautop',
@@ -443,7 +457,13 @@ function register_field_groups(): void {
 							'label'        => 'Section ID',
 							'name'         => 'section_id',
 							'type'         => 'text',
-							'required'     => 1,
+							// Not required OF THE EDITOR. The value is still mandatory to
+							// the site — the loader drops a section row with no id — but
+							// fill_blank_row_id() below supplies one on save, so nobody has
+							// to invent it. Asking a non-technical person to name an
+							// internal key is how you get a row that never appears, or a
+							// row that cannot be saved at all.
+							'required'     => 0,
 							'instructions' => 'Set by the migration. Do not change.',
 							'readonly'     => 1,
 						],
@@ -468,6 +488,9 @@ function register_field_groups(): void {
 							'type'  => 'textarea',
 							'rows'  => 4,
 						],
+						// Retired: hidden from the editor, still declared. Deleting
+						// them outright breaks the build — see
+						// hide_retired_section_fields() at the foot of this file.
 						[
 							'key'   => 'field_vs_section_cta_label',
 							'label' => 'Button label',
@@ -504,7 +527,9 @@ function register_field_groups(): void {
 							'label'        => 'Slot',
 							'name'         => 'slot',
 							'type'         => 'text',
-							'required'     => 1,
+							// Generated on save when left blank, exactly as Section ID is
+							// above; see fill_blank_row_id().
+							'required'     => 0,
 							'instructions' => 'Set by the migration. Do not change.',
 							'readonly'     => 1,
 						],
@@ -520,6 +545,18 @@ function register_field_groups(): void {
 							'return_format' => 'array',
 							'preview_size'  => 'thumbnail',
 							'library'       => 'all',
+							// The same list the smile gallery uses in vs-settings.php, for
+							// the same reason. `library` above is the picker's SCOPE — all
+							// uploads versus only this page's — and filters nothing by
+							// type, so without this line the field takes any image
+							// WordPress accepts, bmp and ico included. (Not SVG: nothing in
+							// cms/ widens upload_mimes, so core still refuses it.) Astro
+							// hands every one of these URLs to sharp at build time and
+							// sharp has no decoder for those two, so the upload succeeds,
+							// the row looks right in wp-admin, and the next deploy fails
+							// with an error naming a file rather than a field. Catching it
+							// in the picker costs the editor one sentence instead.
+							'mime_types'    => 'webp,jpg,jpeg,png',
 						],
 						[
 							'key'          => 'field_vs_image_alt',
@@ -640,21 +677,55 @@ const IMPORTER_OWNED_KEYS = [
 ];
 
 /**
+ * The importer-owned keys the system fills in for the editor, and the postmeta
+ * key shape each repeater stores its rows under.
+ *
+ * An id is only ever generated for a row that has none, so an importer-written
+ * value is never touched and a generated one never changes on a later save. The
+ * pattern is how the ids already used on this page are found without loading and
+ * re-saving the whole repeater.
+ *
+ * cards.group is deliberately NOT here. Whether the cards repeater is wired up
+ * or removed is still an open question with the client, so its behaviour is left
+ * exactly as it was: still required, still typed by hand.
+ */
+const GENERATED_ID_FIELDS = [
+	'field_vs_section_id' => '/^sections_\d+_section_id$/',
+	'field_vs_image_slot' => '/^images_\d+_slot$/',
+];
+
+/**
+ * Namespace for generated ids.
+ *
+ * The importer draws its own ids from the template ("services", "first-visit",
+ * "heroBg"), and none of them begins with this prefix. Keeping it reserved is
+ * what guarantees a value invented here cannot land on one the importer means to
+ * write. Note a re-import still replaces each repeater wholesale, so rows added
+ * by hand do not survive one — that is the importer's existing contract, and the
+ * prefix does not change it.
+ */
+const GENERATED_ID_PREFIX = 'custom-';
+
+/**
  * Unlock an importer-owned field on a row that does not have a value yet.
  *
- * These fields are `required` AND `readonly`, and those two settings together
- * are a deadlock on any row the importer did not create. `readonly` renders the
- * input with a readonly attribute, so it still posts — it posts an empty
- * string, which then fails the required check with no way to fix it. On a new
- * page an editor could add a Section copy row and never save it. The same held
- * for Images and Cards. Three of the six tabs were shut by a rule written to
- * protect the other three.
+ * `readonly` renders the input with a readonly attribute, so it still posts — it
+ * posts an empty string. Paired with `required` that is a deadlock on any row the
+ * importer did not create: nothing can be typed in, and nothing can be saved
+ * without it. On a new page an editor could add a Section copy row and never save
+ * it. The same held for Images and Cards. Three of the six tabs were shut by a
+ * rule written to protect the other three.
  *
  * The rule is right; its scope was wrong. There is nothing to protect on a row
  * that has no value, so lock the field only once it holds one. The check runs on
  * `acf/prepare_field` rather than `acf/load_field` because only prepare sees the
  * row's value — load runs before values are attached, so it cannot tell an
  * imported row from a new one.
+ *
+ * Section ID and Slot are no longer `required` — fill_blank_row_id() below gives
+ * them a value on save — so for those two this filter is now what lets an editor
+ * type a deliberate id instead of accepting a generated one. cards.group is still
+ * required and still depends on this to be fillable at all.
  *
  * A repeater also renders one hidden blank template row that "Add row" clones.
  * Its value is empty too, which is precisely the case that needs unlocking.
@@ -677,14 +748,150 @@ function unlock_empty_importer_field( $field ) {
 		return $field;
 	}
 
-	$field['readonly']     = 0;
-	$field['instructions'] = 'Set this once. It ties the row to a place in the layout, '
-		. 'and is fixed afterwards. On a page with no hand-built template it is '
-		. 'just the anchor id, so any short lowercase name will do.';
+	$field['readonly'] = 0;
+
+	// Two of the three get a value of their own if none is typed, so say so.
+	// Telling an editor to invent an internal key is the burden this whole change
+	// is removing; telling them to invent one they did not even have to is worse.
+	$generated = GENERATED_ID_FIELDS;
+
+	$field['instructions'] = isset( $generated[ $field['key'] ?? '' ] )
+		? 'Leave this blank and one is created for you when you save. It ties the row '
+			. 'to a place in the layout and is fixed afterwards, so only type your own '
+			. 'if you are matching an id the template already uses.'
+		: 'Set this once. It ties the row to a place in the layout, '
+			. 'and is fixed afterwards. On a page with no hand-built template it is '
+			. 'just the anchor id, so any short lowercase name will do.';
 
 	return $field;
 }
 add_filter( 'acf/prepare_field', __NAMESPACE__ . '\\unlock_empty_importer_field' );
+
+/**
+ * The next unused generated id on a post, for one repeater column.
+ *
+ * Scans the ids that column already holds and takes the first free number, so
+ * the result cannot collide with an importer value, with a hand-typed one, or
+ * with a row saved earlier. Reading postmeta directly is deliberate: a repeater
+ * writes each row as it goes, so by the time a later row is filtered the earlier
+ * rows of the same save are already stored and visible here.
+ *
+ * The static list covers the case where they are not — a stale meta cache would
+ * otherwise hand the same number to two blank rows in one save.
+ */
+function next_generated_id( int $post_id, string $meta_pattern ): string {
+	static $issued = [];
+
+	$scope = $post_id . '|' . $meta_pattern;
+	$used  = $issued[ $scope ] ?? [];
+
+	foreach ( (array) get_post_meta( $post_id ) as $meta_key => $values ) {
+		if ( ! preg_match( $meta_pattern, (string) $meta_key ) ) {
+			continue;
+		}
+
+		foreach ( (array) $values as $value ) {
+			$used[ (string) $value ] = true;
+		}
+	}
+
+	$n = 1;
+	while ( isset( $used[ GENERATED_ID_PREFIX . $n ] ) ) {
+		$n++;
+	}
+
+	$id = GENERATED_ID_PREFIX . $n;
+
+	$issued[ $scope ][ $id ] = true;
+
+	return $id;
+}
+
+/**
+ * Give a blank Section ID or Slot a value on the way into the database.
+ *
+ * Unlocking the field was only half the fix. An editor adding a row was still
+ * handed a box labelled "Section ID" and left to guess what belongs in it, and a
+ * guess that duplicates an existing id silently overwrites that section's copy on
+ * the site. The value is machinery, not content, so the machine should supply it.
+ *
+ * This runs on `acf/update_value`, which fires per sub-field per row as the
+ * repeater saves, and it is the last point before the empty string is written.
+ * It never overwrites: a row that already has an id — imported, generated
+ * earlier, or typed — passes through untouched, which is what keeps the id
+ * stable across saves and keeps the importer's ownership intact.
+ */
+function fill_blank_row_id( $value, $post_id, $field ) {
+	if ( ! is_array( $field ) ) {
+		return $value;
+	}
+
+	$generated = GENERATED_ID_FIELDS;
+	$key       = (string) ( $field['key'] ?? '' );
+
+	if ( ! isset( $generated[ $key ] ) ) {
+		return $value;
+	}
+
+	// ACF also saves against option and term ids, which have no postmeta to
+	// scan. These two fields only ever live on a page, so anything else is not
+	// ours to touch.
+	if ( ! is_numeric( $post_id ) ) {
+		return $value;
+	}
+
+	$current = is_string( $value ) ? trim( $value ) : $value;
+
+	if ( '' !== $current && null !== $current ) {
+		return $value;
+	}
+
+	return next_generated_id( (int) $post_id, $generated[ $key ] );
+}
+add_filter( 'acf/update_value', __NAMESPACE__ . '\\fill_blank_row_id', 10, 3 );
+
+/**
+ * The section repeater's Button label and Button link, retired from the editor.
+ *
+ * Nothing renders them. None of the 32 hand-built page templates reads a
+ * section's cta_label or cta_href — only the catch-all [...slug].astro route
+ * does, and it builds zero pages — and every one of the 213 imported section
+ * rows has both empty. Two boxes that accept typing and change nothing is
+ * precisely the failure this content model exists to prevent, so the editor
+ * should not be shown them.
+ *
+ * They are hidden rather than deleted because deleting them here alone takes the
+ * build down. src/loaders/pages.ts selects `ctaLabel` and `ctaHref` inside
+ * `sections` in PAGES_QUERY, unconditionally, for every page; remove the
+ * sub-fields and WPGraphQL for ACF stops registering those two fields, the query
+ * becomes invalid, and src/lib/wp.ts treats a query-level error as fatal and
+ * never retries. The next deploy would fail outright. Nothing is lost by waiting:
+ * the values are empty, and a hidden field is as invisible to an editor as a
+ * deleted one.
+ *
+ * To finish the job, in a single change: drop the two fields from PAGES_QUERY,
+ * from the PageNode type and from the sections mapping in src/loaders/pages.ts;
+ * drop cta_label/cta_href from the sections object in src/content.config.ts and
+ * from Section and EMPTY_SECTION in src/lib/page-content.ts; drop them from the
+ * row shape in cms/import/import-sections.php; then delete the two sub-fields
+ * above. If instead a section button is ever wanted for real, the template has to
+ * render it in the same change that unhides the fields — the rule the hero fields
+ * were removed under.
+ */
+const RETIRED_SECTION_KEYS = [
+	'field_vs_section_cta_label',
+	'field_vs_section_cta_href',
+];
+
+function hide_retired_section_fields( $field ) {
+	if ( ! is_array( $field ) ) {
+		return $field;
+	}
+
+	// Returning false is how ACF is told not to render a field at all.
+	return in_array( $field['key'] ?? '', RETIRED_SECTION_KEYS, true ) ? false : $field;
+}
+add_filter( 'acf/prepare_field', __NAMESPACE__ . '\\hide_retired_section_fields' );
 
 /**
  * Expose the post's "last updated" timestamp to GraphQL.
