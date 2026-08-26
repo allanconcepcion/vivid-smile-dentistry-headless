@@ -1,0 +1,895 @@
+{
+ "route": "/implant-dentistry/all-on-4-single-arch/",
+ "template": "vivid-smiles-website/src/pages/implant-dentistry/all-on-4-single-arch.astro",
+ "stylesheet": "vivid-smiles-website/src/styles/pages/all-on-4-single-arch.css",
+ "wrapper_class": "aos4",
+ "notes": [
+  "TEN BLOCKS AGAINST TEN `sections` ROWS, AND THE ORDERS MATCH. why, what, robotics, process,",
+  "compare, candidacy, living, cost, gallery, faq — the CMS repeater is in exactly the order",
+  "the template's ten bands are in (verified live). No code_section on this route: the page",
+  "imports no <LocalTrust>, so nothing here touches vs-content-model.php or",
+  "CodeSectionBlock.astro.",
+  "",
+  "THE TEMPLATE'S OWN BAND COMMENTS WERE WRONG ABOUT COLOUR ON THREE BANDS AND THE VALUES",
+  "BELOW ARE READ OFF THE SHEET INSTEAD. `what`, `candidacy` and `cost` each carried a comment",
+  "saying \"cream\". `.aos4 .section.alt` is `background: var(--vs-charcoal-green)`",
+  "(all-on-4-single-arch.css:227), with h1-h4 #fff at :231, `.eyebrow` var(--vs-eyebrow-on-sage)",
+  "at :232 and p rgba(255,255,255,0.85) at :235 — a DARK band with white type. Copying the",
+  "comment would have repainted three of the ten bands cream and put white headings on a cream",
+  "plate, because every block derives its type colours from `band` and not from an ancestor",
+  "class. `.section.alt` is cream on teeth-whitening.css:237 and charcoal here; the class name",
+  "is not the colour. `.aos4 .section.dark` is var(--vs-sage-pale) (:237), pale despite the",
+  "name, and `.aos4 .section` (:226) is padding only, so a bare `.section` is the body paper.",
+  "Every `band_evidence` below names the rule it was read from.",
+  "",
+  "FOUR OF THE TEN BANDS CARRY A SECOND SHAPE INSIDE THEM, AND NO REGISTERED LAYOUT HAS A SLOT",
+  "FOR ONE. `what` ends in `.what-sub` (a head, a two-card `.config-grid`, a closing",
+  "paragraph); `compare` ends in `.compare-sub` (a head and a three-card `.alternatives-grid`);",
+  "`candidacy` and `living` each end in a `.candidacy-sub` (a `.label`, an <h3>, a paragraph).",
+  "Each is a known_gap on its block. media_split's `callout_heading` / `callout_body` and",
+  "comparison_cards' were NOT pressed into service for them: those two draw",
+  "`<aside class=\"veneers-callout\">` and `<aside class=\"safety-callout\">`, which are",
+  "teeth-whitening's classes and teeth-whitening's shape — an h3 and prose, no `.label`, no",
+  "card grid. Using them would move this page's copy into markup it has never had, and the",
+  "rule this whole file is governed by is that a backfilled band renders IDENTICAL markup.",
+  "A gap that is recorded is recoverable; a band quietly rebuilt out of the nearest-fitting",
+  "field is not.",
+  "",
+  "TWO `cards` GROUPS FEED THOSE SUB-SHAPES AND ARE THEREFORE EXEMPT, NOT CLAIMED. `archConfigs`",
+  "(2 rows) is the `.config-grid` inside `what`; `alternatives` (3 rows) is the",
+  "`.alternatives-grid` inside `compare`. Both are named in `exempt.cards` with a reason. This",
+  "matters mechanically as well as morally: backfill-blocks.php stops before writing anything",
+  "on a `cards` group that is neither claimed by a block nor named in `exempt`, so leaving them",
+  "out entirely would fail the run rather than lose the rows silently — which is the behaviour",
+  "worth keeping, and the reason the check exists.",
+  "",
+  "THIS PAGE'S `cards` REPEATER IS NOT EMPTY, UNLIKE porcelain-veneers'. Thirteen rows in four",
+  "groups, verified live: whyCards (4), livingCards (4), alternatives (3), archConfigs (2). Two",
+  "of the four groups are MOVED into block repeaters rather than transcribed, which is why the",
+  "`why` and `living` blocks below carry `{ \"cards\": \"<group>\" }` rows and not literals.",
+  "",
+  "`robotics` IS THE BAND THE media_split HEADER SAYS DOES NOT EXIST. That component's header",
+  "asserts, as a measured fact across six sheets, that no page in src/pages mixes the two class",
+  "families — \"no `.what-grid` with the image second, no `.natural-img` in landscape\". The",
+  "unstated third mix is this one: photo FIRST like `.what-*` (all-on-4-single-arch.astro:463",
+  "puts `.robotics-img` before `.robotics-text`) with a PORTRAIT plate like `.natural-*`",
+  "(all-on-4-single-arch.css:308-311 gives `.what-img`, `.robotics-img` and `.natural-img` a",
+  "shared aspect-ratio 4/5, and the :316 override back to 5/4 names `.what-img` alone). The",
+  "block ties the frame to the side, so this row keeps the side and the column split and",
+  "records the frame as a gap. See that block's known_gaps for why the trade goes this way.",
+  "",
+  "CTA ROWS SPLIT THE SAME THREE WAYS AS ON BOTH WORKED EXAMPLES, and the split is the",
+  "components' decision, not this file's. `compare` and `process` draw their rows entirely from",
+  "the component and their layouts have no cta sub-fields, so nothing is supplied for them;",
+  "`what` and `faq` gate their rows on cta_label being filled, so those two carry transcribed",
+  "pairs; `cost` has a row and pricing_tiers has no cta fields at all, which is a gap on that",
+  "block. All ten `sections` rows on this page return ctaLabel and ctaHref null — verified",
+  "live — so there was never anything to move.",
+  "",
+  "THE RAIL SURVIVES INTACT. Nine toc_links rows — why, what, robotics, process, compare,",
+  "candidacy, living, cost, faq — in the template's order, every one claimed by a block's",
+  "section_id. Ten blocks produce nine rail entries because `gallery` has no toc_links row and",
+  "resolves to a blank nav_label, which is what keeps it out of the rail today and what keeps",
+  "it out of the derived rail after the switch."
+ ],
+ "blocks": [
+  {
+   "section_id": "why",
+   "layout": "card_grid",
+   "band": "paper",
+   "band_evidence": "all-on-4-single-arch.astro:349 <section class=\"section\"> — .aos4 .section (all-on-4-single-arch.css:226) sets padding: 110px 0 and nothing else, no background, so the body paper shows through.",
+   "fields": {
+    "eyebrow": {
+     "section": "eyebrow"
+    },
+    "heading": {
+     "section": "heading"
+    },
+    "body": {
+     "section": "body"
+    },
+    "columns": {
+     "literal": "4"
+    },
+    "numbered": {
+     "literal": true
+    }
+   },
+   "columns_evidence": ".aos4 .why-grid is repeat(4, 1fr) (all-on-4-single-arch.css:276-277) against four cards. FOUR, not the two both worked examples carry — CardGridBlock emits `.cols-4` at this value (CardGridBlock.astro:129) and its own `.why-grid.cols-4` is repeat(4, 1fr) with the same 18px gutter the page sheet uses, so the geometry is reproduced rather than approximated.",
+   "body_is_null_note": "`sections.why.body` comes back null from the live CMS and the template's section-head has no <p> at all (all-on-4-single-arch.astro:349-354) — eyebrow and h2 only. Mapped anyway rather than omitted: CardGridBlock guards the paragraph on the value being non-empty, so null draws nothing today and a body typed in wp-admin tomorrow appears where the design already has room for it. Omitting the mapping would make that edit silently do nothing.",
+   "rows": {
+    "cards": {
+     "cards": "whyCards",
+     "fields": {
+      "title": "title",
+      "body": "body"
+     },
+     "note": "All 4 rows of the `whyCards` group, in order — verified live: \"Robotic implant placement\", \"Implant Pathway credentials\", \"Parker resident · 300+ reviews\", \"Team-dentist clinical background\". MOVED, not transcribed: unlike porcelain-veneers, this page's `cards` repeater holds real rows and the template array at all-on-4-single-arch.astro:35-56 is a copy of them.",
+     "no_lead_note": "No `lead` mapping and no `body_2`. Each `.why-card` here is `.num`, <h3>, one <p> (all-on-4-single-arch.astro:361-367) — no `p.lead` and no second paragraph, so those two slots stay empty and CardGridBlock draws neither. The three-paragraph card that needed `body_2` is porcelain-veneers', not this page's.",
+     "num_note": "The four `meta` values in the CMS rows are the strings \"01\", \"02\", \"03\", \"04\" — the numerals the `.num` divs print. They are deliberately NOT mapped: `numbered: true` above derives the figure from row position (CardGridBlock.astro:145), so the rendered output is identical and a reorder in wp-admin cannot leave the numbering out of sequence. Mapping `meta` instead would freeze 01-04 to the rows they are typed on."
+    }
+   },
+   "known_gaps": [
+    "NONE. Four cards, each a derived number, a title and one paragraph, under a section-head",
+    "of eyebrow and heading. Every element of the band has a field or a derivation behind it,",
+    "and the four-across grid is a `columns` value the select already offers."
+   ]
+  },
+  {
+   "section_id": "what",
+   "layout": "media_split",
+   "band": "charcoal",
+   "band_evidence": "all-on-4-single-arch.astro:383 <section class=\"section alt\"> — .aos4 .section.alt { background: var(--vs-charcoal-green); color: rgba(255,255,255,0.85) } at all-on-4-single-arch.css:227, with h2 #fff at :231 and .eyebrow var(--vs-eyebrow-on-sage) at :232. DARK. The template comment on this line read \"cream split\" and was wrong; the rule is what this value is read from.",
+   "fields": {
+    "eyebrow": {
+     "section": "eyebrow"
+    },
+    "heading": {
+     "section": "heading"
+    },
+    "body": {
+     "section": "body"
+    },
+    "image": {
+     "image": "whatImg",
+     "part": "id"
+    },
+    "image_alt": {
+     "image": "whatImg",
+     "part": "alt"
+    },
+    "media_side": {
+     "literal": "left"
+    },
+    "ratio": {
+     "literal": "even"
+    },
+    "cta_label": {
+     "literal": "Free Virtual Consult",
+     "from_template": "all-on-4-single-arch.astro:402-404 — the first of the two buttons in .cta-row.left."
+    },
+    "cta_href": {
+     "literal": "#consult"
+    },
+    "cta_label_2": {
+     "literal": "How It Works",
+     "from_template": "all-on-4-single-arch.astro:405-407 — the second of the two buttons in .cta-row.left."
+    },
+    "cta_href_2": {
+     "literal": "#robotics"
+    }
+   },
+   "layout_evidence": ".what-img precedes .what-text in the DOM (all-on-4-single-arch.astro:386, 394) and .aos4 .what-grid is 1fr 1fr with gap 80px (all-on-4-single-arch.css:336-338) — photo left, even split, and MediaSplitBlock's own `.what-grid` is the identical declaration. `even` is already the family default for a left photo (MediaSplitBlock.astro:281-283), so no ratio-* modifier is emitted and the grid div stays the bare `what-grid` the template ships.",
+   "image_alt_note": "The images row for slot whatImg carries alt \"Full-arch restoration on a dental model, held in a gloved hand\" — confirmed live, and character-for-character the string the template hardcodes at :389. Moved, not transcribed: the row exists.",
+   "image_shape_note": "whatImg is 1100x880 — landscape, which is what the 5/4 `.what-img` plate wants (all-on-4-single-arch.css:316, and the identical rule in MediaSplitBlock). This is the one media band on the page whose source and frame agree; see `robotics` for the one where they do not.",
+   "prose_note": "ONE paragraph inside a `<div class=\"prose\">` (all-on-4-single-arch.astro:397-399), which is exactly what MediaSplitBlock emits for a non-empty `body` and an empty `body_2`. No `body_2` on this band.",
+   "known_gaps": [
+    "1. THE ENTIRE `.what-sub` SUB-BAND. all-on-4-single-arch.astro:413-442, roughly 90 words",
+    "   plus two cards, and none of it has a slot on media_split:",
+    "",
+    "     <span class=\"eyebrow\">Upper vs. Lower</span>",
+    "     <h3>Upper Arch vs. Lower Arch: Which One Do You Need?</h3>",
+    "     <div class=\"prose\"><p>Treat the arch with the most failing or missing teeth first, or the one causing the greatest difficulty.</p></div>",
+    "     <div class=\"config-grid\"> two .config-card, each a .tag, an <h4> and a <p> — the CMS",
+    "       `archConfigs` group: \"Upper Arch\" / \"Less dense bone, posterior angulation\" and",
+    "       \"Lower Arch\" / \"Navigating the inferior alveolar nerve\" </div>",
+    "     <div class=\"what-sub-foot\"><p>Most patients prioritize whichever arch is more compromised and evaluate adding the second after healing. A CBCT scan provides Dr. Richardson with the three-dimensional bone map that makes this determination accurate.</p></div>",
+    "",
+    "   `callout_heading` / `callout_body` were considered and rejected. They draw",
+    "   `<aside class=\"veneers-callout\">` with an <h3> and paragraphs (MediaSplitBlock.astro:481-491)",
+    "   — teeth-whitening's aside, not a sub-band — so they could carry the head and the foot",
+    "   paragraph but never the eyebrow and never the two cards, and they would put this page's",
+    "   copy inside a class this page has never had. Half a sub-band in the wrong element is",
+    "   harder to notice and harder to undo than a missing one.",
+    "",
+    "   WHAT CLOSES IT: a `sub_band` group on media_split — eyebrow, heading, body, a `cards`-",
+    "   shaped repeater of { tag, title, body }, and a closing `foot` textarea — drawn by",
+    "   MediaSplitBlock as `.what-sub` > `.what-sub-head` + `.config-grid` + `.what-sub-foot`.",
+    "   The same group closes the `compare` gap below and both `.candidacy-sub` gaps, which is",
+    "   four bands on this page alone and the same shape on bone-grafting, sinus-lift and",
+    "   full-mouth-dental-implants. It is a layout change, so it is not made here.",
+    "",
+    "2. THE SECONDARY BUTTON'S HOVER LABEL. The template passes hoverLabel=\"See How\" for",
+    "   #robotics (:405). MediaSplitBlock derives hover labels from the HREF (CTA_HOVER,",
+    "   MediaSplitBlock.astro:231-236) and that map holds #consult, #process, #faq and the",
+    "   phone number — not #robotics — so the button falls back to reusing its visible label",
+    "   and reads \"How It Works\" on hover instead of \"See How\". One word on one hover state.",
+    "   Closed by a `#robotics` entry in CTA_HOVER, which is the same one-line fix the",
+    "   teeth-whitening route already records for #process.",
+    "",
+    "   The primary button and both variants are exact: #consult -> \"Get a Video\" is what :402",
+    "   passes, and charcoal is a dark band so primaryVariant is `light` and secondaryVariant is",
+    "   `ghost-light` (MediaSplitBlock.astro:390-391, isDarkBand at :250), which is the pair",
+    "   :402-407 ships."
+   ]
+  },
+  {
+   "section_id": "robotics",
+   "layout": "media_split",
+   "band": "paper",
+   "band_evidence": "all-on-4-single-arch.astro:460 <section class=\"section\"> — no background rule on .aos4 .section (all-on-4-single-arch.css:226), body paper.",
+   "fields": {
+    "eyebrow": {
+     "section": "eyebrow"
+    },
+    "heading": {
+     "section": "heading"
+    },
+    "body": {
+     "section": "body"
+    },
+    "image": {
+     "image": "roboticsImg",
+     "part": "id"
+    },
+    "image_alt": {
+     "image": "roboticsImg",
+     "part": "alt"
+    },
+    "media_side": {
+     "literal": "left"
+    },
+    "ratio": {
+     "literal": "wide-media"
+    }
+   },
+   "layout_evidence": ".robotics-img precedes .robotics-text (all-on-4-single-arch.astro:463, 471) — photo left, so `media_side` is left and MediaSplitBlock selects the `.what-*` family. .aos4 .robotics-grid is 1.1fr 1fr (all-on-4-single-arch.css:406-407), which is NOT the left family's default 1fr 1fr, so `ratio` is `wide-media` and the block emits `.what-grid.ratio-wide-media` — grid-template-columns: 1.1fr 1fr (MediaSplitBlock.astro <style>, `.what-grid.ratio-wide-media`). The tracks are reproduced exactly; the class name is not, and that is in the gaps below.",
+   "image_alt_note": "The images row for slot roboticsImg carries alt \"Dr. Bryce Richardson placing a dental implant with the Yomi robotic arm at Vivid Smiles Dentistry\" — confirmed live, and the string the template hardcodes at :466. Moved.",
+   "no_cta_note": "No cta pairs. This band ships no `.cta-row` at all (all-on-4-single-arch.astro:460-491), and MediaSplitBlock draws the row only when a label is filled, so leaving all four sub-fields empty is what keeps the band the shape it is. Supplying one would add a button the page has never had.",
+   "no_quote_no_checklist_note": "No `quote` and no `checklist`: `.robotics-text` is eyebrow, h2, `p.robotics-prose`, `.robotics-callout` — no pull quote and no numbered list. Both stay empty and both draw nothing.",
+   "known_gaps": [
+    "1. THE PORTRAIT PLATE BECOMES LANDSCAPE, AND THIS IS THE LARGEST GAP ON THE ROUTE.",
+    "",
+    "   all-on-4-single-arch.css:308-311 gives `.what-img`, `.robotics-img` and `.natural-img`",
+    "   a shared `aspect-ratio: 4/5`, and :316 overrides only `.what-img` back to 5/4. So",
+    "   `.robotics-img` is a PORTRAIT plate, and roboticsImg is a portrait file — 1152x1365,",
+    "   confirmed live. MediaSplitBlock ties the frame to the side (`.what-img` 5/4,",
+    "   `.natural-img` 4/5) on the measured claim in its own header that no page mixes the two.",
+    "   This band mixes them, so `media_side: left` puts a 1152x1365 source into a 5/4 frame",
+    "   with `object-fit: cover` and crops roughly a third of its height.",
+    "",
+    "   THE TRADE, STATED SO THE NEXT READER DOES NOT RE-LITIGATE IT: `media_side: right` would",
+    "   give the correct 4/5 frame and move the photograph to the other side of the page,",
+    "   reversing the reading order of a band whose copy runs heading -> prose -> callout down",
+    "   the right-hand column. Reading order and column proportions are kept; the crop is lost.",
+    "",
+    "   WHAT CLOSES IT: a `media_shape` select on the layout — `landscape` | `portrait`,",
+    "   defaulting to whatever the side already implies — read by MediaSplitBlock as a",
+    "   `.what-img.portrait` / `.natural-img.landscape` modifier. The frame stops being a",
+    "   consequence of the side. Two scoped rules and one select; no new component.",
+    "",
+    "2. THE CLASS FAMILY. The band comes back as `.what-grid.ratio-wide-media` >",
+    "   `.what-img` + `.what-text`, where the template ships `.robotics-grid` >",
+    "   `.robotics-img` + `.robotics-text`. The page sheet styles `.robotics-*` at",
+    "   all-on-4-single-arch.css:308-332 and :406-432; those rules stop matching and the",
+    "   block's own `.what-*` rules take over. Column tracks, gap, alignment, border-radius,",
+    "   shadow and the image hover transform are the same declarations either way — the",
+    "   difference is the frame in gap 1 and the heading's max-width (`.what-text h2` is 14ch",
+    "   at :340, `.robotics-text h2` is 16ch at :410).",
+    "",
+    "3. `p.robotics-prose` BECOMES `.prose > p`. The template puts the section body in a bare",
+    "   `<p class=\"robotics-prose\">` (:474); MediaSplitBlock wraps every body in",
+    "   `<div class=\"prose\">`. The copy is carried in full — only the wrapper and the class",
+    "   change. `.aos4 .robotics-prose` is 16.5px/1.85 max-width 60ch (:411) against the",
+    "   block's `.prose p` at 16.5px/1.85 max-width 70ch, so the measure widens by 10ch.",
+    "",
+    "4. THE `.robotics-callout`. all-on-4-single-arch.astro:475-487 — a `.label`, an <h4> and",
+    "   a 70-word paragraph:",
+    "",
+    "     <span class=\"label\">Why four implants are enough</span>",
+    "     <h4>Engineering, not shortcuts</h4>",
+    "     <p>Four implants are sufficient because angled posterior placement increases bone-to-implant surface contact without requiring additional fixtures. The two front implants anchor upright; the two rear implants tilt at 30 to 45 degrees, engaging a longer section of denser bone without relying on posterior bone volume, which is the first to resorb after tooth loss. That spread of contact points distributes bite force across the arch, the way load-bearing columns distribute structural weight.</p>",
+    "",
+    "   `callout_heading` / `callout_body` come closest of anything on the layout and are still",
+    "   not it: they draw `<aside class=\"veneers-callout\">` with an <h3> and no `.label` slot,",
+    "   so the eyebrow line would be dropped and the remaining two elements would land in",
+    "   teeth-whitening's aside rather than this page's callout. Recorded rather than",
+    "   half-carried, on the same reasoning as the sub-bands.",
+    "",
+    "   WHAT CLOSES IT: a `label` sub-field beside the existing `callout_heading` /",
+    "   `callout_body` pair, and a `callout_class` select (or a per-band choice) so the aside",
+    "   can be drawn as `.robotics-callout` where that is the class the page has. One text",
+    "   field, one select, three lines in MediaSplitBlock."
+   ]
+  },
+  {
+   "section_id": "process",
+   "layout": "process_steps",
+   "band": "sage-pale",
+   "band_evidence": "all-on-4-single-arch.astro:504 <section class=\"section dark\"> — .aos4 .section.dark { background: var(--vs-sage-pale) } at all-on-4-single-arch.css:237, with h1-h4 var(--vs-ink) at :241 and .eyebrow var(--vs-ink-soft) at :242. PALE, despite the class name. `sage` and `sage-pale` are two separate BLOCK_BANDS choices painting two different tokens.",
+   "fields": {
+    "eyebrow": {
+     "literal": "Same-Day Procedure",
+     "from_template": "all-on-4-single-arch.astro:507 <span class=\"eyebrow light\">. The CMS `process` row has eyebrow null — verified live — so without this literal the eyebrow disappears on migration. Same shape as porcelain-veneers' `The Process`."
+    },
+    "heading": {
+     "section": "heading"
+    },
+    "body": {
+     "section": "body"
+    },
+    "layout": {
+     "literal": "grid"
+    },
+    "columns": {
+     "literal": "5"
+    },
+    "cta_text": {
+     "literal": "<strong>Healing timeline — from temporary to final teeth.</strong> Osseointegration takes three to six months, during which soft foods are required and progress checkpoints confirm the implants are integrating. Once healing is confirmed, Dr. Richardson takes digital impressions and designs the final prosthesis: zirconia resists chipping and mimics natural enamel's light transmission; acrylic is more easily adjusted but wears faster under heavy biting forces. The final attachment includes bite refinement, and you leave with permanent teeth.",
+     "from_template": "all-on-4-single-arch.astro:525-533 — the .ic-text block inside .inline-cta.dark. The <strong> is transcribed because ProcessStepsBlock renders ic-text with set:html (ProcessStepsBlock.astro:255); typing the tag as text would print it. `.aos4 .inline-cta .ic-text strong` (all-on-4-single-arch.css:636) is what styles it, and the block carries the same rule."
+    }
+   },
+   "rows": {
+    "steps": {
+     "process_steps": true,
+     "fields": {
+      "tag": "tag",
+      "num": "@index2",
+      "title": "title",
+      "body": "body"
+     },
+     "note": "All 5 rows, in order — verified live: Step One \"Sedation\", Step Two \"Extractions\", Step Three \"Implant placement\", Step Four \"Temporary prosthesis\", Step Five \"Soft-food recovery\". `num` is derived because the legacy repeater has no such sub-field; see row_kinds.@index2."
+    }
+   },
+   "columns_evidence": ".aos4 .process-grid is repeat(5, 1fr) (all-on-4-single-arch.css:433-434) against five process_steps rows. The `columns` select now offers '5' and ProcessStepsBlock enumerates it (ProcessStepsBlock.astro:175-177) and emits `.process-grid.cols-5`, so this stores a value the field actually has. Written as \"5\" and not \"4\": a component that maps 2/3/4 and falls back would silently draw this band four across with step 05 orphaned, and nothing in query validation or scripts/check-block-schema.mjs can see that — \"5\" arrives as a plain string on a field the fragment already asks for.",
+   "eyebrow_light_note": "ProcessStepsBlock adds `.light` to the eyebrow when the band is sage or sage-pale, which reproduces the template's `eyebrow light` at :507. It follows from `band` above; nothing here supplies it.",
+   "no_pre_cards_note": "No `pre_cards`, and that is not an omission: this page has no `.process-pre` mini-grid. The band runs section-head, .process-grid, .inline-cta.dark and nothing else (all-on-4-single-arch.astro:504-543), so an empty repeater is the correct shape and the component draws no wrapper for it.",
+   "inline_cta_buttons_note": "The two buttons inside .inline-cta.dark are Book Online (bookNowHref) and Call {phoneLabel} (phoneHref), drawn by ProcessStepsBlock as literals from src/data/contact.ts (ProcessStepsBlock.astro:257-263) — identical to :535-539. A phone number is site data, not page content, so there is deliberately no field for it and nothing to supply here.",
+   "known_gaps": [
+    "NONE, AND THIS IS THE ONLY BAND ON THE PAGE THAT CAN SAY SO WITHOUT QUALIFICATION.",
+    "",
+    "Eyebrow, heading, body, five steps in a five-column grid, the healing-timeline paragraph",
+    "with its bolded lead-in, and the two contact buttons all have a field, a derivation or a",
+    "component behind them. The five-across grid is the gap porcelain-veneers recorded and",
+    "closed; this page is the first to consume the closure rather than report it."
+   ]
+  },
+  {
+   "section_id": "compare",
+   "layout": "comparison_cards",
+   "band": "paper",
+   "band_evidence": "all-on-4-single-arch.astro:558 <section class=\"section\"> — no background rule on .aos4 .section (all-on-4-single-arch.css:226), body paper.",
+   "fields": {
+    "eyebrow": {
+     "section": "eyebrow"
+    },
+    "heading": {
+     "section": "heading"
+    },
+    "body": {
+     "section": "body"
+    }
+   },
+   "columns_evidence": ".aos4 .compare is 1fr 1fr (all-on-4-single-arch.css:469-470) and the band carries 2 cards. comparison_cards has no columns sub-field — the count IS the row count — so there is nothing to set. TWO cards here, three on both worked examples.",
+   "rows": {
+    "tiers": {
+     "literal": [
+      {
+       "tag": "Single Arch",
+       "title": "All-on-4 Single Arch",
+       "ribbon": "Our Specialty",
+       "featured": true
+      },
+      {
+       "tag": "Full Mouth",
+       "title": "Full Mouth Treatment"
+      }
+     ],
+     "from_template": "all-on-4-single-arch.astro:567-597 — the two .compare-card articles, the FIRST .featured with a .ribbon. These two cards are hardcoded in the template and have no `cards` rows behind them; the CMS `alternatives` group belongs to the .compare-sub below, not to these.",
+     "no_body_note": "NEITHER ROW CARRIES `body`, AND THAT IS NOT AN OVERSIGHT. Neither .compare-card has a <p> at all — each is a .tag, an <h3> and a <ul class=\"compare-list\"> (:571-580, :586-596). Inventing a paragraph out of the four bullets would author copy, which this file does not do. What the bullets cost is gap 1 below.",
+     "featured_is_first_here": "The featured card is the FIRST of the two (all-on-4-single-arch.astro:567), like the pilot's and unlike porcelain-veneers' third. Position is carried by row order, so the flag travels with the first row and nothing else has to say so.",
+     "repeater_name_note": "`tiers`, not `cards` and not `plans`. comparison_cards, card_grid and pricing_tiers do not share a repeater name — a repeater mints its GraphQL type from its field name, so sharing one merges two types and drops one side's sub-fields — and the backfill rejects the wrong name against the layout's shape before it plans anything."
+    }
+   },
+   "cta_note": "ComparisonCardsBlock draws the closing .cta-row itself — Free Virtual Consult to #consult, Read FAQ to #faq, and the note \"No commitment · Personal video reply\" (ComparisonCardsBlock.astro, the literal .cta-row after the aside) — which is exactly what all-on-4-single-arch.astro:624-632 ships, variants `sage` and `ghost` included because this is a paper band. The layout has no cta sub-fields, so this map supplies nothing.",
+   "no_callout_note": "No `callout_heading` / `callout_body`. This band's aside is not teeth-whitening's `.safety-callout` — it is `.compare-sub`, a headed three-card grid — so those two fields would draw the wrong element around part of the wrong content. See gap 2.",
+   "known_gaps": [
+    "1. EVERY BULLET IN BOTH CARDS. Eight <li> across two <ul class=\"compare-list\">, which is",
+    "   the entire body copy of the band's two cards. Transcribed here so the words survive the",
+    "   review even though no field carries them:",
+    "",
+    "     All-on-4 Single Arch —",
+    "       <b>Scope —</b> treats one jaw, upper or lower.",
+    "       <b>Implants —</b> four strategically placed titanium implants.",
+    "       <b>Investment —</b> lower cost, a shorter procedure, and a focused treatment plan.",
+    "       <b>Best for —</b> patients with healthy teeth in one arch start with single-arch treatment.",
+    "",
+    "     Full Mouth Treatment —",
+    "       <b>Scope —</b> treats both jaws.",
+    "       <b>Implants —</b> roughly double the implants.",
+    "       <b>Investment —</b> a longer procedure, and approximately twice the investment.",
+    "       <b>Best for —</b> those with two compromised arches may complete both in one surgical appointment or stage treatment based on budget and recovery goals.",
+    "",
+    "   THE FIELD EXISTS AND IS NOT QUERIED. `tiers.bullets` is registered in",
+    "   cms/mu-plugins/vs-content-model.php (field_vs_blk_compare_bullets, :2101-2103, built by",
+    "   the same block_list_field() factory behind media_split's checklist) and",
+    "   ComparisonCardsBlock already reads and renders it. What is missing is the sub-field in",
+    "   the comparison_cards fragment in src/blocks/manifest.ts, which today reads",
+    "   `tiers { tag title body ribbon featured }`. An unqueried repeater arrives undefined and",
+    "   the component's `bullets.length > 0` branch never fires, so rows written here would sit",
+    "   in the CMS drawing nothing — which is why they are recorded rather than written.",
+    "",
+    "   WHAT CLOSES IT, IN TWO PARTS, because one alone is not enough:",
+    "     (a) add `bullets { item }` inside `tiers` in manifest.ts. One word; the schema",
+    "         already has the type.",
+    "     (b) the component then draws a BARE `<ul>` of plain-text `<li>` — no `.compare-list`",
+    "         class, so `.aos4 .compare-card .compare-list` (:496-513, including the",
+    "         `li::before` marker and the `.featured` inversions at :520-522) does not match,",
+    "         and no `<b>` lead-in, so \"Scope —\" stops being bold. Closing (a) without (b)",
+    "         returns the words in unstyled markup. (b) is the `lead` sub-field the shared",
+    "         list factory already grew for media_split's checklist, plus the class on the",
+    "         <ul>.",
+    "",
+    "2. THE ENTIRE `.compare-sub` SUB-BAND. all-on-4-single-arch.astro:600-622:",
+    "",
+    "     <span class=\"eyebrow\">Alternatives</span>",
+    "     <h3>Alternatives to All-on-4 Single Arch Implants</h3>",
+    "     <div class=\"prose\"><p>All-on-4 is the ideal choice when most or all arch teeth are failing, but other options exist for different clinical situations.</p></div>",
+    "     <div class=\"alternatives-grid\"> three .config-card, each a .tag, an <h4> and a <p> —",
+    "       the CMS `alternatives` group: All-on-6, Implant-supported dentures, Individual",
+    "       implants </div>",
+    "",
+    "   Same shape and same reasoning as the `.what-sub` gap on the `what` block, and closed by",
+    "   the same `sub_band` group. `.aos4 .what-sub` and `.aos4 .compare-sub` are one rule",
+    "   (all-on-4-single-arch.css:342-370 declares them together), which is the evidence that",
+    "   this is one shape appearing twice and not two similar ones.",
+    "",
+    "   The three cards are the `alternatives` group and are named in `exempt.cards` below, so",
+    "   the backfill reports them on every run instead of dropping them quietly."
+   ]
+  },
+  {
+   "section_id": "candidacy",
+   "layout": "media_split",
+   "band": "charcoal",
+   "band_evidence": "all-on-4-single-arch.astro:653 <section class=\"section alt\"> — the same .aos4 .section.alt { background: var(--vs-charcoal-green) } rule as `what`, all-on-4-single-arch.css:227. The template comment on this line read \"cream\" and was wrong.",
+   "fields": {
+    "eyebrow": {
+     "section": "eyebrow"
+    },
+    "heading": {
+     "section": "heading"
+    },
+    "image": {
+     "image": "candidacyImg",
+     "part": "id"
+    },
+    "image_alt": {
+     "image": "candidacyImg",
+     "part": "alt"
+    },
+    "media_side": {
+     "literal": "right"
+    },
+    "ratio": {
+     "literal": "wide-media"
+    },
+    "quote": {
+     "literal": "Ideal candidates have lost most or all teeth in one arch, retain sufficient bone density, and are in good systemic health.",
+     "from_template": "all-on-4-single-arch.astro:659-662 <div class=\"natural-quote\">. Hardcoded today; there is no CMS field it could have come from."
+    },
+    "callout_heading": {
+     "literal": "What If You Don't Have Sufficient Bone?"
+    },
+    "callout_body": {
+     "section": "body"
+    }
+   },
+   "layout_evidence": ".natural-text precedes .natural-img (all-on-4-single-arch.astro:656, 692) and .aos4 .natural-grid is 1fr 1.1fr (all-on-4-single-arch.css:535-536) — photo right, media column the wider one. `wide-media` is already the family default for a right photo (MediaSplitBlock.astro:281), so no ratio-* modifier is emitted and the div stays the bare `natural-grid` the template ships. candidacyImg is 1000x1250 — portrait, which is what the 4/5 `.natural-img` plate wants. Source, frame and side all agree on this band, unlike `robotics`.",
+   "image_alt_note": "The images row for slot candidacyImg carries alt \"Smiling woman photographed outdoors in the Colorado foothills\" — confirmed live, and the string the template hardcodes at :695. Moved.",
+   "body_deliberately_unmapped": [
+    "`sections.candidacy.body` IS NOT MAPPED TO `body`, AND THIS IS THE ONE PLACE ON THE ROUTE",
+    "WHERE A CMS ROW IS LEFT ON THE FLOOR ON PURPOSE.",
+    "",
+    "The template does not print that row inside `.natural-text` at all. `.natural-text` is",
+    "eyebrow, h2, `.natural-quote`, `ul.candidate-list` and stops (all-on-4-single-arch.astro:",
+    "656-691) — there is no `.prose` in this band. The row is printed further down, in the",
+    "`.candidacy-sub` at :705, under a `.label` and an <h3> that have no field either.",
+    "",
+    "Mapping it to `body` would make MediaSplitBlock emit `<div class=\"prose\"><p>…</p></div>`",
+    "between the checklist and the photograph — the paragraph would appear, in the wrong",
+    "place, in an element this band has never had, and the sub-band it belongs to would still",
+    "be missing its label and its heading. The `sections` row stays claimed by this block, so",
+    "the leftover check is satisfied; what it feeds is gap 2 below and it moves when that gap",
+    "closes."
+   ],
+   "rows": {
+    "checklist": {
+     "literal": [
+      {
+       "lead": "Reduced bone volume requirements —",
+       "item": "The angled design reduces bone volume requirements compared to traditional implants."
+      },
+      {
+       "lead": "Active gum disease addressed first —",
+       "item": "Active gum disease must be treated first."
+      },
+      {
+       "lead": "Health factors reviewed —",
+       "item": "Heavy smokers face lower success rates, and systemic conditions like diabetes are reviewed."
+      },
+      {
+       "lead": "CBCT bone mapping —",
+       "item": "A CBCT scan provides bone mapping that determines candidacy."
+      }
+     ],
+     "from_template": "all-on-4-single-arch.astro:663-690 — the four <li> of <ul class=\"candidate-list\">. Hardcoded; this page has no CMS rows for them.",
+     "lead_carries_its_own_dash": "Each `lead` ends in the em dash, because the dash is inside the <b> in the markup being reproduced (`<b>Reduced bone volume requirements —</b> The angled design…`). MediaSplitBlock emits `<b>{lead}</b> {item}` with the single space between them written on one template line (MediaSplitBlock.astro:452-456), so a dash typed outside the bold run would render unbolded and a dash omitted here would vanish.",
+     "markers_are_derived": "The `.marker` spans read 01, 02, 03, 04 (:665, 672, 678, 685) and are NOT transcribed. MediaSplitBlock computes them from row position after filtering blank rows, so deleting the second of four cannot leave `01 03 04` on the page and a reorder in wp-admin — the one edit a repeater exists to make cheap — cannot scramble them.",
+     "repeater_name_note": "`checklist`, and it is queried: manifest.ts's media_split fragment reads `checklist { lead item }`. The component's own header still carries a note saying it is not selected yet; that note is stale and the fragment is the authority. Verified by reading the fragment, because a checklist written against an unqueried repeater renders nothing at all — which is exactly the state `tiers.bullets` is in on the `compare` block above."
+    }
+   },
+   "quote_order_note": "MediaSplitBlock renders the quote above the checklist and both above the prose, which is the order the template has: eyebrow, h2, .natural-quote, ul.candidate-list (all-on-4-single-arch.astro:657-690). With no prose on this band the block emits no `.prose` div at all, so the `.candidate-list + .prose` spacing rule never fires — same as the template.",
+   "known_gaps": [
+    "1. NOTHING IN THE MAIN SPLIT. Photo, side, frame, heading, eyebrow, pull quote and all",
+    "   four numbered candidate lines have a field or a derivation, and the markers are",
+    "   derived rather than stored. This is the band `checklist` was added for and it lands",
+    "   exactly.",
+    "",
+    "2. THE `.candidacy-sub`. all-on-4-single-arch.astro:702-706:",
+    "",
+    "     <span class=\"label\">If you don't qualify yet</span>",
+    "     <h3>What If You Don't Have Sufficient Bone?</h3>",
+    "     <p>{sections.candidacy.body}</p>",
+    "",
+    "   and that body is 60 words of live client copy — \"Severe bone loss changes the treatment",
+    "   path. Options include bone grafting…, All-on-6…, or zygomatic implants for the upper",
+    "   jaw, which anchor in the cheekbone. Dr. Richardson evaluates each case using CBCT",
+    "   imaging and outlines every option before treatment begins.\" It is the band's answer to",
+    "   the question the heading asks, so losing it leaves a candidacy section that says who",
+    "   qualifies and never says what happens if you do not.",
+    "",
+    "   `callout_heading` / `callout_body` could carry the <h3> and the paragraph into an",
+    "   `<aside class=\"veneers-callout\">` and would still drop the `.label`. Rejected on the",
+    "   same grounds as the other three sub-bands: `.aos4 .candidacy-sub` (:575-600) is a",
+    "   left-bordered cream panel and `.veneers-callout` is not, so the copy would arrive in",
+    "   visibly different furniture and the difference would be attributed to the migration",
+    "   rather than to a missing field.",
+    "",
+    "   WHAT CLOSES IT: the same `sub_band` group named on the `what` block, or — narrower and",
+    "   enough for this one shape — a `label` sub-field beside `callout_heading` /",
+    "   `callout_body` plus a `callout_class` choice so the aside can be drawn as",
+    "   `.candidacy-sub`. That narrower fix also closes gap 4 on `robotics` and gap 2 on",
+    "   `living`, three bands for one field pair."
+   ],
+   "callout_evidence": "The .candidacy-sub <h3> and its paragraph (all-on-4-single-arch.astro:703). Carried by the callout_heading / callout_body pair, which media_split already declares, manifest.ts already selects and MediaSplitBlock already draws — the same pair single-tooth-dental-implants and full-mouth-dental-implants use for this identical shape. It was first left empty because .veneers-callout is not .candidacy-sub, but that trades a live client paragraph for a class name. The panel geometry and the .label line stay recorded gaps."
+  },
+  {
+   "section_id": "living",
+   "layout": "card_grid",
+   "band": "paper",
+   "band_evidence": "all-on-4-single-arch.astro:726 <section class=\"section\"> — no background rule on .aos4 .section (all-on-4-single-arch.css:226), body paper.",
+   "fields": {
+    "eyebrow": {
+     "section": "eyebrow"
+    },
+    "heading": {
+     "section": "heading"
+    },
+    "body": {
+     "section": "body"
+    },
+    "columns": {
+     "literal": "4"
+    },
+    "numbered": {
+     "literal": true
+    }
+   },
+   "eyebrow_is_moved_not_transcribed": "The template hardcodes <span class=\"eyebrow\">Daily Life</span> at :729, and the CMS `living` row holds eyebrow \"Daily Life\" — verified live, the same string. Mapped from the row rather than transcribed as a literal: rule 1 beats rule 2 when both are available, and a literal here would go stale the first time an editor changed the row.",
+   "columns_evidence": ".aos4 .benefits-grid is repeat(4, 1fr) (all-on-4-single-arch.css:650-651) against four cards. CardGridBlock emits `.cols-4` at this value and its own four-across rule carries the 18px gutter; the page sheet's is 22px, which is the one geometry difference and is noted in gap 1.",
+   "rows": {
+    "cards": {
+     "cards": "livingCards",
+     "fields": {
+      "title": "title",
+      "body": "body"
+     },
+     "note": "All 4 rows of the `livingCards` group, in order — verified live: \"Eating\", \"Food debris\", \"Cleaning\", \"Professional visits\". MOVED, not transcribed.",
+     "meta_is_not_mapped_and_why": [
+      "The four `meta` values in the CMS are \"01\", \"02\", \"03\" and — on the fourth row —",
+      "\"Every 3–6 months\". That fourth value is not a number: it is the `.stat-line` the",
+      "template draws BELOW the card's paragraph (all-on-4-single-arch.astro:741), while the",
+      "first three are the `.num` figures at the top.",
+      "",
+      "CardGridBlock has ONE figure slot and one rule for filling it: `numbered` true draws",
+      "the row position, `numbered` false draws `meta` (CardGridBlock.astro:145-149). So",
+      "`numbered: false` would print \"Every 3–6 months\" in the big italic sage `.num` slot",
+      "where \"04\" belongs and leave card four without a number; `numbered: true` numbers all",
+      "four correctly and drops the stat. The second is the smaller loss and the one that",
+      "survives a reorder, so `numbered` is true and the stat-line is gap 2 below.",
+      "",
+      "One slot, one rule, and no card that shows both a number and a label — that is the",
+      "component's stated design, not an accident, which is why this is recorded as a layout",
+      "gap rather than worked around here."
+     ]
+    }
+   },
+   "known_gaps": [
+    "1. THE CARDS COME BACK AS `.why-*`, NOT `.benefits-*`. CardGridBlock draws `.why-grid` >",
+    "   `.why-card` on every page (CardGridBlock.astro's header says the class names are the",
+    "   family's on purpose), and this band ships `.benefits-grid` > `.benefits-card`",
+    "   (all-on-4-single-arch.astro:734, 737). Both are four across; the page sheet's",
+    "   `.benefits-*` rules (all-on-4-single-arch.css:650-686) differ from its `.why-*` rules",
+    "   (:276-304) in gutter (22px vs 18px), card padding (34/30/32 vs 30/26/32), min-height",
+    "   (280 vs 260), inner gap (14 vs 12), h3 size (20 vs 19) and p size (14.5 vs 14). The",
+    "   band is legible and correctly proportioned either way; it is a few pixels different.",
+    "",
+    "   NOT WORTH A FIELD, and recorded so nobody adds one. `.benefits-*` is `.why-*` with a",
+    "   slightly roomier card, and the whole point of a shared card_grid is that one grid",
+    "   serves sixteen pages. What closes it, if anyone decides it should be closed, is",
+    "   deleting the `.benefits-*` block from this sheet in the stylesheet pass — not a",
+    "   `card_class` select, which would put the family back to two names for one shape.",
+    "",
+    "2. THE `.stat-line` ON CARD FOUR. all-on-4-single-arch.astro:741 —",
+    "   `<div class=\"stat-line\">Every 3–6 months</div>`, a sage line under a top border",
+    "   (all-on-4-single-arch.css:679-685) summarising the card's own paragraph. The value is",
+    "   in the CMS as that row's `meta`; there is nowhere for it to go while `numbered` owns",
+    "   the one figure slot. See meta_is_not_mapped_and_why above.",
+    "",
+    "   WHAT CLOSES IT: a `stat` sub-field on the `cards` repeater — a second, separate slot",
+    "   drawn after `body`/`body_2` as `<div class=\"stat-line\">` and emitted only when",
+    "   non-empty, exactly the way `body_2` was added. It is a separate field precisely",
+    "   because it is a separate position in the card: folding it into the figure slot is the",
+    "   collision that produced this gap.",
+    "",
+    "3. THE `.candidacy-sub` MAINTENANCE CALLOUT. all-on-4-single-arch.astro:747-758:",
+    "",
+    "     <span class=\"label\">Maintenance & Longevity</span>",
+    "     <h3>How Long All-on-4 Lasts</h3>",
+    "     <p>With consistent care, titanium implants can last 20 or more years because the fixture bonds with living bone and essentially becomes part of the jaw. The prosthesis is a separate consideration: acrylic bridges may need replacement after 10 to 15 years due to wear; zirconia bridges hold up longer under heavy bite forces. Annual checkpoints at Vivid Smiles include imaging to assess bone levels, bite evaluation, and prosthesis inspection, so small issues are detected before they become significant.</p>",
+    "",
+    "   Roughly 80 words, and card_grid has no aside fields at all — not even the",
+    "   `callout_heading` / `callout_body` pair media_split and comparison_cards carry, so",
+    "   there is not even a wrong-element option to reject here.",
+    "",
+    "   WHAT CLOSES IT: the `sub_band` group named on the `what` block, added to card_grid as",
+    "   well as media_split. Note the ampersand in the label — it is a literal `&` in the",
+    "   source and would be stored as `&` and escaped on output, the same trap the pilot route",
+    "   records for \"Brush & floss as before\"."
+   ]
+  },
+  {
+   "section_id": "cost",
+   "layout": "pricing_tiers",
+   "band": "charcoal",
+   "band_evidence": "all-on-4-single-arch.astro:774 <section class=\"section alt\"> — .aos4 .section.alt { background: var(--vs-charcoal-green) } at all-on-4-single-arch.css:227. The template comment on this line read \"cream\" and was the third of three on this page to do so. porcelain-veneers' cost band is PAPER (porcelain-veneers.css:243) and the four implant pages' are commonly cream, which is exactly why `band` is a field on this layout rather than a constant in the block — the family does not agree and this page agrees with neither.",
+   "fields": {
+    "eyebrow": {
+     "section": "eyebrow"
+    },
+    "heading": {
+     "section": "heading"
+    },
+    "body": {
+     "section": "body"
+    },
+    "note": {
+     "literal": "Every case has a unique anatomy that shifts the final number — a free consultation with CBCT imaging is the only way to get an accurate quote. Vivid Smiles offers in-house financing to spread treatment cost into monthly payments; Cherry, CareCredit, and Proceed Finance partners are reviewed during your consultation.",
+     "from_template": "all-on-4-single-arch.astro:801 — the `financingNote` prop. A field on the layout rather than a sub-field of the last plan, which is where the markup effectively kept it. PricingTiers guards its .vs-pricing-tiers__financing paragraph on the value being present, so a blank would draw nothing rather than a stray top border."
+    }
+   },
+   "rows": {
+    "plans": {
+     "literal": [
+      {
+       "name": "Zirconia All-on-4 Single Arch",
+       "price": "$19,995",
+       "price_note": "Starting at",
+       "price_suffix": "per arch",
+       "meta": "Full-arch fixed teeth with a precision-milled zirconia prosthesis.",
+       "ribbon": "Most Common",
+       "highlighted": true,
+       "features": [
+        {
+         "item": "Four implants per arch — robotic placement"
+        },
+        {
+         "item": "Same-day provisional teeth"
+        },
+        {
+         "item": "Precision-milled monolithic zirconia prosthesis"
+        },
+        {
+         "item": "Custom smile design with digital preview"
+        },
+        {
+         "item": "CBCT 3D surgical planning"
+        }
+       ]
+      }
+     ],
+     "from_template": "all-on-4-single-arch.astro:782-802 — the single tier in the <PricingTiers> invocation. One plan, and the layout's own instructions say one to four is what the design is built for.",
+     "all_three_slots_are_used_here": [
+      "PricingTiers draws THREE optional strings around the price and this page is the first",
+      "in the corpus to fill all three. `meta` is the tagline under the plan name",
+      "(invocation prop `tagline`, :789), `price_note` is the small line ABOVE the figure",
+      "(prop `priceQualifier`, \"Starting at\", :786), `price_suffix` the caption BELOW it",
+      "(prop `priceSuffix`, \"per arch\", :788). PricingTiersBlock maps the three the other",
+      "way — meta -> tagline, price_note -> priceQualifier, price_suffix -> priceSuffix.",
+      "",
+      "porcelain-veneers uses two of the three and its entry explains why it must not gain",
+      "the third: its $2,250 is a flat per-tooth price, so \"Starting at\" would change what",
+      "the page claims. Here the opposite is true — $19,995 IS a starting figure, the",
+      "template says so at :786, and the financing note says every case shifts the final",
+      "number. Dropping `price_note` on this page would turn a from-price into a fixed",
+      "quote, which is the one transcription error on this band that costs money rather",
+      "than pixels."
+     ],
+     "ribbon_and_highlight_are_both_set": "`highlighted` true and `ribbon` \"Most Common\", and they are two fields for a reason: the template passes highlight: true (:798) AND ribbon: 'Most Common' (:797), so the card is filled sage as the centrepiece and carries the label across its corner. porcelain-veneers passes the flag and no ribbon, which is why the two are separate.",
+     "features_shape": "The five bullets become five `features` rows, one `item` each — the house list-of-lines shape (block_list_field(), vs-content-model.php:382-451). Transcribed from all-on-4-single-arch.astro:790-796 in order; PricingTiers renders them as the <li> of .vs-pricing-tier__bullets. The em dash in \"Four implants per arch — robotic placement\" is inside the line, not a lead-in, so it is part of `item` and the factory's optional `lead` stays empty.",
+     "repeater_name_note": "`plans` and `features`, and neither name is shared with any other repeater in the model — `tiers`, `cards`, `items`, `points`, `steps`, `checklist` and `bullets` are all taken. A repeater mints its GraphQL type from its field name, so a shared name merges two types and drops one side's sub-fields against a schema that still looks healthy."
+    }
+   },
+   "markup_evidence": "PricingTiersBlock emits <section class=\"section alt\" id=… data-vs-reveal-batch> around a .wrap, a .section-head of eyebrow/h2/p, and the imported <PricingTiers> — line for line what all-on-4-single-arch.astro:774-802 ships, including the data-vs-reveal-batch on the section. The table itself is the SAME component, imported rather than redrawn, so it cannot drift from the template's.",
+   "known_gaps": [
+    "THE CLOSING `.cta-row`. all-on-4-single-arch.astro:804-814:",
+    "",
+    "  <Button variant=\"light\" href=\"#consult\" hoverLabel=\"Get a Video\">Free Virtual Consult</Button>",
+    "  <Button variant=\"ghost-light\" href={directionsHref} hoverLabel=\"Open Map\">Get Directions</Button>",
+    "  <span class=\"cta-note\">17167 Cedar Gulch Pkwy Ste 102 · Parker, CO</span>",
+    "",
+    "PricingTiersBlock emits section > wrap > section-head > PricingTiers and stops — no CTA",
+    "row, no note. So the band loses both buttons and the address line under them. This is the",
+    "band's only loss and it is the difference between this page's cost band and",
+    "porcelain-veneers', which has no row after its table and therefore recorded no gap.",
+    "",
+    "WHAT CLOSES IT: `cta_label` / `cta_href` / `cta_label_2` / `cta_href_2` / `cta_note` on",
+    "the pricing_tiers layout, drawn by PricingTiersBlock as the same `.cta-row` >",
+    "`.cta-buttons` + `.cta-note` the other blocks emit, with the variant pair chosen from the",
+    "band the way MediaSplitBlock chooses it (charcoal is dark, so `light` + `ghost-light`,",
+    "which is what :806 and :809 pass). The second href is `directionsHref` from",
+    "src/data/contact.ts — SITE data, like the phone number FaqBlock and ProcessStepsBlock",
+    "refuse to make editable — so `cta_href_2` should accept the token rather than a typed",
+    "URL, or the second button should be drawn as a literal the way the phone button is. A",
+    "per-page field for the practice's own address is a per-page chance to publish the wrong",
+    "one.",
+    "",
+    "Everything else on the band is carried: the section-head is the CMS `cost` row (eyebrow",
+    "\"Cost & Financing\", heading and body all non-null — verified live), and the plan's name,",
+    "from-price, qualifier, per-arch suffix, tagline, ribbon, centrepiece flag and five feature",
+    "lines are the `plans` row above. The rail entry survives too — the live toc_links carry",
+    "anchor `cost` labelled \"Cost & Financing\", claimed by this block's section_id."
+   ]
+  },
+  {
+   "section_id": "gallery",
+   "layout": "gallery_marquee",
+   "band": "sage-pale",
+   "band_evidence": "all-on-4-single-arch.astro:823 <section class=\"section dark\"> — .aos4 .section.dark { background: var(--vs-sage-pale) } at all-on-4-single-arch.css:237. The same sage-pale as `process`.",
+   "fields": {
+    "eyebrow": {
+     "literal": "Smile Gallery",
+     "from_template": "all-on-4-single-arch.astro:826 <span class=\"eyebrow light\">. The CMS `gallery` row has eyebrow null — verified live — so without this literal the eyebrow disappears on migration."
+    },
+    "heading": {
+     "section": "heading"
+    },
+    "body": {
+     "section": "body"
+    }
+   },
+   "nav_label_note": "There is no toc_links row for #gallery — this page's nine rows are why, what, robotics, process, compare, candidacy, living, cost, faq — so nav_label resolves blank and the block stays out of the rail, which is where it is today. The template's derived rail applies the same rule from the other end: a blank nav_label is skipped.",
+   "tiles_note": "No sub-fields beyond the preamble by design: the tiles are files in src/assets/images/smiles/, read by src/lib/smiles.ts and doubled into a marquee track by the component. Nothing to move, and the body copy already says so — \"A selection of finished cosmetic and restorative work from across the practice, not All-on-4 cases specifically.\"",
+   "reveal_note": "This band is the one whose <section> carries no data-vs-reveal-batch, with data-vs-reveal on the .section-head instead (all-on-4-single-arch.astro:823, 825). GalleryMarqueeBlock emits exactly that pair, so the attributes match without anything here saying so.",
+   "known_gaps": [
+    "NONE. Eyebrow, heading and body are all carried and the tiles were never CMS content."
+   ]
+  },
+  {
+   "section_id": "faq",
+   "layout": "faq",
+   "band": "paper",
+   "band_evidence": "all-on-4-single-arch.astro:857 <section class=\"section\"> — no background rule on .aos4 .section (all-on-4-single-arch.css:226), body paper.",
+   "fields": {
+    "eyebrow": {
+     "section": "eyebrow"
+    },
+    "heading": {
+     "section": "heading"
+    },
+    "body": {
+     "literal": ""
+    },
+    "pull": {
+     "section": "body"
+    },
+    "cta_label": {
+     "literal": "Still Have Questions? Free Virtual Consult",
+     "from_template": "all-on-4-single-arch.astro:884-886. FaqBlock draws its second button — Call + the practice number — from src/data/contact.ts, because a phone number is site data and not page content, so it is not transcribed here."
+    },
+    "cta_href": {
+     "literal": "#consult"
+    }
+   },
+   "body_to_pull_note": "sections.faq.body -> `pull`, NOT -> `body`. The template puts it in .pull (all-on-4-single-arch.astro:878-880), the aside below the questions, and the FAQ section-head has no paragraph at all (:859-862). Writing it to `body` would print it twice, so `body` is pinned to the empty string. Same shape as both worked examples.",
+   "rows": {
+    "items": {
+     "faqs": true,
+     "fields": {
+      "question": "question",
+      "answer": "answer",
+      "open": "open"
+     },
+     "note": "All 8 rows, in order — verified live, and the first is `open` (\"What is the downside of All-on-4 dental implants?\"), matching the template's default. The block renders answers with set:html; none of these eight carries a tag — checked, all 8 — so that is a no-op here."
+    }
+   },
+   "cta_variants_note": "Paper is not a dark band, so FaqBlock draws `sage` + `ghost` and derives the primary button's hover label from the href (#consult -> \"Get a Video\") — which is exactly what :884-889 ships, phone button and \"Tap to Dial\" included.",
+   "known_gaps": [
+    "NONE. Eyebrow, heading, the eight questions, the .pull aside and both CTA buttons all",
+    "have a field or a component behind them."
+   ]
+  }
+ ],
+ "exempt": {
+  "_": [
+   "Every repeater row on this page that no block above claims. The backfill fails, before",
+   "writing anything, on any row that is neither claimed nor listed here. Three of the five",
+   "lists are empty because those rows are all claimed: 10 sections by the 10 blocks, all 5",
+   "process_steps by `process`, all 8 faqs by `faq`, all 9 toc_links by the section ids above.",
+   "TWO `cards` groups and one image are exempt, and unlike both worked examples the cards",
+   "list here is not empty — see below."
+  ],
+  "sections": [],
+  "cards": [
+   {
+    "group": "archConfigs",
+    "rows": 2,
+    "reason": "The two `.config-card`s inside `.what-sub` — the Upper Arch / Lower Arch pair at all-on-4-single-arch.astro:424-434. They belong to a SUB-BAND of the `what` band, not to a band of their own, and media_split has no repeater that draws a card grid. Claiming them on the `what` block is impossible; splitting `what` into two blocks is worse, because two blocks means two <section>s and PageBlocks would rename the second anchor to #what-2, breaking the rail entry and every inbound #what link.",
+    "destination": "The `sub_band.cards` repeater named in the `what` block's known_gaps. Until that exists these two rows sit in the CMS unread, and this entry is what makes the backfill say so on every run.",
+    "renders_today": "all-on-4-single-arch.astro:424-434, inside the guarded `what` band — so they render on the template side of the switch and not on the block side."
+   },
+   {
+    "group": "alternatives",
+    "rows": 3,
+    "reason": "The three `.config-card`s inside `.compare-sub` — All-on-6, Implant-supported dentures, Individual implants, at all-on-4-single-arch.astro:611-621. Same shape and same reason as archConfigs: a sub-band of the `compare` band, and comparison_cards' one `tiers` repeater is already the two main cards. They are NOT more comparison tiers — putting them there would draw five cards across a 1fr 1fr grid under the wrong heading.",
+    "destination": "The same `sub_band.cards` repeater. `.aos4 .what-sub` and `.aos4 .compare-sub` are declared as one rule (all-on-4-single-arch.css:342-370), which is the evidence that one field closes both.",
+    "renders_today": "all-on-4-single-arch.astro:611-621, inside the guarded `compare` band."
+   }
+  ],
+  "cards_note": [
+   "NOT EMPTY, WHICH IS THE DIFFERENCE BETWEEN THIS ROUTE AND BOTH WORKED EXAMPLES.",
+   "porcelain-veneers has no `cards` rows at all and clear-aligners' one group is claimed. This",
+   "page has four groups and two of them have nowhere to go, because two of its ten bands carry",
+   "a card grid inside a card grid.",
+   "",
+   "Naming them here rather than omitting them is deliberate and mechanical: the leftover check",
+   "reports a `cards` group that HAS rows and was not claimed, and an unlisted group stops the",
+   "run with an error rather than losing five rows quietly. Listed, they surface as a warning on",
+   "every backfill — which is where a reader looking at a page that came back short will find",
+   "the reason."
+  ],
+  "process_steps": [],
+  "faqs": [],
+  "images": [
+   {
+    "slot": "heroImg",
+    "reason": "The hero is not a block. It is a `hero` group field on group_vs_page — one per page, always first, never reordered (docs/PAGE-BLOCKS.md 1.3, 7).",
+    "destination": "hero.image, filled by whatever moves the hero across. Not this script's field and not this script's business.",
+    "renders_today": "all-on-4-single-arch.astro:252-286 hero <header class=\"hero\">, which stays unguarded on both sides of the migration switch."
+   }
+  ],
+  "images_note": [
+   "The other three slots are all claimed: whatImg by `what`, roboticsImg by `robotics`,",
+   "candidacyImg by `candidacy`. All three carry a live `alt` that matches the string the",
+   "template hardcodes character for character, so all three are moved rather than transcribed."
+  ],
+  "toc_links": [],
+  "toc_links_decision": [
+   "EMPTY. All nine anchors this page's toc_links carry — why, what, robotics, process, compare,",
+   "candidacy, living, cost, faq — are claimed by a block's `section_id` above. There is no",
+   "code_section on this route and therefore no anchor claimed any other way.",
+   "",
+   "The rail is derived from blocks[].anchor + nav_label in block order. Ten blocks produce nine",
+   "rail entries — `gallery` has no toc_links row and stays out — in the same order the",
+   "repeater already has them, because the repeater's order and the template's band order agree",
+   "on this page. So the rail is not a difference on this route.",
+   "",
+   "ONE THING THE RAIL WILL KEEP PROMISING THAT THE BACKFILLED PAGE SHOWS LESS OF: \"Comparison\"",
+   "scrolls to a band whose two cards lose all eight of their bullet lines and whose three",
+   "alternative cards are gone, until the `compare` block's two gaps are closed. The entry still",
+   "lands in the right place; there is less under it. This is the one place on the route where a",
+   "reader following the rail would notice the migration."
+  ]
+ }
+}

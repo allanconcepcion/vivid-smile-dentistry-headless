@@ -31,6 +31,33 @@
  *
  * Global <Nav /> + <Footer /> are mounted by BaseLayout — this page renders
  * only its own content, starting with an inline breadcrumb under the global nav.
+ *
+ * MIGRATED TO BLOCKS (docs/PAGE-BLOCKS.md 2.3). Eight top-level bands — why,
+ * what, options, process, design, cost, why-us, faq — each guarded with
+ * `hasBlocks ? null : …` and each carrying a row in cms/import/block-map.json
+ * under /cosmetic-dentistry/full-mouth-rehabilitation/. No gallery band and no
+ * <LocalTrust> on this page, so there is no gallery_marquee row and no
+ * code_section row: eight bands, eight blocks, one per `sections` row.
+ *
+ * THE BAND NAMES IN THE COMMENTS BELOW WERE WRONG AND ARE CORRECTED HERE,
+ * because the map's `band` values are read off them. `.section.alt` on THIS
+ * page is CHARCOAL (full-mouth-rehabilitation.css:228 ->
+ * var(--vs-charcoal-green)) and `.section.dark` is SAGE-PALE (:237 ->
+ * var(--vs-sage-pale)). The old comments said "cream" and "sage", which are two
+ * different BLOCK_BANDS choices painting two different tokens — copying them
+ * into the map would have repainted four of these eight bands.
+ *
+ * TWO BANDS THIS PAGE OWNS THAT NO REGISTERED LAYOUT REPRODUCES, both recorded
+ * as known_gaps on their blocks in the map:
+ *   1. `cost` is a `.cost-card` — a two-column card with a `.cost-list` <ul> on
+ *      the LEFT and `.cost-body` prose on the right. It is NOT the standalone
+ *      <section> around a <PricingTiers> that the `pricing_tiers` layout draws,
+ *      and it has no plans, prices or tiers to put in one. It is mapped to
+ *      `stat_callout`, which carries every word and none of the geometry.
+ *   2. `why-us` is a `.why-4up` 2x2 grid of `.why-4up-card`, whose label is a
+ *      `<span class="tag">`. `card_grid` carries the same four cards — and they
+ *      are real CMS `cards` rows, group `whyUsCards` — but draws them as
+ *      `.why-grid` / `.why-card` with the label in a `<div class="num">`.
  */
 import { Image } from "astro:assets";
 import BaseLayout from "../../layouts/BaseLayout.astro";
@@ -53,13 +80,21 @@ import "../../styles/pages/full-mouth-rehabilitation.css";
 // lab model. A prosthesis, not a procedure or a patient: the section defines
 // what the treatment produces, and an object carries no outcome claim.
 // "Design section" — finished-smile macro in profile.
-import { getPageContent } from '../../lib/page-content';
+import { getPageContent, type TocLink } from '../../lib/page-content';
+import PageBlocks from '../../blocks/PageBlocks.astro';
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Full-Mouth Rehabilitation in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, processSteps, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+const { blocks, hasBlocks, tocLinks, processSteps, faqs, section, image, seo } =
+  await getPageContent(Astro.url.pathname);
 
 
+// The four #why-us cards, hardcoded here and ALSO held in the CMS as four
+// `cards` rows in group `whyUsCards` — verified live, character-for-character,
+// meta/title/body against tag/title/body. This array is the else-branch's copy
+// and stays; the block path moves the CMS rows instead, so neither side is
+// re-typed. Change one and the two disagree, which is invisible until the
+// migration switch flips.
 const whyUsCards = [
   {
     tag: "Specialized Training",
@@ -83,6 +118,66 @@ const whyUsCards = [
   },
 ];
 
+/**
+ * The "On this page" rail, derived from the blocks themselves (docs/PAGE-BLOCKS.md 1.2).
+ *
+ * Used only when this page renders from `blocks`. The `toc_links` repeater is
+ * eight rows that restate the order of the eight bands below it, so a reorder
+ * in wp-admin moves a band and leaves its rail entry pointing at the old
+ * neighbour — the single largest way a reorder breaks a link. Reading the
+ * anchors off the blocks makes that unrepresentable: there is one ordering and
+ * the rail is a projection of it.
+ *
+ * Three rules, in the order they bite:
+ *
+ * 1. A blank anchor is skipped. Not tidiness — src/scripts/toc-spy.ts:24 feeds
+ *    each rendered href straight to document.querySelector(), and
+ *    querySelector("") throws a SyntaxError that kills the whole spy, not just
+ *    the one entry. PageBlocks.astro emits no id at all for a blank anchor
+ *    (`id={anchor || undefined}`), so there is nothing to link to either.
+ * 2. An anchor that is not a valid id selector is skipped for the same reason —
+ *    "#3-reasons" is legal HTML and an illegal CSS selector. Dropping one rail
+ *    entry costs one link; letting it through costs every link on the page,
+ *    plus the mobile pill auto-centering. `why-us` passes: the pattern allows a
+ *    hyphen everywhere except the first character.
+ * 3. Duplicate anchors follow PageBlocks.astro's dedup exactly, second
+ *    occurrence onward suffixed `-2`, `-3`. The counter has to advance on every
+ *    non-blank anchor, including blocks with no nav_label, or the rail's idea
+ *    of "the second #faq" drifts from the id the renderer actually emitted.
+ *
+ * A blank nav_label means "leave this block out of the rail" (1.2), which is
+ * how a band that should not be navigable opts out. Every one of this page's
+ * eight blocks has a `toc_links` row, so the derived rail is all eight, in the
+ * same order the repeater already lists them.
+ */
+const ANCHOR_IS_ID_SELECTOR = /^[A-Za-z_][A-Za-z0-9_-]*$/;
+
+const anchorsSeen = new Map<string, number>();
+// Typed as TocLink[] rather than an equivalent inline shape so the ternary in
+// the rail below collapses to one type instead of a union of two array types,
+// which TypeScript will not let you call .map() on.
+const derivedTocLinks: TocLink[] = [];
+
+for (const block of blocks) {
+  const anchor = typeof block.anchor === 'string' ? block.anchor.trim() : '';
+  if (anchor === '') continue;
+
+  const nth = (anchorsSeen.get(anchor) ?? 0) + 1;
+  anchorsSeen.set(anchor, nth);
+
+  const label = typeof block.navLabel === 'string' ? block.navLabel.trim() : '';
+  if (label === '') continue;
+
+  if (!ANCHOR_IS_ID_SELECTOR.test(anchor)) {
+    console.warn(
+      `[blocks] anchor "${anchor}" on ${Astro.url.pathname} cannot be used as a selector — ` +
+        `omitting "${label}" from the On this page rail so toc-spy keeps working`,
+    );
+    continue;
+  }
+
+  derivedTocLinks.push({ href: `#${nth > 1 ? `${anchor}-${nth}` : anchor}`, label });
+}
 
 ---
 
@@ -150,20 +245,59 @@ const whyUsCards = [
       </div>
     </section>
 
-    {/* ---------- ON-THIS-PAGE TOC ---------- */}
+    {
+      /* ---------- ON-THIS-PAGE TOC ----------
+       The rail itself is never a block (spec 7: "Not a block, even though it
+       is a band") — only its contents move. Derived from the blocks when they
+       are drawing the page, read from the `toc_links` repeater when the
+       template is. Same markup either way, which is what lets
+       src/scripts/toc-spy.ts go on reading its section list off the rendered
+       links without knowing which source produced them. */
+    }
     <nav class="toc" id="toc" aria-label="On this page">
       <div class="toc-inner">
         <span class="toc-label">On this page</span>
         <div class="toc-scroll">
           <div class="toc-list">
-            {tocLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+            {(hasBlocks ? derivedTocLinks : tocLinks).map((l) => <a href={l.href}>{l.label}</a>)}
           </div>
         </div>
       </div>
     </nav>
 
-    {/* ---------- WHY (paper) — Who Needs FMR? ---------- */}
-    <section class="section" id="why" data-vs-reveal-batch>
+    {
+      /* ---------- WHY (paper) — Who Needs FMR? ----------
+
+       THE MIGRATION SWITCH (docs/PAGE-BLOCKS.md 2.3) starts here. `hasBlocks`
+       means "this build can draw this page from its blocks" — not "WordPress
+       sent rows" (src/lib/page-content.ts). When it is true PageBlocks draws
+       the eight bands in the order an editor arranged them; when it is false —
+       which is every build until the backfill has run, and again the moment an
+       editor empties the field — every band below renders exactly as it always
+       has.
+
+       Written as one guard per band rather than one guard around all eight on
+       purpose, and it is not a style choice. Astro's compressHTML pass treats
+       an Astro comment expression differently inside a component slot than at
+       element level: wrapping these bands in a Fragment silently drops one
+       space at every comment boundary below, and scripts/vr-html.mjs compares
+       exact bytes and calls that a difference. A guard sitting exactly where
+       its section sat emits byte-identical HTML.
+
+       EVERY top-level band between here and <VirtualConsult> is guarded, and
+       every one of them has a row in cms/import/block-map.json. Those two facts
+       have to move together: a band that is neither blocked nor guarded renders
+       in ADDITION to the block run and lands at the bottom of the page, and a
+       band that is guarded with no map row disappears on backfill with nothing
+       in the log. There is no third outcome. The bands ABOVE this line — the
+       breadcrumb, the hero, `.keys` and the rail — are not blocks by spec 7 and
+       are deliberately unguarded, as are <VirtualConsult> and <FinalBand> below
+       the run.
+
+       Band colour: `.fmrehab .section` (full-mouth-rehabilitation.css:227) sets
+       padding: 110px 0 and nothing else, so the body paper shows through. */
+    }
+    {hasBlocks ? <PageBlocks blocks={blocks} /> : <section class="section" id="why" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow">{section("why").eyebrow}</span>
@@ -186,10 +320,15 @@ const whyUsCards = [
         </div>
 
       </div>
-    </section>
+    </section>}
 
-    {/* ---------- WHAT (cream) — What is FMR? ---------- */}
-    <section class="section alt" id="what" data-vs-reveal-batch>
+    {/* ---------- WHAT (charcoal) — What is FMR? — `.section.alt` is
+     var(--vs-charcoal-green) on THIS page (full-mouth-rehabilitation.css:228),
+     with h2 #fff at :232 and p rgba(255,255,255,0.85) at :234. NOT the cream
+     this comment used to claim and not the cream the identical class name means
+     on teeth-whitening.css:237. The map's band value is read off that rule, not
+     off the class name. ---------- */}
+    {hasBlocks ? null : <section class="section alt" id="what" data-vs-reveal-batch>
       <div class="wrap">
         <div class="what-grid">
           <div class="what-img" data-vs-parallax data-parallax="-25">
@@ -219,10 +358,12 @@ const whyUsCards = [
           </div>
         </div>
       </div>
-    </section>
+    </section>}
 
-    {/* ---------- OPTIONS (paper) — Treatment Options, 2-card compare ---------- */}
-    <section class="section" id="options" data-vs-reveal-batch>
+    {/* ---------- OPTIONS (paper) — Treatment Options, 2-card compare.
+     No background rule on `.fmrehab .section`
+     (full-mouth-rehabilitation.css:227), body paper. ---------- */}
+    {hasBlocks ? null : <section class="section" id="options" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow">Treatment Options</span>
@@ -261,10 +402,14 @@ const whyUsCards = [
           <span class="cta-note">No commitment · Personal video reply</span>
         </div>
       </div>
-    </section>
+    </section>}
 
-    {/* ---------- PROCESS (sage) ---------- */}
-    <section class="section dark" id="process" data-vs-reveal-batch>
+    {/* ---------- PROCESS (sage-pale) — `.section.dark` is var(--vs-sage-pale)
+     here (full-mouth-rehabilitation.css:237), with h2 var(--vs-ink) at :241.
+     PALE, despite the class name, and NOT the `sage` this comment used to
+     claim: `sage` and `sage-pale` are two separate BLOCK_BANDS choices painting
+     two different tokens. ---------- */}
+    {hasBlocks ? null : <section class="section dark" id="process" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow light">The Process</span>
@@ -291,10 +436,13 @@ const whyUsCards = [
           </div>
         </div>
       </div>
-    </section>
+    </section>}
 
-    {/* ---------- DESIGN (cream) — Digital Smile Design, natural-grid pattern ---------- */}
-    <section class="section alt" id="design" data-vs-reveal-batch>
+    {/* ---------- DESIGN (charcoal) — Digital Smile Design, natural-grid
+     pattern. The same `.fmrehab .section.alt { background:
+     var(--vs-charcoal-green) }` rule as `what`,
+     full-mouth-rehabilitation.css:228. ---------- */}
+    {hasBlocks ? null : <section class="section alt" id="design" data-vs-reveal-batch>
       <div class="wrap">
         <div class="natural-grid">
           <div class="natural-text">
@@ -317,10 +465,34 @@ const whyUsCards = [
           </div>
         </div>
       </div>
-    </section>
+    </section>}
 
-    {/* ---------- COST (paper) — repurposed lasting-card pattern ---------- */}
-    <section class="section" id="cost" data-vs-reveal-batch>
+    {
+      /* ---------- COST (paper) — repurposed lasting-card pattern.
+       No background rule on `.fmrehab .section`
+       (full-mouth-rehabilitation.css:227), body paper.
+
+       THE BAND NO REGISTERED LAYOUT REPRODUCES, and the one to read the map's
+       known_gaps for before reviewing the backfill. `.cost-card`
+       (full-mouth-rehabilitation.css:490) is a two-column card: a `.cost-list`
+       <ul> on the LEFT, counter-numbered 01/02/03 by
+       `.cost-list li::before` (:507), and `.cost-body` prose on the right.
+
+       IT IS NOT A pricing_tiers BAND. That layout draws its own <section>
+       around a <PricingTiers> plan grid, which is what the veneers and implant
+       pages ship as `<section id="cost">`; this band has no plan, no price and
+       no tier to put in one, only three cost FACTORS and two closing sentences.
+       Mapping it there would print an empty plan grid and drop every word.
+
+       It is mapped to `stat_callout` instead, which carries every word — the
+       three <li> become `points` (lead + body), the two paragraphs become
+       `intro` and `intro_2` — and none of the geometry: the card comes back as
+       `.lasting-card` / `.lasting-body`, one column, with the list BELOW the
+       prose rather than beside it. StatCalloutBlock's own header already names
+       `.cost-card` as a Wave C near variant of the shell, which is what closes
+       this. Nothing here is a missing FIELD. */
+    }
+    {hasBlocks ? null : <section class="section" id="cost" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow">{section("cost").eyebrow}</span>
@@ -357,10 +529,26 @@ const whyUsCards = [
           </div>
         </div>
       </div>
-    </section>
+    </section>}
 
-    {/* ---------- WHY-US (cream) — Why Choose Vivid Smiles, why-4up 2x2 ---------- */}
-    <section class="section alt" id="why-us" data-vs-reveal-batch>
+    {
+      /* ---------- WHY-US (charcoal) — Why Choose Vivid Smiles, why-4up 2x2.
+       The same `.fmrehab .section.alt { background: var(--vs-charcoal-green) }`
+       rule as `what` and `design`, full-mouth-rehabilitation.css:228 — not the
+       cream this comment used to claim.
+
+       THE FOUR CARDS ARE CMS ROWS, not template copy: `cards` group
+       `whyUsCards`, four rows, meta/title/body matching the tag/title/body of
+       the array in the frontmatter character-for-character. The map MOVES them.
+
+       What the block cannot reproduce is the shell. `.why-4up` (:534) and
+       `.why-4up-card` (:538) are page-local classes and the label is a
+       `<span class="tag">` (:548); `card_grid` draws `.why-grid` / `.why-card`
+       and puts the label in a `<div class="num">`, which this page styles as a
+       36px display italic figure (:287). Every word survives, the shell and the
+       label's type do not. Recorded on the block in the map. */
+    }
+    {hasBlocks ? null : <section class="section alt" id="why-us" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow">{section("why-us").eyebrow}</span>
@@ -378,10 +566,12 @@ const whyUsCards = [
           ))}
         </div>
       </div>
-    </section>
+    </section>}
 
-    {/* ---------- FAQ (paper) — native details/summary, zero JS ---------- */}
-    <section class="section" id="faq" data-vs-reveal-batch>
+    {/* ---------- FAQ (paper) — native details/summary, zero JS. No background
+     rule on `.fmrehab .section` (full-mouth-rehabilitation.css:227), body
+     paper. ---------- */}
+    {hasBlocks ? null : <section class="section" id="faq" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow">{section("faq").eyebrow}</span>
@@ -408,9 +598,16 @@ const whyUsCards = [
           </div>
         </div>
       </div>
-    </section>
+    </section>}
 
-    {/* ---------- VIRTUAL CONSULT — primary closing conversion ---------- */}
+    {
+      /* ---------- VIRTUAL CONSULT — primary closing conversion.
+       NOT a block and deliberately unguarded, like the breadcrumb, hero,
+       `.keys` strip and the rail above: it renders on both sides of the switch
+       and has no row in the map. It sits after the block run in template order
+       and PageBlocks draws at the `why` position, so the closing pair still
+       comes last. */
+    }
     <VirtualConsult id="consult" eyebrow="Free full-mouth rehab consultation">
       <Fragment slot="headline">Free full-mouth rehab <em>consultation.</em></Fragment>
       <Fragment slot="body">

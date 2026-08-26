@@ -1,0 +1,633 @@
+{
+  "route": "/cosmetic-dentistry/gum-contouring/",
+  "template": "vivid-smiles-website/src/pages/cosmetic-dentistry/gum-contouring.astro",
+  "stylesheet": "vivid-smiles-website/src/styles/pages/gum-contouring.css",
+  "wrapper_class": "gcontouring",
+  "notes": [
+    "EIGHT BLOCKS, AND THE BLOCK LIST IS THE SECTION LIST. This page has eight `sections` rows —",
+    "what, laser, candidates, process, recovery, results, why, faq — in exactly the order of its",
+    "eight template bands, and eight `toc_links` rows carrying exactly those eight anchors. There",
+    "is no code_section (no <LocalTrust> on this page), no gallery band and no cost band, so",
+    "unlike porcelain-veneers there is no row here that is not built from a `sections` row.",
+    "",
+    "THE TEMPLATE'S OWN BAND COMMENTS WERE WRONG AND THE MAP DOES NOT INHERIT THEM. Before this",
+    "migration the file said `#what` was \"(cream)\", `#laser` \"(sage)\" and `#results` \"(cream)\".",
+    "The stylesheet says otherwise: `.gcontouring .section.alt { background: var(--vs-charcoal-green) }`",
+    "at gum-contouring.css:245 and `.gcontouring .section.dark { background: var(--vs-sage-pale) }`",
+    "at gum-contouring.css:254. So `what` and `results` are CHARCOAL and `laser` and `process` are",
+    "SAGE-PALE. `sage` and `sage-pale` are two separate BLOCK_BANDS choices painting two different",
+    "tokens, and `.section.alt` is cream on teeth-whitening.css and charcoal here — which is why",
+    "every `band` below carries a `band_evidence` naming the rule and the line it was read from,",
+    "and why none of them was copied from a sibling route.",
+    "",
+    "THE `cards` REPEATER ON THIS PAGE HOLDS ROWS, AND THEY ARE MOVED RATHER THAN TRANSCRIBED.",
+    "Confirmed against the live CMS: two rows in group `whyCards`, each with meta / title / body,",
+    "and they are the two cards the `#why` band draws. That makes this route different from",
+    "porcelain-veneers, where `cards` came back empty and every card was a literal. The template",
+    "still holds a hardcoded `whyCards` array in its frontmatter (gum-contouring.astro:95-98) —",
+    "that array is the else-branch's copy of the same two rows and stays where it is, because it",
+    "is what the page renders when `blocks` is empty.",
+    "",
+    "EVERY OTHER CARD, QUOTE AND PARAGRAPH BELOW IS A LITERAL, and each one names the template",
+    "line it was transcribed from. The two `candidates` cards, the `laser` pull quote, both",
+    "second paragraphs, the recovery figure and the inline-CTA sentence have never been in the",
+    "CMS: the `cards` repeater holds only the `whyCards` group and the `sections` rows hold one",
+    "body each.",
+    "",
+    "THREE BANDS LOSE SOMETHING AND ALL THREE ARE RECORDED, NOT PAPERED OVER. `#laser` has a",
+    "`.natural-quote-attrib` byline and media_split has no attribution sub-field; `#results` is",
+    "`.natural-grid.alt-flip` and media_split ties its class family to `media_side`; `#why` is a",
+    "`.why-3up` grid of `.tag`-led cards ending in a `.cta-row` and card_grid draws `.why-grid`",
+    "cards with a `.num` and has no cta sub-fields. No layout was invented and no field was added",
+    "for any of them — see `known_gaps` on each block for what the page loses and what closes it.",
+    "",
+    "CTA ROWS SPLIT THE SAME TWO WAYS AS THE MIGRATED SIBLINGS. All eight `sections` rows return",
+    "ctaLabel and ctaHref null — verified live — so there was never anything to move; `what` and",
+    "`faq` gate their row on cta_label being filled and carry a transcribed pair, `process` draws",
+    "its `.inline-cta` buttons from src/data/contact.ts inside the component, and `why`'s row has",
+    "no field to carry it at all."
+  ],
+  "blocks": [
+    {
+      "section_id": "what",
+      "layout": "media_split",
+      "band": "charcoal",
+      "band_evidence": "gum-contouring.astro:280 <section class=\"section alt\"> — .gcontouring .section.alt { background: var(--vs-charcoal-green) } at gum-contouring.css:245, with h1-h4 #fff at :246-249, .eyebrow var(--vs-eyebrow-on-sage) at :250 and p rgba(255,255,255,0.85) at :251. Dark, white text — NOT the cream the template comment claimed and NOT the cream the identical class name means on teeth-whitening.css.",
+      "fields": {
+        "eyebrow": {
+          "section": "eyebrow"
+        },
+        "heading": {
+          "section": "heading"
+        },
+        "body": {
+          "section": "body"
+        },
+        "image": {
+          "image": "whatImg",
+          "part": "id"
+        },
+        "image_alt": {
+          "image": "whatImg",
+          "part": "alt"
+        },
+        "media_side": {
+          "literal": "left"
+        },
+        "ratio": {
+          "literal": "even"
+        },
+        "cta_label": {
+          "literal": "Free Virtual Consult",
+          "from_template": "gum-contouring.astro:299 — the first of the two buttons in .cta-row.left."
+        },
+        "cta_href": {
+          "literal": "#consult"
+        },
+        "cta_label_2": {
+          "literal": "How It Works",
+          "from_template": "gum-contouring.astro:300 — the second of the two buttons in .cta-row.left."
+        },
+        "cta_href_2": {
+          "literal": "#process"
+        }
+      },
+      "layout_evidence": ".what-img precedes .what-text in the DOM (gum-contouring.astro:283, 291) and .gcontouring .what-grid is 1fr 1fr (gum-contouring.css:319-322) — photo left, even split. `even` is already the family default for a left photo (MediaSplitBlock.astro:283), so no ratio-* modifier is emitted and the grid div stays the bare `what-grid` the template ships.",
+      "image_alt_note": "The images row for slot whatImg carries alt \"Close-up of a smile showing the gum line framing the upper teeth\" — confirmed live (1400x1050, procedures-smile-macro-front-view.webp), and character-for-character the string the template hardcodes at :286. Moved, not transcribed: the row exists.",
+      "prose_note": "ONE paragraph in .prose (gum-contouring.astro:294-296), so no `body_2`.",
+      "known_gaps": [
+        "NONE, INCLUDING THE HOVER LABELS.",
+        "",
+        "Both buttons are carried by the two cta pairs above, all four sub-fields on the deployed",
+        "media_split layout. MediaSplitBlock derives each hover label from the HREF (CTA_HOVER,",
+        "MediaSplitBlock.astro:116-121): #consult -> \"Get a Video\" and #process -> \"View Steps\",",
+        "which is exactly what :299 and :300 pass.",
+        "",
+        "The variants match too. Charcoal is a dark band, so primaryVariant is `light` and",
+        "secondaryVariant is `ghost-light` (MediaSplitBlock.astro:395-396, isDarkBand at :271),",
+        "which is the pair :299-300 ships."
+      ]
+    },
+    {
+      "section_id": "laser",
+      "layout": "media_split",
+      "band": "sage-pale",
+      "band_evidence": "gum-contouring.astro:314 <section class=\"section dark\"> — .gcontouring .section.dark { background: var(--vs-sage-pale) } at gum-contouring.css:254, with h1-h4 var(--vs-ink) at :255-258 and p var(--vs-ink-soft) at :260. PALE, despite the class name, and NOT the `sage` the template comment claimed — two separate BLOCK_BANDS choices painting two different tokens.",
+      "fields": {
+        "eyebrow": {
+          "literal": "Laser Technology",
+          "from_template": "gum-contouring.astro:318 <span class=\"eyebrow light\">. The CMS `laser` row has eyebrow null — verified live — so without this literal the eyebrow disappears on migration."
+        },
+        "heading": {
+          "section": "heading"
+        },
+        "body": {
+          "section": "body"
+        },
+        "body_2": {
+          "literal": "The precision of laser technology also means more predictable results and less post-procedure sensitivity. Dr. Richardson uses laser gum reshaping as the standard approach for all contouring work at Vivid Smiles precisely because of that consistency.",
+          "from_template": "gum-contouring.astro:327-331 — the SECOND <p> inside .prose. `body` above is the first, which is the CMS row; this one has never been in the CMS. Not folded into `body`: two paragraphs in one textarea come back as one <p> with a newline in it."
+        },
+        "image": {
+          "image": "gumlineImg",
+          "part": "id"
+        },
+        "image_alt": {
+          "image": "gumlineImg",
+          "part": "alt"
+        },
+        "media_side": {
+          "literal": "right"
+        },
+        "ratio": {
+          "literal": "wide-media"
+        },
+        "quote": {
+          "literal": "Most patients don't realize the procedure actually happened until they look in the mirror. The laser is that gentle.",
+          "from_template": "gum-contouring.astro:320-323 <div class=\"natural-quote\">. Hardcoded today; there is no CMS field it could have come from."
+        }
+      },
+      "layout_evidence": ".natural-text precedes .natural-img (gum-contouring.astro:317, 333) and .gcontouring .natural-grid is 1fr 1.1fr (gum-contouring.css:405-408) — photo right, media column the wider one. `wide-media` is already the family default for a right photo (MediaSplitBlock.astro:283), so no ratio-* modifier is emitted and the grid div stays the bare `natural-grid` the template ships.",
+      "image_alt_note": "The images row for slot gumlineImg carries alt \"Side-lit macro close-up of lips and upper teeth\" — confirmed live (1200x1500, procedures-finished-veneers-lip-detail.webp), and the string the template hardcodes at :336. Moved.",
+      "quote_order_note": "MediaSplitBlock renders the quote above the prose, which is the order the template has: eyebrow, h2, .natural-quote, .prose (gum-contouring.astro:318-332).",
+      "eyebrow_light_note": "MediaSplitBlock adds `.light` to the eyebrow when the band is sage or sage-pale (MediaSplitBlock.astro:268), which reproduces the template's `eyebrow light` at :318. It follows from `band` above; nothing here supplies it.",
+      "no_cta_note": "No cta pair: this band has no .cta-row (gum-contouring.astro:314-344 is section-head-less — eyebrow, h2, quote, attribution, prose, photo, and nothing else). Supplying one would add buttons the page has never had.",
+      "known_gaps": [
+        "THE PULL-QUOTE BYLINE IS LOST. THIS IS THE ONE GAP ON THIS BAND AND IT IS A LAYOUT FAULT,",
+        "NOT A COPY FAULT.",
+        "",
+        "gum-contouring.astro:324 ships, immediately under the quote:",
+        "",
+        "  <span class=\"natural-quote-attrib\">— Dr. Bryce Richardson, DDS, Vivid Smiles Dentistry</span>",
+        "",
+        "media_split has `quote` and nothing else around it — the layout's sub-fields are the",
+        "preamble, the image pair, media_side, ratio, body_2, the callout pair, quote, checklist and",
+        "the two cta pairs (manifest.ts:210). There is no attribution field and MediaSplitBlock",
+        "draws no such element (MediaSplitBlock.astro:431). So the backfilled band shows an",
+        "unattributed quote, and a dentist's named clinical claim becomes an anonymous one.",
+        "",
+        "IT IS NOT FOLDED INTO `quote`, and that is deliberate. Appending the byline to the quote",
+        "string would put the dash line INSIDE the .natural-quote rule — 28px display italic sage,",
+        "between two hairlines (gum-contouring.css:428-438) — instead of the 11.5px uppercase",
+        "muted caption .natural-quote-attrib is (gum-contouring.css:449-456). Same words, wrong",
+        "markup, and a visibly different band.",
+        "",
+        "WHAT CLOSES IT: a `quote_attrib` sub-field on the media_split layout in",
+        "cms/mu-plugins/vs-content-model.php, one more name in the selection set in",
+        "src/blocks/manifest.ts, and a `<span class=\"natural-quote-attrib\">` emitted by",
+        "MediaSplitBlock immediately after the quote and only when the field is non-empty — the",
+        "same additive shape `body_2` and `cta_label_2` took. Both stylesheets already carry the",
+        "rule (gum-contouring.css:449-456 for paper, :457-459 for the sage-pale variant), so",
+        "nothing in the sheet has to change. Not done here: this route does not add fields.",
+        "",
+        "It is the only page in src/pages that carries this element today, which is why the field",
+        "has not existed — and why the loss would have been silent."
+      ]
+    },
+    {
+      "section_id": "candidates",
+      "layout": "card_grid",
+      "band": "paper",
+      "band_evidence": "gum-contouring.astro:350 <section class=\"section\"> — .gcontouring .section (gum-contouring.css:244) sets padding: 110px 0 and nothing else, no background, so the body paper shows through.",
+      "fields": {
+        "eyebrow": {
+          "section": "eyebrow"
+        },
+        "heading": {
+          "section": "heading"
+        },
+        "body": {
+          "section": "body"
+        },
+        "columns": {
+          "literal": "2"
+        },
+        "numbered": {
+          "literal": true
+        }
+      },
+      "columns_evidence": ".gcontouring .why-grid is grid-template-columns: 1fr 1fr (gum-contouring.css:290) against two .why-card articles. CardGridBlock emits a modifier only at 3 or 4 (CardGridBlock.astro:132), so the div stays the bare `why-grid` the template ships.",
+      "rows": {
+        "cards": {
+          "literal": [
+            {
+              "title": "Strong-Fit Candidates",
+              "lead": "A balanced gum-to-tooth ratio is something whitening or alignment alone cannot reach.",
+              "body": "Many candidates have spent years hiding their smile in photos or feeling self-conscious about their gum-to-tooth ratio, even after investing in other cosmetic work."
+            },
+            {
+              "title": "Gum Contouring as Part of a Complete Smile Makeover",
+              "lead": "Reshaping the gum line first ensures every restoration sits on a balanced, well-proportioned base.",
+              "body": "Gum contouring enhances porcelain veneer outcomes by establishing the ideal tooth proportions and symmetry that veneers are then designed to match. When gum tissue is uneven, veneers built over that foundation will look uneven too.",
+              "body_2": "Dr. Richardson uses digital smile design to show patients a preview of their projected outcome before any work begins, so the plan is always something patients have seen, understood, and agreed to. That preview step is something most practices in the area do not offer, and it removes the fear of committing to a result you have not yet seen."
+            }
+          ],
+          "from_template": "gum-contouring.astro:359-385 — the two .why-card articles. The live CMS `cards` repeater holds only the `whyCards` group (claimed by the `why` block below), so these two are transcribed rather than moved.",
+          "num_note": "The `num` divs read 01 and 02 (gum-contouring.astro:360, 370). They are not transcribed: `numbered` above draws them from row position, so a reorder cannot leave the numbering out of sequence.",
+          "three_paragraph_note": "Card 2 ships three paragraphs (p.lead at :372, <p> at :373-377, <p> at :378-383) and card 1 ships two. `lead`/`body`/`body_2` carry all three; card 1 has no body_2 and renders exactly as before. This is the shape `body_2` was added to card_grid for."
+        }
+      },
+      "known_gaps": [
+        "THE INLINE LINK IN CARD 2 IS LOST, AND THE `body` LITERAL ABOVE IS DELIBERATELY THE",
+        "PLAIN-TEXT VERSION OF THAT PARAGRAPH.",
+        "",
+        "gum-contouring.astro:373-377 reads:",
+        "",
+        "  Gum contouring enhances <a class=\"vs-link\" href=\"/cosmetic-dentistry/porcelain-veneers/\">porcelain veneer</a> outcomes by establishing the ideal tooth proportions and symmetry that veneers are then designed to match.",
+        "",
+        "CardGridBlock renders a card's paragraphs as {card.body} and {card.body2} — escaped, not",
+        "set:html (CardGridBlock.astro:180, 186). So storing the anchor tag would print",
+        "`<a class=\"vs-link\" href=\"...\">porcelain veneer</a>` as visible text at the patient, which",
+        "is worse than losing the link. The literal above is therefore the sentence with the tag",
+        "stripped and the words kept: the paragraph reads correctly and the internal link to",
+        "/cosmetic-dentistry/porcelain-veneers/ is gone.",
+        "",
+        "WHAT IS ACTUALLY LOST: one internal link out of a cosmetic-dentistry page into its",
+        "highest-value sibling. No words, no paragraph, no markup around it.",
+        "",
+        "WHAT CLOSES IT: CardGridBlock rendering `body` and `body2` with set:html, the way",
+        "MediaSplitBlock already renders `body_2` and ComparisonCardsBlock renders `callout_body`.",
+        "The manifest states the precedent in as many words — media_split's body_2 exists because",
+        "\"the preamble's `body` cannot\" carry the inline <a class=\"vs-link\"> (manifest.ts:186-191).",
+        "It is a component change plus a re-transcription of this one literal, and it is additive:",
+        "every one of the 187 saved `cards` rows is plain text, which set:html renders identically.",
+        "Not done here: this route does not change components.",
+        "",
+        "The `.lead` on both cards, the numbering and the two-column split are all carried, so",
+        "this link is the whole of the loss on this band."
+      ]
+    },
+    {
+      "section_id": "process",
+      "layout": "process_steps",
+      "band": "sage-pale",
+      "band_evidence": "gum-contouring.astro:391 <section class=\"section dark\"> — the same .gcontouring .section.dark { background: var(--vs-sage-pale) } rule as `laser`, gum-contouring.css:254, with h2 var(--vs-ink) at :257.",
+      "fields": {
+        "eyebrow": {
+          "literal": "The Process",
+          "from_template": "gum-contouring.astro:394 <span class=\"eyebrow light\">. The CMS `process` row has eyebrow null — verified live — so without this literal the eyebrow disappears on migration."
+        },
+        "heading": {
+          "section": "heading"
+        },
+        "body": {
+          "section": "body"
+        },
+        "layout": {
+          "literal": "grid"
+        },
+        "columns": {
+          "literal": "5"
+        },
+        "cta_text": {
+          "literal": "Ready for the next step? <em>Book online and we'll take it from here.</em>",
+          "from_template": "gum-contouring.astro:411 — the .ic-text sentence inside .inline-cta.dark. The <em> is transcribed because ProcessStepsBlock renders ic-text with set:html (ProcessStepsBlock.astro:60 of its template); typing the tag as text would print it."
+        }
+      },
+      "rows": {
+        "steps": {
+          "process_steps": true,
+          "fields": {
+            "tag": "tag",
+            "num": "@index2",
+            "title": "title",
+            "body": "body"
+          },
+          "note": "All 5 rows, in order — verified live: Step One \"Consultation and digital imaging\" through Step Five \"Recovery\". `num` is derived because the legacy repeater has no such sub-field; see row_kinds.@index2."
+        }
+      },
+      "columns_evidence": ".gcontouring .process-grid is repeat(5, 1fr) (gum-contouring.css:340-341) against five process_steps rows. The `columns` select offers '5' and ProcessStepsBlock enumerates it into .cols-5 (ProcessStepsBlock.astro:176-177), so this stores a value the field actually has and the band draws five across as it does today.",
+      "no_pre_cards_note": "No `pre_cards`, and that is not an omission: this page has no .process-pre mini-grid. The band runs section-head, .process-grid, .inline-cta.dark and nothing else (gum-contouring.astro:391-418), so an empty repeater is the correct shape and the component draws no wrapper for it.",
+      "eyebrow_light_note": "ProcessStepsBlock adds `.light` to the eyebrow when the band is sage or sage-pale (ProcessStepsBlock.astro:154), which reproduces the template's `eyebrow light` at :394. It follows from `band` above; nothing here supplies it.",
+      "inline_cta_buttons_note": "The two buttons inside .inline-cta.dark (gum-contouring.astro:413-414) are Book Online and Call + the practice number, and neither is transcribed: ProcessStepsBlock draws both from src/data/contact.ts. They are site data, not page content, and a per-page field for them is a per-page chance to publish the wrong phone number.",
+      "known_gaps": [
+        "NONE. Five steps five across, the eyebrow the CMS row does not carry, the section-head from",
+        "the CMS row, and the closing inline CTA sentence all have a field or a component behind",
+        "them. This is the band that was porcelain-veneers' largest gap — its .process-grid is also",
+        "repeat(5, 1fr) and the select stopped at 4 — and it is closed before this page needed it."
+      ]
+    },
+    {
+      "section_id": "recovery",
+      "layout": "stat_callout",
+      "band": "paper",
+      "band_evidence": "gum-contouring.astro:421 <section class=\"section\"> — no background rule on .gcontouring .section (gum-contouring.css:244), body paper.",
+      "fields": {
+        "eyebrow": {
+          "section": "eyebrow"
+        },
+        "heading": {
+          "section": "heading"
+        },
+        "body": {
+          "section": "body"
+        },
+        "value": {
+          "literal": "1–3",
+          "from_template": "gum-contouring.astro:431 .lasting-stat .big — the text before the <em>. An EN DASH (U+2013), as the template has it, not a hyphen."
+        },
+        "unit": {
+          "literal": "days",
+          "from_template": "gum-contouring.astro:431 the <em> inside .big."
+        },
+        "caption": {
+          "literal": "Typical sensitivity window",
+          "from_template": "gum-contouring.astro:432 .lasting-stat .label."
+        },
+        "intro": {
+          "literal": "Expect minor sensitivity for one to three days, manageable with over-the-counter pain relief. Soft foods are recommended for a day or two, along with gentle brushing around the healing area and brief avoidance of spicy or acidic foods.",
+          "from_template": "gum-contouring.astro:435-439 — the FIRST paragraph inside .lasting-body. `body` above is the section-head paragraph; these are two paragraphs in two places and the layout carries both."
+        },
+        "intro_2": {
+          "literal": "The gum contour continues to settle over the first week or two, with final results fully apparent within that window.",
+          "from_template": "gum-contouring.astro:440-443 — the SECOND paragraph inside .lasting-body. StatCalloutBlock draws it between the first paragraph and the optional <ul>, which is where the template has it."
+        }
+      },
+      "eyebrow_note": "The template hardcodes <span class=\"eyebrow\">Recovery</span> at gum-contouring.astro:424, but the CMS `recovery` row carries eyebrow \"Recovery\" — verified live, character for character. Moved, not transcribed: the row exists, so a literal here would be a second copy of a value an editor can already change.",
+      "no_body_heading_note": "No `body_heading`: .lasting-body opens straight into its paragraph here (gum-contouring.astro:434-435) with no <h3>. StatCalloutBlock emits the <h3> only when the field is non-empty, so leaving it out keeps the card the shape it already is.",
+      "no_points_note": "No `points` rows, and none are invented. The `points` repeater draws a <ul> of bolded care habits and this band has no list — it is two paragraphs. The only `cards` rows on this page belong to the `why` band, and a list assembled from the second paragraph would put an <li> where the page has a <p>.",
+      "known_gaps": [
+        "NONE. The figure, its unit, its caption, both card paragraphs and the section-head all have",
+        "a field, and the band has no <h3>, no list and no CTA row for anything to be lost from."
+      ]
+    },
+    {
+      "section_id": "results",
+      "layout": "media_split",
+      "band": "charcoal",
+      "band_evidence": "gum-contouring.astro:463 <section class=\"section alt\"> — the same .gcontouring .section.alt { background: var(--vs-charcoal-green) } rule as `what`, gum-contouring.css:245. The template comment said \"(cream)\"; the rule says charcoal.",
+      "fields": {
+        "eyebrow": {
+          "section": "eyebrow"
+        },
+        "heading": {
+          "section": "heading"
+        },
+        "body": {
+          "section": "body"
+        },
+        "body_2": {
+          "literal": "Results are permanent: reshaped gum tissue does not regenerate back to its original position. Dr. Richardson's approach to reshaping is grounded in natural proportions rather than maximizing exposure. The goal is a balance that fits the patient's face, tooth structure, and overall smile goals. With 600+ hours of specialized esthetic training and digital smile design integrated into every cosmetic case, outcomes are planned and communicated before treatment begins.",
+          "from_template": "gum-contouring.astro:479-485 — the SECOND <p> inside .prose. `body` above is the first, which is the CMS row."
+        },
+        "image": {
+          "image": "resultsImg",
+          "part": "id"
+        },
+        "image_alt": {
+          "image": "resultsImg",
+          "part": "alt"
+        },
+        "media_side": {
+          "literal": "left"
+        },
+        "ratio": {
+          "literal": "wide-media"
+        }
+      },
+      "eyebrow_note": "The template hardcodes <span class=\"eyebrow\">Results</span> at gum-contouring.astro:475 and the CMS `results` row carries eyebrow \"Results\" — verified live. Moved, not transcribed, on the same grounds as `recovery` above.",
+      "image_alt_note": "The images row for slot resultsImg carries alt \"Smiling woman photographed inside the Vivid Smiles Dentistry office in Parker, CO\" — confirmed live (1000x1250, people-real-woman-office-portrait.webp), and the string the template hardcodes at :469. Moved.",
+      "media_side_decision": [
+        "READ OFF THE RULE, NOT OFF THE CLASS NAME. The band is",
+        "<div class=\"natural-grid alt-flip\"> (gum-contouring.astro:466) and `.alt-flip` is this",
+        "page's own modifier: gum-contouring.css:541-546 sets grid-template-columns 1.1fr 1fr,",
+        "`.natural-img { order: 0 }` and `.natural-text { order: 1 }`. So the PHOTO IS ON THE LEFT",
+        "and the photo's column is the wider one. `media_side` is a fact about the band, and the",
+        "fact is `left`.",
+        "",
+        "`ratio` follows from the same rule. MediaSplitBlock writes its tracks photo-relative, so",
+        "the 1.1fr-photo / 1fr-text split IS `wide-media`; on the left-photo family that is not the",
+        "default, so `.what-grid.ratio-wide-media` (MediaSplitBlock.astro:781-783) is emitted and",
+        "reproduces the alt-flip column widths exactly.",
+        "",
+        "WHAT THIS COSTS is in known_gaps below: media_side also selects the class FAMILY",
+        "(MediaSplitBlock.astro:276 — `const fam = mediaRight ? \"natural\" : \"what\"`), so `left`",
+        "brings the `.what-*` names and the 5/4 plate with it.",
+        "",
+        "`right` WAS CONSIDERED AND REJECTED. It keeps `.natural-grid`, `.natural-img` and the 4/5",
+        "plate, and loses instead the thing the band exists for: the template's own comment at",
+        ":463-465 says alt-flip is there so \"the image lands on the left and the text on the",
+        "right, giving the page rhythm a different shape from the Laser section above\". `right`",
+        "would mirror the band and put a second right-hand photo under the first. One value keeps",
+        "the composition and changes the crop; the other keeps the crop and destroys the",
+        "composition. The composition is what the page was designed around, so: left."
+      ],
+      "prose_note": "TWO paragraphs in .prose (gum-contouring.astro:477-486) and both are carried — `body` from the CMS row, `body_2` above. No quote on this band (that is `laser`'s), no callout aside and no CTA row, so none of those fields is supplied.",
+      "known_gaps": [
+        "THE PHOTO PLATE CHANGES SHAPE, FROM A 4/5 PORTRAIT TO A 5/4 LANDSCAPE. THIS IS THE",
+        "LARGEST LOSS ON THIS ROUTE.",
+        "",
+        "media_split has two class families and `media_side` selects both the side and the family",
+        "(MediaSplitBlock.astro:276). `left` is the `.what-*` family, so the backfilled band comes",
+        "back as:",
+        "",
+        "  <div class=\"what-grid ratio-wide-media\"> <div class=\"what-img\">…  <div class=\"what-text\">…",
+        "",
+        "where the template ships",
+        "",
+        "  <div class=\"natural-grid alt-flip\"> <div class=\"natural-img\">…  <div class=\"natural-text\">…",
+        "",
+        "DOM order is identical and the column split is identical (1.1fr photo / 1fr text, from",
+        "`.what-grid.ratio-wide-media` at MediaSplitBlock.astro:781-783 against",
+        "`.natural-grid.alt-flip` at gum-contouring.css:541-546). What differs is the plate:",
+        "`.what-img` is aspect-ratio 5/4 (MediaSplitBlock.astro:795) and `.natural-img` is 4/5",
+        "(:813). resultsImg is 1000x1250 — a portrait — so object-fit: cover in a 5/4 box shows a",
+        "1000x800 centre crop of a 1250-tall frame and drops roughly 18% off the top and the bottom",
+        "of a patient portrait. That is a content change, not a styling one, and it is why this is",
+        "written up as the route's largest gap rather than as a class-name difference.",
+        "",
+        "The three class names also stop matching the page sheet, so the rules at",
+        "gum-contouring.css:541-546 go unused while the band renders. They are LEFT IN PLACE: the",
+        "else branch is the rollback path and needs every one of them.",
+        "",
+        "WHAT CLOSES IT: MediaSplitBlock emitting the natural family with the media first — that",
+        "is the `.natural-grid.alt-flip` shape, which no page-agnostic rule currently produces. It",
+        "needs a third choice on the `media_side` select in cms/mu-plugins/vs-content-model.php",
+        "(the family and the side stop being one axis), the matching branch in MediaSplitBlock",
+        "around `fam` and the two photo blocks, and the `.natural-grid.alt-flip` rules moved into",
+        "the component's own <style>. Additive to every saved row: `left` and `right` keep meaning",
+        "what they mean today. NOT DONE HERE — this route does not add fields or invent layouts,",
+        "and gum-contouring is the only page in src/pages that carries `.alt-flip` today.",
+        "",
+        "Nothing else on this band is lost: eyebrow, heading, both prose paragraphs and the photo",
+        "itself are all carried."
+      ]
+    },
+    {
+      "section_id": "why",
+      "layout": "card_grid",
+      "band": "paper",
+      "band_evidence": "gum-contouring.astro:504 <section class=\"section\"> — no background rule on .gcontouring .section (gum-contouring.css:244), body paper.",
+      "fields": {
+        "eyebrow": {
+          "section": "eyebrow"
+        },
+        "heading": {
+          "section": "heading"
+        },
+        "body": {
+          "section": "body"
+        },
+        "columns": {
+          "literal": "2"
+        },
+        "numbered": {
+          "literal": false
+        }
+      },
+      "columns_evidence": ".gcontouring .why-3up is grid-template-columns: repeat(2, 1fr) (gum-contouring.css:380-383) — TWO across, despite the class name, against two rows in the CMS `whyCards` group. So `columns` is \"2\" and CardGridBlock emits no modifier (CardGridBlock.astro:132), which is the same two-track grid. The name .why-3up and the template comment above it describe a six-card 3-up band that was planned and never shipped; the rule and the row count are what this value was read from.",
+      "numbered_note": "`numbered` is false, and that is what routes each card's `meta` into the `.num` slot instead of a derived 01/02 (CardGridBlock.astro:147-151). The template's cards carry a tag, not a number — there is no .num in .why-3up-card at all (gum-contouring.astro:514-518).",
+      "rows": {
+        "cards": {
+          "cards": "whyCards",
+          "fields": {
+            "meta": "meta",
+            "title": "title",
+            "body": "body"
+          },
+          "repeater_name_note": "The OUTER `cards` is the repeater on the card_grid layout; the inner one is the source, the `cards` repeater's `whyCards` group in the CMS. Same word, two different things, exactly as row_kinds spells it — the outer key names where the rows go and the inner names where they come from.",
+          "note": "MOVED, NOT TRANSCRIBED. Both rows of the `cards` repeater's `whyCards` group are live in the CMS — verified: meta \"Digital Preview\" / title \"Digital smile preview\" and meta \"Laser Technology\" / title \"Laser over scalpel\", each with the body the template prints. They are the only `cards` rows this page has, and this is the only block that claims them.",
+          "lead_note": "Neither row has a `lead` and neither template card has a p.lead (gum-contouring.astro:514-518 is span.tag, h3, p), so no lead is supplied. CardGridBlock draws a card's parts only when they have content, so nothing empty is emitted.",
+          "template_array_note": "gum-contouring.astro:95-98 holds a hardcoded `whyCards` array with the same two rows under the key `tag` rather than `meta`. That array is the else branch's copy and stays: it is what the page renders when `blocks` is empty. The two have to be changed together, exactly as CodeSectionBlock's BANDS map does for a code-owned band."
+        }
+      },
+      "known_gaps": [
+        "TWO, AND THEY ARE BOTH REAL. THIS IS THE BAND THAT CHANGES MOST.",
+        "",
+        "1. THE CARD CHROME. The template draws <article class=\"why-3up-card\"> holding",
+        "   <span class=\"tag\">, an <h3> and a <p> (gum-contouring.astro:512-519). CardGridBlock",
+        "   draws <article class=\"why-card\"> holding <div class=\"num\">, an <h3> and a <p>",
+        "   (CardGridBlock.astro:176-188). The words are identical and every one of them is",
+        "   carried — `meta` lands in the slot the tag occupied — but the tag's TYPE changes with",
+        "   the element: `.why-3up .tag` is 10.5px uppercase letter-spaced sage",
+        "   (gum-contouring.css:392-395) and `.why-card .num` is 36px display italic sage-soft",
+        "   (gum-contouring.css:304-307, and the same declarations in CardGridBlock's own style",
+        "   block). So \"DIGITAL PREVIEW\" as a small label becomes \"Digital Preview\" as a large",
+        "   italic line, and the card's padding goes from 32px 28px to 42px 38px and its gap from",
+        "   12px to 14px. No copy is lost; the band reads as a different card.",
+        "",
+        "   WHAT CLOSES IT: nothing in this file. Either the page's `.why-3up` treatment becomes a",
+        "   variant CardGridBlock can emit — which is a design decision and a new sub-field — or",
+        "   the band accepts the family's own card, which is what every other migrated page uses.",
+        "   Recorded rather than decided: this route does not add fields.",
+        "",
+        "2. THE CLOSING .cta-row IS LOST ENTIRELY. gum-contouring.astro:522-528 ships two buttons",
+        "   and a note:",
+        "",
+        "     Book Online -> bookNowHref (variant sage, hover \"Book Now\")",
+        "     Get Directions -> directionsHref (variant ghost, hover \"Open Map\")",
+        "     .cta-note \"17167 Cedar Gulch Pkwy Ste 102 · Parker, CO\"",
+        "",
+        "   card_grid has no cta sub-fields at all — the layout is preamble + columns + numbered +",
+        "   cards (manifest.ts:169) — and CardGridBlock draws no .cta-row. So the backfilled band",
+        "   ends at the last card and the page loses its only Get Directions button and its only",
+        "   in-body street address.",
+        "",
+        "   THE ADDRESS AND THE MAP LINK ARE SITE DATA, so the pair is not simply a two-field",
+        "   transcription: `directionsHref`, and the address in the note, come from",
+        "   src/data/contact.ts, which is the same argument that keeps ProcessStepsBlock's inline-CTA",
+        "   buttons out of the map. WHAT CLOSES IT is therefore the FaqBlock shape rather than the",
+        "   media_split shape: `cta_label` / `cta_href` on the card_grid layout for the page-content",
+        "   half, with the second button and the note drawn from contact.ts by the component. That",
+        "   is a PHP change, a manifest line and a CardGridBlock change, in one commit, and it is",
+        "   not done here.",
+        "",
+        "   Until it is, this band's conversion path is the page's other five CTAs — the hero, the",
+        "   `what` pair, the process inline CTA, the FAQ pair and <VirtualConsult> — none of which",
+        "   this migration touches."
+      ]
+    },
+    {
+      "section_id": "faq",
+      "layout": "faq",
+      "band": "paper",
+      "band_evidence": "gum-contouring.astro:533 <section class=\"section\"> — no background rule on .gcontouring .section (gum-contouring.css:244), body paper.",
+      "fields": {
+        "eyebrow": {
+          "section": "eyebrow"
+        },
+        "heading": {
+          "section": "heading"
+        },
+        "body": {
+          "literal": ""
+        },
+        "pull": {
+          "section": "body"
+        },
+        "cta_label": {
+          "literal": "Still Have Questions? Free Virtual Consult",
+          "from_template": "gum-contouring.astro:555. FaqBlock draws its second button — Call + the practice number — from src/data/contact.ts, because a phone number is site data and not page content, so it is not transcribed here."
+        },
+        "cta_href": {
+          "literal": "#consult"
+        }
+      },
+      "body_to_pull_note": "sections.faq.body -> `pull`, NOT -> `body`. The template puts it in .pull (gum-contouring.astro:549-551), the aside under the questions, and the FAQ section-head has no paragraph at all (:535-538). Writing it to `body` would print it twice. Same shape as both migrated siblings.",
+      "rows": {
+        "items": {
+          "faqs": true,
+          "fields": {
+            "question": "question",
+            "answer": "answer",
+            "open": "open"
+          },
+          "note": "All 6 rows, in order — verified live, from \"Does gum contouring hurt?\" (the one row with open true, matching the template's default) to \"What is the difference between gum contouring and gum grafting?\". SIX, not the five both migrated siblings carry. The block renders answers with set:html; none of these six carries a tag, so that is a no-op here."
+        }
+      },
+      "known_gaps": [
+        "NONE. Eyebrow, heading, the six questions, the .pull aside and both CTA buttons all have a",
+        "field or a component behind them.",
+        "",
+        "Worth naming because it is the reason this page has no `compare` band: the",
+        "contouring-versus-grafting distinction lives entirely in the sixth FAQ row, and it moves",
+        "with that row. Nothing about the migration disturbs it."
+      ]
+    }
+  ],
+  "exempt": {
+    "_": [
+      "Every repeater row on this page that no block above claims. The backfill fails, before",
+      "writing anything, on any row that is neither claimed nor listed here. All five content",
+      "lists are empty because this page's rows are all claimed: 8 sections by the 8 blocks, both",
+      "`whyCards` cards by `why`, all 5 process_steps by `process`, all 6 faqs by `faq`, all 8",
+      "toc_links by the anchors above. One image is exempt and it is the hero."
+    ],
+    "sections": [],
+    "cards": [],
+    "cards_note": [
+      "EMPTY BECAUSE BOTH ROWS ARE CLAIMED, not because the page has none. Unlike",
+      "porcelain-veneers, whose `cards` repeater comes back empty, this page holds two rows in",
+      "group `whyCards` and the `why` block moves both. That is also why the `why` block's rows",
+      "entry is a `cards` source rather than a `literal`: they are rows being moved, and the rule",
+      "is move, never copy."
+    ],
+    "process_steps": [],
+    "faqs": [],
+    "images": [
+      {
+        "slot": "heroImg",
+        "reason": "The hero is not a block. It is a `hero` group field on group_vs_page — one per page, always first, never reordered (docs/PAGE-BLOCKS.md 1.3, 7).",
+        "destination": "hero.image, filled by whatever moves the hero across. Not this script's field and not this script's business.",
+        "renders_today": "gum-contouring.astro:181-215 hero <header class=\"hero\">, which stays unguarded on both sides of the migration switch."
+      }
+    ],
+    "toc_links": [],
+    "toc_links_decision": [
+      "EMPTY. All eight anchors this page's toc_links carry — what, laser, candidates, process,",
+      "recovery, results, why, faq — are claimed by a block above, every one of them by a",
+      "`section_id`. There is no code_section here claiming an anchor of its own and no band that",
+      "stays out of the rail, so the eight rows and the eight blocks are the same eight names in",
+      "the same order.",
+      "",
+      "The rail is derived from blocks[].anchor + nav_label in block order, so eight blocks",
+      "produce eight rail entries: What It Is, Laser Tech, Who Benefits, The Process, Recovery,",
+      "Results, Why Vivid Smiles, FAQ — the order the template build puts them in. The rail is",
+      "not a difference on this route.",
+      "",
+      "No rail label promises content the backfilled page will not show. \"Why Vivid Smiles\" still",
+      "scrolls to a band with both its cards; what that band loses is its closing button row, not",
+      "its subject."
+    ]
+  }
+}

@@ -34,6 +34,31 @@
  *
  * Global <Nav /> + <Footer /> are mounted by BaseLayout — this page renders
  * only its own content, starting with an inline breadcrumb under the global nav.
+ *
+ * MIGRATED TO BLOCKS (docs/PAGE-BLOCKS.md 2.3). Eight top-level bands — what,
+ * laser, candidates, process, recovery, results, why, faq — each guarded with
+ * `hasBlocks ? null : …` and each carrying a row in cms/import/block-map.json
+ * under /cosmetic-dentistry/gum-contouring/. Eight `sections` rows, eight
+ * `toc_links` rows, eight bands: this page has no code_section, no gallery and
+ * no cost band, so the block list is the section list in template order.
+ *
+ * THE BAND COLOURS IN THE SECTION COMMENTS BELOW WERE WRONG AND ARE FIXED.
+ * `#what` said "(cream)" and `#laser` said "(sage)"; gum-contouring.css:245 is
+ * `.section.alt { background: var(--vs-charcoal-green) }` and :254 is
+ * `.section.dark { background: var(--vs-sage-pale) }`. The map's `band` values
+ * are read off those two rules, not off the class names and not off a sibling
+ * sheet — `.section.alt` is cream on teeth-whitening.css and charcoal here.
+ *
+ * Three things this page loses on migration, all recorded as known_gaps in the
+ * map rather than papered over here:
+ *   1. `#laser` ships a `.natural-quote-attrib` byline under its pull quote and
+ *      media_split has a `quote` field but no attribution field.
+ *   2. `#results` is `.natural-grid.alt-flip` — the natural family mirrored —
+ *      and media_split ties the class family to `media_side`, so it comes back
+ *      as `.what-grid.ratio-wide-media`: same side, same column split, a 5/4
+ *      plate instead of a 4/5 one.
+ *   3. `#why` is `.why-3up`, not `.why-grid`, and it ends in a `.cta-row` that
+ *      card_grid has no fields for.
  */
 import { Image } from "astro:assets";
 import BaseLayout from "../../layouts/BaseLayout.astro";
@@ -51,6 +76,7 @@ import {
   addressState,
   addressZip,
 } from "../../data/contact";
+import PageBlocks from "../../blocks/PageBlocks.astro";
 import "../../styles/pages/gum-contouring.css";
 
 // "What is gum contouring" — real macro of a smile showing the gum line
@@ -58,17 +84,76 @@ import "../../styles/pages/gum-contouring.css";
 // "Laser technology" section — macro of the gumline where it meets the teeth.
 // "Results" — real patient portrait in the office. Distinct subject from
 // the hero portrait; the alt describes the photograph, not an outcome.
-import { getPageContent } from '../../lib/page-content';
+import { getPageContent, type TocLink } from '../../lib/page-content';
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Laser Gum Contouring in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, processSteps, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+const { blocks, hasBlocks, tocLinks, processSteps, faqs, section, image, seo } =
+  await getPageContent(Astro.url.pathname);
 
 
 const whyCards = [
   { tag: "Digital Preview",   title: "Digital smile preview",                       body: "Before any work is scheduled, you see a preview of your projected gum line. This is a specific, patient-facing view of your planned outcome, not a generic illustration of general improvements." },
   { tag: "Laser Technology",  title: "Laser over scalpel",                          body: "Soft tissue laser technology means less discomfort, minimal bleeding, no sutures in most cases, and significantly faster healing compared to traditional gum surgery." },
 ];
+
+/**
+ * The "On this page" rail, derived from the blocks themselves (docs/PAGE-BLOCKS.md 1.2).
+ *
+ * Used only when this page renders from `blocks`. The `toc_links` repeater is
+ * eight rows that restate the order of the eight bands below it, so a reorder
+ * in wp-admin moves a band and leaves its rail entry pointing at the old
+ * neighbour — the single largest way a reorder breaks a link. Reading the
+ * anchors off the blocks makes that unrepresentable: there is one ordering and
+ * the rail is a projection of it.
+ *
+ * Three rules, in the order they bite:
+ *
+ * 1. A blank anchor is skipped. Not tidiness — src/scripts/toc-spy.ts:24 feeds
+ *    each rendered href straight to document.querySelector(), and
+ *    querySelector("") throws a SyntaxError that kills the whole spy, not just
+ *    the one entry. PageBlocks.astro emits no id at all for a blank anchor
+ *    (`id={anchor || undefined}`), so there is nothing to link to either.
+ * 2. An anchor that is not a valid id selector is skipped for the same reason —
+ *    "#3-reasons" is legal HTML and an illegal CSS selector. Dropping one rail
+ *    entry costs one link; letting it through costs every link on the page,
+ *    plus the mobile pill auto-centering.
+ * 3. Duplicate anchors follow PageBlocks.astro's dedup exactly, second
+ *    occurrence onward suffixed `-2`, `-3`. The counter has to advance on every
+ *    non-blank anchor, including blocks with no nav_label, or the rail's idea
+ *    of "the second #faq" drifts from the id the renderer actually emitted.
+ *
+ * A blank nav_label means "leave this block out of the rail" (1.2), which is
+ * how a band that should not be navigable opts out.
+ */
+const ANCHOR_IS_ID_SELECTOR = /^[A-Za-z_][A-Za-z0-9_-]*$/;
+
+const anchorsSeen = new Map<string, number>();
+// Typed as TocLink[] rather than an equivalent inline shape so the ternary in
+// the rail below collapses to one type instead of a union of two array types,
+// which TypeScript will not let you call .map() on.
+const derivedTocLinks: TocLink[] = [];
+
+for (const block of blocks) {
+  const anchor = typeof block.anchor === 'string' ? block.anchor.trim() : '';
+  if (anchor === '') continue;
+
+  const nth = (anchorsSeen.get(anchor) ?? 0) + 1;
+  anchorsSeen.set(anchor, nth);
+
+  const label = typeof block.navLabel === 'string' ? block.navLabel.trim() : '';
+  if (label === '') continue;
+
+  if (!ANCHOR_IS_ID_SELECTOR.test(anchor)) {
+    console.warn(
+      `[blocks] anchor "${anchor}" on ${Astro.url.pathname} cannot be used as a selector — ` +
+        `omitting "${label}" from the On this page rail so toc-spy keeps working`,
+    );
+    continue;
+  }
+
+  derivedTocLinks.push({ href: `#${nth > 1 ? `${anchor}-${nth}` : anchor}`, label });
+}
 
 
 ---
@@ -138,20 +223,61 @@ const whyCards = [
       </div>
     </section>
 
-    {/* ---------- ON-THIS-PAGE TOC ---------- */}
+    {
+      /* ---------- ON-THIS-PAGE TOC ----------
+       The rail itself is never a block (spec 7: "Not a block, even though it
+       is a band") — only its contents move. Derived from the blocks when they
+       are drawing the page, read from the `toc_links` repeater when the
+       template is. Same markup either way, which is what lets
+       src/scripts/toc-spy.ts go on reading its section list off the rendered
+       links without knowing which source produced them. */
+    }
     <nav class="toc" id="toc" aria-label="On this page">
       <div class="toc-inner">
         <span class="toc-label">On this page</span>
         <div class="toc-scroll">
           <div class="toc-list">
-            {tocLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+            {(hasBlocks ? derivedTocLinks : tocLinks).map((l) => <a href={l.href}>{l.label}</a>)}
           </div>
         </div>
       </div>
     </nav>
 
-    {/* ---------- WHAT (cream) — definition + image ---------- */}
-    <section class="section alt" id="what" data-vs-reveal-batch>
+    {
+      /* ---------- WHAT (charcoal) — definition + image ----------
+
+       THE MIGRATION SWITCH (docs/PAGE-BLOCKS.md 2.3) starts here. `hasBlocks`
+       means "this build can draw this page from its blocks" — not "WordPress
+       sent rows" (src/lib/page-content.ts). When it is true PageBlocks draws
+       the eight bands in the order an editor arranged them; when it is false —
+       which is every build until the backfill has run, and again the moment an
+       editor empties the field — every band below renders exactly as it always
+       has.
+
+       Written as one guard per band rather than one guard around all eight on
+       purpose, and it is not a style choice. Astro's compressHTML pass treats
+       an Astro comment expression differently inside a component slot than at
+       element level: wrapping these bands in a Fragment silently drops one
+       space at every comment boundary below, and scripts/vr-html.mjs compares
+       exact bytes and calls that a difference. A guard sitting exactly where
+       its section sat emits byte-identical HTML.
+
+       EVERY top-level band between here and <VirtualConsult> is guarded, and
+       every one of them has a row in cms/import/block-map.json. Those two facts
+       have to move together: a band that is neither blocked nor guarded renders
+       in ADDITION to the block run and lands at the bottom of the page carrying
+       a duplicate id, and a band that is guarded with no map row disappears on
+       backfill with nothing in the log. There is no third outcome. The bands
+       ABOVE this line — the breadcrumb, the hero, `.keys` and the rail — are
+       not blocks by spec 7 and are deliberately unguarded, as are
+       <VirtualConsult> and <FinalBand> below the run.
+
+       CHARCOAL, NOT CREAM. This comment used to say "(cream)". `.section.alt`
+       is `var(--vs-charcoal-green)` on THIS sheet (gum-contouring.css:245),
+       with h2 #fff at :249 and p rgba(255,255,255,0.85) at :251. It is cream on
+       teeth-whitening.css, which is a different page and a different token. */
+    }
+    {hasBlocks ? <PageBlocks blocks={blocks} /> : <section class="section alt" id="what" data-vs-reveal-batch>
       <div class="wrap">
         <div class="what-grid">
           <div class="what-img" data-vs-parallax data-parallax="-25">
@@ -177,11 +303,15 @@ const whyCards = [
           </div>
         </div>
       </div>
-    </section>
+    </section>}
 
-    {/* ---------- LASER (sage) — Natural-with-quote pattern, repainted on the
-         dark band. Holds the strongest pull-quote moment in the copy. */}
-    <section class="section dark" id="laser" data-vs-reveal-batch>
+    {/* ---------- LASER (sage-pale) — Natural-with-quote pattern, repainted on
+         the `.section.dark` band. Holds the strongest pull-quote moment in the
+         copy. SAGE-PALE, not sage: `.section.dark` is var(--vs-sage-pale) on
+         this sheet (gum-contouring.css:254), with h2 var(--vs-ink) at :258.
+         `sage` and `sage-pale` are two separate BLOCK_BANDS choices painting
+         two different tokens, so the map says sage-pale. */}
+    {hasBlocks ? null : <section class="section dark" id="laser" data-vs-reveal-batch>
       <div class="wrap">
         <div class="natural-grid">
           <div class="natural-text">
@@ -211,11 +341,13 @@ const whyCards = [
           </div>
         </div>
       </div>
-    </section>
+    </section>}
 
     {/* ---------- CANDIDATES (paper) — Why-grid 2-card pattern.
-         Card 1: "Who Benefits…" paragraph; Card 2: "Smile Makeover" sub-section. */}
-    <section class="section" id="candidates" data-vs-reveal-batch>
+         Card 1: "Who Benefits…" paragraph; Card 2: "Smile Makeover" sub-section.
+         Paper because `.gcontouring .section` (gum-contouring.css:244) sets
+         padding and nothing else — no background, so the body paper shows. */}
+    {hasBlocks ? null : <section class="section" id="candidates" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow">{section("candidates").eyebrow}</span>
@@ -252,10 +384,11 @@ const whyCards = [
           </article>
         </div>
       </div>
-    </section>
+    </section>}
 
-    {/* ---------- PROCESS (sage) — 5-step grid + dark inline CTA ---------- */}
-    <section class="section dark" id="process" data-vs-reveal-batch>
+    {/* ---------- PROCESS (sage-pale) — 5-step grid + dark inline CTA.
+         Same `.section.dark` rule as `laser`, gum-contouring.css:254. ---------- */}
+    {hasBlocks ? null : <section class="section dark" id="process" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow light">The Process</span>
@@ -282,10 +415,10 @@ const whyCards = [
           </div>
         </div>
       </div>
-    </section>
+    </section>}
 
     {/* ---------- RECOVERY (paper) — Lasting 2-col with stat ---------- */}
-    <section class="section" id="recovery" data-vs-reveal-batch>
+    {hasBlocks ? null : <section class="section" id="recovery" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow">Recovery</span>
@@ -311,12 +444,23 @@ const whyCards = [
           </div>
         </div>
       </div>
-    </section>
+    </section>}
 
-    {/* ---------- RESULTS (cream) — Natural-style 2-col, image + text. Uses
+    {/* ---------- RESULTS (charcoal) — Natural-style 2-col, image + text. Uses
          alt-flip so the image lands on the left and the text on the right,
-         giving the page rhythm a different shape from the Laser section above. */}
-    <section class="section alt" id="results" data-vs-reveal-batch>
+         giving the page rhythm a different shape from the Laser section above.
+
+         CHARCOAL: the same `.section.alt` rule as `what`, gum-contouring.css:245.
+         The old "(cream)" here was read off the class name rather than the rule.
+
+         `.alt-flip` is a page-local mirror (gum-contouring.css:541-546: columns
+         1.1fr 1fr, `.natural-img { order: 0 }`, `.natural-text { order: 1 }`),
+         and media_split ties its class family to `media_side` — left is the
+         `.what-*` family, right is the `.natural-*` family. So the backfilled
+         band keeps the photo on the left and keeps the 1.1fr/1fr split, as
+         `.what-grid.ratio-wide-media`, and loses the 4/5 plate. Recorded as a
+         known_gap on that block in the map. ---------- */}
+    {hasBlocks ? null : <section class="section alt" id="results" data-vs-reveal-batch>
       <div class="wrap">
         <div class="natural-grid alt-flip">
           <div class="natural-img" data-vs-parallax data-parallax="-25">
@@ -343,12 +487,21 @@ const whyCards = [
           </div>
         </div>
       </div>
-    </section>
+    </section>}
 
     {/* ---------- WHY (paper) — 3-up 6-card grid. Substitutes for the veneers
          template's 2-card .why-grid because the "Why Choose Vivid Smiles"
-         copy expands into six bullets that each warrant a tagged card. */}
-    <section class="section" id="why" data-vs-reveal-batch>
+         copy expands into six bullets that each warrant a tagged card.
+
+         The comment above is what the band was planned as; the band that ships
+         is TWO cards in a TWO-column grid — `.gcontouring .why-3up` is
+         `repeat(2, 1fr)` (gum-contouring.css:381) and the CMS `whyCards` group
+         holds two rows. card_grid draws `.why-grid > article.why-card` with the
+         card's `meta` in a `.num` div, so the backfilled band keeps the copy and
+         the two-column split and loses the `.why-3up` chrome and the `.tag`
+         span. The closing `.cta-row` has no field on the layout at all.
+         Both are known_gaps on that block in the map. ---------- */}
+    {hasBlocks ? null : <section class="section" id="why" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow">{section("why").eyebrow}</span>
@@ -374,10 +527,10 @@ const whyCards = [
           <span class="cta-note">17167 Cedar Gulch Pkwy Ste 102 · Parker, CO</span>
         </div>
       </div>
-    </section>
+    </section>}
 
     {/* ---------- FAQ (paper) — native details/summary, zero JS ---------- */}
-    <section class="section" id="faq" data-vs-reveal-batch>
+    {hasBlocks ? null : <section class="section" id="faq" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow">{section("faq").eyebrow}</span>
@@ -404,10 +557,15 @@ const whyCards = [
           </div>
         </div>
       </div>
-    </section>
+    </section>}
 
     {/* ---------- VIRTUAL CONSULT — primary closing conversion. Anchor #consult
-         is the destination for every mid-page CTA on this page. */}
+         is the destination for every mid-page CTA on this page.
+         NOT a block and deliberately unguarded, like the breadcrumb, hero,
+         `.keys` strip and the rail above: it renders on both sides of the switch
+         and has no row in the map. It sits after the block run in template order
+         and PageBlocks draws at the `what` position, so the closing pair still
+         comes last. */}
     <VirtualConsult id="consult" eyebrow="Free gum contouring consultation">
       <Fragment slot="headline">Free gum contouring <em>consultation.</em></Fragment>
       <Fragment slot="body">

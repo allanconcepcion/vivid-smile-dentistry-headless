@@ -1,0 +1,718 @@
+{
+  "route": "/cosmetic-dentistry/smile-makeover/",
+  "template": "vivid-smiles-website/src/pages/cosmetic-dentistry/smile-makeover.astro",
+  "stylesheet": "vivid-smiles-website/src/styles/pages/smile-makeover.css",
+  "wrapper_class": "smilemakeover",
+  "notes": [
+    "EIGHT BLOCKS, EIGHT SECTIONS ROWS, EIGHT TOC_LINKS ROWS, ONE ANCHOR APIECE. The page's",
+    "eight content bands — what, issues, process, options, why-us, cost, results, faq — are",
+    "the `sections` repeater's eight rows in the template's own order, and the eight",
+    "`toc_links` anchors are the same eight names in the same order. Verified live against",
+    "/graphql for this route. There is no code_section: this page renders no <LocalTrust> and",
+    "nothing else on it stays in code.",
+    "",
+    "THE BAND COMMENTS IN THE TEMPLATE WERE WRONG AND THE STYLESHEET IS WHAT WAS READ. The",
+    "file header called #issues, #why-us and #results \"cream\" and #process \"sage\". Neither is",
+    "what the sheet paints. This page was cloned from porcelain-veneers.css INCLUDING its band",
+    "vocabulary, so `.section.alt` is CHARCOAL (smile-makeover.css:258 ->",
+    "var(--vs-charcoal-green), with h2 #fff at :262 and p rgba(255,255,255,0.85) at :264) and",
+    "`.section.dark` is SAGE-PALE (smile-makeover.css:267 -> var(--vs-sage-pale), with h2",
+    "var(--vs-ink) at :271). `cream` and `sage` are different BLOCK_BANDS choices painting",
+    "different tokens, and the page sheet defines no `.section.cream` and no `.section.sage`",
+    "rule at all — grep returns zero — so taking the comments at their word would have painted",
+    "four of these eight bands with classes this stylesheet has never styled. Each",
+    "`band_evidence` below names the rule it was read from. The template comments have been",
+    "corrected in the same commit as this file.",
+    "",
+    "THE `cards` REPEATER HOLDS FIVE ROWS AND THEY ARE MOVED, NOT TRANSCRIBED. Group",
+    "`issuesList`, title filled, body and meta null on all five — confirmed live. They are the",
+    "same five lines the template's `issuesList` array holds, so the `issues` block below reads",
+    "them with a `cards` row_kind. Every OTHER card, tier and paragraph in this file is a",
+    "literal, because no other group exists on this route.",
+    "",
+    "THE `process_steps` REPEATER IS NULL ON THIS PAGE AND NO BLOCK ASKS FOR IT. #process is",
+    "not a numbered-steps band at all — it is the `.natural-grid` shape with a pull quote, so it",
+    "maps to media_split. That is also why nothing here uses the `columns: 5` choice the",
+    "process_steps select gained; the five-across grid on this page is #issues, and that is",
+    "card_grid, whose select still stops at 4.",
+    "",
+    "ALL EIGHT ctaLabel / ctaHref PAIRS ON THE `sections` ROWS COME BACK NULL — verified live —",
+    "so there was never anything to move. Five bands ship buttons and they split four ways:",
+    "`options` and `faq` have theirs drawn by their components (ComparisonCardsBlock owns its",
+    "whole cta-row; FaqBlock owns the phone button), `what` carries a transcribed pair because",
+    "media_split gates its row on cta_label, and `process` and `results` get none at all —",
+    "media_split cannot draw an .inline-cta and gallery_marquee is preamble-only. Those last",
+    "two are recorded gaps, not omissions.",
+    "",
+    "FOUR GAPS, AND EVERY ONE OF THEM IS A MARKUP SHAPE THE PAGE INVENTED RATHER THAN A FIELD",
+    "SOMEONE FORGOT. #issues has a page-local `.issues-grid` 5-up; #process hangs a",
+    "`.process-sub` <h3> mid-prose and an `.inline-cta.dark` under the grid; #options nests a",
+    "`<ul class=\"prep-list\">` and a second paragraph inside its featured card and wraps all",
+    "three cards in stretched links; #results puts a two-button `.cta-row` inside a",
+    "gallery band's section-head. No field was added and no layout was invented for any of",
+    "them. See `known_gaps` on each block."
+  ],
+  "blocks": [
+    {
+      "section_id": "what",
+      "layout": "media_split",
+      "band": "paper",
+      "band_evidence": "smile-makeover.astro:302 <section class=\"section\"> — .smilemakeover .section (smile-makeover.css:257) sets padding: 110px 0 and nothing else, no background, so the body paper shows through. The sheet has no `.section.cream` and no `.section.sage` rule, so paper is the only unmodified band this page has.",
+      "fields": {
+        "eyebrow": {
+          "section": "eyebrow"
+        },
+        "heading": {
+          "section": "heading"
+        },
+        "body": {
+          "section": "body"
+        },
+        "image": {
+          "image": "whatImg",
+          "part": "id"
+        },
+        "image_alt": {
+          "image": "whatImg",
+          "part": "alt"
+        },
+        "media_side": {
+          "literal": "left"
+        },
+        "ratio": {
+          "literal": "even"
+        },
+        "cta_label": {
+          "literal": "Free Virtual Consult",
+          "from_template": "smile-makeover.astro:321-323 — the first of the two buttons in .cta-row.left."
+        },
+        "cta_href": {
+          "literal": "#consult"
+        },
+        "cta_label_2": {
+          "literal": "Treatment Options",
+          "from_template": "smile-makeover.astro:324-326 — the second of the two buttons in .cta-row.left."
+        },
+        "cta_href_2": {
+          "literal": "#options"
+        }
+      },
+      "layout_evidence": ".what-img precedes .what-text in the DOM (smile-makeover.astro:305, 313) and .smilemakeover .what-grid is 1fr 1fr (smile-makeover.css:333-334) — photo left, even split. `even` is already the family default for a left photo (MediaSplitBlock.astro:284-286), so no ratio-* modifier is emitted and the grid div stays the bare `what-grid` the template ships.",
+      "image_alt_note": "The images row for slot whatImg carries alt \"Close-up of a smile at a three-quarter angle against black\" — confirmed live, and character-for-character the string the template hardcodes at :307. Moved, not transcribed: the row exists. Worth naming because the media item's OWN altText is the empty string on this file, so MediaSplitBlock's fallback would have produced alt=\"\" if this field were left out.",
+      "prose_note": "ONE paragraph in .prose (smile-makeover.astro:316-318), so no `body_2`.",
+      "variant_note": "Paper is not a dark band, so MediaSplitBlock's primaryVariant is `sage` and secondaryVariant is `ghost` (MediaSplitBlock.astro:395-396, isDarkBand at :272) — which is the pair :321 and :324 ship. This is where the page differs from porcelain-veneers, whose `what` is charcoal and therefore light/ghost-light.",
+      "known_gaps": [
+        "THE SECOND BUTTON LOSES ITS HOVER LABEL. Both buttons are carried by the two cta pairs",
+        "above, all four sub-fields on the deployed layout, and the first is exact.",
+        "",
+        "MediaSplitBlock derives each hover label from the HREF rather than from a field",
+        "(CTA_HOVER, MediaSplitBlock.astro:233-238), and the map has four destinations:",
+        "#consult, #process, #faq and the practice phone number. `#options` is not among them,",
+        "so the second button comes back with no `data-hover` attribute and with \"Treatment",
+        "Options\" in its .l2 span, where the template ships data-hover=\"See Options\" and",
+        "\"See Options\" (smile-makeover.astro:324, Button.astro:61-64). The visible resting label",
+        "is unchanged; what is lost is the word that slides up on hover.",
+        "",
+        "The first button is exact: #consult -> \"Get a Video\", which is what :321 passes.",
+        "",
+        "WHAT WOULD CLOSE IT: one more entry in that CTA_HOVER map, `\"#options\": \"See Options\"`.",
+        "It is a component change and not a field — a hover label is chrome, not copy, and",
+        "giving an editor a field for it is how one page ends up with a hover word that",
+        "contradicts its button. This is the same residue teeth-whitening records for #process",
+        "-> \"View Levels\"."
+      ]
+    },
+    {
+      "section_id": "issues",
+      "layout": "card_grid",
+      "band": "charcoal",
+      "band_evidence": "smile-makeover.astro:339 <section class=\"section alt\"> — .smilemakeover .section.alt { background: var(--vs-charcoal-green) } at smile-makeover.css:258, with h1-h4 #fff at :259-262, .eyebrow var(--vs-eyebrow-on-sage) at :263 and p rgba(255,255,255,0.85) at :264. Dark, white text — NOT the cream the template comment claimed and NOT the cream the identical class name means on teeth-whitening.css:237.",
+      "fields": {
+        "eyebrow": {
+          "section": "eyebrow"
+        },
+        "heading": {
+          "section": "heading"
+        },
+        "body": {
+          "section": "body"
+        },
+        "columns": {
+          "literal": "4"
+        },
+        "numbered": {
+          "literal": true
+        }
+      },
+      "eyebrow_note": "MOVED, NOT TRANSCRIBED, even though the template hardcodes it. smile-makeover.astro:342 prints the literal string \"Common Issues\", and the live `issues` sections row carries eyebrow \"Common Issues\" — the same characters. The house rule prefers the row that exists, so this reads the CMS. Contrast `process` below, whose row has eyebrow null and therefore needs a literal.",
+      "columns_evidence": ".smilemakeover .issues-grid is repeat(5, 1fr) (smile-makeover.css:363-364) against five card rows. The card_grid `columns` select offers only 2, 3 and 4 (vs-content-model.php:1571-1583) and CardGridBlock emits a modifier only at 3 or 4 (CardGridBlock.astro:132), so 5 cannot be stored.",
+      "columns_is_wrong_on_purpose": "\"4\", not \"5\" and not \"2\". \"5\" is not a choice the field has and the backfill would store a value ACF drops. \"2\" would emit no modifier at all and hand the row to the page sheet's `.smilemakeover .why-grid { grid-template-columns: 1fr 1fr }` (smile-makeover.css:305) — five cards two across, which is further from the five-across the band has than four across is. So the band comes back four across with the fifth card wrapping, the same shape porcelain-veneers' five-step process band had before the process_steps select gained its fifth choice.",
+      "rows": {
+        "cards": {
+          "cards": "issuesList",
+          "fields": {
+            "title": "title"
+          },
+          "from_cms": "The five `cards` rows in group `issuesList`, in order — verified live: \"Severe staining that no longer responds to whitening\" through \"Disproportionate tooth-to-gum ratio (gummy smile)\". Title filled, body and meta null on all five. MOVED, not transcribed: the template's `issuesList` array (smile-makeover.astro:103-109) is a second copy of these same five lines and it is the else-branch copy, not the source.",
+          "num_note": "The `.num` divs read 01 through 05, derived by the template as String(i+1).padStart(2,'0') (smile-makeover.astro:351). They are not transcribed: `numbered` above makes CardGridBlock derive them from row position with the identical expression (CardGridBlock.astro:148), so a reorder cannot leave the numbering out of sequence.",
+          "no_lead_no_body_note": "Only `title` is mapped. The card rows have body and meta null and the template's card carries exactly one line of text, so `lead`, `body` and `body_2` are all left empty — CardGridBlock draws each of them only when non-empty."
+        }
+      },
+      "known_gaps": [
+        "THE PAGE-LOCAL 5-UP `.issues-grid` IS NOT REPRODUCED. THIS IS THE LARGEST LOSS ON THE",
+        "ROUTE AND ALL OF IT IS MARKUP — every word survives.",
+        "",
+        "The template draws `<div class=\"issues-grid\">` of five",
+        "`<article class=\"issues-card\">`, each holding `<div class=\"num\">` and",
+        "`<div class=\"label\">` (smile-makeover.astro:347-356). CardGridBlock draws",
+        "`<div class=\"why-grid cols-4\">` of five `<article class=\"why-card\">`, each holding",
+        "`<div class=\"num\">` and `<h3>` (CardGridBlock.astro:172-188). So three things change:",
+        "",
+        "  1. the grid is four across instead of five (see columns_is_wrong_on_purpose above);",
+        "  2. the wrapper and card class names change, so the whole `.issues-*` rule set",
+        "     (smile-makeover.css:363-388 — 30px italic sage-soft number, 15px 500-weight ink",
+        "     label, 18px gap, sage-soft hover border) stops matching and the `.why-card` rules",
+        "     (smile-makeover.css:306-330 — 42px padding, 36px number, 22px display h3) apply",
+        "     instead;",
+        "  3. each bullet becomes an `<h3>` rather than a `<div class=\"label\">`, which is a",
+        "     heading-level change on five sentences that are not headings.",
+        "",
+        "NO FIELD WOULD CLOSE THIS AND NONE WAS ADDED. What closes it is one of two component",
+        "changes, in this order of preference:",
+        "",
+        "  a. a `5` choice on the card_grid Columns select (vs-content-model.php:1571-1583) plus",
+        "     a `.why-grid.cols-5` rule in CardGridBlock.astro — the exact pair that closed",
+        "     porcelain-veneers' five-column process band. That fixes (1) alone and leaves (2)",
+        "     and (3);",
+        "  b. folding `.issues-grid` into `.why-grid` in this page's stylesheet, so the five",
+        "     cards keep their chrome under the class the block emits. That is an edit to the",
+        "     else branch's own rules and has to wait until the else branch is retired.",
+        "",
+        "Not attempted here, and deliberately: (b) repaints the un-migrated page, and this",
+        "phase's rollback path is that the un-migrated page still renders exactly as it does",
+        "today.",
+        "",
+        "The five sentences, their order, their numbering and the band's id, rail entry,",
+        "eyebrow, heading and intro paragraph are all carried."
+      ]
+    },
+    {
+      "section_id": "process",
+      "layout": "media_split",
+      "band": "sage-pale",
+      "band_evidence": "smile-makeover.astro:381 <section class=\"section dark\"> — .smilemakeover .section.dark { background: var(--vs-sage-pale) } at smile-makeover.css:267, with h1-h4 var(--vs-ink) at :268-271, .eyebrow var(--vs-ink-soft) at :272 and p var(--vs-ink-soft) at :273. PALE, despite the class name and despite the template comment that called it \"sage\". `sage` and `sage-pale` are two separate BLOCK_BANDS choices painting two different tokens.",
+      "fields": {
+        "eyebrow": {
+          "literal": "The Process",
+          "from_template": "smile-makeover.astro:385 <span class=\"eyebrow light\">. The CMS `process` row has eyebrow null — verified live — so without this literal the eyebrow disappears on migration. This is the one band on the page where the literal is required rather than preferred."
+        },
+        "heading": {
+          "section": "heading"
+        },
+        "body": {
+          "section": "body"
+        },
+        "image": {
+          "image": "editorialImg",
+          "part": "id"
+        },
+        "image_alt": {
+          "image": "editorialImg",
+          "part": "alt"
+        },
+        "media_side": {
+          "literal": "right"
+        },
+        "ratio": {
+          "literal": "wide-media"
+        },
+        "quote": {
+          "literal": "You should see exactly what your results will look like before any treatment begins.",
+          "from_template": "smile-makeover.astro:387-389 <div class=\"natural-quote\">. Hardcoded today; there is no CMS field it could have come from."
+        },
+        "body_2": {
+          "literal": "Digital smile design at Vivid Smiles maps your new smile onto your actual face using advanced imaging software, giving you a realistic, personalized preview before any work starts. This is not a generic approximation: it is a treatment roadmap built from your facial dimensions, tooth proportions, and cosmetic goals. You and Dr. Richardson refine the design together until the preview reflects exactly what you want, removing the guesswork that has historically been the biggest barrier to investing in cosmetic dentistry.",
+          "from_template": "smile-makeover.astro:393-401 — the SECOND paragraph inside .prose. `body` above is the first. Two paragraphs in one place and the layout carries both; folding them into `body` would run them together inside a single <p>, the same words in the wrong markup."
+        }
+      },
+      "layout_evidence": ".natural-text precedes .natural-img (smile-makeover.astro:384, 404) and .smilemakeover .natural-grid is 1fr 1.1fr (smile-makeover.css:481-482) — photo right, media column the wider one. `wide-media` is already the family default for a right photo (MediaSplitBlock.astro:284), so no ratio-* modifier is emitted and the grid div stays the bare `natural-grid`.",
+      "quote_order_note": "MediaSplitBlock renders the quote above the prose (MediaSplitBlock.astro:430), which is the order the template has: eyebrow, h2, .natural-quote, .prose (smile-makeover.astro:385-402).",
+      "eyebrow_light_note": "MediaSplitBlock adds `.light` to the eyebrow when the band is sage or sage-pale (MediaSplitBlock.astro:269), which reproduces the template's `eyebrow light` at :385. It follows from `band` above; nothing here supplies it.",
+      "image_alt_note": "The images row for slot editorialImg carries alt \"Editorial close-up of a smile with berry lipstick\" — confirmed live, and the string the template hardcodes at :407. Moved.",
+      "no_checklist_note": "No `checklist` rows. The repeater exists on the layout and MediaSplitBlock draws it as `<ul class=\"candidate-list\">` between the quote and the prose, but this band has no list — it is a quote and two paragraphs. Assembling one out of the second paragraph would put an <li> where the page has a <p>.",
+      "no_cta_note": "No cta pairs, and that is deliberate rather than an omission. This band DOES ship two buttons, but they sit in an `.inline-cta.dark` AFTER the grid (smile-makeover.astro:414-425), not in a `.cta-row left` inside the text column, which is the only place MediaSplitBlock can put them (MediaSplitBlock.astro:496-523). Supplying cta_label here would move both buttons into the text column and change the band's shape rather than restore it — so they are recorded as lost below instead of relocated.",
+      "known_gaps": [
+        "TWO ELEMENTS OF THIS BAND HAVE NO FIELD ON ANY REGISTERED LAYOUT. This is the lossiest",
+        "band on the page.",
+        "",
+        "1. THE `.process-sub` SUB-HEADING. smile-makeover.astro:392 is",
+        "   `<h3 class=\"process-sub\">Preview Your New Smile Before You Commit</h3>`, sitting",
+        "   BETWEEN the two prose paragraphs. media_split's `.prose` is `body` then `body_2` and",
+        "   nothing between them (MediaSplitBlock.astro:464-476). The words are lost and so is",
+        "   the document structure — the second paragraph loses its heading.",
+        "",
+        "   IT IS NOT SMUGGLED THROUGH `body_2`. That field is rendered as `<p set:html>` unless",
+        "   the value opens with p/div/ul/ol/blockquote (MediaSplitBlock.astro:326-327), and",
+        "   `<h3` is not in that list — so an h3 typed into it would be nested inside a",
+        "   paragraph, which is invalid and which the parser's recovery turns into a stray empty",
+        "   <p>. Authoring markup into a textarea is also exactly what",
+        "   `the_rule_that_governs_every_value_below` forbids.",
+        "",
+        "   WHAT WOULD CLOSE IT: a `body_heading_2` (or, better named, `prose_heading`) text",
+        "   sub-field on media_split drawn between `body` and `body_2`, blank on every saved row",
+        "   so it is additive — the same shape stat_callout's `body_heading` already has for the",
+        "   <h3> that opens `.lasting-body`. One field, one component conditional, and it serves",
+        "   any page that breaks a prose column with a sub-head.",
+        "",
+        "2. THE `.inline-cta.dark` STRIP. smile-makeover.astro:414-425 is a full-width sage-deep",
+        "   panel under the grid: `.ic-text` reading \"Ready to see your preview? <em>Book online",
+        "   and we'll take it from here.</em>\" and `.ic-buttons` holding Book Online (light, to",
+        "   the booking URL) and Call + the practice number (ghost-light). The whole panel is",
+        "   lost, and with it the band's only conversion point.",
+        "",
+        "   The layout that HAS this field is process_steps — `cta_text`, drawn as the same",
+        "   `.inline-cta` with the same two buttons (ProcessStepsBlock) — and this band is not a",
+        "   process_steps band: it has no steps at all, and this page's `process_steps` repeater",
+        "   is null. Choosing process_steps to keep the strip would draw a `.section-head` and an",
+        "   empty `.process-grid` where the page has a `.natural-grid` with a photo in it, which",
+        "   loses more than it saves.",
+        "",
+        "   WHAT WOULD CLOSE IT: a `cta_text` sub-field on media_split, drawn by MediaSplitBlock",
+        "   after the grid exactly as ProcessStepsBlock draws it — the two components already",
+        "   agree on the markup, so this is moving one existing block of template, not designing",
+        "   anything. Blank on both live media_split rows, so additive.",
+        "",
+        "Everything else on the band is carried: eyebrow, heading, pull quote, both prose",
+        "paragraphs, the photo with its alt, the column order and the wider media column."
+      ]
+    },
+    {
+      "section_id": "options",
+      "layout": "comparison_cards",
+      "band": "paper",
+      "band_evidence": "smile-makeover.astro:449 <section class=\"section\"> — no background rule on .smilemakeover .section (smile-makeover.css:257), body paper.",
+      "fields": {
+        "eyebrow": {
+          "section": "eyebrow"
+        },
+        "heading": {
+          "section": "heading"
+        },
+        "body": {
+          "section": "body"
+        }
+      },
+      "eyebrow_note": "Moved, not transcribed, on the same grounds as `issues`: the template hardcodes \"Treatment Options\" at :452 and the live `options` row carries the identical string.",
+      "columns_evidence": ".smilemakeover .compare is repeat(2, 1fr) (smile-makeover.css:403-404) with .compare-card.featured { grid-column: 1 / -1 } (:419) — so the featured card spans row 1 and the two secondaries share row 2. comparison_cards has no columns sub-field, and it does not need one here: the count and the span both come out of this page's own sheet, which beats ComparisonCardsBlock's scoped repeat(3, 1fr) because `.smilemakeover .compare` is (0,2,0) against a scoped single-class rule.",
+      "rows": {
+        "tiers": {
+          "literal": [
+            {
+              "tag": "Most Common Foundation",
+              "title": "Porcelain Veneers",
+              "body": "Porcelain veneers (thin custom shells bonded to the front of teeth) are Dr. Richardson's specialty and the most common centerpiece of a smile makeover plan. Vivid Smiles offers three prep levels:",
+              "ribbon": "Centerpiece",
+              "featured": true
+            },
+            {
+              "tag": "Alignment",
+              "title": "Invisalign and Orthodontic Alignment",
+              "body": "Correcting tooth position before placing veneers typically produces cleaner, longer-lasting results. Vivid Smiles offers Invisalign either as a preparatory step or as a standalone cosmetic solution for patients whose primary concern is alignment."
+            },
+            {
+              "tag": "Brightening",
+              "title": "Teeth Whitening",
+              "body": "Professional KOR whitening reaches shades not achievable with at-home products and can serve as a standalone solution or a prep step before veneers, delivering results that hold for years rather than weeks."
+            }
+          ],
+          "from_template": "smile-makeover.astro:458-516 — the three .compare-card articles, the FIRST of them .featured with a .ribbon. The only `cards` rows on this page are the five in group `issuesList`, claimed by the `issues` block, so these three are transcribed rather than moved.",
+          "featured_is_first_here": "The featured card is the FIRST of the three (smile-makeover.astro:458), like the pilot's and unlike porcelain-veneers' and teeth-whitening's, which are third. Position is carried by row order, so the flag travels with the first row and nothing else has to say so. It matters more on this page than on the others: `.compare-card.featured { grid-column: 1 / -1 }` makes the flagged card span the full row, so moving the flag moves the layout.",
+          "repeater_name_note": "`tiers`, not `cards` and not `plans`. comparison_cards, card_grid and pricing_tiers do not share a repeater name — a repeater mints its GraphQL type from its field name, so sharing one merges two types and drops one side's sub-fields.",
+          "bullets_deliberately_unused": [
+            "`tiers.bullets` EXISTS ON THE DEPLOYED LAYOUT AND IS DELIBERATELY NOT USED HERE, which",
+            "is why the prep-list is a gap below rather than a row in this list.",
+            "",
+            "It is a block_list_field() repeater in the PHP and ComparisonCardsBlock does draw it",
+            "(ComparisonCardsBlock.astro:239-245). Two independent reasons not to reach for it:",
+            "",
+            "  1. it is absent from vivid-smiles-website/src/blocks/manifest.ts, whose",
+            "     comparison_cards fragment is `tiers { tag title body ribbon featured }`. A value",
+            "     written to a field the query does not select is a value that never arrives;",
+            "  2. even selected, the component draws `<ul>` of plain-text `<li>` — no `prep-list`",
+            "     class and no <strong> label inside each line. This page styles only",
+            "     `.compare-card.featured .prep-list` (smile-makeover.css:473-491), so the list",
+            "     would arrive unstyled and with its three bold labels flattened into the",
+            "     sentence.",
+            "",
+            "Writing it anyway would move the words into markup this sheet does not paint, which is",
+            "worse than recording the loss."
+          ]
+        }
+      },
+      "cta_note": "ComparisonCardsBlock draws the closing .cta-row itself — Free Virtual Consult to #consult (sage, \"Get a Video\"), Read FAQ to #faq (ghost, \"See Answers\"), and the note \"No commitment · Personal video reply\" (ComparisonCardsBlock.astro:265-279). That is exactly what smile-makeover.astro:519-527 ships, variants included, because this is a paper band and isDarkBand is false. The layout has no cta sub-fields, so this map supplies nothing.",
+      "no_callout_note": "No `callout_heading` / `callout_body`: this band has no aside. The .safety-callout that fills those on teeth-whitening has no counterpart here, and supplying them would add an <aside> this page has never had.",
+      "known_gaps": [
+        "THREE THINGS ON THIS BAND HAVE NO FIELD, AND TWO OF THEM ARE ON THE FEATURED CARD.",
+        "",
+        "1. THE `<ul class=\"prep-list\">` NESTED INSIDE THE FEATURED CARD.",
+        "   smile-makeover.astro:471-483 is a three-line list inside .compare-card.featured, each",
+        "   line a <strong> label followed by a description:",
+        "",
+        "     <strong>Traditional veneers:</strong> Minimal enamel removal; considered permanent; 20+ year lifespan",
+        "     <strong>Minimal-prep veneers:</strong> Less enamel reduction while preserving more natural tooth structure",
+        "     <strong>No-prep veneers:</strong> No enamel removal; reversible when candidacy allows",
+        "",
+        "   A LIST NESTED IN A CARD IS THE SHAPE comparison_cards HAS NO QUERYABLE SUB-FIELD FOR.",
+        "   `tiers.bullets` is the nearest thing and is unusable for the two reasons in",
+        "   `bullets_deliberately_unused` above. The three lines are lost, and the paragraph",
+        "   above them (\"…offers three prep levels:\") comes back ending in a colon that",
+        "   introduces nothing.",
+        "",
+        "   WHAT WOULD CLOSE IT: add `bullets { lead item }` to the comparison_cards fragment in",
+        "   manifest.ts AND teach ComparisonCardsBlock to draw it as `<ul class=\"prep-list\">`",
+        "   with the `lead` half in <b>, which is the treatment MediaSplitBlock already gives",
+        "   `checklist` (MediaSplitBlock.astro:451-459). Both halves in one commit — selecting",
+        "   the field without the markup change would produce an unstyled list, which reads as",
+        "   supported and is not.",
+        "",
+        "2. THE FEATURED CARD'S SECOND PARAGRAPH. smile-makeover.astro:484-488:",
+        "",
+        "     \"Color, shape, and translucency are customized to your facial features, skin tone, and preferences. The goal is results that enhance your existing smile, not overwrite it.\"",
+        "",
+        "   A `tiers` row has one `body`. The card ships two paragraphs with a list between them,",
+        "   so the second is lost whole.",
+        "",
+        "   WHAT WOULD CLOSE IT: a `body_2` textarea on `tiers`, drawn as a second <p> after the",
+        "   bullets — the same field, the same name and the same blank-is-additive rule that",
+        "   card_grid's and media_split's `body_2` already carry. Note the ORDER: on this card",
+        "   the second paragraph comes AFTER the list, so the component must draw body, bullets,",
+        "   body_2 in that sequence.",
+        "",
+        "3. THE THREE STRETCHED LINKS. Each card opens with",
+        "   `<a class=\"compare-card__stretch\" href=… aria-label=…>` covering the whole card",
+        "   (smile-makeover.astro:459-462, 491-494, 505-508) — to porcelain-veneers,",
+        "   clear-aligners and teeth-whitening respectively. comparison_cards has no href on a",
+        "   tier, so all three cards come back unclickable, `.compare-card { cursor: pointer }`",
+        "   (smile-makeover.css:411) becomes a lie, and three internal links leave the page.",
+        "",
+        "   WHAT WOULD CLOSE IT: `href` and `link_label` text sub-fields on `tiers`, with",
+        "   ComparisonCardsBlock emitting the anchor only when href is filled. card_grid already",
+        "   declares an unused `cards[].href` for the same reason, so the field shape is settled;",
+        "   what is not settled is the aria-label, which is per-card copy and needs its own",
+        "   sub-field rather than being derived from the title.",
+        "",
+        "Carried in full: all three tags, all three titles, the ribbon, the featured flag and",
+        "with it the full-width span, the first paragraph of every card, the section-head from",
+        "the CMS row, and the closing cta-row the component owns."
+      ]
+    },
+    {
+      "section_id": "why-us",
+      "layout": "card_grid",
+      "band": "charcoal",
+      "band_evidence": "smile-makeover.astro:534 <section class=\"section alt\"> — the same .smilemakeover .section.alt { background: var(--vs-charcoal-green) } rule as `issues`, smile-makeover.css:258.",
+      "fields": {
+        "eyebrow": {
+          "section": "eyebrow"
+        },
+        "heading": {
+          "section": "heading"
+        },
+        "body": {
+          "section": "body"
+        },
+        "columns": {
+          "literal": "2"
+        },
+        "numbered": {
+          "literal": true
+        }
+      },
+      "columns_evidence": ".smilemakeover .why-grid is grid-template-columns: 1fr 1fr (smile-makeover.css:305). Two, as on both migrated siblings. CardGridBlock emits a modifier only at 3 or 4 (CardGridBlock.astro:132), so the div stays the bare `why-grid` the template ships.",
+      "eyebrow_light_note": "Charcoal is not sage or sage-pale, so CardGridBlock's eyebrowLight is false (CardGridBlock.astro:117) and the span is a plain `class=\"eyebrow\"` — which is what :537 ships. The `.light` class would have been a difference, not a repaint.",
+      "rows": {
+        "cards": {
+          "literal": [
+            {
+              "title": "Dr. Bryce Richardson's Cosmetic Dentistry Expertise",
+              "body": "Dr. Richardson earned his DDS from Indiana University School of Dentistry, graduated at the top of his class clinically, and has completed 600+ hours of specialized esthetic and surgical training. He served on staff at Implant Pathway, one of the country's most respected implant training facilities, and is a Parker resident and active community member. His approach is consistent across every case: enhance your natural features rather than replace them, working toward Vivid Smiles' goal of becoming Colorado's leading cosmetic dental destination."
+            },
+            {
+              "title": "Advanced Technology for Predictable Results",
+              "body": "Digital scanning eliminates traditional impressions, and in-house milling units and 3D printers reduce wait time on custom restorations. CBCT 3D imaging provides a complete diagnostic picture before treatment begins, and digital smile design connects the full technology stack to a preview you can see and refine. Every tool at Vivid Smiles is selected for what it does for the patient: less time waiting, more confidence in the outcome."
+            }
+          ],
+          "from_template": "smile-makeover.astro:543-568 — the two .why-card articles. The only `cards` rows on this route are the five in group `issuesList`, so these two are transcribed rather than moved.",
+          "no_lead_note": "NEITHER CARD HAS A `lead`, and that is the difference from porcelain-veneers' `why` band. Each card here is a `.num`, an `<h3>` and ONE plain `<p>` (smile-makeover.astro:543-554, 557-568) — no `p.lead` at all. So the paragraph maps to `body`, not to `lead`. Mapping it to `lead` would render it as `<p class=\"lead\">` and pick up smile-makeover.css:325-329, which is 17px italic sage display type, repainting a body paragraph as a pull line.",
+          "no_body_2_note": "One paragraph per card, so no `body_2` on either. This is the band where porcelain-veneers needed one and this page does not.",
+          "num_note": "The `.num` divs read 01 and 02 (smile-makeover.astro:544, 558). They are not transcribed: `numbered` above draws them from row position."
+        }
+      },
+      "known_gaps": [
+        "NONE. Eyebrow, heading and intro come from the CMS row; both cards' titles and",
+        "paragraphs are carried; the numbering is derived; the two-column grid is the layout's",
+        "own default and emits no modifier. The band has no aside, no list and no CTA row for",
+        "anything to be lost from."
+      ]
+    },
+    {
+      "section_id": "cost",
+      "layout": "stat_callout",
+      "band": "paper",
+      "band_evidence": "smile-makeover.astro:583 <section class=\"section\"> — no background rule on .smilemakeover .section (smile-makeover.css:257), body paper.",
+      "fields": {
+        "eyebrow": {
+          "section": "eyebrow"
+        },
+        "heading": {
+          "section": "heading"
+        },
+        "body": {
+          "literal": ""
+        },
+        "value": {
+          "literal": "2 visits",
+          "from_template": "smile-makeover.astro:592 .lasting-stat .big — the text before the <em>."
+        },
+        "unit": {
+          "literal": "– 12 mo",
+          "from_template": "smile-makeover.astro:592 the <em> inside .big. The leading en dash and the space after it are part of the string: StatCalloutBlock emits `<div class=\"big\">{value}<em>{unit}</em></div>` with nothing between the two (StatCalloutBlock.astro:217), so a dash typed outside the em would land in the wrong element and a dash left out would read \"2 visits 12 mo\"."
+        },
+        "caption": {
+          "literal": "Custom timeline based on your plan",
+          "from_template": "smile-makeover.astro:593 .lasting-stat .label."
+        },
+        "intro": {
+          "section": "body"
+        },
+        "intro_2": {
+          "literal": "For investment, cost reflects the scope of your plan. Vivid Smiles provides transparent pricing and discusses financing options at the consultation, so there are no surprises after you commit. Patients who are uninsured or looking for additional cost flexibility may benefit from the practice's in-house dental membership plan. Most cosmetic procedures are considered elective and are not covered by dental insurance, though treatments that address both cosmetic and functional concerns may qualify for partial coverage.",
+          "from_template": "smile-makeover.astro:597-605 — the SECOND paragraph inside .lasting-body."
+        }
+      },
+      "eyebrow_note": "Moved, not transcribed, on the same grounds as `issues` and `options`: the template hardcodes \"Investment\" at :586 and the live `cost` row carries the identical string.",
+      "body_to_intro_note": [
+        "sections.cost.body -> `intro`, and the preamble's `body` is an EMPTY LITERAL. This is",
+        "the same split the `faq` block below makes and it is the one thing on this band that is",
+        "easy to get backwards.",
+        "",
+        "The section-head here is an eyebrow and an <h2> and NOTHING ELSE (smile-makeover.astro:",
+        "585-588) — unlike porcelain-veneers' #lasting, whose head has a paragraph. The CMS",
+        "`cost` row's body (\"Smile makeover timelines depend on which treatments are included…\")",
+        "is what the template prints as the FIRST paragraph inside `.lasting-body` at :596. So it",
+        "belongs in `intro`, which is exactly where StatCalloutBlock puts that field",
+        "(StatCalloutBlock.astro:224).",
+        "",
+        "Writing it to `body` instead would print it in the section-head, where this page has",
+        "never had a paragraph, AND leave `.lasting-body` opening with the second paragraph. An",
+        "empty-string literal for `body` makes StatCalloutBlock's `{bodyText && <p>}` guard",
+        "(StatCalloutBlock.astro:209) draw nothing at all, not an empty <p>."
+      ],
+      "no_body_heading_note": "No `body_heading`: .lasting-body opens straight into its paragraph here (smile-makeover.astro:595-596) with no <h3>. StatCalloutBlock emits the <h3> only when the field is non-empty (StatCalloutBlock.astro:223), so leaving it out keeps the card the shape it already is.",
+      "no_points_note": "No `points` rows, and none are invented. The `points` repeater draws a <ul> of bolded care habits (StatCalloutBlock.astro:227-235) and this band has no list — it is two paragraphs. A list assembled out of the second paragraph would put an <li> where the page has a <p>.",
+      "not_pricing_tiers_note": [
+        "THE ANCHOR IS `cost` AND THE LAYOUT IS NOT `pricing_tiers`. Worth saying plainly,",
+        "because porcelain-veneers' `cost` block IS pricing_tiers and this route is otherwise",
+        "that page's clone.",
+        "",
+        "This page has no <PricingTiers> import, no plan, no price and no financing note — it",
+        "has the `.lasting-card` shell (a figure beside prose), which is the shape stat_callout",
+        "serves and the shape porcelain-veneers uses for its #lasting band. Reaching for",
+        "pricing_tiers because of the id would draw a plan grid with nothing in it.",
+        "",
+        "The rail entry says \"Timeline & Cost\", not \"Investment\", and it keeps pointing at a",
+        "band that has the timeline. Nothing here promises a price table."
+      ],
+      "known_gaps": [
+        "NONE. The figure and its unit, the caption, both paragraphs of the card and the",
+        "section-head's eyebrow and heading all have a field, and the absent section-head",
+        "paragraph is represented by an explicit empty literal rather than by omission."
+      ]
+    },
+    {
+      "section_id": "results",
+      "layout": "gallery_marquee",
+      "band": "charcoal",
+      "band_evidence": "smile-makeover.astro:624 <section class=\"section alt\"> — the same .smilemakeover .section.alt { background: var(--vs-charcoal-green) } rule as `issues` and `why-us`, smile-makeover.css:258. THIS IS THE ONE BAND WHERE THE VALUE DIFFERS FROM PORCELAIN-VENEERS' EQUIVALENT: that page's gallery is `sage-pale` because it sits on `.section.dark`; this one sits on `.section.alt` and is charcoal.",
+      "fields": {
+        "eyebrow": {
+          "section": "eyebrow"
+        },
+        "heading": {
+          "section": "heading"
+        },
+        "body": {
+          "section": "body"
+        }
+      },
+      "structural_note": [
+        "THE MARQUEE LIVES INSIDE THIS BAND, NOT ON A BAND OF ITS OWN, AND THAT IS WHY THIS PAGE",
+        "HAS EIGHT BLOCKS WHERE PORCELAIN-VENEERS HAS TEN.",
+        "",
+        "The template's own header calls this out as the fourth deliberate adaptation: the",
+        "#results heading is what points patients at real cases, so the photos live where the",
+        "heading promises them (smile-makeover.astro:21-29). One <section> holds the section-head",
+        "and the `.gallery-marquee` strip (:624-663).",
+        "",
+        "That is exactly the shape GalleryMarqueeBlock draws — `.section` > `.wrap` >",
+        "`.section-head`, then the strip as a SIBLING of the wrap",
+        "(GalleryMarqueeBlock.astro:151-178). So the merge costs nothing structurally; it is the",
+        "cta-row inside the head that does not fit, below.",
+        "",
+        "One consequence for anyone comparing routes: this page has no `gallery` sections row and",
+        "no #gallery anchor at all, and its `results` row IS the gallery band's copy."
+      ],
+      "reveal_note": "This band's <section> carries no data-vs-reveal-batch, with data-vs-reveal on the .section-head instead (smile-makeover.astro:624, 626). GalleryMarqueeBlock emits exactly that pair (GalleryMarqueeBlock.astro:151, 153), so the attributes match without anything here saying so. It is the only band on the page where that is true, and it is why `results` must not be mapped to card_grid or media_split to keep the cta-row — either would add a batch attribute this band has never had.",
+      "tiles_note": "No sub-fields beyond the preamble by design: the tiles are files read by src/lib/smiles.ts and doubled into a marquee track by the component, the same source and the same doubling the template does at :648-660. Nothing to move.",
+      "nav_label_note": "Resolves to \"Real Results\" from the `toc_links` row whose anchor is `results` — confirmed live, the seventh of this page's eight rows. Unlike both migrated siblings, whose gallery band has no toc_links row and drops out of the rail, this band IS in the rail, because on this page it is the results band and not a bare photo strip.",
+      "known_gaps": [
+        "TWO, ONE OF THEM COSTING TWO BUTTONS AND TWO INTERNAL LINKS.",
+        "",
+        "1. THE `.cta-row` INSIDE THE SECTION-HEAD. smile-makeover.astro:630-641 puts a cta-row",
+        "   INSIDE `.section-head`, holding View the Smile Gallery (light, /smile-gallery/,",
+        "   hover \"Open Gallery\") and Patient Stories (ghost-light, /patient-testimonials/, hover",
+        "   \"Read Stories\"). gallery_marquee is preamble-only — `anchor navLabel band eyebrow",
+        "   heading body` and nothing else (manifest.ts:265-268) — so both buttons are lost, and",
+        "   with them the page's only links to the gallery and testimonial pages.",
+        "",
+        "   THIS IS THE ONE GAP ON THE ROUTE THAT COSTS NAVIGATION RATHER THAN CHROME. The two",
+        "   destinations appear nowhere else on the page: the breadcrumb goes up to",
+        "   /cosmetic-dentistry/, the #options cards link to the three sibling service pages, and",
+        "   the closing VirtualConsult and FinalBand link to neither.",
+        "",
+        "   WHAT WOULD CLOSE IT: `cta_label` / `cta_href` and `cta_label_2` / `cta_href_2` on",
+        "   gallery_marquee, drawn inside `.section-head` after the body paragraph — the field",
+        "   set media_split already carries, in the position this template puts it. The hover",
+        "   labels are the same derived-from-href problem the `what` band records: neither",
+        "   /smile-gallery/ nor /patient-testimonials/ is in any CTA_HOVER map today, so closing",
+        "   this properly means adding both destinations there as well.",
+        "",
+        "   NOT closed by moving this band to another layout. faq, card_grid and media_split all",
+        "   have cta fields and all three draw a `.cta-row` OUTSIDE the section-head, add a",
+        "   data-vs-reveal-batch this band does not have, and none of them draws the marquee at",
+        "   all.",
+        "",
+        "2. THE EYEBROW GAINS A `light` CLASS. GalleryMarqueeBlock hard-codes",
+        "   `<span class=\"eyebrow light\">` (GalleryMarqueeBlock.astro:154) rather than deriving",
+        "   it from the band the way every other block does, and this template ships a plain",
+        "   `<span class=\"eyebrow\">` at :627. Visually inert on this page —",
+        "   `.smilemakeover .section.alt .eyebrow` (0,3,0) at smile-makeover.css:263 beats",
+        "   `.eyebrow.light` — but it is a byte in the HTML and scripts/vr-html.mjs compares",
+        "   bytes.",
+        "",
+        "   WHAT WOULD CLOSE IT: give GalleryMarqueeBlock the same `eyebrowLight` derivation the",
+        "   other five band blocks share (band === sage || sage-pale). That is safe for the two",
+        "   migrated siblings, whose gallery bands are sage-pale and sage and therefore keep the",
+        "   class they have today.",
+        "",
+        "Carried: the eyebrow text, the heading, the intro paragraph, the id, the rail entry, the",
+        "reveal attributes and the marquee itself."
+      ]
+    },
+    {
+      "section_id": "faq",
+      "layout": "faq",
+      "band": "paper",
+      "band_evidence": "smile-makeover.astro:670 <section class=\"section\"> — no background rule on .smilemakeover .section (smile-makeover.css:257), body paper.",
+      "fields": {
+        "eyebrow": {
+          "section": "eyebrow"
+        },
+        "heading": {
+          "section": "heading"
+        },
+        "body": {
+          "literal": ""
+        },
+        "pull": {
+          "section": "body"
+        },
+        "cta_label": {
+          "literal": "Still Have Questions? Free Virtual Consult",
+          "from_template": "smile-makeover.astro:701-703. FaqBlock draws its second button — Call + the practice number — from src/data/contact.ts, because a phone number is site data and not page content, so it is not transcribed here."
+        },
+        "cta_href": {
+          "literal": "#consult"
+        }
+      },
+      "body_to_pull_note": "sections.faq.body -> `pull`, NOT -> `body`. The template puts it in .pull (smile-makeover.astro:695-697), the aside under the questions, and the FAQ section-head has no paragraph at all (:672-675). Writing it to `body` would print it in the head, where this page has never had one. Same split as the `cost` band above and the same shape as both migrated siblings.",
+      "rows": {
+        "items": {
+          "faqs": true,
+          "fields": {
+            "question": "question",
+            "answer": "answer",
+            "open": "open"
+          },
+          "note": "All 7 rows, in order — verified live, from \"How long does a smile makeover take?\" to \"Is cosmetic dentistry covered by insurance?\", and the first is `open`, matching the template's default. THREE of the seven answers carry inline <a class=\"vs-link\"> markup (rows 1, 5 and 5's second and third links). Both sides render the answer with set:html — the template at :689 and FaqBlock at :185 — so those links survive the switch. That is not true of every page in the family, and it is the reason to check it here rather than assume it."
+        }
+      },
+      "variant_note": "Paper is not a dark band, so FaqBlock's buttons are sage and ghost (FaqBlock.astro:205, 217), which is the pair :701 and :704 ship.",
+      "known_gaps": [
+        "NONE. Eyebrow, heading, all seven questions and answers with their inline links, the",
+        "open state of the first, the .pull aside and both CTA buttons all have a field or a",
+        "component behind them."
+      ]
+    }
+  ],
+  "exempt": {
+    "_": [
+      "Every repeater row on this page that no block above claims. The backfill fails, before",
+      "writing anything, on any row that is neither claimed nor listed here. Four of the six",
+      "lists are empty because their rows are all claimed: 8 sections by the 8 blocks, all 5",
+      "cards by `issues`, all 7 faqs by `faq`, all 8 toc_links by the anchors above.",
+      "`process_steps` is empty because the repeater itself is null on this route. One image is",
+      "exempt and it is the hero."
+    ],
+    "sections": [],
+    "cards": [],
+    "cards_note": [
+      "EMPTY BECAUSE ALL FIVE ROWS ARE CLAIMED, not because the repeater is empty — which is",
+      "the opposite of porcelain-veneers, where it is empty and every card is a literal.",
+      "",
+      "The five rows are group `issuesList`, title filled, body and meta null, and the `issues`",
+      "block reads them with a `cards` row_kind. They are the only CMS-resident card content on",
+      "this route; every other card, tier and paragraph in the blocks above is a literal",
+      "transcribed from the template, because there is no second group to move."
+    ],
+    "process_steps": [],
+    "process_steps_note": [
+      "EMPTY BECAUSE THE REPEATER IS NULL ON THIS ROUTE — confirmed live, `processSteps` comes",
+      "back null rather than as an empty list.",
+      "",
+      "Worth stating because the template imports nothing for it and no block asks for it: this",
+      "page's #process band is a `.natural-grid` with a photo and a pull quote, not a numbered",
+      "steps grid, so it maps to media_split. The leftover check only reports a repeater that",
+      "HAS rows and was not claimed, so this stays correct if steps are added later — they",
+      "would then be reported, which is the behaviour worth keeping."
+    ],
+    "faqs": [],
+    "images": [
+      {
+        "slot": "heroImg",
+        "reason": "The hero is not a block. It is a `hero` group field on group_vs_page — one per page, always first, never reordered (docs/PAGE-BLOCKS.md 1.3, 7).",
+        "destination": "hero.image, filled by whatever moves the hero across. Not this script's field and not this script's business.",
+        "renders_today": "smile-makeover.astro:193-229 hero <header class=\"hero\">, which stays unguarded on both sides of the migration switch.",
+        "note": "The other two slots are claimed: whatImg by the `what` block and editorialImg by `process`. Three images on this route, two of them in blocks."
+      }
+    ],
+    "toc_links": [],
+    "toc_links_decision": [
+      "EMPTY, AND UNUSUALLY SO: all eight anchors are claimed by a block's `section_id`, with no",
+      "code_section claiming one on its own anchor and no band dropping out of the rail. The",
+      "eight live rows are what, issues, process, options, why-us, cost, results, faq — the same",
+      "eight names, in the same order, as the eight `sections` rows and the eight template",
+      "bands. Three orderings that agree, which is not true of porcelain-veneers.",
+      "",
+      "The rail is derived from blocks[].anchor + nav_label in block order, so eight blocks",
+      "produce eight rail entries and the labels keep their places: What It Is, Common Issues,",
+      "The Process, Treatment Options, Why Vivid Smiles, Timeline & Cost, Real Results, FAQ.",
+      "",
+      "NO RAIL LABEL PROMISES CONTENT THE BACKFILLED PAGE WILL NOT SHOW, which is the check",
+      "teeth-whitening fails. \"Timeline & Cost\" scrolls to a band that still has the timeline",
+      "figure and both cost paragraphs; \"Common Issues\" scrolls to a band that still lists all",
+      "five issues, in a different grid; \"Real Results\" scrolls to a band that still has the",
+      "marquee, minus its two buttons."
+    ]
+  }
+}

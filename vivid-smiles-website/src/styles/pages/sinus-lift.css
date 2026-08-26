@@ -533,6 +533,55 @@
   font-size: 15px; line-height: 1.7; color: rgba(255, 255, 255, 0.85);
 }
 
+/* ---------- .candidate-list — THE SAME SHAPE UNDER THE BLOCK'S NAME ----------
+   ADDITIVE. The five rules above are the else branch and are not touched: when
+   `blocks` is empty this page still emits `ul.tech-list` and still needs them.
+
+   When the page renders from blocks, #technology comes back through
+   MediaSplitBlock, which draws its `checklist` repeater as `ul.candidate-list`
+   — one class for a shape that four page sheets spell two ways
+   (`.candidate-list` on bone-grafting, all-on-4-single-arch and
+   full-mouth-dental-implants; `.tech-list` here), because two class names for
+   one shape is how a rule gets edited in one place and not the other. The block
+   carries its own copy of these declarations, so the alias is not what makes the
+   band legible; it is what keeps THIS sheet — the sheet a designer opens to
+   change this page's numbered list — describing the band under whichever name is
+   on the page that day. Without it, editing `.tech-list` after the backfill
+   would silently change nothing.
+
+   Duplicated declarations rather than a grouped selector on the rules above,
+   for the same reason: grouping would make one edit hit both branches, which is
+   correct today and wrong the moment the two diverge. Values are copied
+   character for character from :515-534, so whichever of these and the block's
+   own `.section.alt .candidate-list …` rules wins the cascade — they are both
+   (0,3,0) on `.marker`, and file order between a page sheet and a component's
+   scoped styles is not guaranteed — the band renders identically either way.
+
+   The colours are the CHARCOAL-band values, because `.section.alt` is the only
+   band this list has ever appeared on here (sinus-lift.css:225). A future
+   `.candidate-list` on a paper band would inherit white-on-white from this
+   block; that coupling is inherited from `.tech-list` above, not introduced. */
+.sinuslift .candidate-list {
+  list-style: none; padding: 0; margin: 0;
+  display: flex; flex-direction: column; gap: 18px;
+}
+.sinuslift .candidate-list li {
+  display: grid; grid-template-columns: auto 1fr; gap: 14px;
+  align-items: baseline;
+}
+.sinuslift .candidate-list .marker {
+  font-family: var(--f-display); font-style: italic; font-weight: 300;
+  color: var(--vs-eyebrow-on-sage); font-size: 20px; line-height: 1;
+}
+.sinuslift .candidate-list b {
+  font-family: var(--f-display); font-weight: 500;
+  color: #fff; font-size: 16.5px;
+  display: inline-block; margin-right: 6px;
+}
+.sinuslift .candidate-list span {
+  font-size: 15px; line-height: 1.7; color: rgba(255, 255, 255, 0.85);
+}
+
 /* ---------- CTA ROW ---------- */
 .sinuslift .cta-row {
   margin-top: 56px;

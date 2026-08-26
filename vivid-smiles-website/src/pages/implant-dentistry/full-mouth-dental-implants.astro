@@ -14,6 +14,37 @@
  *   - "Compare" sub-grid is 2 alternatives instead of 3 (the brief lists 4
  *     options total; 2 occupy the head-to-head, 2 occupy the sub).
  *   - 6 FAQs (vs. 8 in all-on-4) per brief.
+ *
+ * MIGRATED TO BLOCKS (docs/PAGE-BLOCKS.md 2.3). Ten top-level bands — why,
+ * what, robotics, process, compare, candidacy, benefits, cost, gallery, faq —
+ * each guarded with `hasBlocks ? null : …` and each carrying a row in
+ * cms/import/block-map.json under /implant-dentistry/full-mouth-dental-implants/.
+ * The map value under review lives at cms/import/routes/full-mouth-dental-implants.json.
+ *
+ * NO <LocalTrust> ON THIS PAGE, so no `code_section` row, and nothing here
+ * touches cms/mu-plugins/vs-content-model.php or CodeSectionBlock.astro.
+ *
+ * THE BAND NAMES IN THE SECTION COMMENTS BELOW WERE WRONG AND ARE CORRECTED IN
+ * PLACE. Three of them said "cream" and "sage" while
+ * src/styles/pages/full-mouth-dental-implants.css has always painted
+ * `.fmdi .section.alt` charcoal (:228) and `.fmdi .section.dark` sage-pale
+ * (:238). The `band` value on every row of the map is read off those two rules,
+ * not off the class name and not off the comment that used to sit above it —
+ * copying a sibling page's vocabulary here would repaint five of these ten
+ * bands, because `.section.alt` is cream on teeth-whitening.css:237.
+ *
+ * Three things this page owns that neither worked example does, all three
+ * recorded as known_gaps on their block in the map rather than closed here:
+ *   1. `#robotics` is a bespoke `.robotics-grid` whose callout is
+ *      `.label` + `<h4>` + `<p>`; media_split draws `.natural-*` and an
+ *      `<aside class="veneers-callout">` with an `<h3>` and no label slot.
+ *   2. `#compare` is TWO shapes in one band — two `.compare-card`s carrying
+ *      `.compare-list` bullets, plus a `.compare-sub` head over an
+ *      `.alternatives-grid` of two `.config-card`s. `comparison_cards` has one
+ *      card list and one aside, so the sub-grid has nowhere to go.
+ *   3. `#candidacy`'s `.candidate-list` IS what media_split's `checklist`
+ *      repeater now draws, markers derived from row position — the one shape on
+ *      this page that a recently added field carries exactly.
  */
 import { Image } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -30,11 +61,13 @@ import '../../styles/pages/full-mouth-dental-implants.css';
 // rather than as a patient's result.
 // Robotics section — keep the authentic Dr. Bryce Yomi-guided procedure.
 // Candidacy — lifestyle patient portrait.
-import { getPageContent } from '../../lib/page-content';
+import { getPageContent, type TocLink } from '../../lib/page-content';
+import PageBlocks from '../../blocks/PageBlocks.astro';
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Full Mouth Dental Implants in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, processSteps, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+const { blocks, hasBlocks, tocLinks, processSteps, faqs, section, image, seo } =
+  await getPageContent(Astro.url.pathname);
 
 
 // Track doubled for seamless marquee loop.
@@ -107,6 +140,64 @@ const keyStats: [string, string][] = [
   ['20+ yrs', 'Prosthetic Bridge'],
 ];
 
+/**
+ * The "On this page" rail, derived from the blocks themselves (docs/PAGE-BLOCKS.md 1.2).
+ *
+ * Used only when this page renders from `blocks`. The `toc_links` repeater is
+ * nine rows that restate the order of the ten bands below it, so a reorder in
+ * wp-admin moves a band and leaves its rail entry pointing at the old
+ * neighbour — the single largest way a reorder breaks a link. Reading the
+ * anchors off the blocks makes that unrepresentable: there is one ordering and
+ * the rail is a projection of it.
+ *
+ * Three rules, in the order they bite:
+ *
+ * 1. A blank anchor is skipped. Not tidiness — src/scripts/toc-spy.ts:24 feeds
+ *    each rendered href straight to document.querySelector(), and
+ *    querySelector("") throws a SyntaxError that kills the whole spy, not just
+ *    the one entry. PageBlocks.astro emits no id at all for a blank anchor
+ *    (`id={anchor || undefined}`), so there is nothing to link to either.
+ * 2. An anchor that is not a valid id selector is skipped for the same reason —
+ *    "#3-reasons" is legal HTML and an illegal CSS selector. Dropping one rail
+ *    entry costs one link; letting it through costs every link on the page,
+ *    plus the mobile pill auto-centering.
+ * 3. Duplicate anchors follow PageBlocks.astro's dedup exactly, second
+ *    occurrence onward suffixed `-2`, `-3`. The counter has to advance on every
+ *    non-blank anchor, including blocks with no nav_label, or the rail's idea
+ *    of "the second #faq" drifts from the id the renderer actually emitted.
+ *
+ * A blank nav_label means "leave this block out of the rail" (1.2), which is
+ * how a band that should not be navigable opts out — `gallery` on this page,
+ * which has no toc_links row and never appeared in the rail.
+ */
+const ANCHOR_IS_ID_SELECTOR = /^[A-Za-z_][A-Za-z0-9_-]*$/;
+
+const anchorsSeen = new Map<string, number>();
+// Typed as TocLink[] rather than an equivalent inline shape so the ternary in
+// the rail below collapses to one type instead of a union of two array types,
+// which TypeScript will not let you call .map() on.
+const derivedTocLinks: TocLink[] = [];
+
+for (const block of blocks) {
+  const anchor = typeof block.anchor === 'string' ? block.anchor.trim() : '';
+  if (anchor === '') continue;
+
+  const nth = (anchorsSeen.get(anchor) ?? 0) + 1;
+  anchorsSeen.set(anchor, nth);
+
+  const label = typeof block.navLabel === 'string' ? block.navLabel.trim() : '';
+  if (label === '') continue;
+
+  if (!ANCHOR_IS_ID_SELECTOR.test(anchor)) {
+    console.warn(
+      `[blocks] anchor "${anchor}" on ${Astro.url.pathname} cannot be used as a selector — ` +
+        `omitting "${label}" from the On this page rail so toc-spy keeps working`,
+    );
+    continue;
+  }
+
+  derivedTocLinks.push({ href: `#${nth > 1 ? `${anchor}-${nth}` : anchor}`, label });
+}
 
 ---
 
@@ -187,20 +278,59 @@ const keyStats: [string, string][] = [
         </div>
       </section>
 
-      {/* ---------- ON-THIS-PAGE TOC ---------- */}
+      {
+        /* ---------- ON-THIS-PAGE TOC ----------
+         The rail itself is never a block (spec 7: "Not a block, even though it
+         is a band") — only its contents move. Derived from the blocks when
+         they are drawing the page, read from the `toc_links` repeater when the
+         template is. Same markup either way, which is what lets
+         src/scripts/toc-spy.ts go on reading its section list off the rendered
+         links without knowing which source produced them. */
+      }
       <nav class="toc" id="toc" aria-label="On this page">
         <div class="toc-inner">
           <span class="toc-label">On this page</span>
           <div class="toc-scroll">
             <div class="toc-list">
-              {tocLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+              {(hasBlocks ? derivedTocLinks : tocLinks).map((l) => <a href={l.href}>{l.label}</a>)}
             </div>
           </div>
         </div>
       </nav>
 
-      {/* ---------- WHY (paper, 4-card grid) ---------- */}
-      <section class="section" id="why" data-vs-reveal-batch>
+      {
+        /* ---------- WHY (paper, 4-card grid) ----------
+
+         THE MIGRATION SWITCH (docs/PAGE-BLOCKS.md 2.3) starts here. `hasBlocks`
+         means "this build can draw this page from its blocks" — not "WordPress
+         sent rows" (src/lib/page-content.ts). When it is true PageBlocks draws
+         the ten bands in the order an editor arranged them; when it is false —
+         which is every build until the backfill has run, and again the moment
+         an editor empties the field — every band below renders exactly as it
+         always has.
+
+         Written as one guard per band rather than one guard around all ten on
+         purpose, and it is not a style choice. Astro's compressHTML pass treats
+         an Astro comment expression differently inside a component slot than at
+         element level: wrapping these bands in a Fragment silently drops one
+         space at every comment boundary below, and scripts/vr-html.mjs compares
+         exact bytes and calls that a difference. A guard sitting exactly where
+         its section sat emits byte-identical HTML.
+
+         EVERY top-level band between here and <VirtualConsult> is guarded, and
+         every one of them has a row in cms/import/block-map.json. Those two
+         facts have to move together: a band that is neither blocked nor guarded
+         renders in ADDITION to the block run and lands at the bottom of the
+         page, and a band that is guarded with no map row disappears on backfill
+         with nothing in the log. There is no third outcome. The bands ABOVE
+         this line — the breadcrumb, the hero, `.keys` and the rail — are not
+         blocks by spec 7 and are deliberately unguarded, as are <VirtualConsult>
+         and <FinalBand> below the run.
+
+         `.fmdi .section` (full-mouth-dental-implants.css:227) sets padding and
+         nothing else, so this band is paper. */
+      }
+      {hasBlocks ? <PageBlocks blocks={blocks} /> : <section class="section" id="why" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("why").eyebrow}</span>
@@ -219,12 +349,20 @@ const keyStats: [string, string][] = [
             }
           </div>
         </div>
-      </section>
+      </section>}
 
       {
-        /* ---------- WHAT (cream split, no sub-grid — single-paragraph definition only) ---------- */
+        /* ---------- WHAT (CHARCOAL split, no sub-grid — single-paragraph
+         definition only) ----------
+
+         The comment here said "cream" and the page has never been cream.
+         `.fmdi .section.alt { background: var(--vs-charcoal-green) }` at
+         full-mouth-dental-implants.css:228, with h2 #fff at :232 and p
+         rgba(255,255,255,0.85) at :236. Dark band, white type. The map's `band`
+         value is read off that rule; on teeth-whitening.css:237 the identical
+         class name is cream, which is why the class is never the evidence. */
       }
-      <section class="section alt" id="what" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section alt" id="what" data-vs-reveal-batch>
         <div class="wrap">
           <div class="what-grid">
             <div class="what-img" data-vs-parallax data-parallax="-25">
@@ -254,10 +392,25 @@ const keyStats: [string, string][] = [
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* ---------- ROBOTICS (paper, with same-day callout) ---------- */}
-      <section class="section" id="robotics" data-vs-reveal-batch>
+      {
+        /* ---------- ROBOTICS (paper, with same-day callout) ----------
+         `.fmdi .section` (full-mouth-dental-implants.css:227), no background
+         rule, so the body paper shows through.
+
+         THE BAND THIS PAGE LOSES THE MOST ON, and the loss is a layout fault
+         rather than a copy fault. The markup below is a bespoke
+         `.robotics-grid` / `.robotics-img` / `.robotics-text` family with a
+         `<p class="robotics-prose">` and a `.robotics-callout` of
+         `<span class="label">` + `<h4>` + `<p>`. media_split draws the
+         `.natural-*` family, a `.prose > p`, and an
+         `<aside class="veneers-callout">` of `<h3>` + `<p>`, with no slot for
+         the label line. See `known_gaps` on this block in the route file for
+         what exactly goes and what would close it; nothing is invented here to
+         paper over it. */
+      }
+      {hasBlocks ? null : <section class="section" id="robotics" data-vs-reveal-batch>
         <div class="wrap">
           <div class="robotics-grid">
             <div class="robotics-img" data-vs-parallax data-parallax="-25">
@@ -286,12 +439,23 @@ const keyStats: [string, string][] = [
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       {
-        /* ---------- PROCESS (sage, 5-step recovery timeline + Advanced-Technology inline-cta) ---------- */
+        /* ---------- PROCESS (SAGE-PALE, 5-step recovery timeline +
+         Advanced-Technology inline-cta) ----------
+
+         The comment here said "sage" and the sheet says otherwise:
+         `.fmdi .section.dark { background: var(--vs-sage-pale) }` at
+         full-mouth-dental-implants.css:238, with h2 var(--vs-ink) at :242.
+         `sage` and `sage-pale` are two separate BLOCK_BANDS choices painting
+         two different tokens, so the map says sage-pale.
+
+         Five steps in a five-column grid — `.fmdi .process-grid` is
+         `repeat(5, 1fr)` at :441 — which the `columns` select now serves,
+         because it gained a "5" choice. */
       }
-      <section class="section dark" id="process" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section dark" id="process" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow light">Recovery Timeline</span>
@@ -329,10 +493,25 @@ const keyStats: [string, string][] = [
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* ---------- COMPARE (paper, 1 featured + 1 main + 2-alt sub-grid) ---------- */}
-      <section class="section" id="compare" data-vs-reveal-batch>
+      {
+        /* ---------- COMPARE (paper, 1 featured + 1 main + 2-alt sub-grid) ----------
+         `.fmdi .section` (full-mouth-dental-implants.css:227), no background
+         rule, body paper.
+
+         TWO SHAPES IN ONE BAND, and `comparison_cards` has room for one of
+         them. The `.compare` head-to-head becomes the layout's `tiers`; the
+         `.compare-sub` head becomes its `.safety-callout` aside, which is the
+         one slot the layout has between the cards and the CTA row. The
+         `.alternatives-grid` of two `.config-card`s has no slot at all — those
+         two rows are the `alternatives` group in the CMS and are listed in
+         `exempt.cards` in the route file rather than folded in among the
+         head-to-head cards, because four peers is a different argument from two
+         head-to-head plus two lesser options. Recorded as a known_gap with the
+         field pair that would close it. */
+      }
+      {hasBlocks ? null : <section class="section" id="compare" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("compare").eyebrow}</span>
@@ -418,12 +597,29 @@ const keyStats: [string, string][] = [
             <span class="cta-note">No commitment · Personal video reply</span>
           </div>
         </div>
-      </section>
+      </section>}
 
       {
-        /* ---------- CANDIDACY (cream, image+text + "What If You Have Bone Loss?" sub) ---------- */
+        /* ---------- CANDIDACY (CHARCOAL, image+text + "What If You Have Bone
+         Loss?" sub) ----------
+
+         Same `.fmdi .section.alt` rule as `what`,
+         full-mouth-dental-implants.css:228 — charcoal, not the cream this
+         comment used to claim.
+
+         The band media_split fits best on this page: `.natural-grid` >
+         `.natural-text` + `.natural-img` is character-for-character the family
+         the block draws, and the `ul.candidate-list` under the pull quote is
+         exactly what the `checklist` repeater now renders — `lead` carrying the
+         bolded run and its em dash, the 01/02/03/04 markers DERIVED from row
+         position rather than stored, which is why deleting a row here can never
+         leave the list counting 01 03 04.
+
+         The `.candidacy-sub` card below the grid is the part that does not fit:
+         it becomes the aside inside the copy column. See the block's
+         known_gaps. */
       }
-      <section class="section alt" id="candidacy" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section alt" id="candidacy" data-vs-reveal-batch>
         <div class="wrap">
           <div class="natural-grid">
             <div class="natural-text">
@@ -481,13 +677,18 @@ const keyStats: [string, string][] = [
             <p>{section("candidacy").body}</p>
           </div>
         </div>
-      </section>
+      </section>}
 
       {
         /* ---------- BENEFITS (paper, 4-card — replaces all-on-4 "Living"; maps the
-        verbatim Implants-vs-Dentures differences) ---------- */
+        verbatim Implants-vs-Dentures differences) ----------
+        `.fmdi .section` (full-mouth-dental-implants.css:227), body paper. Four
+        across: `.fmdi .benefits-grid` is `repeat(4, 1fr)` at :661, the same
+        count `.fmdi .why-grid` carries at :278, so both card bands store
+        columns "4". card_grid draws one card family — `.why-grid` /
+        `.why-card` — so this band arrives under the `why` class names. */
       }
-      <section class="section" id="benefits" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section" id="benefits" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("benefits").eyebrow}</span>
@@ -507,10 +708,22 @@ const keyStats: [string, string][] = [
             }
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* ---------- INVESTMENT (cream) ---------- */}
-      <section class="section alt" id="cost" data-vs-reveal-batch>
+      {
+        /* ---------- INVESTMENT (CHARCOAL) ----------
+         Third band on this page carrying `.fmdi .section.alt`
+         (full-mouth-dental-implants.css:228 -> var(--vs-charcoal-green)), and
+         the comment above it said cream. Worth naming twice: porcelain-veneers'
+         pricing band is PAPER and the note in its map entry says the implant
+         family's are cream. Neither is this page. `band` is a field on the
+         pricing_tiers layout precisely so it can be read off each sheet.
+
+         A standalone <section> holding a `.section-head` and a one-tier
+         <PricingTiers> — the shape the layout was built for, so nothing about
+         this band needs a bespoke field. */
+      }
+      {hasBlocks ? null : <section class="section alt" id="cost" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("cost").eyebrow}</span>
@@ -540,10 +753,19 @@ const keyStats: [string, string][] = [
             financingNote="Every case has a unique anatomy and material profile — a free consultation with CBCT imaging is the only way to get an accurate quote. Vivid Smiles works with third-party financing partners to spread the investment across monthly payments; patients without insurance can also enroll in the Vivid Smiles dental membership plan."
           />
         </div>
-      </section>
+      </section>}
 
-      {/* ---------- GALLERY ---------- */}
-      <section class="section dark" id="gallery">
+      {
+        /* ---------- GALLERY (sage-pale) — marquee, doubled track.
+         Same `.fmdi .section.dark { background: var(--vs-sage-pale) }` rule as
+         `process`, full-mouth-dental-implants.css:238.
+
+         Out of the rail on both sides of the switch: this page has no
+         `toc_links` row for #gallery — its nine rows are why, what, robotics,
+         process, compare, candidacy, benefits, cost, faq — so the derived rail
+         leaves it out exactly as the repeater does. */
+      }
+      {hasBlocks ? null : <section class="section dark" id="gallery">
         <div class="wrap">
           <div class="section-head" data-vs-reveal>
             <span class="eyebrow light">Smile Gallery</span>
@@ -570,10 +792,19 @@ const keyStats: [string, string][] = [
             }
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* ---------- FAQ (paper, 6 accordion items + closing pull-quote) ---------- */}
-      <section class="section" id="faq" data-vs-reveal-batch>
+      {
+        /* ---------- FAQ (paper, 6 accordion items + closing pull-quote) ----------
+         `.fmdi .section` (full-mouth-dental-implants.css:227), body paper.
+         Native details/summary, zero JS.
+
+         The answers are rendered `set:html` on both sides of the switch — one
+         of these six carries two `<a class="vs-link">` tags, so the escaped
+         path would print the markup at the patient. FaqBlock uses set:html for
+         the same reason. */
+      }
+      {hasBlocks ? null : <section class="section" id="faq" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("faq").eyebrow}</span>
@@ -613,9 +844,18 @@ const keyStats: [string, string][] = [
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* ---------- VIRTUAL CONSULT ---------- */}
+      {
+        /* ---------- VIRTUAL CONSULT — primary closing conversion.
+         NOT a block and deliberately unguarded, like the breadcrumb, hero,
+         `.keys` strip and the rail above: it renders on both sides of the
+         switch and has no row in the map. It sits after the block run in
+         template order and PageBlocks draws at the `why` position, so the
+         closing pair still comes last.
+         Anchor #consult is the destination for every mid-page CTA on this
+         page. */
+      }
       <VirtualConsult id="consult" eyebrow="Free full mouth implant consultation">
         <Fragment slot="headline">Free full mouth implant <em>consultation.</em></Fragment>
         <Fragment slot="body">
