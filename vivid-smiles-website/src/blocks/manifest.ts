@@ -84,7 +84,9 @@ export interface BlockManifestEntry {
  * order, camelCased as wpgraphql-acf exposes them.
  *
  * NOT universal — only for layouts that ship the full preamble. `code_section`
- * has `anchor navLabel band bandKey` and nothing else; asking it for `heading`
+ * has `anchor navLabel bandKey` and nothing else — THREE fields, not four; a
+ * `band` was written here once and the layout has never had one, which failed
+ * query validation for all 48 routes. Asking it for `heading`
  * fails query validation for the entire site. Check the layout's PHP before
  * reaching for this.
  */
