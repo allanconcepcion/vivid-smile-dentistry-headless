@@ -233,7 +233,8 @@ const BLOCK_BANDS = [
  * client would recognise on the page, not as the component name.
  */
 const BLOCK_CODE_BANDS = [
-	'local_trust' => 'Why patients choose us — map, reviews and address',
+	'local_trust'           => 'Why patients choose us — map, reviews and address (Clear Aligners)',
+	'teeth_whitening_local' => 'Why patients choose us — map, reviews and address (Teeth Whitening)',
 ];
 
 /**

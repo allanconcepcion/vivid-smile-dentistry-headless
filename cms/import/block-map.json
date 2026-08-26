@@ -555,6 +555,573 @@
           "becoming editable, which is the one thing the other three each had to give up."
         ]
       }
+    },
+    "/cosmetic-dentistry/teeth-whitening/": {
+      "template": "vivid-smiles-website/src/pages/cosmetic-dentistry/teeth-whitening.astro",
+      "stylesheet": "vivid-smiles-website/src/styles/pages/teeth-whitening.css",
+      "wrapper_class": "twhitening",
+      "notes": [
+        "The pilot's sibling: the same 8 `sections` rows under the same 8 ids, in the order of the",
+        "8 template bands, plus a `code_section` at position 7 for the LocalTrust band — 9 rows.",
+        "Same ids is where the resemblance ends. Every band value, both column counts and both",
+        "repeater sources below are read off THIS page, and four of them differ from the pilot's.",
+        "",
+        "BAND VOCABULARY IS NOT THE PILOT'S, AND NOT MERELY INVERTED FROM IT. Here `.section.alt`",
+        "is CREAM (teeth-whitening.css:237 -> var(--cream), aliased to --vs-cream at :41) and",
+        "`.section.dark` is SAGE (teeth-whitening.css:238 -> var(--sage), aliased to --vs-sage at",
+        ":38, with color: #fff). On the pilot the same two class names are charcoal-green and",
+        "sage-pale. `sage` and `sage-pale` are two separate choices in BLOCK_BANDS",
+        "(vs-content-model.php:199-205) painting two different tokens, so copying the pilot's",
+        "values would repaint four of these nine bands. Each `band_evidence` names the rule.",
+        "",
+        "THIS PAGE HAS NO `process_steps` ROWS. Confirmed against the live CMS: `processSteps`",
+        "comes back null and the `cards` repeater holds 6 rows in two groups — treatmentLevels (3)",
+        "and maintenanceBullets (3). So the `process` band builds its steps from cards.treatmentLevels",
+        "rather than from the repeater the pilot used, and it needs no @index2: those rows carry",
+        "`meta` = \"01\"/\"02\"/\"03\", which is the num, so it is moved rather than derived. @index2",
+        "would not have been available anyway — vs_bb_resolve_rows() only reads it in the",
+        "process_steps/faqs branch, never for `cards`.",
+        "",
+        "THIS PAGE LOSES MORE THAN THE PILOT DID, and the losses are the four adaptations its own",
+        "file header lists (teeth-whitening.astro:16-31). `.process-pre`, `.safety-callout`,",
+        "`.veneers-callout`, the second prose paragraph on `what` and on `natural`, the",
+        "`.lasting-body` h3, and the whole `.lasting-cost-wrap` with its <PricingTiers> table have",
+        "no field on the eight registered layouts. Each is named in `known_gaps` on the block it",
+        "belongs to, with what would close it. The pricing table is the largest of them and the one",
+        "worth reading first.",
+        "",
+        "THE LOCAL BAND NEEDS ITS OWN KEY, NOT THE PILOT'S. CodeSectionBlock.astro's BANDS map is",
+        "keyed per band INSTANCE — `<page>_<anchor>` — because the props are the band's content:",
+        "the pilot's `local_trust` carries headingItalic \"for Clear Aligners\". This page's",
+        "invocation (teeth-whitening.astro:708-713) is different copy, so this row names",
+        "`teeth_whitening_local`, which is registered nowhere yet. Named in `known_gaps` there, and",
+        "the template already says so at :698-706.",
+        "",
+        "CTA ROWS SPLIT THE SAME TWO WAYS AS THE PILOT, decided by the block components. `compare`",
+        "and `process` draw theirs entirely from the component and their layouts have no cta",
+        "sub-fields, so this map supplies nothing for them; `what` and `faq` gate their row on",
+        "cta_label being filled, so those two carry a transcribed pair. All eight `sections` rows",
+        "on this page return ctaLabel and ctaHref null, so there was nothing to move."
+      ],
+      "blocks": [
+        {
+          "section_id": "why",
+          "layout": "card_grid",
+          "band": "paper",
+          "band_evidence": "teeth-whitening.astro:297 <section class=\"section\"> — .twhitening .section (teeth-whitening.css:236) sets padding: 110px 0 and nothing else, no background, so the body paper shows through.",
+          "fields": {
+            "eyebrow": {
+              "section": "eyebrow"
+            },
+            "heading": {
+              "section": "heading"
+            },
+            "body": {
+              "section": "body"
+            },
+            "columns": {
+              "literal": "2"
+            },
+            "numbered": {
+              "literal": true
+            }
+          },
+          "columns_evidence": ".twhitening .why-grid is grid-template-columns: 1fr 1fr (teeth-whitening.css:268). Two, same as the pilot and not the three the sibling pages use. CardGridBlock emits a modifier only at 3 or 4 (CardGridBlock.astro:117), so the div stays the bare `why-grid` the template ships.",
+          "rows": {
+            "cards": {
+              "literal": [
+                {
+                  "title": "KöR — Not Generic Whitening",
+                  "lead": "Refrigerated gels and continuous tooth contact, not the off-the-shelf protocols Parker patients have heard before.",
+                  "body": "Vivid Smiles uses KöR, a clinically differentiated whitening system, rather than the generic Zoom or DaVinci protocols many Parker providers offer."
+                },
+                {
+                  "title": "Trained, Reviewed, and Previewable",
+                  "lead": "Six-hundred-plus training hours, 300+ five-star reviews, and a digital preview before any treatment begins.",
+                  "body": "Dr. Bryce Richardson completed 600+ hours of specialized esthetic training and the practice holds a 5-star rating backed by 300+ verified patient reviews. Digital smile design lets patients preview expected results before any treatment begins, a step most whitening providers skip entirely."
+                }
+              ],
+              "from_template": "teeth-whitening.astro:306-332 — the two .why-card articles. The live CMS carries no `cards` group for `why` on this page (the only two groups are treatmentLevels and maintenanceBullets), so these are transcribed rather than moved.",
+              "num_note": "The `num` divs read 01 and 02 (teeth-whitening.astro:307, 320). They are not transcribed: `numbered` above draws them from row position (CardGridBlock.astro:133), so a reorder cannot leave the numbering out of sequence."
+            }
+          }
+        },
+        {
+          "section_id": "what",
+          "layout": "media_split",
+          "band": "cream",
+          "band_evidence": "teeth-whitening.astro:344 <section class=\"section alt\"> — .twhitening .section.alt { background: var(--cream) } at teeth-whitening.css:237, and --cream is aliased to --vs-cream at teeth-whitening.css:41. CREAM, not the charcoal the identical class name means on the pilot.",
+          "fields": {
+            "eyebrow": {
+              "section": "eyebrow"
+            },
+            "heading": {
+              "section": "heading"
+            },
+            "body": {
+              "section": "body"
+            },
+            "image": {
+              "image": "whatImg",
+              "part": "id"
+            },
+            "image_alt": {
+              "image": "whatImg",
+              "part": "alt"
+            },
+            "media_side": {
+              "literal": "left"
+            },
+            "ratio": {
+              "literal": "even"
+            },
+            "cta_label": {
+              "literal": "Free Virtual Consult",
+              "from_template": "teeth-whitening.astro:369-372 — the first of the two buttons in .cta-row.left."
+            },
+            "cta_href": {
+              "literal": "#consult"
+            }
+          },
+          "layout_evidence": ".what-img precedes .what-text in the DOM (teeth-whitening.astro:347, 355) and .twhitening .what-grid is 1fr 1fr (teeth-whitening.css:296-297) — photo left, even split. `even` is already the family default for a left photo (MediaSplitBlock.astro:168-170), so no ratio-* modifier class is emitted and the grid div matches the template's.",
+          "image_alt_note": "The images row for slot whatImg carries alt \"Close-up of a natural smile in daylight\", which is the string the template hardcodes at :351. Moved, not transcribed — the row exists.",
+          "known_gaps": [
+            "The second button — \"See KöR Levels\" to #process, teeth-whitening.astro:373-375 — has",
+            "nowhere to go. media_split carries one cta_label/cta_href pair; MediaSplitBlock.astro",
+            "refuses to hardcode a second because it would then appear on every media_split band on",
+            "the site. Same gap the pilot's `what` band carries, and the same fix: a second CTA pair",
+            "on the media_split layout in cms/mu-plugins/vs-content-model.php plus the fields on",
+            "MediaSplitBlock.astro, then cta_label_2 / cta_href_2 here.",
+            "",
+            "The band's SECOND prose paragraph is lost — teeth-whitening.astro:360-366, the",
+            "\"KöR whitening uses a proprietary gel kept refrigerated…\" paragraph. The CMS `what`",
+            "row holds only the first one, and MediaSplitBlock draws exactly one <p>{body}</p>",
+            "inside .prose. So this band comes back with one paragraph where it had two, on top of",
+            "the missing button. Expect both in the HTML diff and nothing else from this block.",
+            "Closing it needs a second body field on the layout and a second <p> in the component."
+          ]
+        },
+        {
+          "section_id": "process",
+          "layout": "process_steps",
+          "band": "sage",
+          "band_evidence": "teeth-whitening.astro:391 <section class=\"section dark\"> — .twhitening .section.dark { background: var(--sage); color: #fff } at teeth-whitening.css:238, with --sage aliased to --vs-sage at teeth-whitening.css:38. SAGE, not the sage-pale the identical class name means on the pilot: the two are separate BLOCK_BANDS choices painting --vs-sage and --vs-sage-pale (ProcessStepsBlock's own rules say the same).",
+          "fields": {
+            "eyebrow": {
+              "literal": "Your KöR Treatment",
+              "from_template": "teeth-whitening.astro:394 <span class=\"eyebrow light\">. The CMS `process` row has eyebrow null, so without this the eyebrow disappears on migration."
+            },
+            "heading": {
+              "section": "heading"
+            },
+            "body": {
+              "section": "body"
+            },
+            "layout": {
+              "literal": "grid"
+            },
+            "columns": {
+              "literal": "3"
+            }
+          },
+          "columns_evidence": ".twhitening .process-grid is repeat(3, 1fr) (teeth-whitening.css:347-348), and the page carries 3 KöR treatment levels rather than the 4 steps the pilot has.",
+          "columns_class_note": "ProcessStepsBlock emits `class=\"process-grid cols-3\"` at three columns and omits the modifier only at four (ProcessStepsBlock.astro:137-138), while the template ships `class=\"process-grid\"`. So this one div gains a class in the HTML diff. The rendered tracks are unchanged — the block's .process-grid.cols-3 rule sets the same repeat(3, 1fr) that teeth-whitening.css:348 already sets.",
+          "eyebrow_light_note": "ProcessStepsBlock adds `.light` to the eyebrow when the band is sage or sage-pale (ProcessStepsBlock.astro:122), which reproduces the template's `eyebrow light` at :394. It follows from `band` above; nothing here supplies it.",
+          "rows": {
+            "steps": {
+              "cards": "treatmentLevels",
+              "fields": {
+                "num": "meta",
+                "title": "title",
+                "body": "body"
+              },
+              "literal": [
+                {
+                  "tag": "Level One"
+                },
+                {
+                  "tag": "Level Two"
+                },
+                {
+                  "tag": "Level Three"
+                }
+              ],
+              "num_is_moved_not_derived": [
+                "`num` comes from the card's `meta`, which holds \"01\", \"02\", \"03\" — verified against",
+                "the live CMS. The pilot derives num with @index2 only because the legacy process_steps",
+                "repeater has no such sub-field; these rows have one, and moving a row beats deriving a",
+                "value whenever both exist. @index2 would not work here in any case: vs_bb_resolve_rows()",
+                "reads it in the process_steps/faqs branch and never in the `cards` branch."
+              ],
+              "why_the_zip": [
+                "The 3 treatmentLevels rows are in the CMS and carry meta, title and body — but not the",
+                "`.step-tag` label, because the legacy `cards` repeater has group/title/body/meta/href",
+                "and no `tag`. Verified live: all three rows come back with href null.",
+                "",
+                "So the three tags are transcribed from the treatmentLevels array at",
+                "teeth-whitening.astro:79-98 and zipped on in template order. Dropping them would strip",
+                "\"Level One / Two / Three\" off the three cards, which is the ladder the band is about."
+              ]
+            }
+          },
+          "known_gaps": [
+            "THE `.process-pre` MINI-GRID IS LOST — teeth-whitening.astro:399-418, two",
+            ".process-pre-card articles carrying \"What to Expect During Your Teeth Whitening",
+            "Appointment\" and \"In-Office vs At-Home KöR Whitening\", each a heading plus a paragraph",
+            "of the client's copy. The process_steps layout is `layout columns steps { tag num title",
+            "body }` and a preamble (src/blocks/manifest.ts), and ProcessStepsBlock draws no pre-grid,",
+            "so both cards disappear. This is the biggest loss on this band and it is page copy, not",
+            "chrome. Closing it is a second repeater on the layout in",
+            "cms/mu-plugins/vs-content-model.php plus the markup in ProcessStepsBlock.astro. Making",
+            "them a separate card_grid block instead would need a `sections` row this page does not",
+            "have, which is authoring and does not belong in this file.",
+            "",
+            "The closing CTA plate is lost, exactly as on the pilot: teeth-whitening.astro:433-446,",
+            "the sentence \"Not sure which KöR level fits?…\" plus two buttons. The buttons are site",
+            "data and identical across the family, but the sentence is page content and process_steps",
+            "has no field for it, so the whole plate is omitted. ProcessStepsBlock already accepts a",
+            "`ctaText` prop and is simply never given one; the fix is a cta_text field on the layout,",
+            "then add cta_text here."
+          ]
+        },
+        {
+          "section_id": "compare",
+          "layout": "comparison_cards",
+          "band": "paper",
+          "band_evidence": "teeth-whitening.astro:458 <section class=\"section\"> — no background rule on .twhitening .section (teeth-whitening.css:236), body paper.",
+          "fields": {
+            "eyebrow": {
+              "section": "eyebrow"
+            },
+            "heading": {
+              "section": "heading"
+            },
+            "body": {
+              "section": "body"
+            }
+          },
+          "columns_evidence": ".twhitening .compare is repeat(3, 1fr) (teeth-whitening.css:383-384) and the band carries 3 cards. comparison_cards has no columns sub-field — the count IS the row count — so there is nothing to set.",
+          "rows": {
+            "tiers": {
+              "literal": [
+                {
+                  "tag": "Drugstore",
+                  "title": "Store-bought whitening strips",
+                  "body": "Store-bought strips and prefilled trays use peroxide concentrations far below professional formulas, limiting achievable shade improvement."
+                },
+                {
+                  "tag": "Prefilled Trays",
+                  "title": "Retail prefilled trays",
+                  "body": "Prefilled retail trays do not seal against the tooth, letting saliva dilute the gel before it takes full effect."
+                },
+                {
+                  "tag": "Custom KöR",
+                  "title": "Custom KöR trays",
+                  "body": "Custom KöR trays are fabricated from digital impressions, so the gel contacts every surface evenly throughout treatment. The result is a whiter, more even outcome that holds for years rather than weeks.",
+                  "ribbon": "Professional",
+                  "featured": true
+                }
+              ],
+              "from_template": "teeth-whitening.astro:467-492 — the three .compare-card articles, the third .featured with a .ribbon. No `cards` rows exist for this band; the CMS holds only treatmentLevels and maintenanceBullets.",
+              "repeater_name_note": "`tiers`, not `cards`. comparison_cards and card_grid do not share a repeater name (src/blocks/manifest.ts), and the backfill rejects the wrong one against the layout's shape rather than writing rows ACF would drop.",
+              "featured_is_third_here": "The pilot's featured card is the FIRST of its three; this page's is the THIRD (teeth-whitening.astro:483). Position is carried by row order, so the flag travels with the third row and nothing else has to say so."
+            }
+          },
+          "cta_note": "ComparisonCardsBlock draws the closing .cta-row itself — Free Virtual Consult to #consult, Read FAQ to #faq, and the note \"No commitment · Personal video reply\" — which is exactly what teeth-whitening.astro:511-519 ships. The layout has no cta sub-fields, so this map supplies nothing.",
+          "known_gaps": [
+            "THE `.safety-callout` ASIDE IS LOST — teeth-whitening.astro:495-509, the heading \"Is",
+            "Professional Teeth Whitening Safe?\" and its two paragraphs, sitting between the cards",
+            "and the CTA row. comparison_cards is a preamble plus `tiers { tag title body ribbon",
+            "featured }` and has no field for an aside, and ComparisonCardsBlock draws none. The",
+            "safety copy is one of the client's SEO blocks, so this is content leaving the page, not",
+            "styling.",
+            "Closing it is a field (or a small repeater) on the comparison_cards layout in",
+            "cms/mu-plugins/vs-content-model.php plus the markup in ComparisonCardsBlock.astro. The",
+            "aria-labelledby on the aside points at the h3's own id, so whatever renders it has to",
+            "keep emitting both."
+          ]
+        },
+        {
+          "section_id": "natural",
+          "layout": "media_split",
+          "band": "cream",
+          "band_evidence": "teeth-whitening.astro:530 <section class=\"section alt\"> — var(--cream) -> --vs-cream, teeth-whitening.css:237 and :41. Same cream as `what`; the pilot's `natural` is charcoal.",
+          "fields": {
+            "eyebrow": {
+              "section": "eyebrow"
+            },
+            "heading": {
+              "section": "heading"
+            },
+            "body": {
+              "section": "body"
+            },
+            "image": {
+              "image": "naturalImg",
+              "part": "id"
+            },
+            "image_alt": {
+              "image": "naturalImg",
+              "part": "alt"
+            },
+            "media_side": {
+              "literal": "right"
+            },
+            "ratio": {
+              "literal": "wide-media"
+            },
+            "quote": {
+              "literal": "Yellow teeth can become white again with the right protocol.",
+              "from_template": "teeth-whitening.astro:536-538 <div class=\"natural-quote\">. Hardcoded today; there is no CMS field it could have come from."
+            }
+          },
+          "layout_evidence": ".natural-text precedes .natural-img (teeth-whitening.astro:533, 573) and .twhitening .natural-grid is 1fr 1.1fr (teeth-whitening.css:442-443) — photo right, media column the wider one. `wide-media` is already the family default for a right photo (MediaSplitBlock.astro:168), so no ratio-* modifier is emitted.",
+          "quote_order_note": "MediaSplitBlock renders the quote above the prose, which is the order the template has: eyebrow, h2, .natural-quote, .prose (teeth-whitening.astro:534-539).",
+          "known_gaps": [
+            "THE BAND'S SECOND PROSE PARAGRAPH IS LOST, AND WITH IT A CROSS-LINK —",
+            "teeth-whitening.astro:541-551, \"Most adults with healthy teeth and gums qualify…\",",
+            "which ends in <a class=\"vs-link\" href=\"/cosmetic-dentistry/porcelain-veneers/\">. The CMS",
+            "`natural` row holds only the first paragraph and MediaSplitBlock draws one <p>{body}</p>.",
+            "Note that a plain second body field would NOT be enough: the component renders body as",
+            "text, so the anchor would come back as visible markup or not at all. Closing this needs a",
+            "field the component can render with set:html.",
+            "",
+            "THE `.veneers-callout` ASIDE IS LOST — teeth-whitening.astro:554-571, \"When to Consider",
+            "Veneers Instead of Whitening\", two paragraphs and a second link to the veneers page.",
+            "media_split has no aside field. Between them these two omissions take every internal link",
+            "off this band, which is worth knowing before the diff is read as cosmetic: the page's",
+            "whitening-vs-veneers cross-sell lives entirely in the copy that disappears here."
+          ]
+        },
+        {
+          "section_id": "lasting",
+          "layout": "stat_callout",
+          "band": "paper",
+          "band_evidence": "teeth-whitening.astro:593 <section class=\"section\"> — no background rule, body paper.",
+          "fields": {
+            "eyebrow": {
+              "section": "eyebrow"
+            },
+            "heading": {
+              "section": "heading"
+            },
+            "body": {
+              "section": "body"
+            },
+            "value": {
+              "literal": "Years",
+              "from_template": "teeth-whitening.astro:603 .lasting-stat .big. A word, not a figure — the layout's value is text for exactly this reason."
+            },
+            "caption": {
+              "literal": "Lasting results when maintained",
+              "from_template": "teeth-whitening.astro:604 .lasting-stat .label."
+            },
+            "intro": {
+              "literal": "Maintaining KöR results takes consistent daily habits and the occasional touch-up.",
+              "from_template": "teeth-whitening.astro:608-610 — the paragraph that opens .lasting-body. `body` above is the section-head paragraph; these are two paragraphs in two places and the layout carries both."
+            }
+          },
+          "no_unit_note": "No `unit`, deliberately. The pilot's .big is \"20–22\" plus an <em>hrs</em>; this page's is the bare word \"Years\" with no <em> (teeth-whitening.astro:603). StatCalloutBlock emits the <em> only when unit is non-empty, so supplying one would add an element this band has never had.",
+          "rows": {
+            "points": {
+              "cards": "maintenanceBullets",
+              "fields": {
+                "body": "body"
+              },
+              "literal": [
+                {
+                  "lead": "Limit staining beverages"
+                },
+                {
+                  "lead": "Use touch-up trays"
+                },
+                {
+                  "lead": "Stay current with professional cleanings"
+                }
+              ],
+              "no_trailing_colon": "The component prints <strong>{lead}:</strong>, so the colon belongs to StatCalloutBlock and not to the value. A colon typed here would render two.",
+              "why_the_zip": [
+                "The 3 maintenanceBullets rows are in the CMS and carry the explanation, but ONLY the",
+                "explanation: the legacy `cards` repeater has group/title/body/meta/href and no `lead`.",
+                "Verified against the live CMS — all three rows come back with title, meta and href null.",
+                "",
+                "So the bodies are moved and the bold labels are transcribed from the maintenanceBullets",
+                "array at teeth-whitening.astro:102-115, zipped in template order. Dropping the labels",
+                "would turn three bolded maintenance instructions into three unlabelled sentences.",
+                "Same shape as the pilot's careBullets, three rows instead of six."
+              ]
+            }
+          },
+          "known_gaps": [
+            "The card's <h3> is lost — \"Maintaining Your Whitening Results\", teeth-whitening.astro:607.",
+            "StatCalloutBlock's .lasting-body is intro plus list with no heading between them, so the",
+            "paragraph now opens the card directly. One line of copy, and cheap to close: a heading",
+            "field on the stat_callout layout and an <h3> in the component.",
+            "",
+            "THE ENTIRE PRICING SUB-SECTION IS LOST, AND IT IS THE LARGEST OMISSION ON THIS ROUTE —",
+            "teeth-whitening.astro:623-686, the `.lasting-cost-wrap`: a `.section-head.sub` (eyebrow",
+            "\"Investment\", h3 \"Teeth Whitening Pricing in Parker, Colorado\", and a paragraph) followed",
+            "by a <PricingTiers> table of four tiers — Opalescence $99, KöR-Night $350, KöR Power $665",
+            "highlighted \"Most Popular\", KöR Ultra & Ultra-T $1,541 — plus a financing note. All of it",
+            "is sourced from the practice's printed price sheet. stat_callout has no field for any of",
+            "it and PricingTiers is not a registered band, so a backfilled page shows no prices at all.",
+            "",
+            "This one should NOT be closed by adding fields to stat_callout. PricingTiers is a",
+            "component with a data contract, which is precisely the case docs/PAGE-BLOCKS.md 1.3 hands",
+            "to `code_section`: register a key for this instance in CodeSectionBlock.astro's BANDS map",
+            "and in BLOCK_CODE_BANDS, reproducing the tiers array and the financing note verbatim as",
+            "props, then add a second `code_section` row to this list immediately after `lasting`. That",
+            "is a PHP and Astro change plus a row here, in that order — this map cannot do it alone,",
+            "and inventing a layout for it is the thing this file forbids.",
+            "",
+            "One caveat for whoever does it: the `.section-head.sub` above the table is page copy and",
+            "would become code-owned props, the way LocalTrust's heading and intro already are. That is",
+            "the trade `code_section` makes — position without editability — and it is the right trade",
+            "for a price sheet, which nobody should be able to edit by accident."
+          ]
+        },
+        {
+          "anchor": "local",
+          "layout": "code_section",
+          "band": "cream",
+          "band_evidence": "LocalTrust.astro:81 <section class:list={[\"vs-lt\", `vs-lt--${background}`]}> with `background` defaulted to \"cream\" at LocalTrust.astro:65 — teeth-whitening.astro:708-713 passes no `background`. .vs-lt { background: var(--vs-cream) } at LocalTrust.astro:142. Read off the component's own stylesheet, because the page sheet never styles this band.",
+          "fields": {
+            "band_key": {
+              "literal": "teeth_whitening_local",
+              "from_template": "teeth-whitening.astro:708-713 — the <LocalTrust … /> invocation this row holds the place of. The key names the instance; it does not carry the instance's copy."
+            }
+          },
+          "no_section_id_note": "Every other block here opens with `section_id` because it is built from a `sections` row. This one is not built from anything, so it names its `anchor` directly, which `defaults.anchor` permits and vs_bb_plan_route() requires of a block with no section_id. `local` is the only address this band has ever had: LocalTrust.astro:64 defaults `id` to \"local\".",
+          "position_evidence": "teeth-whitening.astro:707 — the guard sits after the `lasting` guard closes at :688 and before the `gallery` guard opens at :723. Position 7 in this list is that spot. This page guards the invocation (:707) where the pilot did not, so the band does not render twice; what it still needs is a POSITION, which is this row.",
+          "nav_label_note": "Resolves to \"Parker, CO\" from the `toc_links` row whose anchor is `local` — confirmed live, it is the seventh of this page's eight rows. Claiming the anchor here is what keeps that rail entry, and it is why `exempt.toc_links` below is empty.",
+          "known_gaps": [
+            "RESOLVED before this route was migrated, and the earlier note here was wrong",
+            "in a way worth recording. It claimed the backfill would stop at preflight",
+            "while the layout was unregistered. It would not: code_section IS registered",
+            "and deployed, and the planner only checks that the LAYOUT exists — nothing",
+            "validates a select's CHOICES. So the row would have been written with a band",
+            "key nothing could resolve, and the band would have vanished from a live page",
+            "with a console warning as the only trace.",
+            "",
+            "The key `teeth_whitening_local` is now registered on both sides: as a choice",
+            "in BLOCK_CODE_BANDS (cms/mu-plugins/vs-content-model.php) and as an entry in",
+            "CodeSectionBlock.astro's BANDS map carrying this page's own heading, intro",
+            "and body. Keys are per PAGE, not per component: the band is the same",
+            "LocalTrust on both pages, but its copy is page content, so a shared key would",
+            "put 'for Clear Aligners' on the whitening page.",
+            "",
+            "Adding a page therefore means adding BOTH — a choice and a BANDS entry, in",
+            "the same commit. Miss either and the row writes cleanly and renders nothing."
+          ]
+        },
+        {
+          "section_id": "gallery",
+          "layout": "gallery_marquee",
+          "band": "sage",
+          "band_evidence": "teeth-whitening.astro:723 <section class=\"section dark\"> — var(--sage) -> --vs-sage with color: #fff, teeth-whitening.css:238 and :38. Same sage as `process`; the pilot's gallery is sage-pale.",
+          "fields": {
+            "eyebrow": {
+              "literal": "Smile Gallery",
+              "from_template": "teeth-whitening.astro:726 <span class=\"eyebrow light\">. The CMS `gallery` row has eyebrow null."
+            },
+            "heading": {
+              "section": "heading"
+            },
+            "body": {
+              "section": "body"
+            }
+          },
+          "nav_label_note": "There is no toc_links row for #gallery — the page's eight rows are why, what, process, compare, natural, lasting, local, faq — so nav_label resolves blank and the block stays out of the rail, which is where it is today.",
+          "tiles_note": "No sub-fields beyond the preamble by design: the tiles are files in src/assets/images/smiles/, read by src/lib/smiles.ts, and the template's own comment says this page reuses the shared set because no KöR-specific photos exist yet. Nothing to move.",
+          "reveal_note": "This band is the one whose <section> carries no data-vs-reveal-batch, with data-vs-reveal on the .section-head instead (teeth-whitening.astro:723, 725). GalleryMarqueeBlock emits exactly that pair, so the attributes match without anything here saying so."
+        },
+        {
+          "section_id": "faq",
+          "layout": "faq",
+          "band": "paper",
+          "band_evidence": "teeth-whitening.astro:753 <section class=\"section\"> — no background rule, body paper.",
+          "fields": {
+            "eyebrow": {
+              "section": "eyebrow"
+            },
+            "heading": {
+              "section": "heading"
+            },
+            "cta_label": {
+              "literal": "Still Have Questions? Free Virtual Consult",
+              "from_template": "teeth-whitening.astro:780-782. FaqBlock draws its second button — Call + the practice number — from src/data/contact.ts, because a phone number is site data and not page content, so it is not transcribed here."
+            },
+            "cta_href": {
+              "literal": "#consult"
+            }
+          },
+          "no_body_no_pull_note": [
+            "Neither `body` nor `pull` is supplied, and unlike the pilot that is not a redirection.",
+            "The CMS `faq` row on this page has body null — verified live — the template's FAQ",
+            "section-head is an eyebrow and an h2 with no paragraph (teeth-whitening.astro:755-758),",
+            "and the band has no `.pull` aside anywhere. FaqBlock gates both on truthiness, so leaving",
+            "them out is what keeps the band the shape it already is. Mapping the pilot's",
+            "sections.faq.body -> pull here would print an empty aside's markup for no content."
+          ],
+          "rows": {
+            "items": {
+              "faqs": true,
+              "fields": {
+                "question": "question",
+                "answer": "answer",
+                "open": "open"
+              },
+              "note": "All 4 rows, in order — this page has 4 where the pilot has 8, and the first is `open`, matching the template's default. The block renders answers with set:html; none of these four carries a tag, so that is a no-op here."
+            }
+          }
+        }
+      ],
+      "exempt": {
+        "_": [
+          "Every repeater row on this page that no block above claims. The backfill fails, before",
+          "writing anything, on any row that is neither claimed nor listed here. All four content",
+          "lists are empty because this page's rows are all claimed: 8 sections by 8 blocks, both",
+          "`cards` groups by `process` and `lasting`, all 4 faqs by `faq`, all 8 toc_links by the",
+          "anchors above. One image is exempt and it is the hero."
+        ],
+        "sections": [],
+        "cards": [],
+        "process_steps": [],
+        "process_steps_note": [
+          "EMPTY BECAUSE THE PAGE HAS NO SUCH ROWS, not because they are excused. `processSteps`",
+          "comes back null from the live CMS for this route — the three KöR levels live in the",
+          "`cards` repeater instead, and the `process` block above takes them from there. The",
+          "leftover check only reports a repeater that HAS rows and was not claimed",
+          "(backfill-blocks.php), so an empty list is correct and would stay correct if rows were",
+          "later added — they would then be reported, which is the behaviour worth keeping."
+        ],
+        "faqs": [],
+        "images": [
+          {
+            "slot": "heroImg",
+            "reason": "The hero is not a block. It is a `hero` group field on group_vs_page — one per page, always first, never reordered (docs/PAGE-BLOCKS.md 1.3, 7).",
+            "destination": "hero.image, filled by whatever moves the hero across. Not this script's field and not this script's business.",
+            "renders_today": "teeth-whitening.astro:196-224 hero <header class=\"hero\">"
+          }
+        ],
+        "toc_links": [],
+        "toc_links_decision": [
+          "EMPTY, AND THAT INCLUDES THE `local` ROW. All eight anchors this page's toc_links carry —",
+          "why, what, process, compare, natural, lasting, local, faq — are claimed by a block above,",
+          "the seventh by the `code_section` at position 7 on its anchor",
+          "(vs_bb_plan_route() claims toc_links on the anchor, not the section id).",
+          "",
+          "The rail is derived from blocks[].anchor + nav_label in block order. Nine blocks produce",
+          "8 rail entries — `gallery` has no toc_links row and stays out — and \"Parker, CO\" is among",
+          "them, between \"Results & Pricing\" and \"FAQ\", which is where the template build puts it.",
+          "So the rail is not a difference on this route either.",
+          "",
+          "Note what the rail keeps saying that the page will stop showing: the `lasting` label reads",
+          "\"Results & Pricing\", and the pricing sub-section is the band's largest known gap above.",
+          "The entry will still scroll to the right place; there will be no prices under it until",
+          "that gap is closed."
+        ]
+      }
     }
   }
 }

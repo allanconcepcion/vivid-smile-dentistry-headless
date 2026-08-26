@@ -113,6 +113,29 @@ const BANDS: Record<string, CodeBand> = {
       body: "With 300+ five-star Google reviews and a welcoming office at 17167 Cedar Gulch Pkwy Ste 102, patients receive individual attention that larger groups cannot replicate. Many patients discover additional smile possibilities during treatment.",
     },
   },
+
+  /**
+   * The same component on teeth-whitening, with that page's own copy —
+   * reproduced verbatim from teeth-whitening.astro:708-713.
+   *
+   * Keyed per PAGE rather than per component on purpose. The band is the same
+   * LocalTrust in both places, but its heading, intro and body are page copy,
+   * so one shared key would put "for Clear Aligners" on the whitening page.
+   * That is why the key is <page>_<anchor> and why adding a page means adding
+   * an entry here AND a choice in BLOCK_CODE_BANDS — miss either and the row
+   * writes fine, resolves to nothing, and the band disappears from a live page
+   * with only a console warning.
+   */
+  teeth_whitening_local: {
+    component: LocalTrust,
+    props: {
+      heading: "Whitening Designed",
+      headingItalic: "in Parker, Colorado",
+      intro:
+        "Patients come for KOR whitening locally and from out of state — every appointment starts with the same shade-and-staining consultation, regardless of how far you travel for it.",
+      body: "Vivid Smiles Dentistry is located at 17167 Cedar Gulch Pkwy in Parker, welcoming new patients under the care of Dr. Bryce Richardson.",
+    },
+  },
 };
 
 interface Props {
