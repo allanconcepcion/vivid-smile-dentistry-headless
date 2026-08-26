@@ -41,14 +41,41 @@
  * emitted only when the editor asks for a split the family does not already
  * have.
  *
- * A GAP THIS BLOCK CANNOT CLOSE, AND WHOEVER RUNS THE BACKFILL NEEDS TO KNOW.
+ * THE SECOND BUTTON — A GAP THAT IS NOW CLOSED, AND WHY IT IS A FIELD PAIR.
  * The `#what` band ships TWO buttons — "Free Virtual Consult" to `#consult` and
- * "How It Works" to `#process`. The `media_split` layout has one `cta_label` /
- * `cta_href` pair, so backfilling this band as-is loses the second button. That
- * is a PHP change (a second CTA pair on the layout), not something to fake
- * here: hardcoding a secondary button would put "How It Works" on every
- * media_split band on the site, including the eleven that have no process
- * section to point it at.
+ * "How It Works" to `#process`. This block used to have one `cta_label` /
+ * `cta_href` pair, so backfilling that band lost the second button. The fix is
+ * `cta_label_2` / `cta_href_2` on the layout, read here as `ctaLabel2` /
+ * `ctaHref2`, and it had to be editable rather than written in: hardcoding a
+ * secondary button would put "How It Works" on every media_split band on the
+ * site, including the eleven that have no process section to point it at.
+ *
+ * Contrast the `.inline-cta` pair in ProcessStepsBlock, which IS written in.
+ * The distinction is whether the button is site data or page content: those two
+ * are "Book Online" and "Call {phone}" on all eight bands and come from
+ * src/data/contact.ts, so a per-page field for them is a per-page chance to
+ * publish the wrong phone number. These two are neither — the destination is a
+ * different anchor on nearly every page that carries them — so they are fields.
+ *
+ * `body_2` — A SECOND PARAGRAPH THAT CARRIES MARKUP, RENDERED WITH `set:html`.
+ * The `.prose` column is one `<p>` on the pilot and two on teeth-whitening's
+ * `#natural`, where the second ends "...better results with
+ * <a class="vs-link" href="/cosmetic-dentistry/porcelain-veneers/">porcelain
+ * veneers</a>." FaqBlock had to WEIGH escaped against permissive, because its
+ * answers rendered fine either way on the pilot and the decision was about the
+ * other six pages. There is no comparable weighing here: the entire reason this
+ * field exists is copy the escaped path cannot render, and escaping it would
+ * print the anchor tag as visible text at the patient. So `set:html`, and the
+ * same trust boundary FaqBlock names applies — the practice's own editors, not
+ * public input, so knowing which pages carry tags is the control, not
+ * sanitizing.
+ *
+ * The `<p>` wrapper is emitted here rather than expected in the value, because
+ * the markup being reproduced is a second `<p>` INSIDE `.prose` and the field
+ * is a plain textarea. A wysiwyg would arrive pre-wrapped, and `<p><p>…</p></p>`
+ * is invalid nesting that the parser closes early — leaving a stray empty `<p>`
+ * in the DOM and a broken gap on screen. `body2IsBlock` below detects that and
+ * passes the value through unwrapped instead.
  *
  * Styles are co-located per docs/PAGE-BLOCKS.md 2.5, modelled on
  * FinalBand.astro: no page namespace, `--vs-*` tokens directly, band as a
@@ -79,6 +106,30 @@ interface Props {
   /** May contain `<em>`, and nothing else (docs/PAGE-BLOCKS.md, Fact 3). */
   heading?: string | null;
   body?: string | null;
+  /**
+   * A second paragraph in the same `.prose` column, rendered with `set:html`.
+   * Carries inline markup — `<a class="vs-link">`, `<em>`, `<strong>`. See the
+   * header for why this one is permissive and FaqBlock's answer had to argue
+   * for it. Empty renders no paragraph at all.
+   */
+  body2?: string | null;
+  /**
+   * The `.veneers-callout` aside that sits after `.prose` on teeth-whitening's
+   * `#natural` band (teeth-whitening.astro:554-570) — its `<h3>`.
+   *
+   * A field pair rather than a page-specific band, on exactly the terms
+   * comparison_cards got `.safety-callout`: both are a boxed aside of the same
+   * shape inside a band, and giving one a field and not the other is how a page
+   * comes back ninety words short with nobody able to say which element went.
+   * Blank on both pages that render this block today, and blank draws no aside.
+   */
+  calloutHeading?: string | null;
+  /**
+   * The aside's prose. Two paragraphs in the copy this reproduces, the second
+   * ending in an `<a class="vs-link">`, so it is HTML-bearing and blank-line
+   * split the same way comparison_cards does it.
+   */
+  calloutBody?: string | null;
   image?: MediaSplitImage | null;
   /** Overrides the media item's own alt text when the editor filled it in. */
   imageAlt?: string | null;
@@ -89,6 +140,9 @@ interface Props {
   quote?: string | null;
   ctaLabel?: string | null;
   ctaHref?: string | null;
+  /** Secondary button. Empty label renders no second button. */
+  ctaLabel2?: string | null;
+  ctaHref2?: string | null;
 }
 
 /**
@@ -133,6 +187,9 @@ const {
   eyebrow,
   heading,
   body,
+  body2,
+  calloutHeading,
+  calloutBody,
   image,
   imageAlt,
   mediaSide = "left",
@@ -140,6 +197,8 @@ const {
   quote,
   ctaLabel,
   ctaHref,
+  ctaLabel2,
+  ctaHref2,
 } = Astro.props;
 
 const bandKey = typeof band === "string" && band !== "" ? band : "paper";
@@ -195,7 +254,62 @@ if (!hasMedia) {
 /** Editor override first, then the alt text stored on the file itself. */
 const alt = (imageAlt ?? "").trim() || (node?.altText ?? "").trim() || "";
 
+/**
+ * The second paragraph, and whether it already carries its own block wrapper.
+ *
+ * The field is a textarea, so the expected value is an inline fragment and the
+ * `<p>` below is this component's. The guard is for the day someone converts it
+ * to a wysiwyg in wp-admin: ACF's `wpautop` would return `<p>…</p>`, nesting it
+ * would produce invalid markup, and the parser's recovery leaves a stray empty
+ * `<p>` in the band — which is precisely the class of diff this phase fails on.
+ * Passing an already-wrapped value straight into `.prose` keeps the element
+ * count right either way.
+ */
+const body2Html = typeof body2 === "string" ? body2.trim() : "";
+const hasBody2 = body2Html !== "";
+const body2IsBlock = /^<(p|div|ul|ol|blockquote)[\s>]/i.test(body2Html);
+
+/* The aside, on the same terms as `body_2` above and as
+   ComparisonCardsBlock.astro's `.safety-callout`. Blank-line split, because the
+   copy is two paragraphs and `.veneers-callout p + p` is what spaces them —
+   splitting on a bare newline instead would turn every soft wrap into a
+   paragraph break. No `aria-labelledby` here, unlike the compare band: the
+   markup being reproduced does not carry one, and adding it would be a
+   difference the harness reports. */
+const calloutHeadingText =
+  typeof calloutHeading === "string" ? calloutHeading.trim() : "";
+const calloutBodyHtml = typeof calloutBody === "string" ? calloutBody.trim() : "";
+const calloutBodyIsBlock = /^<(p|div|ul|ol|blockquote)[\s>]/i.test(calloutBodyHtml);
+const calloutParagraphs = calloutBodyIsBlock
+  ? []
+  : calloutBodyHtml
+      .split(/\n\s*\n/)
+      .map((part) => part.trim())
+      .filter((part) => part !== "");
+const hasCallout = calloutHeadingText !== "" || calloutBodyHtml !== "";
+
 const hasCta = typeof ctaLabel === "string" && ctaLabel.trim() !== "";
+const hasCta2 = typeof ctaLabel2 === "string" && ctaLabel2.trim() !== "";
+
+/**
+ * The row is drawn for EITHER button, not just the first.
+ *
+ * Gating the whole `.cta-row` on `ctaLabel` would mean a band that fills only
+ * the second pair renders no buttons and no wrapper — silent content loss of
+ * the kind that is invisible until someone reads the page. With `ctaLabel2`
+ * empty this is identical to `hasCta`, so the two live bands are untouched.
+ */
+const hasCtaRow = hasCta || hasCta2;
+
+/**
+ * Secondary buttons are the ghost variant of whatever the primary is: sage
+ * pairs with ghost on paper/cream, light pairs with ghost-light on the dark
+ * bands. Both pairings are the site's own — `sage` + `ghost` on the paper
+ * `#compare` band of teeth-whitening, `light` + `ghost-light` on the charcoal
+ * `#what` band of clear-aligners, which is the band this reproduces.
+ */
+const primaryVariant = isDarkBand ? "light" : "sage";
+const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
 ---
 
 <section class:list={["section", bandClass]} id={id} data-vs-reveal-batch>
@@ -230,24 +344,65 @@ const hasCta = typeof ctaLabel === "string" && ctaLabel.trim() !== "";
             existed, so naming it after the side it happens to appear on today
             would invent a second class for one appearance. */}
         {quote && <div class="natural-quote">{quote}</div>}
+        {/* `.prose` appears only if it would hold at least one paragraph — an
+            empty `body_2` on a band that has no `body` either must not leave a
+            bare `<div class="prose">` behind. */}
         {
-          body && (
+          (body || hasBody2) && (
             <div class="prose">
-              <p>{body}</p>
+              {body && <p>{body}</p>}
+              {hasBody2 &&
+                (body2IsBlock ? (
+                  <Fragment set:html={body2Html} />
+                ) : (
+                  <p set:html={body2Html} />
+                ))}
             </div>
+          )
+        }{/* `}{` with nothing between, deliberately. An expression on its own
+            line carries a newline-plus-indent TEXT NODE either side, and that
+            survives into the HTML as a rendered space even when the condition is
+            false — the harness caught it as `</a> </div>` becoming
+            `</a>  </div>` on a page with no aside at all. Sitting flush against
+            the previous closing brace leaves exactly one whitespace node between
+            the prose and the CTA row, which is what was there before this field
+            existed. A comment node here would reintroduce the problem it
+            documents, so this comment lives INSIDE the same expression. */
+          hasCallout && (
+            <aside class="veneers-callout">
+              {calloutHeadingText && <h3>{calloutHeadingText}</h3>}
+              {calloutBodyIsBlock ? (
+                <Fragment set:html={calloutBodyHtml} />
+              ) : (
+                calloutParagraphs.map((para) => <p set:html={para} />)
+              )}
+            </aside>
           )
         }
         {
-          hasCta && (
+          hasCtaRow && (
             <div class="cta-row left">
               <div class="cta-buttons">
-                <Button
-                  variant={isDarkBand ? "light" : "sage"}
-                  href={ctaHref ?? "#"}
-                  hoverLabel={CTA_HOVER[ctaHref ?? ""]}
-                >
-                  {ctaLabel}
-                </Button>
+                {hasCta && (
+                  <Button
+                    variant={primaryVariant}
+                    href={ctaHref ?? "#"}
+                    hoverLabel={CTA_HOVER[ctaHref ?? ""]}
+                  >
+                    {ctaLabel}
+                  </Button>
+                )}{/* flush against the previous brace: an expression on its own
+                     line carries a whitespace text node either side, which
+                     renders as a space even when the condition is false. */
+                  hasCta2 && (
+                  <Button
+                    variant={secondaryVariant}
+                    href={ctaHref2 ?? "#"}
+                    hoverLabel={CTA_HOVER[ctaHref2 ?? ""]}
+                  >
+                    {ctaLabel2}
+                  </Button>
+                )}
               </div>
             </div>
           )
@@ -376,6 +531,21 @@ const hasCta = typeof ctaLabel === "string" && ctaLabel.trim() !== "";
   .prose p + p {
     margin-top: 18px;
   }
+  /* The pre-wrapped `body_2` path only: those paragraphs arrive through
+     `set:html` and carry no scope attribute, so `.prose p` above compiles past
+     them. Same typography, stated once more for the elements the scoping
+     cannot reach. The scoped rule is more specific and still wins where both
+     apply, and the declarations are identical, so nothing shifts. */
+  .prose :global(p) {
+    margin: 0;
+    color: var(--vs-ink-soft);
+    font-size: 16.5px;
+    line-height: 1.85;
+    max-width: 70ch;
+  }
+  .prose :global(p + p) {
+    margin-top: 18px;
+  }
 
   /* ---------- band inversions ----------
      Written band-wide here, unlike the head-scoped inversions in FaqBlock and
@@ -408,6 +578,28 @@ const hasCta = typeof ctaLabel === "string" && ctaLabel.trim() !== "";
     color: #fff;
     border-top-color: rgba(255, 255, 255, 0.25);
     border-bottom-color: rgba(255, 255, 255, 0.25);
+  }
+  /* `body_2`'s inline link on the two dark bands.
+     global.css DOES invert `.vs-link` on charcoal, but it reaches it through a
+     hand-maintained `:is(.caligners .section.alt, .pveneers .section.alt, …)`
+     list of PAGE-SCOPE classes. A band rendered from the CMS has no page class
+     to match, so a link inside a charcoal media_split would keep the default
+     ink and vanish into the background. Stated here so the band carries its own
+     answer instead of waiting to be added to a list in another file.
+     `:global()` because the anchor arrives through `set:html` and carries no
+     scope attribute; the compound is more specific than global.css's rule and
+     resolves to the same colour, so the page-scoped pages are unaffected. */
+  .section.alt .prose :global(.vs-link),
+  .section.sage .prose :global(.vs-link) {
+    color: var(--vs-eyebrow-on-sage);
+    text-decoration-color: rgba(232, 234, 216, 0.5);
+  }
+  .section.alt .prose :global(.vs-link:hover),
+  .section.alt .prose :global(.vs-link:focus-visible),
+  .section.sage .prose :global(.vs-link:hover),
+  .section.sage .prose :global(.vs-link:focus-visible) {
+    color: #fff;
+    text-decoration-color: #fff;
   }
 
   .section.dark h2 {

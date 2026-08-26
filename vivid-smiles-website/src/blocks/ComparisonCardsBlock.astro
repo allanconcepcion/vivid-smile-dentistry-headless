@@ -36,6 +36,15 @@
  * PHP layout, read here — not a heuristic on the anchor, which an editor can
  * rename.
  *
+ * `callout_heading` + `callout_body` draw the `.safety-callout` aside that sits
+ * between the cards and the CTA row on teeth-whitening.astro:495-509. It is a
+ * field pair rather than a page-specific band because the copy it carries — the
+ * pro-vs-DIY safety argument — is the same argument the cards above it make,
+ * which is why that page put it inside the compare band instead of giving it a
+ * section. Both fields are blank on the two pages this block renders today and
+ * blank draws no aside at all, so adding them changes nothing until a page is
+ * backfilled with them.
+ *
  * `bullets` renders the `<ul>` variant the implant pages use
  * (implant-dentistry.css:734-762). The pilot's three cards have no bullets, so
  * on the pilot this branch never fires — it is here so Phase 3 does not have to
@@ -105,9 +114,32 @@ interface Props {
   /** Named `tiers` in PHP, not `cards`: card_grid.cards already mints
    *  PageFieldsBlocksCards, and a second repeater of that name merges into it. */
   tiers?: CardRow[] | null;
+  /**
+   * The `.safety-callout` aside that sits between the cards and the CTA row —
+   * its `<h3>`. Reproduces teeth-whitening.astro:495-509, which hosts the "Is
+   * Professional Teeth Whitening Safe" copy inside the compare band rather than
+   * inventing a section for it. Blank on the pilot, and blank must draw nothing.
+   */
+  calloutHeading?: string | null;
+  /**
+   * The aside's prose. HTML-bearing on purpose: the real copy is two paragraphs
+   * and the corpus puts `<a class="vs-link">` and `<em>` inside this kind of
+   * body, so it is rendered set:html rather than as text. See the paragraph
+   * split below for how two paragraphs survive a plain textarea.
+   */
+  calloutBody?: string | null;
 }
 
-const { id, band, eyebrow, heading, body, tiers } = Astro.props;
+const {
+  id,
+  band,
+  eyebrow,
+  heading,
+  body,
+  tiers,
+  calloutHeading,
+  calloutBody,
+} = Astro.props;
 
 // `?? null` rather than a default value: an unknown band from a future PHP
 // choice must fall through to the paper shell rather than emit a class with no
@@ -129,6 +161,53 @@ const text = (value: unknown): string =>
 const eyebrowText = text(eyebrow);
 const headingHtml = text(heading);
 const bodyText = text(body);
+
+/* ── The safety callout ───────────────────────────────────────────────────────
+   Both halves are new and both default to empty, so everything below has to
+   collapse to nothing at all — not to an empty <aside>, not to a bare <h3>.
+   The two live branch pages render this band today with both fields blank and
+   the phase is verified by diffing built HTML, so a wrapper that survives an
+   empty field is a failed phase (docs/PAGE-BLOCKS.md 3.3). */
+const calloutHeadingText = text(calloutHeading);
+const calloutBodyHtml = text(calloutBody);
+
+/* The field is a textarea, so the expected value is inline markup and the `<p>`
+   elements below are this component's. Same guard as MediaSplitBlock's `body_2`
+   (MediaSplitBlock.astro:243-251): if wp-admin ever converts this to a wysiwyg,
+   ACF's `wpautop` returns `<p>…</p>` already wrapped, and nesting that inside
+   another `<p>` produces invalid markup whose parser recovery leaves a stray
+   empty paragraph in the band. */
+const calloutBodyIsBlock = /^<(p|div|ul|ol|blockquote)[\s>]/i.test(calloutBodyHtml);
+
+/* The copy this replaces is TWO paragraphs, and `.safety-callout p + p` exists
+   only to space them. Splitting on the blank line an editor already types is
+   what lets a plain textarea reproduce that markup; without it the callout
+   collapses to one paragraph, the `p + p` rule never fires, and the diff shows
+   a missing element. Blank-line-separated, not newline-separated: a soft wrap
+   inside a sentence must not become a paragraph break. */
+const calloutParagraphs = calloutBodyIsBlock
+  ? []
+  : calloutBodyHtml
+      .split(/\n\s*\n/)
+      .map((part) => part.trim())
+      .filter((part) => part !== "");
+
+const hasCallout = calloutHeadingText !== "" || calloutBodyHtml !== "";
+
+/* Derived from the anchor rather than hard-coded, because PageBlocks has
+   already deduplicated the anchor (PageBlocks.astro:64-85) and two
+   comparison_cards rows on one page would otherwise both emit
+   id="safety-callout-h3" — a duplicate id that sends the accessible name of
+   the second aside to the first one's heading. Nothing links to this value:
+   its only consumer is the `aria-labelledby` on the element that owns it.
+   `undefined` when there is no heading, so the aside never points at an id
+   that was never written. */
+const calloutHeadingId =
+  calloutHeadingText === ""
+    ? undefined
+    : id
+      ? `${id}-safety-callout`
+      : "safety-callout-h3";
 ---
 
 <section class:list={["section", bandModifier]} id={id} data-vs-reveal-batch>
@@ -169,6 +248,19 @@ const bodyText = text(body);
         })
       }
     </div>
+
+    {
+      hasCallout && (
+        <aside class="safety-callout" aria-labelledby={calloutHeadingId}>
+          {calloutHeadingText && <h3 id={calloutHeadingId}>{calloutHeadingText}</h3>}
+          {calloutBodyIsBlock ? (
+            <Fragment set:html={calloutBodyHtml} />
+          ) : (
+            calloutParagraphs.map((para) => <p set:html={para} />)
+          )}
+        </aside>
+      )
+    }
 
     <div class="cta-row">
       <div class="cta-buttons">
@@ -406,6 +498,50 @@ const bodyText = text(body);
   .compare-card.featured ul li { color: rgba(255, 255, 255, 0.88); }
   .compare-card.featured ul li::before { background: rgba(255, 255, 255, 0.6); }
 
+  /* ── The safety callout ─────────────────────────────────────────────────
+     teeth-whitening.css:425-439 with the `.twhitening` prefix stripped and the
+     page's local `--cream` / `--sage` / `--r-lg` aliases resolved back to the
+     `--vs-*` tokens they alias one-for-one (teeth-whitening.css:36-54).
+     Rendered values are unchanged.
+
+     THE DOUBLED CLASS IS LOAD-BEARING, not a typo. `.section.alt p` above is
+     (0,2,1) and would outrank a single-class `.safety-callout p` at (0,1,1) —
+     so on a charcoal or sage band this cream box would take the band's white
+     text and become unreadable. The callout is cream on EVERY band, so its
+     text must not follow the band (R2). Doubling the class is the same
+     specificity lever global.css:228 already uses for cards on dark bands. */
+  .safety-callout {
+    margin: 50px auto 0;
+    max-width: 920px;
+    padding: 36px 40px;
+    border-radius: var(--vs-r-lg);
+    background: var(--vs-cream);
+    border-left: 3px solid var(--vs-sage);
+  }
+  .safety-callout.safety-callout h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: clamp(20px, 2vw, 24px);
+    color: var(--vs-sage);
+    letter-spacing: -0.005em;
+    margin: 0 0 14px;
+  }
+  /* `margin: 0` is the page's own `p { margin: 0 }` reset (global.css:28)
+     restated locally: the callout's paragraph rhythm comes from `p + p`, and a
+     UA default margin here would open a gap the source page never had. */
+  .safety-callout.safety-callout p {
+    font-size: 15.5px;
+    line-height: 1.8;
+    color: var(--vs-ink-soft);
+    margin: 0;
+  }
+  .safety-callout.safety-callout p + p { margin-top: 14px; }
+  /* No link rule here on purpose. An `<a class="vs-link">` arriving through
+     set:html is styled by global.css:31-58, and the callout is cream on every
+     band — so unlike MediaSplitBlock.astro:533, which has to invert `.vs-link`
+     where its `.prose` sits on charcoal, there is nothing here to invert. A
+     local rule would only outrank the site's own link treatment. */
+
   /* ── The CTA row ────────────────────────────────────────────────────────
      clear-aligners.css:446-463. `.cta-note` is the one part of this band whose
      colour the page sheet reads off the ancestor band (`.section.dark .cta-row
@@ -450,6 +586,8 @@ const bodyText = text(body);
     .section { padding: 70px 0; }
     .wrap { padding: 0 22px; }
     .cta-row { margin-top: 36px; }
+    /* teeth-whitening.css:770, which lives in that sheet's 780px block. */
+    .safety-callout { padding: 28px 24px; }
   }
 
   @media (prefers-reduced-motion: reduce) {

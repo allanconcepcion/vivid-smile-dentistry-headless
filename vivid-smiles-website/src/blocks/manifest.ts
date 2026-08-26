@@ -3,7 +3,7 @@
  *
  * SPLIT OUT OF registry.ts DELIBERATELY, AND THE REASON IS NOT TIDINESS.
  *
- * registry.ts binds each layout to its Astro component, so it imports eight
+ * registry.ts binds each layout to its Astro component, so it imports nine
  * .astro files — and, through CodeSectionBlock, the bespoke bands those name.
  * Astro ships a component's scoped CSS whenever the component is
  * in the module graph — imported is enough, rendered is not required. Because
@@ -111,7 +111,11 @@ const BLOCK_IMAGE_FIELDS =
  * the one drift this file cannot catch for itself. Keep them literally equal.
  *
  * Ordered as docs/PAGE-BLOCKS.md 1.3 ranks them, which is also the order the
- * pilot page's eight bands consume them in.
+ * pilot page's eight bands consume them in. `pricing_tiers` is newer than that
+ * ranking and is appended after the eight rather than slotted into them, with
+ * `code_section` kept last because it is the escape hatch and not a band. The
+ * order here is documentation only — blockSelectionSet() emits the fragments in
+ * it, and GraphQL does not care what order inline fragments arrive in.
  */
 export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
   /**
@@ -157,10 +161,32 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    * not draw one — no band on the pilot has a checklist, and a selection set
    * that asks for data nothing renders stops being a statement of what the site
    * uses. It goes in when the component that needs it does, in the same commit.
+   *
+   * `body2`, `ctaLabel2` and `ctaHref2` are the three sub-fields this batch adds
+   * (PHP names `body_2`, `cta_label_2`, `cta_href_2`). They exist because the
+   * backfill was dropping a whole paragraph and a whole button on every band
+   * that ships two of either — the second button is half the CTA row on the
+   * teeth-whitening page, and `body_2` carries the inline <a class="vs-link">
+   * that the preamble's `body` cannot.
+   *
+   * THE CAMELCASE OF A DIGIT-SUFFIXED NAME IS THE ONE THING HERE THAT IS
+   * DERIVED RATHER THAN READ. wpgraphql-acf formats a field name by replacing
+   * every non-alphanumeric run with a space, title-casing, joining, and
+   * lowering the first letter — the fallback in vs-content-model.php's
+   * graphql_type_segment() (L497) is the same rule spelled out. So `cta_label_2`
+   * becomes `ctaLabel2`, not `ctaLabel_2` and not `ctaLabel2_`. Nothing in this
+   * repo carried a digit-suffixed ACF name before today, so there is no live
+   * precedent to point at; scripts/check-block-schema.mjs is what confirms it
+   * once the PHP is deployed, and it must be run before the next build.
+   *
+   * All three are optional on the layout and all three are additive to two live
+   * pages: MediaSplitBlock emits the second button only when `ctaLabel2` is
+   * non-empty and the second paragraph only when `body2` is, so a row saved
+   * before this batch renders byte-for-byte as it does now.
    */
   PageFieldsBlocksMediaSplitLayout: {
     typeName: "PageFieldsBlocksMediaSplitLayout",
-    fields: `${BLOCK_PREAMBLE_FIELDS} ${BLOCK_IMAGE_FIELDS} imageAlt mediaSide ratio quote ctaLabel ctaHref`,
+    fields: `${BLOCK_PREAMBLE_FIELDS} ${BLOCK_IMAGE_FIELDS} imageAlt mediaSide ratio body2 calloutHeading calloutBody quote ctaLabel ctaHref ctaLabel2 ctaHref2`,
   },
 
   /**
@@ -170,10 +196,30 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    * in, grid | card | divided — and has nothing to do with ACF's `layout`
    * setting or with the flexible-content layout this row is. The PHP carries
    * the same warning at the field.
+   *
+   * `preCards` (PHP `pre_cards`) is the `.process-pre` mini-grid that sits
+   * ABOVE the numbered steps on the pages that have one, and `ctaText` is the
+   * closing `.inline-cta` sentence BELOW them. Selected in that order so the
+   * fragment reads in DOM order; GraphQL does not care, the next reader does.
+   *
+   * `preCards` is a repeater, so it mints a type — `PageFieldsBlocksPreCards`,
+   * from the field name alone, because a layout's sub-fields hang off the
+   * flexible field and not off the layout (vs-content-model.php:539-541). That
+   * makes the name it must not share the one held by any OTHER layout's
+   * repeater in `blocks`: `items`, `cards`, `checklist`, `steps`, `tiers`,
+   * `points`. `pre_cards` is none of them — checked against the layout list in
+   * the PHP, not assumed from the brief. Sharing one would merge the two types
+   * and silently drop one side's fields, which reads as a healthy schema right
+   * up until a query stops validating.
+   *
+   * Both are optional and both are additive to live pages: an empty `preCards`
+   * is an empty list and ProcessStepsBlock draws no `.process-pre` wrapper for
+   * it, an empty `ctaText` draws no `.inline-cta`. A band saved before this
+   * batch renders exactly as it does now.
    */
   PageFieldsBlocksProcessStepsLayout: {
     typeName: "PageFieldsBlocksProcessStepsLayout",
-    fields: `${BLOCK_PREAMBLE_FIELDS} layout columns steps { tag num title body }`,
+    fields: `${BLOCK_PREAMBLE_FIELDS} layout columns preCards { heading body } steps { tag num title body } ctaText`,
   },
 
   /**
@@ -199,10 +245,23 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    * note. Do not "fix" that by adding `ctaLabel ctaHref` here — naming a field
    * the deployed layout does not have fails query validation for every page on
    * the site.
+   *
+   * `calloutHeading` and `calloutBody` ARE new, and they are not a CTA: they are
+   * the `.safety-callout` aside that follows the cards on the pages that carry
+   * one. Two plain sub-fields rather than a group, so they mint no type and
+   * cannot collide with anything. `calloutBody` is html-bearing — the real copy
+   * runs an inline link mid-sentence — so the component renders it as HTML, the
+   * same treatment `body_2` gets on media_split.
+   *
+   * Additive: with both blank ComparisonCardsBlock emits no `<aside>` at all,
+   * not an empty one. Blank heading with a body (or the reverse) is an editor
+   * mistake, not a layout mode — the component renders whichever half is
+   * present rather than suppressing both, so the mistake is visible on the page
+   * instead of silently swallowing copy.
    */
   PageFieldsBlocksComparisonCardsLayout: {
     typeName: "PageFieldsBlocksComparisonCardsLayout",
-    fields: `${BLOCK_PREAMBLE_FIELDS} tiers { tag title body ribbon featured }`,
+    fields: `${BLOCK_PREAMBLE_FIELDS} tiers { tag title body ribbon featured } calloutHeading calloutBody`,
   },
 
   /**
@@ -212,10 +271,74 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    * `body` is the preamble's, under the section heading; `intro` opens the card
    * itself. The pilot uses both. `value` and `unit` are the two halves of one
    * line, and both are text — the figures in the corpus read "20–22" and "10+".
+   *
+   * `bodyHeading` (PHP `body_heading`) is the third heading in this band and the
+   * easiest of the three to misplace, so: the preamble's `heading` is the
+   * section's `<h2>`; `caption` labels the figure; `bodyHeading` is the `<h3>`
+   * that OPENS `.lasting-body`, immediately above `intro`. Selected next to
+   * `intro` for that reason. Without it the backfill was dropping that `<h3>` on
+   * every page that has one and running the paragraph straight under the figure.
+   *
+   * Additive: blank `bodyHeading` means StatCalloutBlock emits no `<h3>`, so
+   * `.lasting-body` still opens with `intro` exactly as it does today.
    */
   PageFieldsBlocksStatCalloutLayout: {
     typeName: "PageFieldsBlocksStatCalloutLayout",
-    fields: `${BLOCK_PREAMBLE_FIELDS} value unit caption intro points { lead body }`,
+    fields: `${BLOCK_PREAMBLE_FIELDS} value unit caption bodyHeading intro points { lead body }`,
+  },
+
+  /**
+   * The cost table — a row of plans, one of them ringed, and a financing line
+   * under them.
+   *
+   * ITS OWN BAND, DELIBERATELY. Five pages render this as `<section id="cost">`
+   * with nothing wrapped around it, so this layout is a standalone band and the
+   * preamble's `anchor` is what carries that id. That is the whole reason it is
+   * worth one layout rather than five bespoke components.
+   *
+   * WHAT THIS LAYOUT IS NOT: teeth-whitening's price table is NESTED — it sits
+   * inside `#lasting` as `.lasting-cost-wrap`, not as a band of its own. That
+   * page is a recorded gap, not a case for a second layout. Un-nesting
+   * `.lasting-cost-wrap` into its own `<section id="cost">` would make it the
+   * sixth page matching this shape and would need no bespoke fields at all;
+   * building a nested variant instead mints a second set of plan types to serve
+   * one page. Whoever picks that gap up should reach for the markup first.
+   *
+   * NAMES, AND WHERE THEY CAME FROM. `plans` mints `PageFieldsBlocksPlans`, and
+   * the `features` nested inside it mints `PageFieldsBlocksPlansFeatures`: a
+   * repeater's type is its field name appended to its PARENT CONTAINER's prefix,
+   * and a layout contributes nothing to that prefix, because a layout's
+   * sub-fields hang off the flexible field rather than off the layout
+   * (vs-content-model.php:539-541). So `plans` competes with every repeater in
+   * every other layout of `blocks`. Taken there today: `items`, `cards`,
+   * `checklist`, `steps`, `tiers`, `points`. Neither `plans` nor `features`
+   * appears anywhere in vs-content-model.php — verified by reading the PHP, not
+   * by trusting the brief, because a collision does not error: it merges the two
+   * types and drops one side's fields, leaving a schema that looks healthy until
+   * a query stops validating.
+   *
+   * `features` is the house list-of-lines shape — a repeater whose single text
+   * sub-field is named `item`, the same shape block_list_field() gives
+   * `checklist` (vs-content-model.php:385-401) — so the Astro side reads
+   * `{ item }` off it as it does off every other list on the site.
+   *
+   * `price` and `meta` are text, not numbers: the corpus reads "$2,500–$6,000"
+   * and "per arch". `highlighted` is a true_false and arrives as a boolean; it
+   * is the ring, and `ribbon` is the label sitting on top of it. They are two
+   * fields because a page can ring a plan without labelling it.
+   *
+   * `note` is the financing line under the table — a field on the layout rather
+   * than a seventh sub-field of the last plan, which is where the old markup
+   * effectively kept it.
+   *
+   * Nothing here is additive to a live page: no row of this layout exists yet,
+   * so the empty-field rule the other four entries carry has nothing to protect.
+   * PricingTiersBlock still has to tolerate an empty `plans` — an editor adds
+   * the row before filling it — and draw no `.plan-grid` for it.
+   */
+  PageFieldsBlocksPricingTiersLayout: {
+    typeName: "PageFieldsBlocksPricingTiersLayout",
+    fields: `${BLOCK_PREAMBLE_FIELDS} plans { name price meta priceNote priceSuffix ribbon highlighted features { item } } note`,
   },
 
   /**

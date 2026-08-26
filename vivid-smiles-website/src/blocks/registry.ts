@@ -1,8 +1,8 @@
 /**
  * layout `__typename` → the component that draws it.
  *
- * THIS FILE IS IMPORTED BY PageBlocks.astro AND NOTHING ELSE. It reaches eight
- * .astro files — nine counting src/components/LocalTrust.astro, which
+ * THIS FILE IS IMPORTED BY PageBlocks.astro AND NOTHING ELSE. It reaches nine
+ * .astro files — ten counting src/components/LocalTrust.astro, which
  * CodeSectionBlock pulls in behind them — and Astro ships a component's scoped
  * CSS for anything in the
  * module graph whether or not it renders — so importing this from page-content.ts
@@ -24,6 +24,7 @@ import ComparisonCardsBlock from "./ComparisonCardsBlock.astro";
 import FaqBlock from "./FaqBlock.astro";
 import GalleryMarqueeBlock from "./GalleryMarqueeBlock.astro";
 import MediaSplitBlock from "./MediaSplitBlock.astro";
+import PricingTiersBlock from "./PricingTiersBlock.astro";
 import ProcessStepsBlock from "./ProcessStepsBlock.astro";
 import StatCalloutBlock from "./StatCalloutBlock.astro";
 
@@ -39,6 +40,7 @@ const COMPONENTS: Record<string, AstroComponentFactory> = {
   PageFieldsBlocksComparisonCardsLayout: ComparisonCardsBlock,
   PageFieldsBlocksGalleryMarqueeLayout: GalleryMarqueeBlock,
   PageFieldsBlocksStatCalloutLayout: StatCalloutBlock,
+  PageFieldsBlocksPricingTiersLayout: PricingTiersBlock,
 
   // The escape hatch. Unlike every entry above, this component draws no band of
   // its own — it looks its row's `band_key` up in its own BANDS map and renders

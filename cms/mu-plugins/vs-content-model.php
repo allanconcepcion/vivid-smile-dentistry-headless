@@ -1611,6 +1611,40 @@ function register_field_groups(): void {
 							'sub_fields' => array_merge(
 								block_preamble( 'media' ),
 								[
+									/**
+									 * The SECOND paragraph of the copy column.
+									 *
+									 * Sits here, directly under the preamble's `body`,
+									 * because that is where it is on the page — one prose
+									 * column, two paragraphs. Backfilling teeth-whitening
+									 * without it drops the whole candidacy paragraph, which
+									 * is the single largest of that page's 646 lost words.
+									 *
+									 * THE ONE FIELD ON THIS LAYOUT THAT CARRIES MARKUP.
+									 * `body` is plain text and the component prints it; this
+									 * one ends in an anchor —
+									 * `… better results with <a class="vs-link" href="/cosmetic-dentistry/porcelain-veneers/">porcelain veneers</a>.`
+									 * — so the component must print it with set:html. That is
+									 * not optional: escaped, the reader sees the tag source
+									 * mid-sentence.
+									 *
+									 * Empty is the default and the safe state: no second
+									 * paragraph means the component emits no second <p>, and
+									 * both migrated bands keep the single paragraph they
+									 * render today.
+									 */
+									[
+										'key'          => 'field_vs_blk_media_body_2',
+										'label'        => 'Body — second paragraph',
+										'name'         => 'body_2',
+										'type'         => 'textarea',
+										'rows'         => 5,
+										'instructions' => 'Optional. A second paragraph under the first. Leave it blank and '
+											. 'the section shows one paragraph exactly as it does now. '
+											. 'This box may contain a link — paste it as '
+											. '&lt;a class="vs-link" href="/the-page/"&gt;the words&lt;/a&gt; — '
+											. 'which is how the cross-links to other treatment pages are written.',
+									],
 									block_image_field( 'field_vs_blk_media_image' ),
 									[
 										'key'          => 'field_vs_blk_media_image_alt',
@@ -1679,6 +1713,62 @@ function register_field_groups(): void {
 										'name'  => 'cta_href',
 										'type'  => 'text',
 									],
+									/**
+									 * The SECOND button, beside the first.
+									 *
+									 * Two fields and not a repeater, deliberately. Every
+									 * `.cta-row` in the corpus is exactly one or two buttons
+									 * — never three — and the pair is a fixed shape: the
+									 * solid one, then the ghost one. A repeater would offer
+									 * a fourth button the CSS has no room for, and the
+									 * editor would only find that out after publishing.
+									 * Same reasoning as `media_side` being a value rather
+									 * than two layouts.
+									 *
+									 * EMPTINESS IS THE WHOLE CONTRACT HERE. Every band on
+									 * the two live pages leaves both of these blank, so the
+									 * component must draw the second button only when
+									 * `cta_label_2` has text — an empty label must produce
+									 * no <a> and no wrapper, or the diff shows a stray
+									 * element on bands nobody edited. The label is the test,
+									 * not the href: a button with a link and no words is
+									 * invisible and unclickable, which is worse than absent.
+									 */
+									[
+										// The same aside comparison_cards got, on the same terms. Both
+										// bands carry one: .safety-callout on compare, .veneers-callout
+										// on natural. Giving one a field and not the other is how a page
+										// comes back 90 words short with nobody able to say why.
+										'key'          => 'field_vs_blk_media_callout_heading',
+										'label'        => 'Aside heading',
+										'name'         => 'callout_heading',
+										'type'         => 'text',
+										'instructions' => 'The heading of the boxed aside beside this band. Leave blank '
+											. 'and no aside is drawn — heading and body go together.',
+									],
+									[
+										'key'          => 'field_vs_blk_media_callout_body',
+										'label'        => 'Aside text',
+										'name'         => 'callout_body',
+										'type'         => 'textarea',
+										'rows'         => 4,
+										'instructions' => 'The aside\'s text. A blank line starts a new paragraph, and a '
+											. 'link may be written inline.',
+									],
+									[
+										'key'          => 'field_vs_blk_media_cta_label_2',
+										'label'        => 'Second button label',
+										'name'         => 'cta_label_2',
+										'type'         => 'text',
+										'instructions' => 'Optional. Leave it blank for a single button — nothing extra is drawn.',
+									],
+									[
+										'key'          => 'field_vs_blk_media_cta_href_2',
+										'label'        => 'Second button link',
+										'name'         => 'cta_href_2',
+										'type'         => 'text',
+										'instructions' => 'Where the second button goes. Without a label above it, this is ignored.',
+									],
 								]
 							),
 						],
@@ -1730,6 +1820,61 @@ function register_field_groups(): void {
 										'multiple'      => 0,
 										'ui'            => 0,
 									],
+									/**
+									 * The `.process-pre` mini-grid — the two wide cards
+									 * ABOVE the numbered steps.
+									 *
+									 * Declared before `steps` because that is its order on
+									 * the page, and an editor reading down this row should
+									 * meet the fields in the order the reader meets the
+									 * content.
+									 *
+									 * A repeater of its own rather than two more `steps`
+									 * rows: these carry no tag and no number, they sit in a
+									 * different grid, and pouring them into `steps` would
+									 * number them 1 and 2 ahead of the real first step.
+									 *
+									 * NAMED `pre_cards` AND NOT `cards`. `cards` is taken by
+									 * card_grid, and a second `cards` under `blocks` mints
+									 * PageFieldsBlocksCards a second time — which is exactly
+									 * the merge that made comparison_cards' sub-fields
+									 * unqueryable while the schema still looked healthy. Its
+									 * type is PageFieldsBlocksPreCards, claimed by nothing
+									 * else.
+									 *
+									 * No rows is the safe state: the two live pages have
+									 * none, the repeater stores no meta at all, GraphQL
+									 * returns an empty list and the component draws no
+									 * `.process-pre` wrapper. An empty <div> above the grid
+									 * would show as a gap, so the wrapper has to be inside
+									 * the length test, not around it.
+									 */
+									[
+										'key'          => 'field_vs_blk_steps_pre_cards',
+										'label'        => 'Cards above the steps',
+										'name'         => 'pre_cards',
+										'type'         => 'repeater',
+										'layout'       => 'row',
+										'button_label' => 'Add a card',
+										'instructions' => 'Optional. One or two wide cards that sit above the numbered steps — '
+											. 'the “what to expect” kind of copy that frames them. Leave this empty and '
+											. 'the section starts straight at step one, as it does now.',
+										'sub_fields'   => [
+											[
+												'key'   => 'field_vs_blk_steps_pre_card_heading',
+												'label' => 'Heading',
+												'name'  => 'heading',
+												'type'  => 'text',
+											],
+											[
+												'key'   => 'field_vs_blk_steps_pre_card_body',
+												'label' => 'Body',
+												'name'  => 'body',
+												'type'  => 'textarea',
+												'rows'  => 4,
+											],
+										],
+									],
 									[
 										'key'          => 'field_vs_blk_steps_steps',
 										'label'        => 'Steps',
@@ -1768,6 +1913,41 @@ function register_field_groups(): void {
 												'rows'  => 3,
 											],
 										],
+									],
+									/**
+									 * The sentence that closes the band — the `.ic-text`
+									 * half of `.inline-cta`.
+									 *
+									 * ONE field, not three, because only the sentence varies.
+									 * The two buttons beside it are the same pair on every
+									 * band that has one ("Book Online" and "Call <number>",
+									 * the number from Practice Settings), so the component
+									 * draws them as literals — the same call FaqBlock
+									 * already makes about its phone button. Offering
+									 * cta_label/cta_href here would be three more controls
+									 * for content that never changes, and a second place for
+									 * the practice's phone number to go stale.
+									 *
+									 * Carries inline markup, like `heading` does: the corpus
+									 * line is a question followed by an emphasised answer —
+									 * `Not sure which level fits? <em>Send a few photos…</em>`
+									 * — so the component must print it with set:html.
+									 *
+									 * Blank is the safe state and the current one: no text,
+									 * no `.inline-cta` at all. The buttons must not survive
+									 * an empty sentence — a bare button strip appearing under
+									 * the steps of a band nobody touched is precisely the
+									 * stray element this phase is diffed for.
+									 */
+									[
+										'key'          => 'field_vs_blk_steps_cta_text',
+										'label'        => 'Closing line',
+										'name'         => 'cta_text',
+										'type'         => 'textarea',
+										'rows'         => 2,
+										'instructions' => 'Optional. One sentence under the steps, with the booking and phone '
+											. 'buttons beside it. Leave it blank and neither the sentence nor the buttons '
+											. 'appear. May contain &lt;em&gt;…&lt;/em&gt; for the emphasised half.',
 									],
 								]
 							),
@@ -1850,6 +2030,245 @@ function register_field_groups(): void {
 											],
 										],
 									],
+									/**
+									 * The `.safety-callout` aside, below the cards.
+									 *
+									 * Two flat fields and not a repeater: there is one
+									 * callout per band in the corpus, it has one heading, and
+									 * the markup gives it a single `aria-labelledby` pointing
+									 * at that heading. A repeater would let an editor add a
+									 * second and produce two elements claiming one id.
+									 *
+									 * `callout_heading` is a field rather than being derived
+									 * from the copy because the component needs it as an <h3>
+									 * with an id on it. It is also the switch: no heading, no
+									 * aside, no `aria-labelledby` pointing at nothing. Render
+									 * the pair together or not at all — an <aside> holding
+									 * only a heading, or only prose with an orphaned
+									 * `aria-labelledby`, are both worse than the absence the
+									 * five live compare bands have today.
+									 *
+									 * `callout_body` is the one MULTI-PARAGRAPH field on this
+									 * layout: the whitening callout is a one-line answer
+									 * followed by a full paragraph of reasoning, and the
+									 * markup is two <p>. So the component has to turn blank
+									 * lines into paragraphs — an editor should not be asked
+									 * to type <p> tags, and printing it raw collapses both
+									 * paragraphs into one wall of text. It may also contain a
+									 * link, on the same terms as media_split's second body.
+									 */
+									[
+										'key'          => 'field_vs_blk_compare_callout_heading',
+										'label'        => 'Callout heading',
+										'name'         => 'callout_heading',
+										'type'         => 'text',
+										'instructions' => 'Optional. The heading of the boxed note under the cards — often the '
+											. 'question patients actually ask, such as “Is professional whitening safe?”. '
+											. 'Leave it blank and there is no box.',
+									],
+									[
+										'key'          => 'field_vs_blk_compare_callout_body',
+										'label'        => 'Callout text',
+										'name'         => 'callout_body',
+										'type'         => 'textarea',
+										'rows'         => 6,
+										'instructions' => 'The answer. Leave a blank line between paragraphs. '
+											. 'May contain a link written as '
+											. '&lt;a class="vs-link" href="/the-page/"&gt;the words&lt;/a&gt;.',
+									],
+								]
+							),
+						],
+						/**
+						 * Pricing plans — the `#cost` band, its own section.
+						 *
+						 * Five pages draw this today and all five draw it the same
+						 * way: `<section id="cost">` with the standard eyebrow,
+						 * heading and intro above a row of PricingTiers cards and a
+						 * financing line under them. That is why this is a plain
+						 * band layout with the full preamble and nothing bespoke —
+						 * it is the same shape as every other section on the page.
+						 *
+						 * WHAT THIS LAYOUT IS NOT: teeth-whitening's pricing table
+						 * is nested INSIDE `#lasting`, in a `.lasting-cost-wrap`
+						 * under the stat card, with its own `.section-head sub`. A
+						 * nested variant is deliberately NOT built here — one page
+						 * needs it and five do not, and a second pricing layout is a
+						 * second set of names to keep in step forever. The recorded
+						 * fix is on the page, not in the field group: un-nesting
+						 * `.lasting-cost-wrap` into its own `<section id="cost">`
+						 * makes that page match the other five and need no bespoke
+						 * fields at all. Until someone does that, teeth-whitening's
+						 * pricing stays a known gap.
+						 *
+						 * ON THE NAMES `plans` AND `features`. Both were checked
+						 * against every container in every locally registered group
+						 * before being used, on the rule assert_unique_graphql_type_names()
+						 * enforces: the type is built from the PATH OF FIELD NAMES
+						 * and the layout contributes nothing. These mint
+						 * PageFieldsBlocksPlans and PageFieldsBlocksPlansFeatures,
+						 * and nothing else in the model claims either — including by
+						 * the concatenation route, which is how a top-level
+						 * `blocks_plans` would collide without sharing a name with
+						 * anything. `tiers` was the obvious name and is taken by
+						 * comparison_cards; `cards`, `items`, `points`, `steps`,
+						 * `bullets` and `checklist` are all taken too. Reusing one
+						 * would not have failed loudly — it would have merged the
+						 * two types and made one side's sub-fields unqueryable
+						 * against a schema that still looked healthy, which is the
+						 * bug that cost Phase 2 a day.
+						 */
+						[
+							'key'        => 'layout_vs_blk_pricing_tiers',
+							'name'       => 'pricing_tiers',
+							'label'      => 'Pricing plans',
+							'display'    => 'block',
+							'sub_fields' => array_merge(
+								block_preamble( 'pricing' ),
+								[
+									[
+										'key'          => 'field_vs_blk_pricing_plans',
+										'label'        => 'Plans',
+										'name'         => 'plans',
+										'type'         => 'repeater',
+										'layout'       => 'row',
+										'button_label' => 'Add a plan',
+										'instructions' => 'One card per plan. The design is built for one to four across; '
+											. 'a fifth wraps and reads as a second row of a table that is not one.',
+										'sub_fields'   => [
+											[
+												'key'   => 'field_vs_blk_pricing_plan_name',
+												'label' => 'Plan name',
+												'name'  => 'name',
+												'type'  => 'text',
+											],
+											[
+												'key'          => 'field_vs_blk_pricing_plan_price',
+												'label'        => 'Price',
+												'name'         => 'price',
+												'type'         => 'text',
+												// Text, not number, for the same reason
+												// stat_callout's `value` is: the figures in the
+												// corpus read "$14,995", "$99" and "+$4,000", and
+												// the currency, the comma and the leading plus
+												// are all part of what the page says.
+												'instructions' => 'The large figure, exactly as it should read — $2,250, $99, +$4,000.',
+											],
+											[
+												'key'          => 'field_vs_blk_pricing_plan_meta',
+												'label'        => 'Supporting line',
+												'name'         => 'meta',
+												'type'         => 'text',
+												'instructions' => 'The one line under the plan name — what this tier is, in a phrase. '
+													. 'Optional.',
+											],
+											[
+												// PricingTiers.astro takes THREE slots around the figure —
+												// tagline, priceQualifier, priceSuffix — and the first cut of
+												// this layout offered one. Every one of the five pages it
+												// exists to serve uses at least two, so backfilling them would
+												// have dropped "Starting at" and "per arch" from live pricing.
+												// `meta` stays the tagline; these two are the other slots.
+												'key'          => 'field_vs_blk_pricing_plan_price_note',
+												'label'        => 'Above the price',
+												'name'         => 'price_note',
+												'type'         => 'text',
+												'instructions' => 'The small line above the figure — "Starting at", "From", '
+													. '"Trays included". Optional; leave blank for a flat price.',
+											],
+											[
+												'key'          => 'field_vs_blk_pricing_plan_price_suffix',
+												'label'        => 'Below the price',
+												'name'         => 'price_suffix',
+												'type'         => 'text',
+												'instructions' => 'What the figure is per — "per tooth", "per arch", '
+													. '"implant + crown". Optional.',
+											],
+											[
+												'key'          => 'field_vs_blk_pricing_plan_ribbon',
+												'label'        => 'Ribbon',
+												'name'         => 'ribbon',
+												'type'         => 'text',
+												// Same field, same wording and the same optional
+												// meaning as comparison_cards' ribbon. Two
+												// controls that look alike and behave differently
+												// is how an editor learns to distrust both.
+												'instructions' => 'Optional flash across the corner — "Most Popular", "Most Common".',
+											],
+											/**
+											 * WHY THIS IS NOT CONSTRAINED, having been asked.
+											 *
+											 * The markup marks ONE plan as the centrepiece:
+											 * `.vs-pricing-tier--highlight` paints it sage with
+											 * white text so it stands out from the paper cards
+											 * beside it. Tick two and nothing breaks — no
+											 * overlap, no overflow, both cards simply go sage —
+											 * but the contrast that made either one a
+											 * centrepiece is gone. It is a design regression,
+											 * not a broken page, and that is the whole argument
+											 * for a nudge instead of a lock.
+											 *
+											 * The rule is "at most one", not "exactly one":
+											 * porcelain-veneers highlights its only plan,
+											 * teeth-whitening one of four, and full-mouth-
+											 * rehabilitation none. No count is invalid.
+											 *
+											 * ACF cannot express "at most one across sibling
+											 * rows" declaratively, and the imperative version —
+											 * an acf/update_value filter that unticks the
+											 * others — silently undoes a click the editor just
+											 * made, with nothing on screen to say why. Data
+											 * quietly changing under an editor is a worse
+											 * failure than a page that looks flat, and it would
+											 * also be wrong the moment a redesign wants two.
+											 *
+											 * So: a per-row true_false, matching the
+											 * component's per-tier `highlight` prop, and the
+											 * instruction below carries the constraint.
+											 */
+											[
+												'key'           => 'field_vs_blk_pricing_plan_highlighted',
+												'label'         => 'Make this the centrepiece',
+												'name'          => 'highlighted',
+												'type'          => 'true_false',
+												'ui'            => 1,
+												'default_value' => 0,
+												'instructions'  => 'Fills this card in sage so it stands out from the others. '
+													. 'Turn it on for one plan only — with two switched on, neither stands out.',
+											],
+											block_list_field(
+												'field_vs_blk_pricing_features',
+												'What is included',
+												'features',
+												'Add a line'
+											),
+										],
+									],
+									/**
+									 * The financing line under the cards.
+									 *
+									 * A textarea rather than a single-line input: the line
+									 * in the corpus runs two sentences and about 250
+									 * characters, and a one-line box is where an editor
+									 * decides the copy is too long and cuts it. It is still
+									 * a plain string over GraphQL either way — the control
+									 * size is an editor-facing choice, not a contract one.
+									 *
+									 * Blank draws nothing: PricingTiers already guards its
+									 * `.vs-pricing-tiers__financing` paragraph on the value
+									 * being present, and that paragraph carries a top
+									 * border — rendered empty it is a stray rule across the
+									 * bottom of the band.
+									 */
+									[
+										'key'          => 'field_vs_blk_pricing_note',
+										'label'        => 'Note under the plans',
+										'name'         => 'note',
+										'type'         => 'textarea',
+										'rows'         => 3,
+										'instructions' => 'Optional. The line under the cards about insurance, financing or '
+											. 'what a consultation confirms. Leave it blank and nothing is drawn.',
+									],
 								]
 							),
 						],
@@ -1909,6 +2328,34 @@ function register_field_groups(): void {
 										'type'         => 'text',
 										'instructions' => 'The single line under the figure saying what it measures.',
 									],
+									/**
+									 * The <h3> that opens `.lasting-body` — the heading
+									 * INSIDE the card, above its paragraph.
+									 *
+									 * Declared between `caption` and `intro` because that is
+									 * its position in the markup, and because the two easiest
+									 * fields to confuse on this layout are already the
+									 * preamble's `heading` and this one. The instructions say
+									 * which is which for the same reason `intro` does.
+									 *
+									 * Its own field and not the first line of `intro`: it is a
+									 * real heading in the document outline — the <h3> under
+									 * the band's <h2> — and a paragraph styled to look like
+									 * one is invisible to a screen reader's heading list and
+									 * to Google.
+									 *
+									 * Blank leaves the card exactly as it renders today, with
+									 * the paragraph first and no empty <h3> above it.
+									 */
+									[
+										'key'          => 'field_vs_blk_stat_body_heading',
+										'label'        => 'Card heading',
+										'name'         => 'body_heading',
+										'type'         => 'text',
+										'instructions' => 'Optional. The heading inside the card, above its paragraph — not the '
+											. 'section heading, which is Heading at the top of this row. Leave it blank '
+											. 'and the card opens straight into its paragraph.',
+									],
 									[
 										'key'          => 'field_vs_blk_stat_intro',
 										'label'        => 'Card intro',
@@ -1960,7 +2407,7 @@ function register_field_groups(): void {
 						 *
 						 * Last in the picker on purpose. It is the exception, and an
 						 * editor scanning the list for the section they want to add
-						 * should meet the seven they can fill in first.
+						 * should meet the eight they can fill in first.
 						 *
 						 * No repeater and no group, so it mints no GraphQL type of its
 						 * own and gives assert_unique_graphql_type_names() nothing to
@@ -2049,9 +2496,10 @@ const IMPORTER_OWNED_KEYS = [
  *
  * blocks[].anchor gets the same treatment and is not in this list either, for a
  * mechanical reason: every section layout declares its own `anchor` sub-field
- * with its own key, so listing them would mean six entries here and a seventh
- * thing to remember each time a layout is added. block_anchor_meta_pattern()
- * below recognises them by shape instead.
+ * with its own key, so listing them would mean one entry here per layout and one
+ * more thing to remember each time a layout is added — a count deliberately not
+ * written down, because it goes stale the next time one is.
+ * block_anchor_meta_pattern() below recognises them by shape instead.
  */
 const GENERATED_ID_FIELDS = [
 	'field_vs_section_id' => '/^sections_\d+_section_id$/',

@@ -16,8 +16,15 @@
  * layout carries `body` AND `intro` and they are two different paragraphs in
  * two different places (vs-content-model.php:1497-1508):
  *
- *   body      the paragraph under the section heading, inside .section-head
- *   intro     the paragraph inside the card, opening .lasting-body
+ *   body          the paragraph under the section heading, inside .section-head
+ *   body_heading  the <h3> that opens .lasting-body, above `intro`
+ *   intro         the paragraph inside the card, under that <h3>
+ *
+ * `body_heading` is teeth-whitening.astro:607 ("Maintaining Your Whitening
+ * Results"): the card there carries a subject of its own, distinct from the
+ * band's <h2>, and without a field for it that heading is one of the losses
+ * this batch exists to close. The pilot has no such <h3>, so blank renders no
+ * element — not an empty heading, not a wrapper.
  *
  * The pilot uses both. Swapping them puts the care copy above the card and the
  * section intro inside it, which reads almost right and is therefore the kind
@@ -86,13 +93,38 @@ interface Props {
   unit?: string | null;
   /** The single line under the figure saying what it measures. */
   caption?: string | null;
+  /**
+   * The `<h3>` that opens `.lasting-body`, above `intro`
+   * (teeth-whitening.astro:607). A THIRD heading level in a layout that already
+   * has `heading` and two paragraphs, so the mapping is worth stating outright:
+   *
+   *   heading       the band's <h2>, in .section-head
+   *   body_heading  the card's <h3>, first child of .lasting-body
+   *   body          the paragraph under the <h2>
+   *   intro         the paragraph under the <h3>
+   *
+   * The pilot (clear-aligners) has no such <h3> and must keep having none, so
+   * blank renders no element rather than an empty heading.
+   */
+  bodyHeading?: string | null;
   /** The paragraph inside the card, above the list. NOT the section intro. */
   intro?: string | null;
   points?: PointRow[] | null;
 }
 
-const { id, band, eyebrow, heading, body, value, unit, caption, intro, points } =
-  Astro.props;
+const {
+  id,
+  band,
+  eyebrow,
+  heading,
+  body,
+  value,
+  unit,
+  caption,
+  bodyHeading,
+  intro,
+  points,
+} = Astro.props;
 
 // `?? null` rather than a default: an unknown band from a future PHP choice
 // falls through to the paper shell rather than emitting a class with no rule.
@@ -109,6 +141,7 @@ const bodyText = text(body);
 const valueText = text(value);
 const unitText = text(unit);
 const captionText = text(caption);
+const bodyHeadingText = text(bodyHeading);
 const introText = text(intro);
 
 // A row with neither half is an empty line the editor added and abandoned; it
@@ -122,7 +155,11 @@ const pointRows = (Array.isArray(points) ? points : [])
 // figure. Suppress the card entirely only when there is nothing at all to put
 // in it, so an unfinished block leaves a heading rather than an empty white box.
 const hasStat = valueText !== "" || captionText !== "";
-const hasBody = introText !== "" || pointRows.length > 0;
+// `bodyHeadingText` counts here so a card that is only a heading still draws
+// its column; leaving it out would let an editor fill the heading and watch it
+// vanish, which is the silent kind of content loss this phase exists to stop.
+const hasBody =
+  bodyHeadingText !== "" || introText !== "" || pointRows.length > 0;
 ---
 
 <section class:list={["section", bandModifier]} id={id} data-vs-reveal-batch>
@@ -144,6 +181,7 @@ const hasBody = introText !== "" || pointRows.length > 0;
           )}
           {hasBody && (
             <div class="lasting-body">
+              {bodyHeadingText && <h3>{bodyHeadingText}</h3>}
               {introText && <p>{introText}</p>}
               {pointRows.length > 0 && (
                 <ul>
@@ -321,6 +359,27 @@ const hasBody = introText !== "" || pointRows.length > 0;
     color: var(--vs-muted);
     max-width: 18ch;
   }
+  /* The card's own heading — teeth-whitening.css:571-577, prefix stripped and
+     the page's `--f-display` / `--ink` aliases resolved to the `--vs-*` tokens
+     they alias (teeth-whitening.css:36-54).
+
+     `19px` bottom is not invented: nothing in global.css resets heading margins,
+     so the source rule sets only `margin-top` and leaves the UA's `1em` bottom —
+     1em of a 19px heading. Written out rather than inherited from the UA
+     because a value this template depends on should be visible in it.
+
+     The colour is stated rather than left to cascade: the card is white on
+     every band, so its heading must not follow `.section.alt`'s white text the
+     way an inherited one would (R2). */
+  .lasting-body h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: 19px;
+    letter-spacing: -0.005em;
+    color: var(--vs-ink);
+    margin: 22px 0 19px;
+  }
+
   .lasting-body p {
     font-size: 15.5px;
     line-height: 1.8;

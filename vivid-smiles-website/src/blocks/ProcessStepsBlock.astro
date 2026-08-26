@@ -10,23 +10,39 @@
  * the page stylesheet still styles them and keeps styling them until the
  * stylesheet pass removes its copies.
  *
- * THE INLINE CTA IS PART OF THIS BAND AND THE CMS HAS NOWHERE TO PUT ITS
- * SENTENCE. All eight pages in the family close their process band with the
- * same card: one line of copy, then "Book Online" and "Call" — and the two
- * buttons are identical on all eight because they are site data
- * (src/data/contact.ts), not page content. The sentence is not: it is
- * "Ready for the next step? …" here and on porcelain-veneers, and something
- * page-specific on the other six.
+ * THE INLINE CTA: THE SENTENCE IS A FIELD, THE BUTTONS ARE NOT.
+ * All eight pages in the family close their process band with the same card:
+ * one line of copy, then "Book Online" and "Call". The two buttons are
+ * identical on all eight because they are site data (src/data/contact.ts), not
+ * page content, so they are written in — a per-page field for them is a
+ * per-page chance to publish the wrong phone number, and the wrong phone number
+ * on a dental site is a lost patient rather than a cosmetic bug. The sentence
+ * IS page content: "Ready for the next step? …" here and on porcelain-veneers,
+ * "Not sure which KöR level fits? …" on teeth-whitening, something else on the
+ * other five. So it is `cta_text`, read here as `ctaText`.
  *
- * So the buttons are written in, and the sentence is a prop — `ctaText` — that
- * the `process_steps` layout does not define yet. Until a `cta_text` field is
- * added in cms/mu-plugins/vs-content-model.php, this band backfills WITHOUT its
- * closing CTA, which is a visible change on the pilot page.
- *
- *   DO NOT ADD `ctaText` TO THE REGISTRY'S SELECTION SET UNTIL THE PHP FIELD
- *   EXISTS. GraphQL validates the whole document before executing any of it, so
- *   a field name the schema does not carry does not break this one band — it
+ *   `cta_text` IS BEING ADDED TO cms/mu-plugins/vs-content-model.php IN THIS
+ *   SAME BATCH, AND THE REGISTRY IS WIRED IN A SEPARATE SEQUENCED STEP. Do not
+ *   add `ctaText` to the selection set in manifest.ts until the PHP layout is
+ *   deployed. GraphQL validates the whole document before executing any of it,
+ *   so a field name the schema does not carry does not break this one band — it
  *   fails the query, and with it every page in the build.
+ *
+ * THE `.process-pre` MINI-GRID: TWO WIDE CARDS ABOVE THE NUMBERED ONES.
+ * teeth-whitening's `#process` opens with a 2-up grid of prose cards — "What to
+ * Expect During Your Teeth Whitening Appointment" and "In-Office vs At-Home KöR
+ * Whitening" — sitting between the section head and the numbered steps. That is
+ * 200-odd words that the backfill drops on the floor without somewhere to put
+ * them, and it is not a variant of `steps`: the rows carry no tag and no
+ * number, they are twice the width, and the page sheet gives them a
+ * deliberately quieter treatment "so the eye still settles on the 3 primary
+ * level cards". A different shape holding different content is a different
+ * repeater, so `pre_cards { heading, body }`.
+ *
+ * The repeater is named `pre_cards` and not `cards`, `items` or `points`
+ * because WPGraphQL merges two layouts that share a repeater name into one type
+ * and silently drops one side's sub-fields. All three of those names are
+ * already taken elsewhere in the `blocks` field.
  *
  * `layout` — the shape the steps are drawn in — offers grid, card and divided.
  * Only `grid` has markup anywhere in src/pages today, so only `grid` is drawn
@@ -52,6 +68,17 @@ export interface ProcessStep {
   body?: string | null;
 }
 
+/**
+ * One row of the layout's `pre_cards` repeater — the wide prose cards above the
+ * numbered steps. `heading` and not `title`: the sub-field sits beside the
+ * preamble's own `heading`/`body` pair in wp-admin and matching that naming is
+ * what stops an editor filling in the wrong one.
+ */
+export interface ProcessPreCard {
+  heading?: string | null;
+  body?: string | null;
+}
+
 interface Props {
   /** DOM id, already deduplicated by PageBlocks.astro. */
   id?: string;
@@ -68,12 +95,16 @@ interface Props {
   layout?: string | null;
   /** "2" | "3" | "4" — ACF returns the select's value as a string. */
   columns?: string | number | null;
+  /**
+   * The wide prose cards above the numbered steps. Empty or absent renders no
+   * grid and no wrapper — see the header.
+   */
+  preCards?: ProcessPreCard[] | null;
   steps?: ProcessStep[] | null;
   /**
-   * The sentence in the closing card. NOT A CMS FIELD YET — see the header, and
-   * do not add it to the registry's selection set before the PHP layout has it.
-   * `<em>` and `<strong>` are permitted, as they are in the eight hand-written
-   * instances this replaces.
+   * The sentence in the closing card. `<em>` and `<strong>` are permitted, as
+   * they are in the eight hand-written instances this replaces. See the header
+   * before adding it to the registry's selection set.
    */
   ctaText?: string | null;
 }
@@ -104,6 +135,7 @@ const {
   body,
   layout = "grid",
   columns,
+  preCards,
   steps,
   ctaText,
 } = Astro.props;
@@ -139,6 +171,19 @@ const colsClass = cols === "2" || cols === "3" ? `cols-${cols}` : undefined;
 
 const rows = Array.isArray(steps) ? steps : [];
 
+/**
+ * Rows with nothing in them are dropped rather than drawn.
+ *
+ * ACF returns a repeater an editor opened and abandoned as a row of empty
+ * strings, and an empty `.process-pre-card` is a visible bordered rectangle
+ * with nothing inside it. Filtering here also means a repeater of nothing but
+ * blank rows leaves the grid wrapper unemitted, so the band is byte-identical
+ * to one where the field was never touched.
+ */
+const preRows = (Array.isArray(preCards) ? preCards : []).filter(
+  (c) => (c?.heading ?? "").trim() !== "" || (c?.body ?? "").trim() !== "",
+);
+
 const hasHead = Boolean(eyebrow || heading || body);
 const hasCta = typeof ctaText === "string" && ctaText.trim() !== "";
 ---
@@ -155,6 +200,23 @@ const hasCta = typeof ctaText === "string" && ctaText.trim() !== "";
             </h2>
           )}
           {body && <p>{body}</p>}
+        </div>
+      )
+    }
+
+    {/* Between the head and the numbered steps, which is where teeth-whitening
+        puts it. `<article>` and not `<div>`: the page's own markup uses
+        `<article>` here and `<div>` for the numbered cards, and these two are
+        genuinely self-contained prose while a step out of its sequence is not. */}
+    {
+      preRows.length > 0 && (
+        <div class="process-pre">
+          {preRows.map((c) => (
+            <article class="process-pre-card">
+              {c.heading && <h3>{c.heading}</h3>}
+              {c.body && <p>{c.body}</p>}
+            </article>
+          ))}
         </div>
       )
     }
@@ -337,6 +399,81 @@ const hasCta = typeof ctaText === "string" && ctaText.trim() !== "";
     background: var(--vs-ink-soft);
   }
 
+  /* ---------- the pre-card mini-grid ----------
+     Two wide prose cards above the numbered steps. Always 2-up: the shape is
+     the point of it, and it does not take `columns` — that select governs the
+     numbered grid, and letting one field drive two grids would mean a band
+     could not have four steps and two pre-cards, which is exactly the band this
+     was extracted from.
+
+     WHY THIS IS TWO SETS OF COLOURS AND `.process-card` IS ONE. The step card
+     is a heavy translucent-white plate that reads on all five bands, so it
+     needs no per-band variant. The pre-card cannot borrow that: the page sheet
+     gives it a 4%-white wash specifically so "the eye still settles on the 3
+     primary level cards", and 4% white over cream is nothing at all. The
+     subordinate relationship is what has to survive, not the literal alpha —
+     so on light bands it is a hairline outline with no fill, and on the two
+     dark bands it is the page's own values to the digit. Written against the
+     band VALUE rather than the class, per this file's rule, because
+     `.section.alt` is charcoal on one sibling sheet and cream on another. */
+  .process-pre {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 28px;
+  }
+  .process-pre-card {
+    background: transparent;
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-lg);
+    padding: 26px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition:
+      background 0.3s ease,
+      border-color 0.3s ease;
+  }
+  .process-pre-card:hover {
+    background: rgba(255, 255, 255, 0.45);
+    border-color: var(--vs-sage-soft);
+  }
+  .process-pre-card h3 {
+    font-family: var(--vs-font-display);
+    color: var(--vs-ink);
+    font-weight: 500;
+    font-size: 17px;
+    line-height: 1.3;
+    letter-spacing: -0.015em;
+    margin: 0;
+  }
+  .process-pre-card p {
+    color: var(--vs-ink-soft);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  /* The dark-band treatment, verbatim from teeth-whitening.css:323–345 — the
+     only band these cards ship on today. */
+  .section.alt .process-pre-card,
+  .section.sage .process-pre-card {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.14);
+  }
+  .section.alt .process-pre-card:hover,
+  .section.sage .process-pre-card:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.24);
+  }
+  .section.alt .process-pre-card h3,
+  .section.sage .process-pre-card h3 {
+    color: #fff;
+  }
+  .section.alt .process-pre-card p,
+  .section.sage .process-pre-card p {
+    color: rgba(255, 255, 255, 0.78);
+  }
+
   /* ---------- steps ---------- */
   .process-grid {
     display: grid;
@@ -457,6 +594,12 @@ const hasCta = typeof ctaText === "string" && ctaText.trim() !== "";
     .process-grid.cols-3 {
       grid-template-columns: repeat(2, 1fr);
     }
+    /* The pre-cards stack a breakpoint earlier than the numbered ones: they
+       hold a full paragraph each, so two of them in a 991px viewport give a
+       ~28ch measure. teeth-whitening.css:735 does the same. */
+    .process-pre {
+      grid-template-columns: 1fr;
+    }
   }
 
   @media (max-width: 780px) {
@@ -476,9 +619,11 @@ const hasCta = typeof ctaText === "string" && ctaText.trim() !== "";
     }
   }
 
-  /* The card lift is the only motion in this band, and it is decorative. */
+  /* The card lift and the pre-card wash are the only motion in this band, and
+     both are decorative. */
   @media (prefers-reduced-motion: reduce) {
-    .process-card {
+    .process-card,
+    .process-pre-card {
       transition: none !important;
     }
   }
