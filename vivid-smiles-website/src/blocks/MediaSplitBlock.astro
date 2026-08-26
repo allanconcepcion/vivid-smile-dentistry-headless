@@ -77,6 +77,42 @@
  * in the DOM and a broken gap on screen. `body2IsBlock` below detects that and
  * passes the value through unwrapped instead.
  *
+ * `checklist` — THE `.candidate-list`, DECLARED SINCE THE FIELD LANDED AND
+ * DRAWN BY NOTHING UNTIL NOW.
+ * The layout has always carried a list-of-lines repeater and this component
+ * never rendered it, so any band backfilled from a page that ships one lost the
+ * whole list silently — four numbered points, gone, with the band still looking
+ * finished. The shape is on four of the eight pages left to migrate:
+ * `.candidate-list` on bone-grafting, all-on-4-single-arch and
+ * full-mouth-dental-implants, and the identical thing under the name
+ * `.tech-list` on sinus-lift. The five rules behind the two names are the same
+ * declarations character for character in all four sheets, so this draws ONE
+ * class, `.candidate-list`, and sinus-lift gets an additive alias in its own
+ * sheet when that page migrates. Two class names for one shape is how a rule
+ * gets edited in one place and not the other.
+ *
+ * THE MARKER IS DERIVED, NOT STORED. `01`, `02`, `03` is the position of the
+ * line in the list, so it is computed from the index here and is deliberately
+ * NOT a field. Had it been one, deleting the second of four rows would leave
+ * `01 03 04` on the page until a human noticed, and reordering rows in wp-admin
+ * — the one edit a repeater exists to make cheap — would scramble it every
+ * time.
+ *
+ * `lead` is the bolded opening of a line and it already includes the em dash it
+ * ends with, because the dash belongs to the bold run in the markup being
+ * reproduced (`<b>Unpreserved extraction sites —</b> Patients whose…`).
+ * It is optional: every list the site ships outside these four pages is plain
+ * lines, and a blank `lead` must produce no `<b>` AND no leading space inside
+ * the `<span>` — a space there is visible, because `.candidate-list li` is a
+ * grid and the text column starts exactly where the span does.
+ *
+ * NOTE FOR WHOEVER RUNS THE NEXT PHASE: `checklist` is not in
+ * blockSelectionSet() yet (manifest.ts says it "goes in when the component that
+ * needs it does"). Until that one line is added the prop arrives `undefined`
+ * and this draws nothing, which is exactly the pre-existing behaviour — but it
+ * also means this markup is inert until the fragment asks for
+ * `checklist { lead item }`.
+ *
  * Styles are co-located per docs/PAGE-BLOCKS.md 2.5, modelled on
  * FinalBand.astro: no page namespace, `--vs-*` tokens directly, band as a
  * prop, self-owned padding, zero margin.
@@ -92,6 +128,19 @@ export interface MediaSplitImage {
     altText?: string | null;
     mediaDetails?: { width?: number | null; height?: number | null } | null;
   } | null;
+}
+
+/**
+ * One line of the layout's `checklist` repeater — GraphQL type
+ * `PageFieldsBlocksChecklist`. Both sub-fields are optional at the schema level
+ * (ACF returns `null` for a row an editor left blank), so neither can be typed
+ * as a plain string here without lying to every caller.
+ */
+export interface MediaSplitPoint {
+  /** The bolded opening, em dash included. Blank draws no `<b>` at all. */
+  lead?: string | null;
+  /** The line itself. */
+  item?: string | null;
 }
 
 interface Props {
@@ -138,6 +187,13 @@ interface Props {
   /** "even" | "wide-text" | "wide-media" */
   ratio?: string | null;
   quote?: string | null;
+  /**
+   * The numbered `.candidate-list` under the pull quote. See the header for why
+   * the marker is not in here and why `lead` carries its own dash. An empty or
+   * absent list draws no `<ul>` — which is every band saved to date, since the
+   * field has never been queried.
+   */
+  checklist?: (MediaSplitPoint | null)[] | null;
   ctaLabel?: string | null;
   ctaHref?: string | null;
   /** Secondary button. Empty label renders no second button. */
@@ -195,6 +251,7 @@ const {
   mediaSide = "left",
   ratio = "even",
   quote,
+  checklist,
   ctaLabel,
   ctaHref,
   ctaLabel2,
@@ -288,6 +345,33 @@ const calloutParagraphs = calloutBodyIsBlock
       .filter((part) => part !== "");
 const hasCallout = calloutHeadingText !== "" || calloutBodyHtml !== "";
 
+/**
+ * The checklist lines, trimmed and emptied out.
+ *
+ * `Array.isArray` first because an unqueried repeater arrives `undefined` and a
+ * repeater an editor never opened arrives `null`, and `.map` on either throws
+ * during the build of whatever page the band happens to sit on.
+ *
+ * The filter drops rows with nothing in EITHER sub-field, and it runs BEFORE the
+ * marker is computed. That ordering is the whole point: ACF leaves a blank row
+ * behind whenever someone clicks "Add a point" and then changes their mind, and
+ * numbering before the filter would spend `02` on a row that draws nothing and
+ * print `01 03 04` under a list of three.
+ *
+ * The two branches are written on ONE template line below. Breaking `{point.item}`
+ * onto its own line would put a newline-and-indent inside the `<span>` — a
+ * leading space on the plain-line branch and a second space after `</b>` on the
+ * other — and that span IS the text column of a two-column grid, so a leading
+ * space is visible rather than collapsed against a preceding word.
+ */
+const checklistPoints = (Array.isArray(checklist) ? checklist : [])
+  .map((row) => ({
+    lead: typeof row?.lead === "string" ? row.lead.trim() : "",
+    item: typeof row?.item === "string" ? row.item.trim() : "",
+  }))
+  .filter((point) => point.lead !== "" || point.item !== "");
+const hasChecklist = checklistPoints.length > 0;
+
 const hasCta = typeof ctaLabel === "string" && ctaLabel.trim() !== "";
 const hasCta2 = typeof ctaLabel2 === "string" && ctaLabel2.trim() !== "";
 
@@ -343,7 +427,37 @@ const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
             family's only pull-quote treatment and no `.what-quote` has ever
             existed, so naming it after the side it happens to appear on today
             would invent a second class for one appearance. */}
-        {quote && <div class="natural-quote">{quote}</div>}
+        {quote && <div class="natural-quote">{quote}</div>}{/* `}{` with nothing
+            between, on the same rule the callout and the second button below
+            follow: an expression on its own line carries a newline-and-indent
+            TEXT NODE either side, and that survives into the HTML as a rendered
+            space even when the condition is false. Every band saved before today
+            has an empty checklist, so a line of its own here would widen the gap
+            between the quote and the prose on every one of them — a diff on
+            pages that gained nothing. Flush against the previous brace, this
+            adds no text node at all, and the single whitespace node that already
+            sat between the quote and the prose is still the only one there. The
+            comment lives INSIDE the expression because a comment node on its own
+            line would reintroduce exactly what it documents.
+
+            AFTER THE QUOTE AND BEFORE THE PROSE, which is where all four pages
+            that ship this list put it: `.natural-text` is eyebrow, h2,
+            `.natural-quote`, `ul.candidate-list`, and none of the four has a
+            prose column in the same band. Both orderings reproduce those four
+            identically; this one is the order the field sits in on the layout
+            (quote, then checklist, then the buttons) and the order the markup
+            reads in today. */
+          hasChecklist && (
+            <ul class="candidate-list">
+              {checklistPoints.map((point, i) => (
+                <li>
+                  <span class="marker">{String(i + 1).padStart(2, "0")}</span>
+                  <span>{point.lead === "" ? point.item : <Fragment><b>{point.lead}</b> {point.item}</Fragment>}</span>
+                </li>
+              ))}
+            </ul>
+          )
+        }
         {/* `.prose` appears only if it would hold at least one paragraph — an
             empty `body_2` on a band that has no `body` either must not leave a
             bare `<div class="prose">` behind. */}
@@ -602,6 +716,33 @@ const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
     text-decoration-color: #fff;
   }
 
+  /* The checklist on the two dark bands.
+     These three declarations are not a design choice made here — they are the
+     values the four page sheets already ship, because all four places a
+     `.candidate-list` appears in the corpus are on `.section.alt`
+     (`.bgraft`, `.aos4`, `.fmdi`, and `.sinuslift`'s identically-declared
+     `.tech-list`). They are stated in this block rather than left to the page
+     sheet for the reason `.vs-link` above documents at length: every one of
+     those rules is namespaced under a PAGE class, and a band rendered from the
+     CMS has no page class to match, so a migrated checklist on a charcoal band
+     would fall through to the light-band colours below and print near-black
+     text on charcoal.
+     Placed with the other band inversions, and more specific than the base
+     rules further down, so source order between the two sections is irrelevant
+     — same arrangement as `.natural-quote`. */
+  .section.alt .candidate-list .marker,
+  .section.sage .candidate-list .marker {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .section.alt .candidate-list b,
+  .section.sage .candidate-list b {
+    color: #fff;
+  }
+  .section.alt .candidate-list span,
+  .section.sage .candidate-list span {
+    color: rgba(255, 255, 255, 0.85);
+  }
+
   .section.dark h2 {
     color: var(--vs-ink);
   }
@@ -697,6 +838,72 @@ const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
     border-bottom: 1px solid var(--vs-line);
     margin-bottom: 26px;
     max-width: 36ch;
+  }
+
+  /* ---------- checklist ----------
+     `auto 1fr` with `align-items: baseline`, so the italic numeral sits on the
+     first BASELINE of its line's text rather than the top of the box — a marker
+     that is 20px display italic next to 15px body would otherwise ride high on
+     every row, and the misalignment only shows once a line wraps.
+
+     `.candidate-list b` gets `margin-right: 6px` AND the markup keeps a literal
+     space after `</b>`. Both are in the pages this reproduces, and the space is
+     load-bearing on its own: `b` is `inline-block`, so a browser that had only
+     the margin would still break the line between the dash and the first word
+     with no space to show for it.
+
+     The colours here are the LIGHT-band case, which no page in the corpus
+     exercises today — all four draw this list on charcoal. They are derived from
+     what this block already does to its own type: the marker takes the quote's
+     sage, `b` takes the h2's ink, the line takes a paragraph's ink-soft. The
+     charcoal and sage bands override all three above. */
+  .candidate-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .candidate-list li {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 14px;
+    align-items: baseline;
+  }
+  .candidate-list .marker {
+    font-family: var(--vs-font-display);
+    font-style: italic;
+    font-weight: 300;
+    color: var(--vs-sage);
+    font-size: 20px;
+    line-height: 1;
+  }
+  .candidate-list b {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    color: var(--vs-ink);
+    font-size: 16.5px;
+    display: inline-block;
+    margin-right: 6px;
+  }
+  /* Less specific than `.marker` above, which is why the numeral keeps its own
+     size and colour despite also being a span. Same arrangement, same order, as
+     the four page sheets. */
+  .candidate-list span {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--vs-ink-soft);
+  }
+  /* The list ships `margin: 0` on all four pages because on all four it is the
+     last thing in the column — the quote's own 26px bottom margin makes the gap
+     above it, and there is nothing below. A band that filled BOTH the checklist
+     and the copy would butt the first paragraph straight against the last line
+     of the list. Stated on the combinator so it can only ever fire when both are
+     present, which is never on the four pages this reproduces; 26px is the
+     quote's bottom margin, i.e. the rhythm this column already has. */
+  .candidate-list + .prose {
+    margin-top: 26px;
   }
 
   /* ---------- CTA ---------- */

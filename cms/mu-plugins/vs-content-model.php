@@ -233,8 +233,9 @@ const BLOCK_BANDS = [
  * client would recognise on the page, not as the component name.
  */
 const BLOCK_CODE_BANDS = [
-	'local_trust'           => 'Why patients choose us — map, reviews and address (Clear Aligners)',
-	'teeth_whitening_local' => 'Why patients choose us — map, reviews and address (Teeth Whitening)',
+	'local_trust'             => 'Why patients choose us — map, reviews and address (Clear Aligners)',
+	'teeth_whitening_local'   => 'Why patients choose us — map, reviews and address (Teeth Whitening)',
+	'porcelain_veneers_local' => 'Why patients choose us — map, reviews and address (Porcelain Veneers)',
 ];
 
 /**
@@ -381,6 +382,38 @@ function block_code_preamble( string $slug ): array {
  * ACF has no "list of strings" field, so the shape is a repeater with a single
  * text sub-field named `item`. Named here once so every list on every layout
  * has the same shape and the Astro side can read `{ item }` off all of them.
+ *
+ * `lead` IS A SECOND, OPTIONAL SUB-FIELD, AND IT LANDS ON EVERY LIST.
+ *
+ * The `.candidate-list` shape on the implant pages is
+ * `<li><span class="marker">01</span><span><b>Lead text —</b> body</span></li>`
+ * — two pieces of copy with different markup around them, not one line. Folding
+ * the lead-in into `item` would lose the <b> around half of it: the same words
+ * in the wrong markup, which is the failure media_split's `body_2` and
+ * comparison_cards' `callout_body` split exist to avoid.
+ *
+ * THE MARKER IS NOT A FIELD AND MUST NOT BECOME ONE. `01`, `02`, `03` is the
+ * row's position written out, so the component derives it from the index.
+ * Stored, it is a number an editor has to renumber by hand after every reorder,
+ * and the first missed renumber is a list that counts 01, 02, 02.
+ *
+ * IT CARRIES ITS TRAILING EM DASH. The dash sits INSIDE the <b> in the markup —
+ * `<b>Lead text —</b>` — so a component that appended one would print it outside
+ * the bold and change every line it touches. The field holds exactly what the
+ * <b> holds; nothing downstream decides.
+ *
+ * SHARED, AND THAT IS INTENDED. This factory builds three lists —
+ * media_split's `checklist`, comparison_cards' `tiers.bullets` and
+ * pricing_tiers' `plans.features` — so `lead` appears on all three. Uniform is
+ * the point: one list shape on the site, one pair of names for the Astro side to
+ * read off any of them.
+ *
+ * ADDITIVE ON ALL THREE. It is one more text sub-field on repeaters that already
+ * exist: a text field mints no GraphQL type (only repeaters, groups and
+ * flexible-content layouts do), so no container name changes and nothing can
+ * collide. No existing sub-field moves or is renamed, and a row saved before
+ * today reads `lead` as empty — which the component must draw as no <b> and no
+ * separator at all, leaving those lists byte-for-byte as they render now.
  */
 function block_list_field( string $key, string $label, string $name, string $button = 'Add line' ): array {
 	return [
@@ -391,6 +424,18 @@ function block_list_field( string $key, string $label, string $name, string $but
 		'layout'       => 'table',
 		'button_label' => $button,
 		'sub_fields'   => [
+			[
+				// First in the row because it is first in the line. Blank is the
+				// normal case and the only case on the live pages: every list the
+				// site ships today is plain lines.
+				'key'          => $key . '_lead',
+				'label'        => 'Lead-in',
+				'name'         => 'lead',
+				'type'         => 'text',
+				'instructions' => 'Optional. The bold opening of the line, including the dash it ends with '
+					. '— for example “Unpreserved extraction sites —”. Leave it blank for a plain '
+					. 'line, which is what every list on the site has today.',
+			],
 			[
 				'key'   => $key . '_item',
 				'label' => 'Line',
@@ -1584,6 +1629,37 @@ function register_field_groups(): void {
 												'type'  => 'textarea',
 												'rows'  => 3,
 											],
+											/**
+											 * The SECOND paragraph of a card.
+											 *
+											 * A card draws p.lead and then ONE <p>, and
+											 * porcelain-veneers' `why` card 1 has three paragraphs.
+											 * The card's three paragraphs map to `lead`, `body`
+											 * and this field, so the card is carried in full and
+											 * no paragraph gap remains on it. Running two of them
+											 * together inside a single <p> to make the word count
+											 * match would be the same words in the wrong markup,
+											 * which is the one thing this batch exists to stop
+											 * doing.
+											 *
+											 * A field and not a taller `body`, on the same rule
+											 * media_split's `body_2` follows: two paragraphs typed
+											 * into one textarea come back as one <p> with a newline
+											 * in the source and no gap on the page.
+											 *
+											 * Blank is the safe state and the state of every card
+											 * saved so far: no text, no second <p>, no whitespace
+											 * between the first paragraph and whatever follows it.
+											 */
+											[
+												'key'          => 'field_vs_blk_cards_card_body_2',
+												'label'        => 'Body — second paragraph',
+												'name'         => 'body_2',
+												'type'         => 'textarea',
+												'rows'         => 3,
+												'instructions' => 'Optional. A second paragraph under the first. Leave it blank and the '
+													. 'card shows one paragraph exactly as it does now.',
+											],
 											[
 												'key'   => 'field_vs_blk_cards_card_href',
 												'label' => 'Link',
@@ -1809,10 +1885,24 @@ function register_field_groups(): void {
 										'label'         => 'Columns',
 										'name'          => 'columns',
 										'type'          => 'select',
+										// FIVE IS A SHAPE THE SITE ALREADY DRAWS. porcelain-veneers'
+										// .process-grid is repeat(5, 1fr) with five steps in it, and this
+										// select stopped at 4. A select stores the posted string with no
+										// check against its choices, so writing "5" into the old list left a
+										// value wp-admin renders as an empty control — and the next editor
+										// save posts whatever that empty control holds, silently rewriting
+										// the band to some other width. The choice has to exist before the
+										// row that uses it does.
+										//
+										// Additive: no saved row holds "5", so every band written before
+										// today keeps the 2, 3 or 4 it already stores and renders unchanged.
+										// Only card_grid's own Columns select is left alone — no migrated or
+										// surveyed card grid runs five across.
 										'choices'       => [
 											'2' => '2',
 											'3' => '3',
 											'4' => '4',
+											'5' => '5',
 										],
 										'default_value' => '4',
 										'return_format' => 'value',
@@ -2364,6 +2454,36 @@ function register_field_groups(): void {
 										'rows'         => 4,
 										'instructions' => 'Plain text. The paragraph inside the card, above the list — not the one '
 											. 'under the section heading, which is Body above.',
+									],
+									/**
+									 * The SECOND paragraph inside the card.
+									 *
+									 * porcelain-veneers' `lasting` band opens `.lasting-body` with two
+									 * paragraphs and this layout offered one slot, so backfilling that
+									 * page without this field drops the second whole.
+									 *
+									 * Its own field rather than more rows on `intro`, on the house rule:
+									 * a second paragraph gets a second field or a documented split, never
+									 * a bigger box. Both paragraphs in one textarea render as one <p>
+									 * with a stray newline in the source.
+									 *
+									 * Declared between `intro` and `points` because that is its place in
+									 * the card — card heading, paragraph, paragraph, list — and an editor
+									 * reading down this row should meet the fields in the order the
+									 * reader meets the content.
+									 *
+									 * Blank on every row saved so far, and blank must draw nothing: an
+									 * empty <p> between the paragraph and the <ul> is a visible gap in a
+									 * card nobody edited.
+									 */
+									[
+										'key'          => 'field_vs_blk_stat_intro_2',
+										'label'        => 'Card intro — second paragraph',
+										'name'         => 'intro_2',
+										'type'         => 'textarea',
+										'rows'         => 4,
+										'instructions' => 'Optional. A second paragraph under the first, still inside the card and '
+											. 'above the list. Leave it blank and the card reads exactly as it does now.',
 									],
 									[
 										'key'          => 'field_vs_blk_stat_points',

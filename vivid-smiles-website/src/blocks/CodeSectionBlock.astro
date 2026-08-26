@@ -6,7 +6,7 @@
  * ── The regression this exists to fix ─────────────────────────────────────
  * "Stays in code" and "cannot be positioned by an editor" are different facts.
  * Conflating them moved a band on a live page. The pilot's LocalTrust band sits
- * between `lasting` and `gallery` (clear-aligners.astro:493-499), and the
+ * between `lasting` and `gallery` (clear-aligners.astro:505-510), and the
  * template renders it OUTSIDE the migration switch — so the moment PageBlocks
  * started drawing the eight blocks, the bespoke band fell to wherever the
  * template happens to put it:
@@ -97,7 +97,7 @@ interface CodeBand {
 const BANDS: Record<string, CodeBand> = {
   /**
    * The pilot's "Parker, CO" trust band — map embed, review summary, address,
-   * two CTAs. Reproduced verbatim from clear-aligners.astro:493-499, including
+   * two CTAs. Reproduced verbatim from clear-aligners.astro:505-510, including
    * the omitted `background` (LocalTrust defaults to cream, which is the band
    * this has always drawn) and the omitted `eyebrow` (defaults to "Our
    * Practice"). Both are left omitted rather than restated: a default that is
@@ -134,6 +134,37 @@ const BANDS: Record<string, CodeBand> = {
       intro:
         "Patients come for KOR whitening locally and from out of state — every appointment starts with the same shade-and-staining consultation, regardless of how far you travel for it.",
       body: "Vivid Smiles Dentistry is located at 17167 Cedar Gulch Pkwy in Parker, welcoming new patients under the care of Dr. Bryce Richardson.",
+    },
+  },
+
+  /**
+   * The same component again on porcelain-veneers, with that page's copy —
+   * reproduced verbatim from porcelain-veneers.astro:496-501.
+   *
+   * Third instance, same reason the second one exists: the wording is page
+   * content, so reusing `local_trust` here would put "for Clear Aligners" under
+   * a veneers heading. Key stays <page>_<anchor>; the anchor is `local` because
+   * that is what LocalTrust's `id` defaults to and what this page has always
+   * rendered.
+   *
+   * This page passes the SAME four props as the other two and no others — no
+   * `background`, `eyebrow`, `note`, `ctas` or `id`. The band it draws is
+   * therefore the cream default, which is what belongs between `lasting` and
+   * the paper `cost` section; restating the defaults here would create a second
+   * place they could drift from LocalTrust.astro.
+   *
+   * Registered in BLOCK_CODE_BANDS in the same commit. Only one of the two and
+   * the row saves cleanly, resolves to nothing, and the band is simply gone
+   * from a live page with a console warning nobody reads.
+   */
+  porcelain_veneers_local: {
+    component: LocalTrust,
+    props: {
+      heading: "Veneers Designed",
+      headingItalic: "in Parker, Colorado",
+      intro:
+        "Dr. Richardson is a Parker resident who built Vivid Smiles Dentistry to bring high-level cosmetic care to patients locally and from across the country.",
+      body: "Located on Cedar Gulch Parkway, the practice welcomes patients locally and from out of state — many travel in for their veneer treatment. With 300+ five-star reviews, it has a reputation for consistent results and genuine attention to every patient.",
     },
   },
 };

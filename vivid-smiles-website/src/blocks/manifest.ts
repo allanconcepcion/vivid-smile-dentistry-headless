@@ -144,10 +144,29 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    * Nothing in the `.why-card` family is a link, so CardGridBlock draws no
    * anchor for it — and a field that is queried and then dropped reads as
    * supported. Same rule as `media_split.checklist` below.
+   *
+   * `body2` (PHP `body_2`) is the card's SECOND paragraph, and it is here for
+   * the same reason media_split's is: a card draws `p.lead` and then one `<p>`,
+   * while porcelain-veneers' `why` card 1 has three paragraphs. This selects the
+   * second, so the card's three paragraphs map to `lead`, `body` and `body2` and
+   * the card is carried in full — the gap this closed is no longer open. Folding
+   * two paragraphs into `body` would run them together inside a single `<p>`,
+   * which is the same words in the wrong markup.
+   *
+   * Digit-suffixed name, same derivation as `ctaLabel2` above: wpgraphql-acf
+   * replaces each non-alphanumeric run with a space, title-cases, joins and
+   * lowers the first letter, so `body_2` is `body2` — no underscore, no trailing
+   * separator. That is no longer a derivation on trust: media_split already
+   * ships `body2`/`ctaLabel2`/`ctaHref2` against the live schema.
+   *
+   * Additive to all 187 saved rows: the field is optional on the layout and
+   * blank on every one of them, and CardGridBlock emits the second `<p>` only
+   * when `body2` is non-empty — so a card saved before this batch renders
+   * byte-for-byte as it does now.
    */
   PageFieldsBlocksCardGridLayout: {
     typeName: "PageFieldsBlocksCardGridLayout",
-    fields: `${BLOCK_PREAMBLE_FIELDS} columns numbered cards { meta title lead body }`,
+    fields: `${BLOCK_PREAMBLE_FIELDS} columns numbered cards { meta title lead body body2 }`,
   },
 
   /**
@@ -188,7 +207,7 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    */
   PageFieldsBlocksMediaSplitLayout: {
     typeName: "PageFieldsBlocksMediaSplitLayout",
-    fields: `${BLOCK_PREAMBLE_FIELDS} ${BLOCK_IMAGE_FIELDS} imageAlt mediaSide ratio body2 calloutHeading calloutBody quote ctaLabel ctaHref ctaLabel2 ctaHref2`,
+    fields: `${BLOCK_PREAMBLE_FIELDS} ${BLOCK_IMAGE_FIELDS} imageAlt mediaSide ratio body2 calloutHeading calloutBody quote checklist { lead item } ctaLabel ctaHref ctaLabel2 ctaHref2`,
   },
 
   /**
@@ -218,6 +237,17 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    * is an empty list and ProcessStepsBlock draws no `.process-pre` wrapper for
    * it, an empty `ctaText` draws no `.inline-cta`. A band saved before this
    * batch renders exactly as it does now.
+   *
+   * `columns` GAINED A FIFTH CHOICE THIS BATCH AND THE SELECTION SET DID NOT
+   * CHANGE. The field was already queried; what changed in the PHP is that its
+   * select now offers "5" as well as "2" | "3" | "4", because
+   * porcelain-veneers' `.process-grid` is `repeat(5, 1fr)` over five steps.
+   * ProcessStepsBlock therefore has to handle the string "5" — a component that
+   * maps 2/3/4 and falls back for anything else will silently draw that band
+   * four across. Nothing here can catch that: "5" arrives as a plain string on
+   * a field this fragment already asks for, so it is invisible to query
+   * validation and to `scripts/check-block-schema.mjs`. Additive to live rows —
+   * none of them stores "5".
    */
   PageFieldsBlocksProcessStepsLayout: {
     typeName: "PageFieldsBlocksProcessStepsLayout",
@@ -281,12 +311,23 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    * `intro` for that reason. Without it the backfill was dropping that `<h3>` on
    * every page that has one and running the paragraph straight under the figure.
    *
+   * `intro2` (PHP `intro_2`) is the card's SECOND paragraph — `.lasting-body` on
+   * porcelain-veneers runs two, and this layout had one slot, so the backfill
+   * was dropping the second whole. Selected immediately after `intro` because
+   * that is its place in the card: card heading, paragraph, paragraph, list.
+   * A second field rather than a longer `intro`, on the house rule — two
+   * paragraphs in one textarea come back as one `<p>` with a newline in it.
+   *
+   * Digit-suffixed name, derived the same way `body2` is: `intro_2` → `intro2`.
+   *
    * Additive: blank `bodyHeading` means StatCalloutBlock emits no `<h3>`, so
-   * `.lasting-body` still opens with `intro` exactly as it does today.
+   * `.lasting-body` still opens with `intro` exactly as it does today, and blank
+   * `intro2` means no second `<p>` between that paragraph and the `<ul>` — not
+   * an empty one, which would show as a gap in a card nobody edited.
    */
   PageFieldsBlocksStatCalloutLayout: {
     typeName: "PageFieldsBlocksStatCalloutLayout",
-    fields: `${BLOCK_PREAMBLE_FIELDS} value unit caption bodyHeading intro points { lead body }`,
+    fields: `${BLOCK_PREAMBLE_FIELDS} value unit caption bodyHeading intro intro2 points { lead body }`,
   },
 
   /**
@@ -319,10 +360,24 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    * types and drops one side's fields, leaving a schema that looks healthy until
    * a query stops validating.
    *
-   * `features` is the house list-of-lines shape — a repeater whose single text
-   * sub-field is named `item`, the same shape block_list_field() gives
-   * `checklist` (vs-content-model.php:385-401) — so the Astro side reads
-   * `{ item }` off it as it does off every other list on the site.
+   * `features` is the house list-of-lines shape — a repeater built by
+   * block_list_field() (vs-content-model.php:382-451), the same factory behind
+   * `media_split.checklist` and `comparison_cards.tiers.bullets` — so the Astro
+   * side reads the same sub-fields off it as off every other list on the site.
+   *
+   * THAT FACTORY GAINED AN OPTIONAL `lead` THIS BATCH, AND IT IS DELIBERATELY
+   * NOT SELECTED HERE. `lead` is the bolded lead-in of the `.candidate-list`
+   * shape on the implant pages — `<b>Lead text —</b> body`, marker derived from
+   * the row index, never stored — and because the factory is shared it now
+   * appears on all three lists, `features` included. No component draws it yet,
+   * and no page that has that shape is migrated yet, so there is no selection
+   * set it belongs in today: PricingTiers draws a feature as one plain line, and
+   * querying `lead` here would ask for data nothing renders, which is the exact
+   * thing `cards[].href` and `media_split.checklist` are kept out for. It goes
+   * into whichever list's fragment first draws `.candidate-list`, in the same
+   * commit as the component — probably `checklist`, which is not selected either.
+   * Leaving it out is additive by construction: an unqueried field cannot change
+   * a rendered page.
    *
    * `price` and `meta` are text, not numbers: the corpus reads "$2,500–$6,000"
    * and "per arch". `highlighted` is a true_false and arrives as a boolean; it

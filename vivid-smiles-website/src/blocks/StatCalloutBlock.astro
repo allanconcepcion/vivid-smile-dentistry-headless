@@ -19,6 +19,7 @@
  *   body          the paragraph under the section heading, inside .section-head
  *   body_heading  the <h3> that opens .lasting-body, above `intro`
  *   intro         the paragraph inside the card, under that <h3>
+ *   intro_2       the second paragraph inside the card, under `intro`
  *
  * `body_heading` is teeth-whitening.astro:607 ("Maintaining Your Whitening
  * Results"): the card there carries a subject of its own, distinct from the
@@ -102,6 +103,7 @@ interface Props {
    *   body_heading  the card's <h3>, first child of .lasting-body
    *   body          the paragraph under the <h2>
    *   intro         the paragraph under the <h3>
+   *   intro_2       the paragraph under `intro`
    *
    * The pilot (clear-aligners) has no such <h3> and must keep having none, so
    * blank renders no element rather than an empty heading.
@@ -109,6 +111,26 @@ interface Props {
   bodyHeading?: string | null;
   /** The paragraph inside the card, above the list. NOT the section intro. */
   intro?: string | null;
+  /**
+   * The SECOND paragraph inside the card, between `intro` and the list.
+   *
+   * A field of its own rather than more text appended to `intro`, because
+   * `intro` renders as a single `<p>`: folding two paragraphs into it runs them
+   * together inside one `<p>`, which is the same words in the wrong markup — the
+   * house rule already applied to media_split's body_2 and comparison_cards'
+   * callout_body.
+   *
+   * It exists because `.lasting-body` on porcelain-veneers is two `<p>` in a
+   * row, then nothing: "No-prep and minimal-prep veneers have an added
+   * advantage: if replacement is needed, more natural structure remains to
+   * support the new set." With one `<p>` slot that sentence has nowhere to land
+   * and is silently dropped on backfill, which is the loss this closes.
+   *
+   * Every row saved before this field existed reads it as blank, and blank
+   * renders no element at all — not an empty `<p>`, not a wrapper — so those
+   * rows keep their current markup byte for byte.
+   */
+  intro2?: string | null;
   points?: PointRow[] | null;
 }
 
@@ -123,6 +145,7 @@ const {
   caption,
   bodyHeading,
   intro,
+  intro2,
   points,
 } = Astro.props;
 
@@ -143,6 +166,15 @@ const unitText = text(unit);
 const captionText = text(caption);
 const bodyHeadingText = text(bodyHeading);
 const introText = text(intro);
+// Rendered by the conditional jammed hard against the `intro` one below, with
+// no line break between the two `}`…`{`. That formatting is deliberate and
+// fragile: Astro keeps template whitespace verbatim, so a newline placed
+// BETWEEN the two expressions is emitted as a text node on every page — even
+// the pages where this field is blank — and a row saved before today would stop
+// diffing byte-for-byte against its current build. Newlines INSIDE the braces
+// are JavaScript and emit nothing, which is why the expression is broken across
+// lines there instead. If you reformat that block, check the emitted output.
+const intro2Text = text(intro2);
 
 // A row with neither half is an empty line the editor added and abandoned; it
 // would render as a bare bullet.
@@ -158,8 +190,15 @@ const hasStat = valueText !== "" || captionText !== "";
 // `bodyHeadingText` counts here so a card that is only a heading still draws
 // its column; leaving it out would let an editor fill the heading and watch it
 // vanish, which is the silent kind of content loss this phase exists to stop.
+// `intro2Text` counts for the same reason `bodyHeadingText` does: a card whose
+// only filled field is the second paragraph must still draw its column. It can
+// never turn this guard on for a row saved before today, because such a row has
+// no value for the field, so no existing card starts appearing.
 const hasBody =
-  bodyHeadingText !== "" || introText !== "" || pointRows.length > 0;
+  bodyHeadingText !== "" ||
+  introText !== "" ||
+  intro2Text !== "" ||
+  pointRows.length > 0;
 ---
 
 <section class:list={["section", bandModifier]} id={id} data-vs-reveal-batch>
@@ -182,7 +221,9 @@ const hasBody =
           {hasBody && (
             <div class="lasting-body">
               {bodyHeadingText && <h3>{bodyHeadingText}</h3>}
-              {introText && <p>{introText}</p>}
+              {introText && <p>{introText}</p>}{
+                intro2Text && <p>{intro2Text}</p>
+              }
               {pointRows.length > 0 && (
                 <ul>
                   {pointRows.map((point) => (

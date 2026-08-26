@@ -21,6 +21,14 @@
  * an empty `<p>` instead would add a 14px gap-flex row to two thirds of the
  * cards on the site.
  *
+ * THREE PARAGRAPH SLOTS, NOT TWO. A card draws `lead`, then `body`, then
+ * `body2`. The third exists because porcelain-veneers' `why` card 1 carries
+ * three paragraphs of live client copy, and the house rule is that a second
+ * paragraph gets a second field: folding it into `body` would run two
+ * paragraphs together inside one `<p>`, which is the same words in the wrong
+ * markup. Every card saved before this field existed has an empty `body2` and
+ * emits nothing extra, so those cards render byte-for-byte as they do today.
+ *
  * SUB-FIELD WITH NO RENDERING: `cards[].href`. Nothing in the `.why-card`
  * family is a link — there is no hover affordance, no arrow, no focus style for
  * one — so inventing markup for it here would be designing, which this phase
@@ -41,6 +49,13 @@ export interface CardGridCard {
   title?: string | null;
   lead?: string | null;
   body?: string | null;
+  /**
+   * A third paragraph, drawn after `body`. `body2` and not a longer `body`
+   * because two paragraphs inside one `<p>` lose the paragraph break the copy
+   * was written with. Optional like every other part of a card: absent on the
+   * two thirds of cards across the family that carry one paragraph or none.
+   */
+  body2?: string | null;
 }
 
 interface Props {
@@ -162,7 +177,14 @@ function figure(card: CardGridCard, index: number): string | null {
                 {num && <div class="num">{num}</div>}
                 {card.title && <h3>{card.title}</h3>}
                 {card.lead && <p class="lead">{card.lead}</p>}
-                {card.body && <p>{card.body}</p>}
+                {card.body && <p>{card.body}</p>}{
+                  /* Flush against the previous conditional, no newline between
+                     them. Astro preserves whitespace between expressions, so a
+                     conditional on its own line adds a permanent whitespace-only
+                     text node to EVERY card saved before body_2 existed. Same
+                     idiom as StatCalloutBlock. */
+                  card.body2 && <p>{card.body2}</p>
+                }
               </article>
             );
           })}

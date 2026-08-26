@@ -93,7 +93,7 @@ interface Props {
   body?: string | null;
   /** "grid" | "card" | "divided" — only `grid` is drawn. See the header. */
   layout?: string | null;
-  /** "2" | "3" | "4" — ACF returns the select's value as a string. */
+  /** "2" | "3" | "4" | "5" — ACF returns the select's value as a string. */
   columns?: string | number | null;
   /**
    * The wide prose cards above the numbered steps. Empty or absent renders no
@@ -165,9 +165,16 @@ if (layout !== "grid" && layout !== null && layout !== undefined && layout !== "
  * Four matches both the PHP field's default and this page's own band, so a
  * missing value degrades to the layout the markup already has. Emitting nothing
  * at 4 is what keeps `class="process-grid"` the exact string the page ships.
+ *
+ * The test enumerates the values it accepts rather than passing through
+ * whatever ACF hands over, so a select choice added in wp-admin and not here
+ * emits no class and degrades to the 4-across base — a band one column off,
+ * not a band wearing a `cols-7` no stylesheet answers. `5` is enumerated here
+ * because the PHP select gained that choice in this same batch.
  */
 const cols = String(columns ?? "4");
-const colsClass = cols === "2" || cols === "3" ? `cols-${cols}` : undefined;
+const colsClass =
+  cols === "2" || cols === "3" || cols === "5" ? `cols-${cols}` : undefined;
 
 const rows = Array.isArray(steps) ? steps : [];
 
@@ -486,6 +493,46 @@ const hasCta = typeof ctaText === "string" && ctaText.trim() !== "";
   .process-grid.cols-2 {
     grid-template-columns: repeat(2, 1fr);
   }
+  /* Five across, and it is a scoped `.cols-5` rather than something left to the
+     page sheet on purpose. porcelain-veneers.css carries
+     `.pveneers .process-grid { repeat(5, 1fr) }` at (0,2,0), and this block's
+     scoped `.process-grid` compiles to `.process-grid[data-astro-cid-…]`, also
+     (0,2,0). Two rules at the same specificity are settled by whichever the
+     bundler emits last, and bundle order is not a thing a band's column count
+     should hang on — the failure is a five-step row silently drawing four wide
+     and one orphaned underneath, on a live page, decided by build order. This
+     compound is (0,3,0) and wins outright, so the band is deterministic whether
+     the page sheet is present, absent, or removed in the stylesheet pass.
+
+     Read off the compiled CSS rather than assumed, because it rests on
+     astro.config leaving `scopedStyleStrategy` at its default `attribute`. Set
+     that to `where` and the scope contributes no specificity at all: this
+     compound drops to (0,2,0), the tie with `.pveneers .process-grid` comes
+     back, and so does every other tie this file's scoped compounds currently
+     win against a page sheet. */
+  .process-grid.cols-5 {
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  /* THIS BREAKPOINT IS NOT COSMETIC — IT REPLACES ONE THE PAGE SHEET CAN NO
+     LONGER APPLY.
+
+     porcelain-veneers.css collapses its process grid to two columns at 1100px,
+     but that rule is `.pveneers .process-grid` at (0,2,0) and the scoped
+     `.process-grid.cols-5` above compiles to
+     `.process-grid[data-astro-cid-...].cols-5` at (0,3,0). A media query adds no
+     specificity, so without this rule the scoped five-track declaration wins
+     inside the page's own 1100px query and the band draws FIVE across between
+     992px and 1100px, where the page draws two today.
+
+     Five 1fr tracks is the only column count in this component that needs to
+     collapse before 991px, which is why no sibling `.cols-*` rule appears here:
+     at 1100px a five-track row is already under 200px per card. */
+  @media (max-width: 1100px) {
+    .process-grid.cols-5 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
 
   /* The card is a translucent white plate, so it reads on every one of the five
      bands without a per-band variant — which is why there is none here even
@@ -590,8 +637,14 @@ const hasCta = typeof ctaText === "string" && ctaText.trim() !== "";
      files keep a trailing "responsive" section physically separated from what
      it modifies. */
   @media (max-width: 991px) {
+    /* `.cols-5` is named here for the same reason `.cols-3` is: the base
+       `.process-grid` in this block is (0,2,0) once scoped, the compound is
+       (0,3,0), and a media query does not add specificity — so a compound left
+       out of this list keeps its desktop track count all the way down and puts
+       five cards in a phone-width row. */
     .process-grid,
-    .process-grid.cols-3 {
+    .process-grid.cols-3,
+    .process-grid.cols-5 {
       grid-template-columns: repeat(2, 1fr);
     }
     /* The pre-cards stack a breakpoint earlier than the numbered ones: they
@@ -611,7 +664,8 @@ const hasCta = typeof ctaText === "string" && ctaText.trim() !== "";
     }
     .process-grid,
     .process-grid.cols-2,
-    .process-grid.cols-3 {
+    .process-grid.cols-3,
+    .process-grid.cols-5 {
       grid-template-columns: 1fr;
     }
     .inline-cta {
