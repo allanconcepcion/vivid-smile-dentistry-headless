@@ -3057,6 +3057,12 @@
       },
       "cta_href_2": {
        "literal": "#process"
+      },
+      "callout_heading": {
+       "literal": "Why Jawbone Loss Happens"
+      },
+      "callout_body": {
+       "literal": "Jawbone loss most often results from tooth extraction without replacement, periodontal disease, or a missing tooth left untreated for years. How quickly bone resorbs varies by patient. CBCT imaging reveals your current bone volume and determines whether grafting is necessary before implant planning begins."
       }
      },
      "layout_evidence": ".what-img precedes .what-text in the DOM (bone-grafting.astro:350, 358) and .bgraft .what-grid is 1fr 1fr with gap 80px (bone-grafting.css:336-339) — photo left, even split. `even` is already the family default for a left photo (MediaSplitBlock.astro:284-286), so no ratio-* modifier is emitted and the grid div matches the template's.",
@@ -3103,7 +3109,8 @@
       "`.veneers-callout` in this page's own markup FIRST, so the existing callout pair fits",
       "with no new field. (b) is the same move teeth-whitening's price-table gap asks for and",
       "is the cheaper of the two."
-     ]
+     ],
+     "callout_evidence": "The .what-causes block (bone-grafting.astro:369-379): an <h3> and one paragraph. The batch that added sub_cards concluded this band was 'already fully carried by callout_heading / callout_body' — correct about the fields, wrong about this map, which never mapped them. The measurement caught it: 55 words that no other field claims. The .what-causes-rule divider and the 'Causes' eyebrow stay recorded gaps."
     },
     {
      "section_id": "implants",
