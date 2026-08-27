@@ -207,6 +207,11 @@ const anchorsSeen = new Map<string, number>();
 const derivedTocLinks: TocLink[] = [];
 
 for (const block of blocks) {
+  // A nested block is drawn INSIDE the band above it, not as a band of its own,
+  // so it has no id to link to. Without this the rail emits an entry pointing at
+  // an anchor nothing renders — a dead link in the "On this page" list.
+  if (block?.nested) continue;
+
   const anchor = typeof block.anchor === 'string' ? block.anchor.trim() : '';
   if (anchor === '') continue;
 

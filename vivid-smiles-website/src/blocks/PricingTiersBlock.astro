@@ -38,6 +38,50 @@
  * neither is dropped here rather than emitted as a blank heading above a blank
  * 60px price.
  *
+ * ── Two shapes, one layout: `nested` ────────────────────────────────────────
+ * With `nested` set, this block stops being a band and becomes the last child
+ * of the block before it, drawn through that block's <slot/>. That is the shape
+ * teeth-whitening already has in code: `.lasting-cost-wrap` sits INSIDE
+ * `#lasting` as a sibling of `.lasting-card` in the same `.wrap`
+ * (teeth-whitening.astro:623-686), separated from the card by a 56px margin
+ * (teeth-whitening.css:601).
+ *
+ * The obvious alternative — give the price table a `<section id="cost">` of its
+ * own — was measured and rejected. A `.section` carries 110px of padding top
+ * AND bottom (the rule in <style> below), so un-nesting trades a 56px gap for
+ * ~220px and the page visibly moves. WordPress is here to change the words, not
+ * the design, so the migration has to be able to produce the shape the template
+ * already has.
+ *
+ * What nesting changes, and nothing else here changes:
+ *   - no `<section>` and no `.wrap`: both belong to the host block;
+ *   - no `id` and no `data-vs-reveal-batch`. A nested block is not a band, so
+ *     it is not an anchor target and must not surface in the derived "On this
+ *     page" rail; the host's own section already carries the reveal batch that
+ *     its children ride on, which is why `.lasting-cost-wrap` carries no reveal
+ *     attribute in the template either. `id` is still ACCEPTED and deliberately
+ *     unread — PageBlocks spreads every field and dedupes anchors before it
+ *     knows which rows are nested, so refusing the prop would be a type error
+ *     over a value this branch simply does not emit.
+ *   - `band` is ignored: the band is the host's to decide, and this block is
+ *     inside it rather than beside it;
+ *   - `.section-head` becomes `.section-head sub` and the `<h2>` becomes an
+ *     `<h3>`, because the host's `<h2>` is already this band's heading and two
+ *     `<h2>`s in one section is a document-outline error, not a style choice.
+ *
+ * The wrapper class and the heading level are CONSEQUENCES of nesting, not
+ * independent settings — no page wants `.lasting-cost-wrap` with an `<h2>`, and
+ * no band wants an `<h3>` — so neither is exposed as a field. `eyebrow`,
+ * `heading` and `body` are reused verbatim as the sub-head, so the nested shape
+ * needs no copy fields of its own either. One flag, no companions.
+ *
+ * `nested` is read for TRUTH, never `=== false`. An ACF true_false that no
+ * editor has saved comes back null, and an importer may write `1` rather than
+ * `true`; truthiness answers both correctly, while `=== true` would silently
+ * un-nest a row imported as `1` and `=== false` would read "never saved" as
+ * "explicitly a band". Eleven routes have rows against this layout today and
+ * not one sets the flag, so every one of them takes the standalone branch.
+ *
  * ── The one field the layout does not have ──────────────────────────────────
  * `meta` is the plan's secondary line and lands in the component's `tagline`
  * slot — the sentence under the plan name — matching the content model's own
@@ -155,15 +199,39 @@ interface Props {
   /** May contain `<em>` and nothing else (Fact 3), so it is rendered set:html. */
   heading?: string | null;
   body?: string | null;
+  /**
+   * Draw as a child of the block above instead of as a band of its own.
+   *
+   * Declared here, after the preamble fields and ahead of `plans`, in the order
+   * the fragment selects it (manifest.ts) — which is itself the order the PHP
+   * declares it — because it reframes what `id`/`anchor`/`navLabel`/`band` mean
+   * on the same row rather than adding content beside them.
+   *
+   * `boolean | null`: an ACF true_false that has never been saved on a row
+   * returns null, not false.
+   */
+  nested?: boolean | null;
   plans?: PlanRow[] | null;
   /** The financing / insurance line under the table. */
   note?: string | null;
 }
 
-const { id, band, eyebrow, heading, body, plans, note } = Astro.props;
+const { id, band, eyebrow, heading, body, nested, plans, note } = Astro.props;
+
+/**
+ * The mode switch. Truthy, not `=== true` — see the header: null means "never
+ * saved" (a band) and `1` from an importer means "nested", and only truthiness
+ * reads both the way the editor meant them.
+ *
+ * Every row saved today leaves this undefined, which is falsy, so the eleven
+ * back-filled routes take the standalone branch unchanged.
+ */
+const isNested = Boolean(nested);
 
 // `?? null` rather than a default: an unknown band from a future PHP choice
 // falls through to the paper shell rather than emitting a class with no rule.
+// Unread when nested — the host owns the band there — but computed either way
+// so the two branches share one prop-reading pass.
 const bandModifier = BAND_MODIFIER[band ?? "paper"] ?? null;
 
 /** Trim once, here, so every guard below tests for real content rather than for
@@ -236,7 +304,7 @@ const tiers: Tier[] = (Array.isArray(plans) ? plans : [])
 const hasTable = tiers.length > 0;
 ---
 
-<section class:list={["section", bandModifier]} id={id} data-vs-reveal-batch>
+{isNested ? null : <section class:list={["section", bandModifier]} id={id} data-vs-reveal-batch>
   <div class="wrap">
     <div class="section-head">
       {eyebrowText && <span class="eyebrow">{eyebrowText}</span>}
@@ -250,7 +318,45 @@ const hasTable = tiers.length > 0;
       )
     }
   </div>
-</section>
+</section>}{/* `}{` flush against the standalone branch's closing brace, with
+    NOTHING between the two expressions — the idiom StatCalloutBlock.astro:224
+    and CardGridBlock.astro:180 already use. Astro preserves whitespace between
+    expressions, so a second expression on a line of its own would put a
+    newline-and-indent TEXT NODE either side of it, and that node survives into
+    the HTML even when the condition is false. Eleven back-filled routes render
+    this block today and none of them is nested, so a line of its own here would
+    append a whitespace node to every one of them: a diff on eleven pages that
+    gained nothing. Flush, the false branch contributes not one byte.
+
+    The `{` of the standalone branch is likewise flush against its `<section`
+    and its `}` against `</section>`, for the same reason in the other
+    direction: today the section is the template's first node, and wrapping it
+    in an expression must not move the whitespace around it. Same construction
+    as the page templates' own `{hasBlocks ? null : <section …>…</section>}`
+    guard (teeth-whitening.astro:588).
+
+    Inside `.lasting-cost-wrap` the markup is a copy of
+    teeth-whitening.astro:623-686 — wrapper class, `.section-head sub`, the
+    `<h3>`, then the table — with the hard-coded copy replaced by the same three
+    section-head fields the standalone branch reads and the same `tiers`. The
+    eyebrow is kept because the template has one ("Investment"); the heading is
+    an `<h3>` because the host section's `<h2>` is already this band's heading.
+    No `id` and no `data-vs-reveal-batch`: not an anchor target, not a rail
+    entry, and the reveal batch belongs to the host's section, exactly as in the
+    template. */
+  isNested && <div class="lasting-cost-wrap">
+    <div class="section-head sub">
+      {eyebrowText && <span class="eyebrow">{eyebrowText}</span>}
+      {headingHtml && <h3><Fragment set:html={headingHtml} /></h3>}
+      {bodyText && <p>{bodyText}</p>}
+    </div>
+
+    {
+      hasTable && (
+        <PricingTiers tiers={tiers} financingNote={noteText || undefined} />
+      )
+    }
+  </div>}
 
 <style>
   /* ── Band shell ───────────────────────────────────────────────────────────
@@ -371,6 +477,75 @@ const hasTable = tiers.length > 0;
     background: rgba(255, 255, 255, 0.6);
   }
 
+  /* ── Nested shape ─────────────────────────────────────────────────────────
+     Copied from src/styles/pages/teeth-whitening.css:601-616 with the
+     `.twhitening` prefix stripped and the page's local aliases resolved back to
+     the tokens they alias one-for-one (`--f-display` → `--vs-font-display`,
+     `--ink` → `--vs-ink`; teeth-whitening.css:38,53). Rendered values unchanged.
+
+     These rules live here so the nested shape is PORTABLE — a price table can
+     be tucked into a section on a page whose sheet carries no
+     `.lasting-cost-wrap` rules at all.
+
+     BE PRECISE ABOUT WHICH SIDE WINS, because both simplifications are wrong.
+     Astro 6.1.9 with no `scopedStyleStrategy` set compiles to an ATTRIBUTE
+     selector, not `:where()` — read it out of the built CSS
+     (`.compare-card[data-astro-cid-...]`), do not assume. So for a compound
+     like `.lasting-cost-wrap .section-head.sub h3` the scoped form picks up an
+     attribute per element and comfortably outranks the page sheet. But for the
+     WRAPPER ALONE the two are tied: `.lasting-cost-wrap[data-astro-cid-...]`
+     and `.twhitening .lasting-cost-wrap` are both (0,2,0), and a tie is
+     resolved by bundle order. Do not build anything on that tie; if a page
+     needs to win, give it a rule one level more specific. The block owning its own
+     appearance is also what lets a nested price table be dropped into a section
+     on any page, not just the one whose sheet happens to carry these rules (R3).
+
+     The 56px top margin is the whole reason `nested` exists: it is the gap
+     between the stat card and the price table inside `#lasting`. A `.section`
+     of its own would put ~220px there instead (110px top and bottom, the rule
+     above), which is a visible design change made by a content migration. */
+  .lasting-cost-wrap {
+    margin-top: 56px;
+  }
+  /* Overrides the 64px bottom margin in `.section-head` above — the same
+     override, at the same specificity relationship, that the page sheet makes
+     against its own `.twhitening .section-head`. */
+  .lasting-cost-wrap .section-head.sub {
+    margin-bottom: 36px;
+  }
+  .lasting-cost-wrap .section-head.sub h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: clamp(22px, 2.4vw, 30px);
+    color: var(--vs-ink);
+    letter-spacing: -0.005em;
+    line-height: 1.18;
+    margin: 0 0 14px;
+  }
+  /* `.section-head p` above still supplies the colour; only the size drops. */
+  .lasting-cost-wrap .section-head.sub p {
+    font-size: 16px;
+    line-height: 1.7;
+    max-width: 60ch;
+    margin: 0 auto;
+  }
+  /* The page has no `h3 em` rule of its own — an `<em>` in the sub-heading is
+     caught by its blanket `.twhitening em` (teeth-whitening.css:77), which
+     carries these three declarations exactly. Restated against the `<h3>` here
+     because a block cannot rely on a page-wide rule, and :global for the same
+     reason as the `<h2>` above: the `<em>` arrives through set:html and carries
+     no scope attribute. The scope stays on `h3`, so it cannot leak.
+
+     No responsive rules: the page sheet gives `.lasting-cost-wrap` none (its
+     breakpoints at teeth-whitening.css:727,747,774 never mention it), and the
+     shell's own 780px rule below belongs to the `.section` this branch does not
+     emit. */
+  .lasting-cost-wrap .section-head.sub h3 :global(em) {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+
   /* ── The one thing the table cannot colour for itself ────────────────────
      Every text element inside a plan card sits on the card's own paper
      background and is coloured explicitly by the component, so the cards read
@@ -383,7 +558,16 @@ const hasTable = tiers.length > 0;
 
      :global because the element belongs to the imported component and carries
      its scope, not this one's; the `.section.alt` / `.section.sage` ancestor is
-     this block's own, so the rule cannot apply anywhere else. */
+     this block's own, so the rule cannot apply anywhere else.
+
+     WHICH IS ALSO THE LIMIT WHEN NESTED. A nested table draws no `.section` of
+     its own, so neither rule can match and the financing note keeps
+     `--vs-ink-soft`. That is correct for the only host that exists — `#lasting`
+     on teeth-whitening is a paper band — but it means nesting this block inside
+     a charcoal or sage host would leave the note grey-on-dark. The fix then is
+     a rule on the HOST, where the band is actually decided (R2); it is NOT a
+     `band` field on the nested row, which would let an editor paint text for a
+     background the section does not have. */
   .section.alt :global(.vs-pricing-tiers__financing),
   .section.sage :global(.vs-pricing-tiers__financing) {
     color: rgba(255, 255, 255, 0.78);

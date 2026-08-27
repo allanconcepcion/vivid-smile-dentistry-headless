@@ -2400,17 +2400,26 @@ function register_field_groups(): void {
 						 * band layout with the full preamble and nothing bespoke —
 						 * it is the same shape as every other section on the page.
 						 *
-						 * WHAT THIS LAYOUT IS NOT: teeth-whitening's pricing table
-						 * is nested INSIDE `#lasting`, in a `.lasting-cost-wrap`
-						 * under the stat card, with its own `.section-head sub`. A
-						 * nested variant is deliberately NOT built here — one page
-						 * needs it and five do not, and a second pricing layout is a
-						 * second set of names to keep in step forever. The recorded
-						 * fix is on the page, not in the field group: un-nesting
-						 * `.lasting-cost-wrap` into its own `<section id="cost">`
-						 * makes that page match the other five and need no bespoke
-						 * fields at all. Until someone does that, teeth-whitening's
-						 * pricing stays a known gap.
+						 * SIX PAGES NOW, BECAUSE OF `nested` BELOW. teeth-whitening's
+						 * price table is not a band: it sits INSIDE `#lasting` as
+						 * `.lasting-cost-wrap`, below the stat card, carrying its own
+						 * `.section-head sub` with an `<h3>` rather than an `<h2>`.
+						 *
+						 * AN EARLIER NOTE HERE SAID TO UN-NEST IT INTO ITS OWN
+						 * `<section id="cost">`. DO NOT. `.lasting-cost-wrap` is
+						 * styled `margin-top: 56px` (teeth-whitening.css:601), while a
+						 * `.section` carries ~110px of padding top AND bottom.
+						 * Un-nesting trades 56px of margin for ~220px of padding and
+						 * pushes everything below it down the page — a visible
+						 * redesign of a live page, performed to spare one field. The
+						 * standing constraint is that WordPress changes the words, not
+						 * the design, so the field is the cheaper of the two.
+						 *
+						 * NOR IS THE ANSWER A SECOND LAYOUT. Copying `plans` onto a
+						 * nested twin would mint that type a second time under the
+						 * same name, which does not error — it merges the two and
+						 * drops one side's sub-fields (see the naming note below).
+						 * One layout, one flag, and the flag is the first field.
 						 *
 						 * ON THE NAMES `plans` AND `features`. Both were checked
 						 * against every container in every locally registered group
@@ -2437,6 +2446,72 @@ function register_field_groups(): void {
 							'sub_fields' => array_merge(
 								block_preamble( 'pricing' ),
 								[
+									/**
+									 * Draw this table inside the section above instead of as a band.
+									 *
+									 * ON THIS LAYOUT AND NOT ON THE SHARED PREAMBLE, HAVING WEIGHED BOTH.
+									 * A preamble field lands on all nine layouts and in all nine
+									 * fragments, and only two components are being taught nesting:
+									 * stat_callout to HOST a child, pricing_tiers to BE one. On the other
+									 * seven the switch would post a value no renderer reads — the editor
+									 * ticks it on an FAQ, saves, waits out a deploy and the page is
+									 * unchanged — which is the exact fault block_code_preamble() drops
+									 * four controls to avoid. It would also widen every layout's
+									 * selection set at once, so a field name that reaches the Astro side
+									 * before it reaches this host fails query validation for all 48
+									 * routes instead of for the one layout that gained it.
+									 *
+									 * WHAT THAT COSTS: nesting is a per-layout capability now, so the
+									 * second layout that needs to nest adds this field again here rather
+									 * than inheriting it, and the two copies must keep the same NAME —
+									 * `nested` — or the Astro side can no longer ask one question of
+									 * every block. Accepted: a second nestable layout also needs a host
+									 * with a slot in the right place, which is a real design decision
+									 * each time, and the duplication is what forces someone to make it.
+									 *
+									 * IT MINTS NO GRAPHQL TYPE. walk_graphql_containers() names a type
+									 * only for a repeater, group or flexible_content field; a true_false
+									 * is a Boolean leaf on PageFieldsBlocksPricingTiersLayout, so there
+									 * is nothing here to collide with `plans` or with anything else in
+									 * the model. `nested` is free as a FIELD name on this layout too —
+									 * the others are anchor, nav_label, band, eyebrow, heading, body,
+									 * plans and note.
+									 *
+									 * ADDITIVE BY CONSTRUCTION. Default 0, and every row saved against
+									 * this layout before today has no `nested` meta at all, which reads
+									 * back false. A block nobody has flagged takes exactly the path it
+									 * takes today.
+									 *
+									 * NO CONDITIONAL LOGIC HIDING Anchor, Rail label and Background,
+									 * though all three go inert when this is on. fill_blank_row_id()
+									 * fires per sub-field on save and is handed only that field's own
+									 * value, so it cannot see a sibling `nested` and would go on
+									 * generating an anchor for a box the editor can no longer see — a
+									 * control that looks disabled while still writing data is worse than
+									 * one plainly labelled as ignored. The generated anchor is harmless
+									 * in itself: a nested block is given no id, and the rail is built
+									 * from the blocks that are bands. So the instruction carries it.
+									 */
+									[
+										'key'           => 'field_vs_blk_pricing_nested',
+										'label'         => 'Tuck this inside the section above',
+										'name'          => 'nested',
+										'type'          => 'true_false',
+										'ui'            => 1,
+										'default_value' => 0,
+										'instructions'  => 'Leave this off for the usual thing: the prices are their own section, '
+											. 'with their own background, sitting between the section above and the one below. '
+											. 'Turn it on and the prices are drawn INSIDE the section directly above instead, '
+											. 'tucked under that section’s own content — the way the whitening page keeps its price '
+											. 'table under the “how long results last” figure rather than in a section of its own. '
+											. 'Tucked in, the prices take the background of the section above and are no longer a '
+											. 'section in their own right, so Background, Anchor and Rail label stop doing anything '
+											. 'and the prices do not appear in the “On this page” rail. Eyebrow, Heading and Body '
+											. 'still show, one size smaller, as the introduction to the table. Turned on for the '
+											. 'first section on a page it is simply drawn as an ordinary section instead, because '
+											. 'there is nothing above it to go inside. It can only tuck under a “Stat callout” '
+											. 'section — under anything else it is drawn as an ordinary section too.',
+									],
 									[
 										'key'          => 'field_vs_blk_pricing_plans',
 										'label'        => 'Plans',

@@ -1094,6 +1094,116 @@
      ]
     },
     {
+     "section_id": "lasting",
+     "layout": "pricing_tiers",
+     "band": "paper",
+     "band_evidence": "Nested, so it takes no band of its own — it is drawn INSIDE #lasting's wrap and inherits that section's background. `band` is written because backfill-blocks.php requires the key on every row; PricingTiersBlock ignores it when nested.",
+     "nested_evidence": "`nested: true` is what keeps the design intact. .lasting-cost-wrap is a sibling of .lasting-card inside #lasting's .wrap with margin-top: 56px (teeth-whitening.css:601). Un-nesting it into its own <section id=\"cost\"> — which an earlier gap note recommended — would swap that 56px for the ~110px of padding a .section carries top AND bottom, visibly changing the page. This project changes the words, not the design.",
+     "fields": {
+      "nested": {
+       "literal": true
+      },
+      "eyebrow": {
+       "literal": "Investment"
+      },
+      "heading": {
+       "literal": "Teeth Whitening Pricing in Parker, Colorado"
+      },
+      "body": {
+       "literal": "Vivid Smiles offers four whitening tiers — from an accessible Opalescence take-home option to the clinically intensive KöR Ultra-T protocol — so every patient finds a match for their staining type and budget."
+      },
+      "note": {
+       "literal": "Whitening is a cosmetic procedure and most dental plans don't cover it. Patients without coverage can ask about Vivid Smiles' in-house dental membership plan, which offers savings on routine care."
+      }
+     },
+     "rows": {
+      "plans": {
+       "literal": [
+        {
+         "name": "Opalescence Take-Home Trays",
+         "price": "$99",
+         "meta": "Most accessible whitening tier — professional-grade at an entry price.",
+         "features": [
+          {
+           "item": "10 at-home treatments"
+          },
+          {
+           "item": "15% carbamide peroxide gel"
+          },
+          {
+           "item": "Custom-fit upper and lower trays"
+          },
+          {
+           "item": "Great entry to professional whitening"
+          }
+         ]
+        },
+        {
+         "name": "KöR-Night Custom Take-Home Trays",
+         "price": "$350",
+         "meta": "Two-week at-home whitening with custom-tray accuracy.",
+         "features": [
+          {
+           "item": "2 office visits (impressions + tray delivery)"
+          },
+          {
+           "item": "2 weeks of nightly at-home whitening"
+          },
+          {
+           "item": "KöR-Night 16% carbamide peroxide"
+          },
+          {
+           "item": "Periodic at-home maintenance kit"
+          }
+         ]
+        },
+        {
+         "name": "KöR Power In-Office Whitening",
+         "price": "$665",
+         "price_note": "Trays Included",
+         "meta": "Professional-grade in-office whitening with take-home maintenance.",
+         "ribbon": "Most Popular",
+         "highlighted": true,
+         "features": [
+          {
+           "item": "3 office visits"
+          },
+          {
+           "item": "One in-office treatment · 3 × 20-min sessions"
+          },
+          {
+           "item": "Custom KöR take-home maintenance trays"
+          },
+          {
+           "item": "Professional-grade visible shade lift"
+          }
+         ]
+        },
+        {
+         "name": "KöR Ultra & KöR Ultra-T",
+         "price": "$1,541",
+         "meta": "Maximum-strength formulation for the most resistant staining.",
+         "features": [
+          {
+           "item": "3–4 office visits"
+          },
+          {
+           "item": "In-office conditioning + take-home regimen"
+          },
+          {
+           "item": "Ultra: 3–4 weeks · Ultra-T: 6–8 weeks"
+          },
+          {
+           "item": "Reaches tetracycline and intrinsic staining"
+          }
+         ]
+        }
+       ],
+       "from_template": "The four-tier <PricingTiers> inside #lasting on teeth-whitening.astro — Opalescence $99, KoR-Night $350, KoR Power $665 (highlighted, 'Most Popular'), KoR Ultra & Ultra-T $1,541. Sourced from Dr. Richardson's printed price sheet. These are real money figures and were hardcoded in the template until now; they are the single thing a dental client most needs to be able to edit."
+      }
+     }
+    },
+    {
      "anchor": "local",
      "layout": "code_section",
      "band": "cream",

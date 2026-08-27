@@ -40,6 +40,27 @@
  * content: the PHP instruction tells the editor not to type one
  * (vs-content-model.php:1567).
  *
+ * THIS BLOCK CAN HOST ANOTHER. `.wrap` carries a `<slot />` immediately after
+ * `.lasting-card`, because that is precisely where the hosted content sits in
+ * the template: `.lasting-cost-wrap` is a sibling of `.lasting-card` inside the
+ * same `.wrap` (teeth-whitening.astro:623, card closes at :621). PageBlocks
+ * renders a row flagged `nested` as a child of the block before it, so
+ * teeth-whitening's four-tier price table — the one thing on that page a dental
+ * client most needs to edit — reaches the page as a PricingTiersBlock passed
+ * into this slot instead of staying hardcoded in the template.
+ *
+ * WHY NOT UN-NEST IT into its own `<section id="cost">`, as an earlier note in
+ * this repo recommended: `.lasting-cost-wrap` is `margin-top: 56px`
+ * (teeth-whitening.css:601), while `.section` above is 110px of padding top AND
+ * bottom. Promoting it would trade a 56px gap for ~220px of padding and visibly
+ * move the page. WordPress changes the words here, not the design.
+ *
+ * THE SLOT SITS OUTSIDE the card's `(hasStat || hasBody)` guard, not inside it.
+ * Inside, a host whose own card fields were all left blank would silently
+ * swallow whatever was nested into it — content loss with no symptom on the
+ * page and no error in the build, which is the exact failure this phase exists
+ * to stop. Outside, an unfinished host still draws its nested child.
+ *
  * NOTHING HERE THROWS — an editor triggers deploys and never sees the output
  * (cms/mu-plugins/vs-deploy.php:142-158). Every field is read as if it might be
  * missing, blank or the wrong type.
@@ -199,6 +220,21 @@ const hasBody =
   introText !== "" ||
   intro2Text !== "" ||
   pointRows.length > 0;
+
+// The `<slot />` below is written FLUSH against the closing `}` of the card's
+// conditional — `}<slot />`, no newline and no space between them — for exactly
+// the reason `intro2` is jammed against `intro` above. Astro emits template
+// whitespace verbatim, so a newline placed between the two would become a text
+// node in EVERY stat_callout on the site, including the eleven back-filled rows
+// that host nothing and must keep diffing byte-for-byte against their current
+// build. There is no such hazard on the other side of the slot: the `\n  `
+// before `</div>` is the whitespace that already followed the `}` today, so it
+// is carried over rather than added.
+//
+// An empty slot contributes zero bytes, which is a measurement, not a claim:
+// rendering this block through the Astro container with the slot empty produces
+// the same 1484 bytes as the same props rendered before the slot existed, and
+// `cmp` reports no differing byte. Re-run that check if you reformat this file.
 ---
 
 <section class:list={["section", bandModifier]} id={id} data-vs-reveal-batch>
@@ -237,7 +273,7 @@ const hasBody =
           )}
         </div>
       )
-    }
+    }<slot />
   </div>
 </section>
 

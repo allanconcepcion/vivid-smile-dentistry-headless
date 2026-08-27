@@ -35,6 +35,24 @@ export interface BlockNode {
   __typename: string;
   /** The DOM id for this band. Split out from the old `section_id`; see §1.2. */
   anchor?: string | null;
+  /**
+   * True when this row is drawn INSIDE the block before it rather than as a
+   * band of its own — see the `pricing_tiers` entry below for the one layout
+   * that carries the field today.
+   *
+   * Declared here, on the shared row type, even though it is a per-layout
+   * field, and the two are not in conflict: the PHP decides which layouts can
+   * OFFER the switch, this decides how the switch is READ. PageBlocks has to
+   * ask the question of every row in order — a block only knows it is a host
+   * because the row after it is nested — and the index signature above types an
+   * undeclared field as `unknown`, so without this line that loop reads
+   * `unknown` and casts. A layout that never offers the field simply never
+   * sends one, and `undefined` is falsy, which is the same answer.
+   *
+   * `boolean | null` because a true_false with no saved meta can come back
+   * null, not just false; test it for truthiness, never `=== false`.
+   */
+  nested?: boolean | null;
   [field: string]: unknown;
 }
 
@@ -67,6 +85,24 @@ export interface BlockManifestEntry {
    * page, not one.
    */
   fields: string;
+
+  /**
+   * Whether this layout's component can HOST a nested block — i.e. whether it
+   * renders a <slot />.
+   *
+   * THIS IS NOT COSMETIC AND IT IS NOT DERIVABLE. PageBlocks used to treat
+   * "is registered" as "can host", which is true of exactly one of the nine
+   * layouts: StatCalloutBlock is the only component with a <slot />. Nesting a
+   * block under any of the other eight discarded the guest ENTIRELY — proven by
+   * rendering all eight as host and finding the guest's price figure in one
+   * output out of eight — with no warning, no placeholder and no build error.
+   * Silent content loss, one wp-admin checkbox away.
+   *
+   * So hosting is declared here and checked, and a guest whose predecessor
+   * cannot host is demoted to its own band with a console warning. Add this
+   * flag in the SAME commit as the <slot />, never before it.
+   */
+  hosts?: boolean;
 
   /**
    * The component that renders it.
@@ -394,6 +430,8 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    */
   PageFieldsBlocksStatCalloutLayout: {
     typeName: "PageFieldsBlocksStatCalloutLayout",
+    // The only component with a <slot />. See `hosts` above.
+    hosts: true,
     fields: `${BLOCK_PREAMBLE_FIELDS} value unit caption bodyHeading intro intro2 points { lead body }`,
   },
 
@@ -406,13 +444,35 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    * preamble's `anchor` is what carries that id. That is the whole reason it is
    * worth one layout rather than five bespoke components.
    *
-   * WHAT THIS LAYOUT IS NOT: teeth-whitening's price table is NESTED — it sits
-   * inside `#lasting` as `.lasting-cost-wrap`, not as a band of its own. That
-   * page is a recorded gap, not a case for a second layout. Un-nesting
-   * `.lasting-cost-wrap` into its own `<section id="cost">` would make it the
-   * sixth page matching this shape and would need no bespoke fields at all;
-   * building a nested variant instead mints a second set of plan types to serve
-   * one page. Whoever picks that gap up should reach for the markup first.
+   * AND ALSO NOT ITS OWN BAND, ONCE `nested` IS ON. teeth-whitening's price
+   * table sits inside `#lasting` as `.lasting-cost-wrap`, under the stat card,
+   * with a `.section-head sub` and an `<h3>`. An earlier note here said to
+   * un-nest it into its own `<section id="cost">`; that was wrong, because
+   * `.lasting-cost-wrap` is a 56px margin and a `.section` is ~110px of padding
+   * top and bottom — un-nesting would move the live page. So the flag, not the
+   * markup, and not a second layout either: a nested twin would mint
+   * `PageFieldsBlocksPlans` a second time, which merges rather than errors.
+   *
+   * `nested` (PHP `nested`, a true_false, default false) IS THE WHOLE VARIANT.
+   * It says only "draw me inside the block before me"; the wrapper class and
+   * the heading level follow from it and are not fields, because there is no
+   * page on which an editor would want `.lasting-cost-wrap` with an `<h2>` or a
+   * band with an `<h3>`. Offering them separately would be two more controls
+   * whose only correct settings are the ones this flag already implies.
+   * `eyebrow`, `heading` and `body` are reused as the `.section-head sub`, so
+   * the nested shape needs no copy fields of its own.
+   *
+   * Selected FIRST, ahead of `plans`, mirroring its position in the PHP: it
+   * changes what `anchor`, `navLabel` and `band` mean on the same row — a
+   * nested block takes no id, no rail entry and no background of its own — and
+   * a reader who meets it after `note` has already assumed otherwise.
+   *
+   * ADDITIVE, WITH A DEPLOY ORDER. Eleven back-filled routes have rows against
+   * this layout and none is flagged, so absent-or-false is the path they take
+   * today. But a selection set naming a field the HOST does not have fails
+   * query validation for all 48 routes, not for this layout — the same failure
+   * `band` on `code_section` caused — so vs-content-model.php ships to the
+   * WordPress host BEFORE this file builds. Never the other way round.
    *
    * NAMES, AND WHERE THEY CAME FROM. `plans` mints `PageFieldsBlocksPlans`, and
    * the `features` nested inside it mints `PageFieldsBlocksPlansFeatures`: a
@@ -462,7 +522,7 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    */
   PageFieldsBlocksPricingTiersLayout: {
     typeName: "PageFieldsBlocksPricingTiersLayout",
-    fields: `${BLOCK_PREAMBLE_FIELDS} plans { name price meta priceNote priceSuffix ribbon highlighted features { item } } note`,
+    fields: `${BLOCK_PREAMBLE_FIELDS} nested plans { name price meta priceNote priceSuffix ribbon highlighted features { item } } note`,
   },
 
   /**
