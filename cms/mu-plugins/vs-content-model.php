@@ -1831,6 +1831,119 @@ function register_field_groups(): void {
 										'instructions' => 'The aside\'s text. A blank line starts a new paragraph, and a '
 											. 'link may be written inline.',
 									],
+									/**
+									 * The SECONDARY CARD GRID that closes this band — the
+									 * `.config-grid` under all-on-4-single-arch's `#what` and
+									 * the `.cause-grid` under sinus-lift's `#what`.
+									 *
+									 * WHAT IS ALREADY CARRIED AND MUST NOT BE MAPPED AGAIN.
+									 * These grids sit inside a `.what-sub` whose head is an
+									 * eyebrow, an <h3> and a paragraph. The <h3> and the
+									 * paragraph are `callout_heading` and `callout_body`
+									 * directly above; only the CARDS were missing. Mapping the
+									 * sub-head here as well would print it twice.
+									 *
+									 * NAMED `sub_cards`, NOT `cards`. A repeater's GraphQL type
+									 * is built from the PATH OF FIELD NAMES and the layout
+									 * contributes nothing (see assert_unique_graphql_type_names()
+									 * above), so a second `cards` under `blocks` would mint
+									 * PageFieldsBlocksCards a second time and merge with
+									 * card_grid's — the failure that made comparison_cards'
+									 * sub-fields unqueryable against a schema that still looked
+									 * healthy. This mints PageFieldsBlocksSubCards, claimed by
+									 * nothing else in the model, and comparison_cards' grid is
+									 * `alt_cards` for the same reason rather than sharing this
+									 * name.
+									 *
+									 * THREE SUB-FIELDS, READ OFF THE MARKUP AND NOT OFF THE CLASS
+									 * NAME. Both card shapes are the same three pieces of copy:
+									 * `<span class="tag">`, `<h4>` and, in `.config-card` only, a
+									 * `<p>`. sinus-lift's `.cause-card` is tag and title with NO
+									 * paragraph at all, which is why `body` is optional rather
+									 * than required — a required body would force an editor to
+									 * invent copy that band has never had.
+									 *
+									 * ADDITIVE. Eleven routes hold rows of this layout and none
+									 * holds a `sub_cards` row: an empty repeater stores no meta,
+									 * GraphQL returns an empty list, and the component must draw
+									 * NO wrapper for it. The wrapper has to sit inside the length
+									 * test, not around it — an empty `.what-sub` div is a visible
+									 * gap under a band nobody edited.
+									 */
+									[
+										// On the layout and not on each card: it is the grid's
+										// shape, and a per-card value would let two cards in one
+										// grid disagree about how many columns the grid has.
+										//
+										// Read off the page stylesheets, which do NOT agree:
+										// .aos4 .config-grid is `1fr 1fr` (2) at
+										// all-on-4-single-arch.css:371-372 and .sinuslift
+										// .cause-grid is `repeat(4, 1fr)` at sinus-lift.css:387-388.
+										// A fixed two-across would have re-flowed sinus-lift's four
+										// cause cards into two rows of two.
+										//
+										// NULL IS A REAL VALUE HERE AND MEANS TWO. The default
+										// below is only read when an editor ADDS a row, and every
+										// row saved before today predates this field — so it
+										// returns null, and the component must fall back to the
+										// base template's `1fr 1fr` rather than to nothing.
+										'key'           => 'field_vs_blk_media_sub_columns',
+										'label'         => 'Cards across',
+										'name'          => 'sub_columns',
+										'type'          => 'select',
+										'choices'       => [
+											'2' => '2',
+											'3' => '3',
+											'4' => '4',
+										],
+										'default_value' => '2',
+										'return_format' => 'value',
+										'allow_null'    => 0,
+										'multiple'      => 0,
+										'ui'            => 0,
+										'instructions'  => 'How many of the cards below sit across a row on a desktop screen. '
+											. 'They stack on a phone whichever you choose.',
+									],
+									[
+										'key'          => 'field_vs_blk_media_sub_cards',
+										'label'        => 'Cards below',
+										'name'         => 'sub_cards',
+										'type'         => 'repeater',
+										'layout'       => 'row',
+										'button_label' => 'Add a card',
+										'instructions' => 'Optional. The small cards that close this section, under the note '
+											. 'above. Leave this empty and the section ends where it does now — no '
+											. 'heading, no empty row, nothing drawn.',
+										'sub_fields'   => [
+											[
+												'key'          => 'field_vs_blk_media_sub_card_tag',
+												'label'        => 'Tag',
+												'name'         => 'tag',
+												'type'         => 'text',
+												'instructions' => 'The small label above the title — "Upper Arch", "Most common".',
+											],
+											[
+												'key'   => 'field_vs_blk_media_sub_card_title',
+												'label' => 'Title',
+												'name'  => 'title',
+												'type'  => 'text',
+											],
+											[
+												// Optional on purpose: sinus-lift's four cause cards
+												// are a tag and a title and nothing else, and the
+												// card must draw no <p> when this is blank rather
+												// than an empty one that adds a gap the design has
+												// never had.
+												'key'          => 'field_vs_blk_media_sub_card_body',
+												'label'        => 'Body',
+												'name'         => 'body',
+												'type'         => 'textarea',
+												'rows'         => 3,
+												'instructions' => 'Optional. One short paragraph under the title. Some of these '
+													. 'cards are a label and a title only.',
+											],
+										],
+									],
 									[
 										'key'          => 'field_vs_blk_media_cta_label_2',
 										'label'        => 'Second button label',
@@ -2165,6 +2278,114 @@ function register_field_groups(): void {
 										'instructions' => 'The answer. Leave a blank line between paragraphs. '
 											. 'May contain a link written as '
 											. '&lt;a class="vs-link" href="/the-page/"&gt;the words&lt;/a&gt;.',
+									],
+									/**
+									 * The SECOND card grid in this band — the `.alternatives-grid`
+									 * of `.config-card`s.
+									 *
+									 * Three bands carry one today: `.compare-sub` on
+									 * all-on-4-single-arch's and full-mouth-dental-implants'
+									 * `#compare`, and the `.alternatives-grid` that opens
+									 * bone-grafting's `#types`. It is a SECOND grid, beside
+									 * `tiers` and not instead of it: `tiers` draws the wide
+									 * `.compare-card`s with their bullet lists, these are the
+									 * smaller cards underneath. Pouring them into `tiers` would
+									 * give them bullets they do not have and a `<h3>` where the
+									 * markup has `<h4>`.
+									 *
+									 * AS ABOVE, THE SUB-HEAD IS ALREADY CARRIED. `.compare-sub-head`
+									 * is an eyebrow, an <h3> and a paragraph, and the <h3> and the
+									 * paragraph are `callout_heading` and `callout_body` directly
+									 * above — the same two fields that draw `.safety-callout` on
+									 * the whitening page. Only the cards were missing.
+									 *
+									 * NAMED `alt_cards`, AND THE NAME IS THE WHOLE RISK. The
+									 * GraphQL type comes from the field name alone, so this and
+									 * media_split's grid CANNOT both be called `sub_cards`: they
+									 * would merge into one type and one side's sub-fields would
+									 * silently stop being queryable while the schema still looked
+									 * healthy. They are `sub_cards` and `alt_cards`, minting
+									 * PageFieldsBlocksSubCards and PageFieldsBlocksAltCards, and
+									 * neither name — nor the concatenation alias route, a
+									 * top-level `blocks_alt_cards` — is claimed anywhere in this
+									 * file.
+									 *
+									 * SAME THREE SUB-FIELDS AS `sub_cards`, and deliberately not
+									 * shared through a factory. Two repeaters that must never
+									 * share a name are two declarations; a factory would put the
+									 * name in one place and invite the next person to pass the
+									 * same one twice.
+									 *
+									 * ADDITIVE. No row of this layout holds an `alt_cards` row, so
+									 * GraphQL returns an empty list and the component must draw no
+									 * `.alternatives-grid` wrapper — inside the length test, not
+									 * around it.
+									 */
+									[
+										// Read off the sheets, which disagree: .aos4 and .bgraft
+										// .alternatives-grid are `repeat(3, 1fr)`
+										// (all-on-4-single-arch.css:530-531, bone-grafting.css:530-531)
+										// while .fmdi overrides to `repeat(2, 1fr)` with a 820px
+										// max-width (full-mouth-dental-implants.css:537-541) because
+										// that page has two alternatives and not three.
+										//
+										// NULL MEANS THREE. Every row saved before today predates
+										// this field and returns null; the default only applies to
+										// a row an editor adds. A component that read null as
+										// "unset, use one column" would collapse a grid that has
+										// always been three across.
+										'key'           => 'field_vs_blk_compare_alt_columns',
+										'label'         => 'Cards across',
+										'name'          => 'alt_columns',
+										'type'          => 'select',
+										'choices'       => [
+											'2' => '2',
+											'3' => '3',
+											'4' => '4',
+										],
+										'default_value' => '3',
+										'return_format' => 'value',
+										'allow_null'    => 0,
+										'multiple'      => 0,
+										'ui'            => 0,
+										'instructions'  => 'How many of the cards below sit across a row on a desktop screen. '
+											. 'They stack on a phone whichever you choose.',
+									],
+									[
+										'key'          => 'field_vs_blk_compare_alt_cards',
+										'label'        => 'Cards below',
+										'name'         => 'alt_cards',
+										'type'         => 'repeater',
+										'layout'       => 'row',
+										'button_label' => 'Add a card',
+										'instructions' => 'Optional. The smaller cards under the comparison — the alternatives, '
+											. 'the material sources, the other options. Leave this empty and nothing '
+											. 'extra is drawn.',
+										'sub_fields'   => [
+											[
+												'key'          => 'field_vs_blk_compare_alt_card_tag',
+												'label'        => 'Tag',
+												'name'         => 'tag',
+												'type'         => 'text',
+												'instructions' => 'The small label above the title — "Alternative", "Autograft".',
+											],
+											[
+												'key'   => 'field_vs_blk_compare_alt_card_title',
+												'label' => 'Title',
+												'name'  => 'title',
+												'type'  => 'text',
+											],
+											[
+												// Optional for the same reason media_split's is:
+												// blank must draw no <p>, not an empty one.
+												'key'          => 'field_vs_blk_compare_alt_card_body',
+												'label'        => 'Body',
+												'name'         => 'body',
+												'type'         => 'textarea',
+												'rows'         => 3,
+												'instructions' => 'Optional. One short paragraph under the title.',
+											],
+										],
 									],
 								]
 							),

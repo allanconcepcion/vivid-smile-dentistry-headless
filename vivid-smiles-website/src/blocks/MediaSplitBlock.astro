@@ -143,6 +143,33 @@ export interface MediaSplitPoint {
   item?: string | null;
 }
 
+/**
+ * One card of the layout's `sub_cards` repeater — GraphQL type
+ * `PageFieldsBlocksSubCards`.
+ *
+ * `{ tag, title, body }` is read off the MARKUP of the two bands this closes,
+ * not off their class names: `.config-card` on
+ * all-on-4-single-arch.astro:427-431 is `<span class="tag">` + `<h4>` + `<p>`,
+ * and `.cause-card` on sinus-lift.astro:396-399 is the same triple with NO `<p>`
+ * at all — its data has no `body` key to render (sinus-lift.astro:63-68).
+ *
+ * So `body` is optional, and a blank one must draw no `<p>` rather than an empty
+ * one. An empty paragraph in a `display: flex` card is not a collapsed nothing:
+ * the card's `gap` applies between flex items whether or not they have content,
+ * so it is a visible 10px strip under every title in a four-across grid.
+ *
+ * Every sub-field is optional at the schema level for the reason
+ * `MediaSplitPoint` gives — ACF returns `null` for a row an editor left blank.
+ */
+export interface MediaSplitSubCard {
+  /** The small uppercase kicker above the title. */
+  tag?: string | null;
+  /** The card's `<h4>`. */
+  title?: string | null;
+  /** The card's paragraph. Absent on all four sinus-lift cards by design. */
+  body?: string | null;
+}
+
 interface Props {
   /** DOM id, already deduplicated by PageBlocks.astro. */
   id?: string;
@@ -179,6 +206,33 @@ interface Props {
    * split the same way comparison_cards does it.
    */
   calloutBody?: string | null;
+  /**
+   * "2" | "3" | "4" — the track count of the secondary grid below the split.
+   *
+   * NULL IS A REAL VALUE HERE, not a missing one. ACF writes a select's default
+   * only when an editor ADDS a row, so all eleven bands back-filled before this
+   * field existed return `null`. The fallback below is therefore 2 — what
+   * `.aos4 .config-grid` ships (all-on-4-single-arch.css:371-372), i.e. the
+   * shape a band that predates the select already had — and not "unset".
+   */
+  subColumns?: string | null;
+  /**
+   * The `.what-sub` card grid that sits BELOW the split, inside the same
+   * `.wrap`: `.config-grid` with two cards on all-on-4-single-arch
+   * (all-on-4-single-arch.astro:413-434) and `.cause-grid` with four on
+   * sinus-lift (sinus-lift.astro:380-402).
+   *
+   * ONE CLASS FOR ONE SHAPE, on the rule the header already argues for
+   * `.candidate-list`: `.config-card` and `.cause-card` are the same article
+   * with different padding, and drawing both names would be two places to edit
+   * one rule. `.config-card` is the name that survives, because it is also what
+   * the three `.alternatives-grid` bands call their cards.
+   *
+   * An empty or absent repeater draws NO `.what-sub` AT ALL — not an empty one.
+   * The wrapper carries `margin-top: 70px`, so an empty `<div class="what-sub">`
+   * is 70px of visible dead space at the foot of all eleven bands nobody edited.
+   */
+  subCards?: (MediaSplitSubCard | null)[] | null;
   image?: MediaSplitImage | null;
   /** Overrides the media item's own alt text when the editor filled it in. */
   imageAlt?: string | null;
@@ -246,6 +300,8 @@ const {
   body2,
   calloutHeading,
   calloutBody,
+  subColumns,
+  subCards,
   image,
   imageAlt,
   mediaSide = "left",
@@ -344,6 +400,52 @@ const calloutParagraphs = calloutBodyIsBlock
       .map((part) => part.trim())
       .filter((part) => part !== "");
 const hasCallout = calloutHeadingText !== "" || calloutBodyHtml !== "";
+
+/**
+ * The secondary grid's cards, on exactly the terms `checklistPoints` below
+ * spells out: `Array.isArray` first, because an unqueried repeater arrives
+ * `undefined` and a repeater an editor never opened arrives `null`, and `.map`
+ * on either throws during the build of whatever page the band sits on.
+ *
+ * The filter drops a row only when EVERY sub-field is blank — the empty row ACF
+ * leaves behind when someone clicks "Add row" and changes their mind. It is
+ * deliberately not "a card needs a title": a card saved with only a tag is a
+ * card an editor meant to save, and dropping it here would delete published copy
+ * with no error anywhere to explain it.
+ */
+const subCardRows = (Array.isArray(subCards) ? subCards : [])
+  .map((row) => ({
+    tag: typeof row?.tag === "string" ? row.tag.trim() : "",
+    title: typeof row?.title === "string" ? row.title.trim() : "",
+    body: typeof row?.body === "string" ? row.body.trim() : "",
+  }))
+  .filter((card) => card.tag !== "" || card.title !== "" || card.body !== "");
+const hasSubCards = subCardRows.length > 0;
+
+/** "2" unless the editor picked otherwise. See the prop for why `null` has to
+    land on a real track count rather than on "unset". */
+const subColumnsKey = subColumns === "3" || subColumns === "4" ? subColumns : "2";
+
+/**
+ * THE CALLOUT BECOMES THE GRID'S SUB-HEAD, AND ONLY WHEN THERE IS A GRID.
+ *
+ * `calloutHeading` / `calloutBody` already carry the `<h3>` and the paragraph
+ * that stand above these cards on both pages, so nothing new is mapped for them.
+ * But this block renders that pair as `.veneers-callout` — a boxed aside INSIDE
+ * the copy column — because a boxed aside is the only place the pair had ever
+ * appeared. `.what-sub-head` is a centred head in the `.wrap`, a sibling of the
+ * split, and the cards belong under it. Drawing the head in the copy column and
+ * the cards below the split would leave "Upper Arch vs. Lower Arch: Which One Do
+ * You Need?" boxed off in the right half of the band with two headless cards
+ * floating beneath it — the band would look broken, not merely different.
+ *
+ * SWITCHED, NOT MOVED, and the switch is what keeps this additive: with no
+ * `sub_cards` the pair is still the aside, byte for byte, which is every band
+ * saved to date and every band that has ever rendered these two fields. A band
+ * that fills BOTH is a shape no page in the corpus has; it gets the sub-head,
+ * because that is the only reading in which the cards have a heading at all.
+ */
+const calloutIsSubHead = hasCallout && hasSubCards;
 
 /**
  * The checklist lines, trimmed and emptied out.
@@ -482,7 +584,7 @@ const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
             the prose and the CTA row, which is what was there before this field
             existed. A comment node here would reintroduce the problem it
             documents, so this comment lives INSIDE the same expression. */
-          hasCallout && (
+          hasCallout && !hasSubCards && (
             <aside class="veneers-callout">
               {calloutHeadingText && <h3>{calloutHeadingText}</h3>}
               {calloutBodyIsBlock ? (
@@ -537,7 +639,73 @@ const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
           </div>
         )
       }
-    </div>
+    </div>{/* `}{`-flush against the `.what-grid` close, on the rule the quote,
+        the callout and the second button in this file already follow: an
+        expression on its own line carries a newline-and-indent TEXT NODE either
+        side, and that survives into the HTML as a rendered space even when the
+        condition is false. Eleven bands are already saved against this layout
+        with no `sub_cards`, so a line of its own here would add whitespace to
+        the markup of every one of them — a diff on pages that gained nothing.
+        Flush against the tag, a false condition emits exactly the bytes that
+        were here before, and the single whitespace node that already sat between
+        `.what-grid` and the close of `.wrap` is still the only one there. The
+        comment lives INSIDE the expression because a comment node on its own
+        line would reintroduce precisely what it documents.
+
+        AFTER `.what-grid` AND INSIDE `.wrap`, which is where both pages put it
+        (all-on-4-single-arch.astro:413, sinus-lift.astro:380). Not inside
+        `.what-text`: `.what-sub` is a full-width centred unit, and nesting it in
+        the copy column would render it at half width against the photo.
+
+        THE WRAPPER IS INSIDE THE TEST, NOT AROUND IT — `.what-sub` carries
+        `margin-top: 70px`, so an empty one is 70px of visible gap at the foot of
+        every band that has no cards. */
+      hasSubCards && (
+        <div class="what-sub">
+          {calloutIsSubHead && (
+            <div class="what-sub-head">
+              {calloutHeadingText && <h3>{calloutHeadingText}</h3>}
+              {/* The `.prose` wrapper is in the markup being reproduced here
+                  (`.what-sub-head > .prose > p`) and is NOT in the aside above,
+                  which puts its paragraphs directly in the `<aside>`. Same two
+                  branches as the aside otherwise: a pre-wrapped value passes
+                  through untouched, because `<p><p>…</p></p>` is invalid nesting
+                  that the parser closes early and leaves a stray empty `<p>`
+                  behind. The blank-line split is the aside's, for the same
+                  reason — splitting on a bare newline would turn every soft wrap
+                  in the textarea into a paragraph break. */}
+              {calloutBodyIsBlock ? (
+                <div class="prose" set:html={calloutBodyHtml} />
+              ) : (
+                calloutParagraphs.length > 0 && (
+                  <div class="prose">
+                    {calloutParagraphs.map((para) => (
+                      <p set:html={para} />
+                    ))}
+                  </div>
+                )
+              )}
+            </div>
+          )}
+          {/* The eyebrow above that `<h3>` — "Upper vs. Lower" on all-on-4,
+              "Common Causes" on sinus-lift — has NO field on this layout and is
+              a recorded known gap, so nothing is emitted for it. An empty
+              `<span class="eyebrow">` would be worse than nothing rather than
+              harmless: the head's eyebrow rule hangs a 28px hairline off
+              `::before` AND `::after`, so a label-less span renders as two
+              floating rules with a hole between them. */}
+          <div class:list={["config-grid", `cols-${subColumnsKey}`]}>
+            {subCardRows.map((card) => (
+              <article class="config-card">
+                {card.tag && <span class="tag">{card.tag}</span>}
+                {card.title && <h4>{card.title}</h4>}
+                {card.body && <p>{card.body}</p>}
+              </article>
+            ))}
+          </div>
+        </div>
+      )
+    }
   </div>
 </section>
 
@@ -906,6 +1074,246 @@ const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
     margin-top: 26px;
   }
 
+  /* ---------- the secondary card grid ----------
+     `.what-sub` sits after the split inside the same `.wrap`, and it is the same
+     unit on both pages that ship it. Every declaration below is copied from a
+     page sheet and names the sheet and line it came from.
+
+     SCOPING BUYS NO SPECIFICITY HERE, and every selector below is written on the
+     assumption that it does not. Astro compiles a scoped rule to
+     `.what-sub:where(.astro-…) .config-card:where(.astro-…)`, and `:where()` is
+     specificity ZERO by definition — so that selector is (0,2,0) flat, exactly
+     what `.aos4 .config-card` is. A tie is resolved by whichever sheet the
+     bundler emits last, which is not a thing to bet a live band on. So each rule
+     here is qualified until it OUTRANKS the page rule it has to survive, rather
+     than merely matching it: `.what-sub` prefixes the head rules that would
+     otherwise tie with the page's `.aos4 h3`, and the band inversions further
+     down carry the full `.section.alt …` compound. Two defects on this project
+     came from assuming the page sheet no longer had a say.
+
+     The wrapper keeps the name `.what-sub` on BOTH families. It is a sibling of
+     the split rather than a part of it, and no `.natural-sub` exists anywhere in
+     the corpus to reproduce, so deriving the name from `fam` would invent a
+     second class for one shape.
+
+     all-on-4-single-arch.css:342-344 and sinus-lift.css:366-368 — identical. */
+  .what-sub {
+    margin-top: 70px;
+  }
+  /* all-on-4-single-arch.css:346-350 / sinus-lift.css:369-372 — identical. */
+  .what-sub .what-sub-head {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  /* all-on-4-single-arch.css:361-366 / sinus-lift.css:380-384 — identical.
+     `margin` and `line-height` are NOT in those blocks: they come from the
+     page-wide reset at all-on-4-single-arch.css:39-42
+     (`.aos4 h1, .aos4 h2, .aos4 h3, .aos4 h4 { margin: 0; line-height: 1.1 }`),
+     which no block inherits and global.css does not supply — it resets `p` and
+     `body` only. Omitted, the `<h3>` would take the UA's 1em margins and 1.15
+     line-height and the head would read visibly looser than the page's.
+
+     The `.what-sub` prefix on this rule and the two around it is not decoration:
+     without it the selector is (0,1,1), a dead tie with the page-wide
+     `.aos4 h3 { font-size: clamp(20px, 2vw, 26px); color: var(--ink) }` at
+     all-on-4-single-arch.css:47, and the head would take the page's size or this
+     block's depending on emit order. */
+  .what-sub .what-sub-head h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    color: var(--vs-sage);
+    font-size: clamp(24px, 2.8vw, 34px);
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+    margin: 14px 0 0;
+  }
+  /* all-on-4-single-arch.css:367-370 / sinus-lift.css:385-386 — identical.
+     `margin-inline: auto` is what actually centres the paragraph: this block's
+     own `.prose p` caps it at 70ch, and a capped block in a `text-align: center`
+     column still sits hard against the left edge without it. The `:global()`
+     twin is for the pre-wrapped `body`/`callout_body` path, whose paragraphs
+     arrive through `set:html` carrying no scope attribute — the same reason
+     `.prose :global(p)` exists further up. */
+  .what-sub .what-sub-head .prose {
+    margin-top: 14px;
+  }
+  .what-sub .what-sub-head .prose p,
+  .what-sub .what-sub-head .prose :global(p) {
+    margin-inline: auto;
+  }
+  /* The sub-head's `<h3>` on the inverted bands. The base sage above is what the
+     two page sheets declare, but it is NOT what either page renders: both `#what`
+     bands are `.section.alt`, and `.aos4 .section.alt h3 { color: #fff }`
+     (all-on-4-single-arch.css:228-231) outranks `.aos4 .what-sub-head h3` at
+     (0,3,1) against (0,2,1). Reproducing the sheet without reproducing the
+     cascade that overrides it would put sage-on-charcoal where the live page has
+     white. `.section.dark` follows all-on-4-single-arch.css:238-241 the same
+     way. The base rule is left as sage because that IS the light-band answer,
+     which no page in the corpus exercises yet. */
+  .section.alt .what-sub .what-sub-head h3,
+  .section.sage .what-sub .what-sub-head h3 {
+    color: #fff;
+  }
+  .section.dark .what-sub .what-sub-head h3 {
+    color: var(--vs-ink);
+  }
+
+  /* Track counts, from the two sheets that ship this grid:
+       2 — `.aos4 .config-grid`     (all-on-4-single-arch.css:371-373)
+       4 — `.sinuslift .cause-grid` (sinus-lift.css:387-389)
+     3 has no `sub_cards` band in the corpus today, but the select offers it, so
+     it is taken from `.aos4 .alternatives-grid`
+     (all-on-4-single-arch.css:530-531) — the only three-across grid in this
+     family. The gutter follows the track count exactly as the sheets do: 24px at
+     two across, 18px at four. */
+  .what-sub .config-grid {
+    display: grid;
+    gap: 24px;
+  }
+  .what-sub .config-grid.cols-2 {
+    grid-template-columns: 1fr 1fr;
+  }
+  .what-sub .config-grid.cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .what-sub .config-grid.cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+  }
+  /* The four-across drops to two before 1240px and to one at 780px
+     (sinus-lift.css:875-877 and :923). Two and three across drop straight to one
+     at 1100px, which is where `.aos4 .config-grid` and `.aos4 .alternatives-grid`
+     both go (all-on-4-single-arch.css:824-825) and also where this block's own
+     split stacks. Kept beside the rules they modify rather than in the trailing
+     breakpoint group, per the note on that group below. */
+  @media (max-width: 1240px) {
+    .what-sub .config-grid.cols-4 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 1100px) {
+    .what-sub .config-grid.cols-2,
+    .what-sub .config-grid.cols-3 {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 780px) {
+    .what-sub .config-grid.cols-4 {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* The card, from `.aos4 .config-card` (all-on-4-single-arch.css:374-381).
+     `background: #fff` is kept as the literal both sheets use rather than
+     swapped for `--vs-paper`: the point of the declaration is that the card
+     stays WHITE while the band under it goes charcoal, and `--vs-paper` is the
+     token this same block already paints `.section` with, so writing it here
+     would read to the next person as "same as the band".
+     `border-color` is in the transition list because the four-across variant
+     animates it (sinus-lift.css:399); listing it once on the base costs the
+     roomy card nothing, since nothing changes its border. */
+  .what-sub .config-card {
+    background: #fff;
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-lg);
+    padding: 36px 34px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  }
+  /* all-on-4-single-arch.css:382-385. */
+  .what-sub .config-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--vs-shadow);
+  }
+  /* all-on-4-single-arch.css:386-389, character for character the same
+     declarations as sinus-lift.css:405-408. */
+  .what-sub .config-card .tag {
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+  }
+  /* all-on-4-single-arch.css:390-393, plus `margin` and `line-height` from the
+     page reset at all-on-4-single-arch.css:39-42 for the reason the `<h3>` gives
+     above — and it bites harder here. The card is a flex column, and flex items'
+     margins never collapse, so leaving the UA's 1.33em heading margins in would
+     add roughly 29px above AND below the title of every card. */
+  .what-sub .config-card h4 {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: 22px;
+    color: var(--vs-ink);
+    line-height: 1.1;
+    letter-spacing: -0.005em;
+    margin: 0;
+  }
+  /* all-on-4-single-arch.css:394. Colour and margin come from this block's own
+     base `p` rule. */
+  .what-sub .config-card p {
+    font-size: 15px;
+    line-height: 1.75;
+  }
+
+  /* THE FOUR-ACROSS CARD IS A DENSER CARD, not merely a narrower one, and these
+     are the deltas of `.sinuslift .cause-card` (sinus-lift.css:390-413) against
+     `.aos4 .config-card` above.
+
+     Hanging them on the track count rather than on a separate field is
+     deliberate: the reason sinus-lift's cards are tighter is that there are four
+     of them inside the same 1240px and none of them carries a `<p>`, so 36px of
+     padding around a two-line title would leave each card mostly air. Tie the
+     density to the count and a three-across grid an editor builds tomorrow lands
+     on the roomy card — which is what `.alternatives-grid`, the only real
+     three-across in this family, already ships. A separate "density" field would
+     be a second control for a decision the column count already makes, and the
+     first band where the two disagreed would look like a bug. */
+  .what-sub .config-grid.cols-4 .config-card {
+    padding: 28px 26px;
+    gap: 10px;
+    min-height: 130px;
+    justify-content: center;
+  }
+  /* sinus-lift.css:400-404. The border tint is the only thing the two hovers do
+     differently; both lift by the same 3px and take the same shadow. */
+  .what-sub .config-grid.cols-4 .config-card:hover {
+    border-color: var(--vs-sage-soft);
+  }
+  /* sinus-lift.css:409-413. */
+  .what-sub .config-grid.cols-4 .config-card h4 {
+    font-size: 19px;
+    line-height: 1.3;
+  }
+
+  /* WHITE CARD ON AN INVERTED BAND — the defect this project has already had
+     twice, and the one shape in this batch that walks straight into it. Both
+     bands that need these cards are dark: all-on-4's `#what` is `.section.alt`
+     (all-on-4-single-arch.css:227) and so is sinus-lift's (sinus-lift.astro:350).
+     This block paints `.section.alt p` and `.section.sage p` white, and the page
+     sheets paint `.section.alt h1-h4` white at (0,3,1) — rules that reach
+     straight into a white card and print white on white.
+
+     global.css:213-250 exists for exactly this and already lists
+     `.config-card.config-card`, at a deliberately forced (0,5,1). Two reasons
+     it is not relied on alone. It covers `.section.alt` and `.vs-band-sage`
+     only, and this block also emits `.section.sage`, which nothing in that list
+     matches. And the base rules above sit at (0,3,1) — a dead TIE with
+     `.aos4 .section.alt h4`, resolved by whichever stylesheet the bundler
+     happens to order last. Stated here at (0,5,1) the answer is the band's own,
+     the way it already is for `.vs-link` and `.candidate-list`, and it resolves
+     to the same colours global.css does, so the pages that rule does cover are
+     unchanged. */
+  .section.alt .what-sub .config-card h4,
+  .section.sage .what-sub .config-card h4 {
+    color: var(--vs-ink);
+  }
+  .section.alt .what-sub .config-card p,
+  .section.sage .what-sub .config-card p {
+    color: var(--vs-ink-soft);
+  }
+
   /* ---------- CTA ---------- */
   .cta-row {
     margin-top: 56px;
@@ -962,7 +1370,11 @@ const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
      band, and both are decorative. */
   @media (prefers-reduced-motion: reduce) {
     .what-img img,
-    .natural-img img {
+    .natural-img img,
+    /* The card's lift-and-shadow, listed for the same reason and on the same
+       terms the page sheets list it (all-on-4-single-arch.css:872,
+       sinus-lift.css:947): decorative motion, switched off entirely. */
+    .what-sub .config-card {
       transition: none !important;
     }
   }

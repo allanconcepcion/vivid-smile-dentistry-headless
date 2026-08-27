@@ -1898,31 +1898,47 @@
     "name, and `.aos4 .section` (:226) is padding only, so a bare `.section` is the body paper.",
     "Every `band_evidence` below names the rule it was read from.",
     "",
-    "FOUR OF THE TEN BANDS CARRY A SECOND SHAPE INSIDE THEM, AND NO REGISTERED LAYOUT HAS A SLOT",
-    "FOR ONE. `what` ends in `.what-sub` (a head, a two-card `.config-grid`, a closing",
+    "FOUR OF THE TEN BANDS CARRY A SECOND SHAPE INSIDE THEM, AND THE CARDS IN TWO OF THE FOUR",
+    "ARE CARRIED NOW. `what` ends in `.what-sub` (a head, a two-card `.config-grid`, a closing",
     "paragraph); `compare` ends in `.compare-sub` (a head and a three-card `.alternatives-grid`);",
     "`candidacy` and `living` each end in a `.candidacy-sub` (a `.label`, an <h3>, a paragraph).",
-    "Each is a known_gap on its block. media_split's `callout_heading` / `callout_body` and",
-    "comparison_cards' were NOT pressed into service for them: those two draw",
-    "`<aside class=\"veneers-callout\">` and `<aside class=\"safety-callout\">`, which are",
-    "teeth-whitening's classes and teeth-whitening's shape — an h3 and prose, no `.label`, no",
-    "card grid. Using them would move this page's copy into markup it has never had, and the",
-    "rule this whole file is governed by is that a backfilled band renders IDENTICAL markup.",
-    "A gap that is recorded is recoverable; a band quietly rebuilt out of the nearest-fitting",
-    "field is not.",
+    "media_split grew `sub_cards` and comparison_cards grew `alt_cards`, and the `archConfigs`",
+    "and `alternatives` groups feed them straight from the CMS, and the <h3> and paragraph above",
+    "each grid are `callout_heading` / `callout_body` — the aside pair, which both components",
+    "redirect into the grid's sub-head position when a grid is present rather than drawing their",
+    "boxed aside. What is still open on those two bands is one word each: the sub-band eyebrow,",
+    "which no layout has a field for. `what` also still loses its closing `.what-sub-foot`",
+    "paragraph. The two `.candidacy-sub`s have no cards and are untouched by this batch — they",
+    "remain whole gaps on their own blocks.",
     "",
-    "TWO `cards` GROUPS FEED THOSE SUB-SHAPES AND ARE THEREFORE EXEMPT, NOT CLAIMED. `archConfigs`",
-    "(2 rows) is the `.config-grid` inside `what`; `alternatives` (3 rows) is the",
-    "`.alternatives-grid` inside `compare`. Both are named in `exempt.cards` with a reason. This",
-    "matters mechanically as well as morally: backfill-blocks.php stops before writing anything",
-    "on a `cards` group that is neither claimed by a block nor named in `exempt`, so leaving them",
-    "out entirely would fail the run rather than lose the rows silently — which is the behaviour",
-    "worth keeping, and the reason the check exists.",
+    "THE CALLOUT PAIR IS THE ONE PLACE THIS ROUTE CHANGED ITS MIND, and the argument it changed",
+    "its mind about is worth keeping. The pair used to be rejected on both bands because it draws",
+    "`<aside class=\"veneers-callout\">` / `<aside class=\"safety-callout\">` — teeth-whitening's",
+    "classes — where this page has `.what-sub-head` / `.compare-sub-head`. `compare` took the",
+    "trade anyway, on the grounds that a class name is a styling problem and live client copy is a",
+    "content one, and it still pays it: see gap 2 there. `what` does NOT pay it, because",
+    "MediaSplitBlock switches that pair into `.what-sub-head` whenever `sub_cards` is filled",
+    "(MediaSplitBlock.astro:448), which is this page's own markup. Same fields, same page, two",
+    "different outcomes — the difference is the component, not the map, and it is recorded on both",
+    "blocks so neither reads as an oversight.",
+    "",
+    "THE TWO `cards` GROUPS THAT FEED THOSE SUB-SHAPES ARE CLAIMED NOW, NOT EXEMPT. `archConfigs`",
+    "(2 rows) is the `.config-grid` inside `what` and is claimed by that block's `sub_cards`;",
+    "`alternatives` (3 rows) is the `.alternatives-grid` inside `compare` and is claimed by that",
+    "block's `alt_cards`. Both were named in `exempt.cards` with a reason for as long as no",
+    "layout could hold them, and both have left that list — `exempt.cards_were_not_always_empty`",
+    "records why, because a claimed group left listed as exempt goes on warning that its rows are",
+    "lost. The check itself is unchanged and still worth having: backfill-blocks.php stops before",
+    "writing anything on a `cards` group that is neither claimed by a block nor named in `exempt`,",
+    "so a group can never be lost by being forgotten in both places at once.",
     "",
     "THIS PAGE'S `cards` REPEATER IS NOT EMPTY, UNLIKE porcelain-veneers'. Thirteen rows in four",
-    "groups, verified live: whyCards (4), livingCards (4), alternatives (3), archConfigs (2). Two",
-    "of the four groups are MOVED into block repeaters rather than transcribed, which is why the",
-    "`why` and `living` blocks below carry `{ \"cards\": \"<group>\" }` rows and not literals.",
+    "groups, verified live: whyCards (4), livingCards (4), alternatives (3), archConfigs (2). ALL",
+    "FOUR groups are MOVED into block repeaters rather than transcribed, which is why the `why`,",
+    "`living`, `what` and `compare` blocks below carry `{ \"cards\": \"<group>\" }` rows and not",
+    "literals. The two sub-grid groups map `tag` from the source repeater's `meta`, the only",
+    "sub-field that holds a card's small label: `cards` is group, title, body, meta, href",
+    "(src/loaders/pages.ts:113-119) and has no `tag` of its own.",
     "",
     "`robotics` IS THE BAND THE media_split HEADER SAYS DOES NOT EXIST. That component's header",
     "asserts, as a measured fact across six sheets, that no page in src/pages mixes the two class",
@@ -2020,6 +2036,17 @@
       "ratio": {
        "literal": "even"
       },
+      "callout_heading": {
+       "literal": "Upper Arch vs. Lower Arch: Which One Do You Need?",
+       "from_template": "all-on-4-single-arch.astro:416 — the <h3> of .what-sub-head."
+      },
+      "callout_body": {
+       "literal": "Treat the arch with the most failing or missing teeth first, or the one causing the greatest difficulty.",
+       "from_template": "all-on-4-single-arch.astro:417-422 — the one <p> inside .what-sub-head > .prose."
+      },
+      "sub_columns": {
+       "literal": "2"
+      },
       "cta_label": {
        "literal": "Free Virtual Consult",
        "from_template": "all-on-4-single-arch.astro:402-404 — the first of the two buttons in .cta-row.left."
@@ -2036,34 +2063,47 @@
       }
      },
      "layout_evidence": ".what-img precedes .what-text in the DOM (all-on-4-single-arch.astro:386, 394) and .aos4 .what-grid is 1fr 1fr with gap 80px (all-on-4-single-arch.css:336-338) — photo left, even split, and MediaSplitBlock's own `.what-grid` is the identical declaration. `even` is already the family default for a left photo (MediaSplitBlock.astro:281-283), so no ratio-* modifier is emitted and the grid div stays the bare `what-grid` the template ships.",
+     "callout_evidence": "all-on-4-single-arch.astro:414-423, and the pair is safe to use HERE ONLY BECAUSE `sub_cards` above is filled. MediaSplitBlock switches on exactly that: `calloutIsSubHead = hasCallout && hasSubCards` (MediaSplitBlock.astro:448) draws the pair as `<div class=\"what-sub-head\"><h3> + <div class=\"prose\"><p>` inside `.what-sub` (:663-689), and the `.veneers-callout` aside is guarded `hasCallout && !hasSubCards` (:587) so it cannot also fire. That is the template's own markup at :414-423, which is why the wrapper objection this block's gap 1 used to raise does not arise on this band: with the cards mapped there is no aside, and without them there would be no sub-head to put a heading on. The two mappings stand or fall together — dropping `sub_cards` and keeping this pair would box this copy into `.veneers-callout` on a charcoal band.",
+     "sub_columns_evidence": ".aos4 .config-grid is `grid-template-columns: 1fr 1fr` (all-on-4-single-arch.css:371-372) — two across, against the two archConfigs rows. Stated rather than left null: the field's own comment (vs-content-model.php:1880-1888) says a null row reads as 2, but a row that SAYS 2 is one a reviewer can diff against the sheet, and it does not move if the ACF default is ever changed.",
      "image_alt_note": "The images row for slot whatImg carries alt \"Full-arch restoration on a dental model, held in a gloved hand\" — confirmed live, and character-for-character the string the template hardcodes at :389. Moved, not transcribed: the row exists.",
      "image_shape_note": "whatImg is 1100x880 — landscape, which is what the 5/4 `.what-img` plate wants (all-on-4-single-arch.css:316, and the identical rule in MediaSplitBlock). This is the one media band on the page whose source and frame agree; see `robotics` for the one where they do not.",
      "prose_note": "ONE paragraph inside a `<div class=\"prose\">` (all-on-4-single-arch.astro:397-399), which is exactly what MediaSplitBlock emits for a non-empty `body` and an empty `body_2`. No `body_2` on this band.",
+     "rows": {
+      "sub_cards": {
+       "cards": "archConfigs",
+       "fields": {
+        "tag": "meta",
+        "title": "title",
+        "body": "body"
+       },
+       "note": "Both rows of the `archConfigs` group, in order — verified live against the endpoint: meta \"Upper Arch\" / title \"Less dense bone, posterior angulation\", then meta \"Lower Arch\" / title \"Navigating the inferior alveolar nerve\", each with the body the template prints. MOVED, not transcribed: the array at all-on-4-single-arch.astro:158-169 is a copy of rows that already exist in the CMS, and re-typing them here would fork the copy the client edits from the copy the page draws.",
+       "tag_comes_from_meta": "`tag` <- `meta`, and the indirection belongs to the source repeater, not to this map. The `cards` repeater has no `tag` sub-field — it is group, title, body, meta, href (src/loaders/pages.ts:113-119) — and the `<span class=\"tag\">` at all-on-4-single-arch.astro:428 prints what the CMS calls meta. It is the same sub-field the `why` block leaves deliberately unmapped, where it holds \"01\"-\"04\" and row position can derive it; here it holds the arch name and nothing can derive that.",
+       "claims_the_group": "This mapping CLAIMS archConfigs, which is why the group has left `exempt.cards` below. vs_bb_resolve_rows() sets claimed['cards']['archConfigs'] (backfill-blocks.php:350), and a group listed in both places keeps printing an exemption warning saying two rows are lost on the run that finally carries them — a false alarm in the one report a migrator reads to find the real ones.",
+       "additive_note": "Eleven routes hold media_split rows and none holds a `sub_cards` row, so this is the first. These two rows draw a grid only because the repeater is non-empty; a row saved before this batch returns an empty list and must still draw no `.what-sub` wrapper at all. That is a component obligation — wrapper inside the length test, not around it — and nothing in this file can enforce it.",
+       "no_href_note": "No `href` and no fourth sub-field. Both `.config-card`s are a `.tag`, an <h4> and a <p> (all-on-4-single-arch.astro:427-431): not links, no ribbon, no flag. The group's `href` is null on both live rows, and `sub_cards` has nowhere to put one if it were not."
+      }
+     },
      "known_gaps": [
-      "1. THE ENTIRE `.what-sub` SUB-BAND. all-on-4-single-arch.astro:413-442, roughly 90 words",
-      "   plus two cards, and none of it has a slot on media_split:",
+      "1. THE `.what-sub` EYEBROW AND ITS CLOSING PARAGRAPH. Everything else on this sub-band is",
+      "   carried now: the two `.config-card`s (:424-434) by `sub_cards`, and the <h3> and the",
+      "   paragraph above them (:416, :417-422) by `callout_heading` / `callout_body`, which",
+      "   MediaSplitBlock draws as `.what-sub-head` precisely because the cards are there. What is",
+      "   left is about 45 words in two places:",
       "",
-      "     <span class=\"eyebrow\">Upper vs. Lower</span>",
-      "     <h3>Upper Arch vs. Lower Arch: Which One Do You Need?</h3>",
-      "     <div class=\"prose\"><p>Treat the arch with the most failing or missing teeth first, or the one causing the greatest difficulty.</p></div>",
-      "     <div class=\"config-grid\"> two .config-card, each a .tag, an <h4> and a <p> — the CMS",
-      "       `archConfigs` group: \"Upper Arch\" / \"Less dense bone, posterior angulation\" and",
-      "       \"Lower Arch\" / \"Navigating the inferior alveolar nerve\" </div>",
-      "     <div class=\"what-sub-foot\"><p>Most patients prioritize whichever arch is more compromised and evaluate adding the second after healing. A CBCT scan provides Dr. Richardson with the three-dimensional bone map that makes this determination accurate.</p></div>",
+      "     <span class=\"eyebrow\">Upper vs. Lower</span>   (:415)",
+      "     <div class=\"what-sub-foot\"><p>Most patients prioritize whichever arch is more compromised and evaluate adding the second after healing. A CBCT scan provides Dr. Richardson with the three-dimensional bone map that makes this determination accurate.</p></div>   (:435-441)",
       "",
-      "   `callout_heading` / `callout_body` were considered and rejected. They draw",
-      "   `<aside class=\"veneers-callout\">` with an <h3> and paragraphs (MediaSplitBlock.astro:481-491)",
-      "   — teeth-whitening's aside, not a sub-band — so they could carry the head and the foot",
-      "   paragraph but never the eyebrow and never the two cards, and they would put this page's",
-      "   copy inside a class this page has never had. Half a sub-band in the wrong element is",
-      "   harder to notice and harder to undo than a missing one.",
+      "   NEITHER HAS A FIELD ON ANY LAYOUT, and neither can borrow one. media_split's `eyebrow` is",
+      "   the BAND's eyebrow, already spent on the section head at :384; the callout pair is a",
+      "   heading and a body with nothing before them and nothing after them; and `sub_cards` rows",
+      "   are { tag, title, body } — a foot paragraph put in a card would draw a third card.",
+      "   MediaSplitBlock emits nothing at all for the eyebrow rather than an empty span, and says",
+      "   why at :690-696: `.what-sub-head .eyebrow` hangs a 28px hairline off BOTH `::before` and",
+      "   `::after`, so a label-less span renders as two floating rules with a hole between them.",
       "",
-      "   WHAT CLOSES IT: a `sub_band` group on media_split — eyebrow, heading, body, a `cards`-",
-      "   shaped repeater of { tag, title, body }, and a closing `foot` textarea — drawn by",
-      "   MediaSplitBlock as `.what-sub` > `.what-sub-head` + `.config-grid` + `.what-sub-foot`.",
-      "   The same group closes the `compare` gap below and both `.candidacy-sub` gaps, which is",
-      "   four bands on this page alone and the same shape on bone-grafting, sinus-lift and",
-      "   full-mouth-dental-implants. It is a layout change, so it is not made here.",
+      "   WHAT CLOSES IT: a `sub_eyebrow` text and a `sub_foot` textarea beside `sub_cards`. The",
+      "   `sub_eyebrow` half also closes the identical eyebrow gap on `compare` below and on both",
+      "   `.candidacy-sub`s. That is a layout change, so it is not made here.",
       "",
       "2. THE SECONDARY BUTTON'S HOVER LABEL. The template passes hoverLabel=\"See How\" for",
       "   #robotics (:405). MediaSplitBlock derives hover labels from the HREF (CTA_HOVER,",
@@ -2247,9 +2287,13 @@
       },
       "callout_body": {
        "literal": "All-on-4 is the ideal choice when most or all arch teeth are failing, but other options exist for different clinical situations."
+      },
+      "alt_columns": {
+       "literal": "3"
       }
      },
-     "columns_evidence": ".aos4 .compare is 1fr 1fr (all-on-4-single-arch.css:469-470) and the band carries 2 cards. comparison_cards has no columns sub-field — the count IS the row count — so there is nothing to set. TWO cards here, three on both worked examples.",
+     "columns_evidence": ".aos4 .compare is 1fr 1fr (all-on-4-single-arch.css:469-470) and the band carries 2 cards. The `tiers` grid has no columns sub-field — the count IS the row count — so there is nothing to set for it. TWO cards here, three on both worked examples. The SECONDARY grid is a separate question and does have one: see alt_columns_evidence.",
+     "alt_columns_evidence": ".aos4 .alternatives-grid is `grid-template-columns: repeat(3, 1fr)` (all-on-4-single-arch.css:530-531) against the three `alternatives` rows. Three is also the field default, and it is stated anyway for the reason the `what` block states two: full-mouth-dental-implants overrides the same grid to `repeat(2, 1fr)` with a 820px max-width (full-mouth-dental-implants.css:537-541) because that page has two alternatives. The count is a per-page fact, and a per-page fact belongs in the row rather than in a default the row inherits silently.",
      "rows": {
       "tiers": {
        "literal": [
@@ -2257,37 +2301,80 @@
          "tag": "Single Arch",
          "title": "All-on-4 Single Arch",
          "ribbon": "Our Specialty",
-         "featured": true
+         "featured": true,
+         "bullets": [
+          {
+           "lead": "Scope —",
+           "item": "treats one jaw, upper or lower."
+          },
+          {
+           "lead": "Implants —",
+           "item": "four strategically placed titanium implants."
+          },
+          {
+           "lead": "Investment —",
+           "item": "lower cost, a shorter procedure, and a focused treatment plan."
+          },
+          {
+           "lead": "Best for —",
+           "item": "patients with healthy teeth in one arch start with single-arch treatment."
+          }
+         ]
         },
         {
          "tag": "Full Mouth",
-         "title": "Full Mouth Treatment"
+         "title": "Full Mouth Treatment",
+         "bullets": [
+          {
+           "lead": "Scope —",
+           "item": "treats both jaws."
+          },
+          {
+           "lead": "Implants —",
+           "item": "roughly double the implants."
+          },
+          {
+           "lead": "Investment —",
+           "item": "a longer procedure, and approximately twice the investment."
+          },
+          {
+           "lead": "Best for —",
+           "item": "those with two compromised arches may complete both in one surgical appointment or stage treatment based on budget and recovery goals."
+          }
+         ]
         }
        ],
        "from_template": "all-on-4-single-arch.astro:567-597 — the two .compare-card articles, the FIRST .featured with a .ribbon. These two cards are hardcoded in the template and have no `cards` rows behind them; the CMS `alternatives` group belongs to the .compare-sub below, not to these.",
        "no_body_note": "NEITHER ROW CARRIES `body`, AND THAT IS NOT AN OVERSIGHT. Neither .compare-card has a <p> at all — each is a .tag, an <h3> and a <ul class=\"compare-list\"> (:571-580, :586-596). Inventing a paragraph out of the four bullets would author copy, which this file does not do. What the bullets cost is gap 1 below.",
        "featured_is_first_here": "The featured card is the FIRST of the two (all-on-4-single-arch.astro:567), like the pilot's and unlike porcelain-veneers' third. Position is carried by row order, so the flag travels with the first row and nothing else has to say so.",
-       "repeater_name_note": "`tiers`, not `cards` and not `plans`. comparison_cards, card_grid and pricing_tiers do not share a repeater name — a repeater mints its GraphQL type from its field name, so sharing one merges two types and drops one side's sub-fields — and the backfill rejects the wrong name against the layout's shape before it plans anything."
+       "repeater_name_note": "`tiers`, not `cards` and not `plans`. comparison_cards, card_grid and pricing_tiers do not share a repeater name — a repeater mints its GraphQL type from its field name, so sharing one merges two types and drops one side's sub-fields — and the backfill rejects the wrong name against the layout's shape before it plans anything.",
+       "bullets_note": "The eight <li> across the band's two <ul class=\"compare-list\">, transcribed from all-on-4-single-arch.astro. `lead` carries its own trailing em dash because that dash sits INSIDE the <b> in the markup. These were a recorded gap only because the fragment did not select `bullets`; it does now (commit 234062d) and ComparisonCardsBlock draws them, so the rows are what was missing."
+      },
+      "alt_cards": {
+       "cards": "alternatives",
+       "fields": {
+        "tag": "meta",
+        "title": "title",
+        "body": "body"
+       },
+       "note": "All three rows of the `alternatives` group, in order — verified live against the endpoint: All-on-6, Implant-supported dentures, Individual implants, each with meta \"Alternative\" and the body the template prints. MOVED, not transcribed: the array at all-on-4-single-arch.astro:133-149 is a copy of rows that already exist in the CMS.",
+       "tag_comes_from_meta": "`tag` <- `meta`, for the same reason the `what` block's `sub_cards` does: the source `cards` repeater is group, title, body, meta, href (src/loaders/pages.ts:113-119) and has no `tag`. All three rows carry the same word, \"Alternative\", which is what `<span class=\"tag\">` prints at all-on-4-single-arch.astro:615. Three identical values are still three rows: the grid draws three cards, and a shared literal is not a reason to collapse them.",
+       "not_more_tiers": "`alt_cards`, NOT three more `tiers` rows. The exempt entry these rows used to sit in already said what that mistake costs — five cards across a 1fr 1fr grid under the wrong heading — and two separate repeaters are what make it unavailable. They are not `sub_cards` either: that name belongs to media_split, and one name under two layouts merges the GraphQL type and leaves one side's sub-fields silently unqueryable (vs-content-model.php:2302-2312).",
+       "claims_the_group": "This mapping CLAIMS alternatives, which is why the group has left `exempt.cards` below (backfill-blocks.php:350). Left in both lists it would report three rows as lost on every run that carries them.",
+       "additive_note": "No row of comparison_cards anywhere holds an `alt_cards` row today, so nothing saved before this batch changes. An empty repeater must draw no `.alternatives-grid` wrapper — the wrapper inside the length test, not around it — or the ten routes that never had a secondary grid gain an empty div under their comparison."
       }
      },
      "cta_note": "ComparisonCardsBlock draws the closing .cta-row itself — Free Virtual Consult to #consult, Read FAQ to #faq, and the note \"No commitment · Personal video reply\" (ComparisonCardsBlock.astro, the literal .cta-row after the aside) — which is exactly what all-on-4-single-arch.astro:624-632 ships, variants `sage` and `ghost` included because this is a paper band. The layout has no cta sub-fields, so this map supplies nothing.",
-     "no_callout_note": "No `callout_heading` / `callout_body`. This band's aside is not teeth-whitening's `.safety-callout` — it is `.compare-sub`, a headed three-card grid — so those two fields would draw the wrong element around part of the wrong content. See gap 2.",
+     "callout_note": "SUPERSEDED, AND KEPT SO THE REVERSAL IS VISIBLE. This key read \"No callout_heading / callout_body\" and argued that `.compare-sub` is not teeth-whitening's `.safety-callout`, so the pair would draw the wrong element around part of the wrong content. The pair IS mapped above now and `callout_evidence` below says why. Both statements are about the same facts; what changed is which side of the trade was judged worse, and a class name lost to live client copy is the cheaper loss. The wrapper mismatch it warned about is real and is still recorded, in gap 2.",
      "known_gaps": [
-      "1. EVERY BULLET IN BOTH CARDS. Eight <li> across two <ul class=\"compare-list\">, which is",
-      "   the entire body copy of the band's two cards. Transcribed here so the words survive the",
-      "   review even though no field carries them:",
+      "WHAT CLOSED SINCE THIS ENTRY WAS WRITTEN",
       "",
-      "     All-on-4 Single Arch —",
-      "       <b>Scope —</b> treats one jaw, upper or lower.",
-      "       <b>Implants —</b> four strategically placed titanium implants.",
-      "       <b>Investment —</b> lower cost, a shorter procedure, and a focused treatment plan.",
-      "       <b>Best for —</b> patients with healthy teeth in one arch start with single-arch treatment.",
+      "The eight compare bullets are NO LONGER a gap. comparison_cards has always declared",
+      "`tiers.bullets`; commit 234062d added `bullets { lead item }` to the fragment and taught",
+      "ComparisonCardsBlock to draw `<b>{lead}</b> {item}` in a <ul class=\"compare-list\">. The rows",
+      "are now carried in rows.tiers above, so the words are on the page rather than quoted here.",
       "",
-      "     Full Mouth Treatment —",
-      "       <b>Scope —</b> treats both jaws.",
-      "       <b>Implants —</b> roughly double the implants.",
-      "       <b>Investment —</b> a longer procedure, and approximately twice the investment.",
-      "       <b>Best for —</b> those with two compromised arches may complete both in one surgical appointment or stage treatment based on budget and recovery goals.",
+      "WHAT IS STILL MISSING ON THIS BAND",
       "",
       "   THE FIELD EXISTS AND IS NOT QUERIED. `tiers.bullets` is registered in",
       "   cms/mu-plugins/vs-content-model.php (field_vs_blk_compare_bullets, :2101-2103, built by",
@@ -2309,22 +2396,31 @@
       "         list factory already grew for media_split's checklist, plus the class on the",
       "         <ul>.",
       "",
-      "2. THE ENTIRE `.compare-sub` SUB-BAND. all-on-4-single-arch.astro:600-622:",
+      "2. THE `.compare-sub` EYEBROW, AND THE WRAPPER THE REST OF IT ARRIVES IN. The sub-band",
+      "   at all-on-4-single-arch.astro:600-622 is no longer lost. The <h3> and the paragraph are",
+      "   `callout_heading` / `callout_body` above; the three `.config-card`s (:611-621) are",
+      "   `alt_cards` above, moved from the CMS `alternatives` group. Two things about the band",
+      "   are still not what the template ships:",
       "",
-      "     <span class=\"eyebrow\">Alternatives</span>",
-      "     <h3>Alternatives to All-on-4 Single Arch Implants</h3>",
-      "     <div class=\"prose\"><p>All-on-4 is the ideal choice when most or all arch teeth are failing, but other options exist for different clinical situations.</p></div>",
-      "     <div class=\"alternatives-grid\"> three .config-card, each a .tag, an <h4> and a <p> —",
-      "       the CMS `alternatives` group: All-on-6, Implant-supported dentures, Individual",
-      "       implants </div>",
+      "   (a) `<span class=\"eyebrow\">Alternatives</span>` (:602) has no field to go in.",
+      "       comparison_cards' `eyebrow` is the BAND's eyebrow and is already spent on the",
+      "       section head above, and the callout pair is a heading and a body with nothing",
+      "       before them. One word — and the same word is missing on `what`'s sub-band and on",
+      "       both `.candidacy-sub`s, so one `sub_eyebrow` text beside the cards repeater would",
+      "       close four bands on this page.",
       "",
-      "   Same shape and same reasoning as the `.what-sub` gap on the `what` block, and closed by",
-      "   the same `sub_band` group. `.aos4 .what-sub` and `.aos4 .compare-sub` are one rule",
-      "   (all-on-4-single-arch.css:342-370 declares them together), which is the evidence that",
-      "   this is one shape appearing twice and not two similar ones.",
+      "   (b) THE WRAPPER, which is the price `callout_evidence` below says was paid. The pair",
+      "       draws an aside — `.safety-callout` on this layout, `.veneers-callout` on",
+      "       media_split — where this page has `.compare-sub-head`: centred, with a 28px rule",
+      "       either side of the eyebrow. `.aos4 .what-sub-head` and `.aos4 .compare-sub-head` are",
+      "       declared as ONE rule (all-on-4-single-arch.css:346-370), which is the evidence that",
+      "       this is one shape appearing twice and not two similar ones — and therefore that one",
+      "       component change closes it on both bands. Live client copy was judged worth more",
+      "       than the class name; the class name is still owed.",
       "",
-      "   The three cards are the `alternatives` group and are named in `exempt.cards` below, so",
-      "   the backfill reports them on every run instead of dropping them quietly."
+      "   NOT A GAP ANY MORE, written down so nobody re-opens it: the three alternative cards.",
+      "   They are claimed by `alt_cards` above and gone from `exempt.cards` below, and the",
+      "   backfill carries them instead of warning that they are lost."
      ],
      "callout_evidence": "all-on-4-single-arch.astro:602-609. Carried by callout_heading / callout_body, which the layout declares, manifest.ts selects and the component draws. It was recorded as a gap because the wrapper class differs from .veneers-callout — but that trades live client copy for a class name, and the class is a styling problem, not a content one. The eyebrow line and the cards below stay recorded gaps."
     },
@@ -2436,11 +2532,13 @@
       "   visibly different furniture and the difference would be attributed to the migration",
       "   rather than to a missing field.",
       "",
-      "   WHAT CLOSES IT: the same `sub_band` group named on the `what` block, or — narrower and",
-      "   enough for this one shape — a `label` sub-field beside `callout_heading` /",
-      "   `callout_body` plus a `callout_class` choice so the aside can be drawn as",
-      "   `.candidacy-sub`. That narrower fix also closes gap 4 on `robotics` and gap 2 on",
-      "   `living`, three bands for one field pair."
+      "   WHAT CLOSES IT, AND IT IS NOT `sub_cards`. That field holds CARDS and this sub-band",
+      "   has none — a `.label`, an <h3> and a paragraph — which is why the secondary-grid batch",
+      "   that closed `what` and `compare` left this gap exactly where it was. What closes it is",
+      "   a `label` sub-field beside `callout_heading` / `callout_body` plus a `callout_class`",
+      "   choice, so the aside can be drawn as `.candidacy-sub` and not `.veneers-callout`. That",
+      "   pair also closes gap 4 on `robotics` and gap 2 on `living`, three bands for one field",
+      "   pair."
      ],
      "callout_evidence": "The .candidacy-sub <h3> and its paragraph (all-on-4-single-arch.astro:703). Carried by the callout_heading / callout_body pair, which media_split already declares, manifest.ts already selects and MediaSplitBlock already draws — the same pair single-tooth-dental-implants and full-mouth-dental-implants use for this identical shape. It was first left empty because .veneers-callout is not .candidacy-sub, but that trades a live client paragraph for a class name. The panel geometry and the .label line stay recorded gaps."
     },
@@ -2533,10 +2631,12 @@
       "   `callout_heading` / `callout_body` pair media_split and comparison_cards carry, so",
       "   there is not even a wrong-element option to reject here.",
       "",
-      "   WHAT CLOSES IT: the `sub_band` group named on the `what` block, added to card_grid as",
-      "   well as media_split. Note the ampersand in the label — it is a literal `&` in the",
-      "   source and would be stored as `&` and escaped on output, the same trap the pilot route",
-      "   records for \"Brush & floss as before\"."
+      "   WHAT CLOSES IT: the `callout_heading` / `callout_body` pair added to card_grid, with",
+      "   the `label` sub-field and the `callout_class` choice gap 1 on `candidacy` asks for. NOT",
+      "   `sub_cards`: that field belongs to media_split, it holds cards, and this sub-band has",
+      "   none. Note the ampersand in the label — it is a literal `&` in the source and would be",
+      "   stored as `&` and escaped on output, the same trap the pilot route records for",
+      "   \"Brush & floss as before\"."
      ]
     },
     {
@@ -2717,37 +2817,41 @@
      "writing anything, on any row that is neither claimed nor listed here. Three of the five",
      "lists are empty because those rows are all claimed: 10 sections by the 10 blocks, all 5",
      "process_steps by `process`, all 8 faqs by `faq`, all 9 toc_links by the section ids above.",
-     "TWO `cards` groups and one image are exempt, and unlike both worked examples the cards",
-     "list here is not empty — see below."
+     "ONE image is exempt and nothing else is. All four `cards` groups are claimed as of the",
+     "secondary-grid batch — `cards_were_not_always_empty` below records what left this list."
     ],
     "sections": [],
-    "cards": [
-     {
-      "group": "archConfigs",
-      "rows": 2,
-      "reason": "The two `.config-card`s inside `.what-sub` — the Upper Arch / Lower Arch pair at all-on-4-single-arch.astro:424-434. They belong to a SUB-BAND of the `what` band, not to a band of their own, and media_split has no repeater that draws a card grid. Claiming them on the `what` block is impossible; splitting `what` into two blocks is worse, because two blocks means two <section>s and PageBlocks would rename the second anchor to #what-2, breaking the rail entry and every inbound #what link.",
-      "destination": "The `sub_band.cards` repeater named in the `what` block's known_gaps. Until that exists these two rows sit in the CMS unread, and this entry is what makes the backfill say so on every run.",
-      "renders_today": "all-on-4-single-arch.astro:424-434, inside the guarded `what` band — so they render on the template side of the switch and not on the block side."
-     },
-     {
-      "group": "alternatives",
-      "rows": 3,
-      "reason": "The three `.config-card`s inside `.compare-sub` — All-on-6, Implant-supported dentures, Individual implants, at all-on-4-single-arch.astro:611-621. Same shape and same reason as archConfigs: a sub-band of the `compare` band, and comparison_cards' one `tiers` repeater is already the two main cards. They are NOT more comparison tiers — putting them there would draw five cards across a 1fr 1fr grid under the wrong heading.",
-      "destination": "The same `sub_band.cards` repeater. `.aos4 .what-sub` and `.aos4 .compare-sub` are declared as one rule (all-on-4-single-arch.css:342-370), which is the evidence that one field closes both.",
-      "renders_today": "all-on-4-single-arch.astro:611-621, inside the guarded `compare` band."
-     }
-    ],
-    "cards_note": [
-     "NOT EMPTY, WHICH IS THE DIFFERENCE BETWEEN THIS ROUTE AND BOTH WORKED EXAMPLES.",
-     "porcelain-veneers has no `cards` rows at all and clear-aligners' one group is claimed. This",
-     "page has four groups and two of them have nowhere to go, because two of its ten bands carry",
-     "a card grid inside a card grid.",
+    "cards": [],
+    "cards_were_not_always_empty": [
+     "TWO GROUPS LEFT THIS LIST RATHER THAN NEVER HAVING BEEN ON IT, and the difference is",
+     "worth a paragraph. `archConfigs` (2 rows) and `alternatives` (3 rows) were exempt for as",
+     "long as no layout had a slot for a card grid inside a band. media_split now has",
+     "`sub_cards` and comparison_cards has `alt_cards`, the `what` and `compare` blocks above",
+     "claim the two groups through them, and vs_bb_resolve_rows() marks a claimed group claimed",
+     "(backfill-blocks.php:350).",
      "",
-     "Naming them here rather than omitting them is deliberate and mechanical: the leftover check",
-     "reports a `cards` group that HAS rows and was not claimed, and an unlisted group stops the",
-     "run with an error rather than losing five rows quietly. Listed, they surface as a warning on",
-     "every backfill — which is where a reader looking at a page that came back short will find",
-     "the reason."
+     "THEY HAD TO COME OFF THE LIST, not merely be claimed. The exemption warnings are read out",
+     "unconditionally (backfill-blocks.php:730-737) — that loop never asks whether the group was",
+     "claimed — so a group named in both places makes the backfill report say five rows are lost",
+     "on the very run that carries them. A false warning in the one report a migrator reads to",
+     "find the real ones is worse than no warning at all.",
+     "",
+     "The list is empty, which is now the same statement both worked examples make: every",
+     "`cards` row on this page is claimed by a block. whyCards -> `why`, livingCards ->",
+     "`living`, archConfigs -> `what`, alternatives -> `compare`. Thirteen rows, four groups,",
+     "none exempt.",
+     "",
+     "The destination those two entries named — \"the `sub_band.cards` repeater\" — was a guess",
+     "at a field nobody had designed yet, and it guessed ONE repeater for both grids. It shipped",
+     "as two, `sub_cards` and `alt_cards`, because a repeater mints its GraphQL type from its",
+     "field name alone: one name under two layouts merges the types and drops one side's",
+     "sub-fields while the schema still looks healthy. The guess was right about the shape,",
+     "{ tag, title, body }, and wrong about the count.",
+     "",
+     "THE `.candidacy-sub` ON `candidacy` AND ON `living` IS NOT CLOSED BY THIS BATCH. It has no",
+     "cards to claim — a `.label`, an <h3>, a paragraph — so it never appeared in this list and",
+     "its absence here is not evidence that it is carried. Both remain whole gaps on their own",
+     "blocks."
     ],
     "process_steps": [],
     "faqs": [],
@@ -2776,10 +2880,12 @@
      "on this page. So the rail is not a difference on this route.",
      "",
      "ONE THING THE RAIL WILL KEEP PROMISING THAT THE BACKFILLED PAGE SHOWS LESS OF: \"Comparison\"",
-     "scrolls to a band whose two cards lose all eight of their bullet lines and whose three",
-     "alternative cards are gone, until the `compare` block's two gaps are closed. The entry still",
-     "lands in the right place; there is less under it. This is the one place on the route where a",
-     "reader following the rail would notice the migration."
+     "scrolls to a band whose two cards lose all eight of their bullet lines, until gap 1 on the",
+     "`compare` block is closed. The three alternative cards under it have dropped out of that",
+     "sentence — `alt_cards` carries them — and what that sub-band still loses is its one-word",
+     "eyebrow. The entry lands in the right place; there is less under it. This is still the one",
+     "place on the route where a reader following the rail would notice the migration, and the",
+     "eight bullets are now the whole of what they would notice."
     ]
    }
   },
@@ -2956,6 +3062,7 @@
      "layout_evidence": ".what-img precedes .what-text in the DOM (bone-grafting.astro:350, 358) and .bgraft .what-grid is 1fr 1fr with gap 80px (bone-grafting.css:336-339) — photo left, even split. `even` is already the family default for a left photo (MediaSplitBlock.astro:284-286), so no ratio-* modifier is emitted and the grid div matches the template's.",
      "image_alt_note": "The images row for slot whatImg carries alt \"Cross-section illustration showing bone-graft material placed under a collagen barrier membrane against native jawbone\" — confirmed live, and character-for-character the string the template hardcodes at :353. Moved, not transcribed: the row exists.",
      "prose_note": "ONE paragraph in .prose (bone-grafting.astro:361-363), so no `body_2`. The second block of prose in this column is `.what-causes`, which is a different element with its own eyebrow and rule — see known_gaps — not a second .prose paragraph.",
+     "sub_cards_note": "NO `sub_cards` ROWS, AND NONE TO TRANSCRIBE. The secondary-grid batch listed this band as carrying a `.cause-grid` beside `.what-grid`. It does not: grep for `cause-grid` and `cause-card` in bone-grafting.astro returns zero. What sits between .prose and .cta-row inside .what-text is `.what-causes` (bone-grafting.astro:369-379) — a hairline div, an eyebrow, one <h3> and ONE paragraph, and no card of any kind. sinus-lift's #what is the band with the four-card `.cause-grid`; this page's causes copy was rewritten as inline prose when the band was restructured, which the template states at :366-368 (\"instead of floating as a centered .what-sub block\"). So `sub_columns` and `sub_cards` are both unset here and stay unset. THE FAILURE MODE THAT MATTERS IS THE COMPONENT'S, NOT THIS FILE'S: MediaSplitBlock must put the `.what-sub` wrapper INSIDE the subCards length test, never around it, or this band — and the ten other saved rows of this layout — gain an empty div and a visible gap where there has never been one. The `.what-causes` loss is untouched by this batch and stays on known_gaps below.",
      "variant_note": "Charcoal is a dark band, so MediaSplitBlock's primaryVariant is `light` and secondaryVariant is `ghost-light` (MediaSplitBlock.astro:395-396, isDarkBand at :272), which is the pair bone-grafting.astro:383-388 ships.",
      "known_gaps": [
       "TWO. ONE IS A HOVER LABEL; THE OTHER IS A WHOLE SUB-BLOCK.",
@@ -3154,6 +3261,7 @@
       }
      },
      "columns_evidence": ".bgraft .alternatives-grid is repeat(3, 1fr) gap 24px (bone-grafting.css:530-532) and the band carries 3 cards. comparison_cards has no columns sub-field — the count IS the row count — so there is nothing to set.",
+     "alt_cards_note": "`alt_columns` AND `alt_cards` ARE DELIBERATELY UNSET, AND THIS IS THE ONE ROUTE WHERE THAT NEEDED ARGUING. The batch that minted them lists this band as `.alternatives-grid` + `.materials-list`, primary plus secondary, the same reading that is correct on all-on-4 and full-mouth. It does not hold here, for two independent reasons.\n\nFIRST, `.alternatives-grid` IS THIS BAND'S PRIMARY GRID, NOT ITS SECONDARY ONE. There is no `.compare` on this page; the three .config-card articles sit directly under .section-head with no `.compare-sub-head` between them (bone-grafting.astro:526-537), so the sub-head that callout_heading/callout_body carry on the other two routes does not exist here and those two fields are unmapped. The three CMS `procedures` rows are already claimed, by `tiers` above. Copying them into `alt_cards` as well would draw them TWICE — once as .compare-card, once as .config-card — on a band that ships three cards.\n\nSECOND, `alt_cards` CANNOT DRAW `.materials-list` AT ANY SETTING. `.bgraft .materials-list` is not a grid: it is a hairline-ruled stack of full-width .material-row, each ITSELF a 2-col dt/dd split (bone-grafting.css:984-1023). One column of definition rows. `alt_columns` offers 2, 3 and 4 and has no 1, and even a 1 would emit .config-card articles rather than <dt>/<dd>. The rows are the right SHAPE — tag/title/body, which is why the field's own instruction text names \"the material sources\" — and the wrong ELEMENT, which is the distinction the rule at the top of this file turns on. Filling it would also rebuild the exact thing the design refuses: bone-grafting.astro:503-505 says the <dl> exists to keep the eye from reading two identical 3-card rows back-to-back.",
      "rows": {
       "tiers": {
        "cards": "procedures",
@@ -3185,6 +3293,17 @@
       ".compare / .compare-card and its <h4> to an <h3> in the .astro makes it the shape the",
       "layout already draws, and needs nothing new anywhere.",
       "",
+      "SINCE THIS BATCH THERE IS A SECOND AND CHEAPER CLOSURE, AND IT IS NOT SAFE TO TAKE FROM",
+      "THIS FILE. comparison_cards now has `alt_cards`, which draws exactly this band's shape —",
+      ".alternatives-grid of .config-card, span.tag / <h4> / <p> — so re-homing the three",
+      "`procedures` rows from `tiers` to `alt_cards` with `alt_columns: \"3\"` (.bgraft",
+      ".alternatives-grid is repeat(3, 1fr), bone-grafting.css:530-532) would make the backfilled",
+      "band match the template with no .astro edit at all. It is NOT done here because it is not",
+      "additive and this batch is: rows are already saved against `tiers` on this route, emptying",
+      "that repeater changes what a saved row renders, and ComparisonCardsBlock has no alt-grid",
+      "markup yet — doing it today blanks three cards on a live page until the component phase",
+      "lands. It is a one-line move for whoever ships that component, in that order.",
+      "",
       "TWO — THE ENTIRE .materials-block IS LOST, bone-grafting.astro:545-564, and its three",
       "definitions are CMS rows rather than template copy:",
       "",
@@ -3205,6 +3324,14 @@
       "page. Listing them is the honest form of \"nothing draws these\" — it is not permission",
       "to forget them.",
       "",
+      "NOT FILLED INTO `alt_cards`, WHICH IS THIS BATCH'S ANSWER AND IS THE WRONG ONE HERE. The",
+      "reasoning is on `alt_cards_note` above and comes to this: `.materials-list` is one column",
+      "of hairline-ruled <dt>/<dd> rows (bone-grafting.css:984-1023), `alt_columns` offers only",
+      "2/3/4, and the repeater emits .config-card articles inside an .alternatives-grid. Right",
+      "sub-fields, wrong element, and it would also lose the .materials-head eyebrow — this band",
+      "maps no callout pair, so there is nothing carrying that head either. These three rows stay",
+      "in `exempt.cards`.",
+      "",
       "NOT FILLED INTO `callout_heading` / `callout_body`. That pair draws",
       "<aside class=\"safety-callout\"> of an <h3> and paragraphs (ComparisonCardsBlock.astro:",
       "584-596 equivalent). The head's <h3> and <p> would ride there and the eyebrow would",
@@ -3216,11 +3343,12 @@
       "WHAT WOULD CLOSE IT: a `definitions` repeater on comparison_cards (term / label /",
       "body) plus the <dl> markup in ComparisonCardsBlock — and the name must be checked",
       "against every repeater already in `blocks` before it is minted, because `items`,",
-      "`cards`, `checklist`, `steps`, `tiers`, `points`, `pre_cards`, `plans` and `features`",
-      "are taken and a collision merges two types silently. The cheaper alternative is a",
-      "second block: split the materials into their own <section> so a card_grid or a future",
-      "glossary layout can hold it — but that mints a new anchor and a new rail entry, and",
-      "the seven toc_links rows do not have one."
+      "`cards`, `checklist`, `steps`, `tiers`, `points`, `pre_cards`, `plans`, `features`,",
+      "`sub_cards` and `alt_cards` are taken, and a collision merges two types silently:",
+      "the schema still looks healthy while one side stops being queryable. The cheaper",
+      "alternative is a second block: split the materials into their own <section> so a",
+      "card_grid or a future glossary layout can hold it — but that mints a new anchor and",
+      "a new rail entry, and the seven toc_links rows do not have one."
      ]
     },
     {
@@ -3412,7 +3540,7 @@
      {
       "group": "materials",
       "rows": 3,
-      "reason": "No registered layout draws a definition list. These three rows fill the <dl class=\"materials-list\"> inside #types (bone-grafting.astro:551-563) — Allograft / Processed donor bone, Xenograft / Bovine-derived mineral, Synthetic / Lab-made scaffold, each a meta, a title and a body. comparison_cards' `tiers` draws cards, not <dt>/<dd>, and its callout pair draws paragraphs; neither reproduces the band.",
+      "reason": "No registered layout draws a definition list. These three rows fill the <dl class=\"materials-list\"> inside #types (bone-grafting.astro:551-563) — Allograft / Processed donor bone, Xenograft / Bovine-derived mineral, Synthetic / Lab-made scaffold, each a meta, a title and a body. comparison_cards' `tiers` draws cards, not <dt>/<dd>; its callout pair draws paragraphs; and `alt_cards`, added for exactly this kind of secondary grid, draws .config-card articles across 2, 3 or 4 tracks when `.bgraft .materials-list` is a single column of hairline-ruled rows (bone-grafting.css:984-1023). None of the three reproduces the band. All three were checked; see the `types` block.",
       "destination": "None today. Listed here so the leftover check passes deliberately rather than by accident, and so the rows stay visible to whoever closes the `types` gap. See known_gaps on the `types` block for what would claim them.",
       "renders_today": "bone-grafting.astro:545-564, the .materials-block after .alternatives-grid and before the .cta-row."
      }
@@ -3479,9 +3607,14 @@
     "",
     "THIS PAGE HAS `cards` ROWS AND THEY ARE MOVED, NOT TRANSCRIBED. Confirmed against the live",
     "CMS: ten rows in three groups — whyCards (4), benefitCards (4), alternatives (2). The first",
-    "two groups are claimed by the two card_grid blocks. The `alternatives` pair is the one thing",
-    "on this page a registered layout cannot hold, and it is listed in `exempt.cards` rather than",
-    "folded in among the head-to-head cards. See the `compare` block's known_gaps.",
+    "two groups are claimed by the two card_grid blocks. The `alternatives` pair used to be the",
+    "one thing on this page a registered layout could not hold; comparison_cards now has",
+    "`alt_columns` + `alt_cards` (vs-content-model.php:2337-2389), so the pair is claimed by the",
+    "`compare` block and `exempt.cards` is empty. All ten rows have a field behind them.",
+    "",
+    "THE PAIR IS STILL NOT FOLDED IN AMONG THE HEAD-TO-HEAD CARDS. `alt_cards` is a second list",
+    "under its own sub-head, which is the shape the template has; tiers rows 3 and 4 would have",
+    "kept the words and lost the argument. See the `compare` block's known_gaps.",
     "",
     "The template still declares whyCards / benefitCards / alternatives as local const arrays.",
     "Those arrays are the ELSE branch — the rollback path — and they are character-for-character",
@@ -3811,8 +3944,12 @@
       "callout_body": {
        "literal": "Full-arch implants are the right call when most or all teeth in an arch are gone, but other approaches fit different clinical pictures.",
        "from_template": "vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:571-575 — the single <p> inside .compare-sub-head .prose."
+      },
+      "alt_columns": {
+       "literal": "2"
       }
      },
+     "alt_columns_evidence": ".fmdi .alternatives-grid is `repeat(2, 1fr)` (full-mouth-dental-implants.css:537-542) and the sheet says in its own comment why it is an override: this page has two alternatives where the family template has three. So this band stores \"2\". It is written out rather than left unset on purpose — the ACF default is \"3\" and NULL is documented to mean three as well (vs-content-model.php:2337-2354), so an unmapped row would draw the pair across three tracks and leave a third of the row empty, which is the same defect the head-to-head pair above already has.",
      "rows": {
       "tiers": {
        "literal": [
@@ -3867,68 +4004,92 @@
        "featured_is_first_here": "The pilot's and porcelain-veneers' featured card is the third of three; this page's is the FIRST of two (vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:523). Position is carried by row order, so the flag travels with the first row and nothing else has to say so.",
        "bullets_are_the_whole_card": "Every word of both cards past the heading lives in `bullets`, and each line is a bolded lead-in plus a sentence — the `lead` + `item` shape block_list_field() gained (vs-content-model.php:418-447), with `lead` carrying its own trailing em dash exactly as the <b> does. That the copy is stored losslessly and drawn lossily is the point of the known_gaps below.",
        "repeater_name_note": "`tiers`, not `cards` and not `plans`. comparison_cards, card_grid and pricing_tiers do not share a repeater name — a repeater mints its GraphQL type from its field name, so sharing one merges two types and drops one side's sub-fields."
+      },
+      "alt_cards": {
+       "cards": "alternatives",
+       "fields": {
+        "tag": "meta",
+        "title": "title",
+        "body": "body"
+       },
+       "note": "Both rows of the `alternatives` group, in order — re-read live off https://1230613.us28.myftpupload.com/graphql before this was written: 'Implant-supported overdentures', 'Individual implants per tooth'. MOVED, not transcribed. The const array at vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:123-134 is the else branch's copy of these same two rows and is character-for-character identical to them, which is what makes the move safe to roll back.",
+       "tag_comes_from_meta_and_that_is_not_a_typo": "The top-level `cards` repeater has no `tag` sub-field — its five are group, title, body, meta, href (vs-content-model.php:1181-1217) — and the migration put this card's small label in `meta`. Live, both rows return meta 'Alternative', which is exactly the string vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:581 prints inside `<span class=\"tag\">`. Leaving `tag` unmapped would drop that label and start each card at its <h4>; mapping it from `title` would print the title twice.",
+       "body_is_filled_on_both_rows": "Both rows have a body, so both draw a <p>. `alt_cards.body` is optional on the layout only because sinus-lift's `.cause-card` has a tag and an <h4> and no paragraph at all (vs-content-model.php:2381-2387), and the component must emit no <p> rather than an empty one for that page. Nothing on this route leans on that: neither row here is blank.",
+       "meta_is_the_tag_here_not_a_number": "Unlike `whyCards` and `benefitCards` above, whose meta is '01'..'04' and is deliberately unmapped because `numbered` derives the figure from row position, `alternatives` meta is a word. There is no `numbered` on comparison_cards and nothing derives it, so mapping it is the only way it reaches the page.",
+       "repeater_name_note": "`alt_cards`, not `sub_cards`. media_split's secondary grid is `sub_cards`, and the two cannot share a name: a repeater mints its GraphQL type from its field name alone, so one name would merge PageFieldsBlocksSubCards and PageFieldsBlocksAltCards into a single type and one side's sub-fields would silently stop being queryable while the schema still looked healthy (vs-content-model.php:2355-2389)."
       }
      },
      "cta_note": "ComparisonCardsBlock draws the closing .cta-row itself — Free Virtual Consult to #consult, Read FAQ to #faq, and the note 'No commitment · Personal video reply' — which is exactly what vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:595-603 ships. The layout has no cta sub-fields, so this map supplies nothing.",
      "known_gaps": [
-      "THREE, AND THIS IS THE BAND WHERE THIS PAGE DIVERGES MOST FROM THE FAMILY THE LAYOUT WAS",
-      "BUILT FROM. All three are on the render side: everything below is written to the CMS.",
+      "ONE, DOWN FROM THREE, AND IT IS THREE WORDS. Every other word of this band now has a field",
+      "behind it AND a component drawing it.",
       "",
-      "1. THE BULLET LISTS ARE NOT QUERIED, SO EIGHT LINES OF COPY DO NOT REACH THE PAGE.",
-      "   `tiers.bullets` exists on the deployed layout (vs-content-model.php:2100-2103) and",
-      "   ComparisonCardsBlock already renders it (ComparisonCardsBlock.astro:239-245), but the",
-      "   selection set in src/blocks/manifest.ts asks for `tiers { tag title body ribbon",
-      "   featured }` and nothing more. An unqueried repeater arrives undefined, the component's",
-      "   Array.isArray guard yields an empty list, and both cards render as a tag and a heading",
-      "   over nothing. Since neither card has a `body` either, the band comes back with two",
-      "   near-empty cards.",
-      "   WHAT CLOSES IT: `bullets { lead item }` inside `tiers` in",
-      "   src/blocks/manifest.ts's PageFieldsBlocksComparisonCardsLayout fragment. One line.",
-      "   NOT done from this route — manifest.ts is one file shared by every page in this phase,",
-      "   a wrong name in it fails query validation for all 48 routes at once, and `lead` is not",
-      "   drawn by the component yet (point 2), so the two go in together or not at all.",
+      "WHAT CLOSED SINCE THIS ENTRY WAS FIRST WRITTEN — recorded rather than quietly deleted, so a",
+      "reviewer diffing this route can see the old gaps were retired and check the claim:",
       "",
-      "2. EVEN QUERIED, THE LIST LOSES ITS LEAD-INS AND ITS CLASS.",
-      "   The template's line is `<li><b>Profile —</b> Fixed, bone-anchored…</li>` inside",
-      "   `<ul class=\"compare-list\">`. ComparisonCardsBlock draws `<ul>` with no class and",
-      "   `<li>{line}</li>` from `item` alone, escaped — so the bolded lead-in disappears and the",
-      "   line starts mid-sentence at 'Fixed, bone-anchored…'. The marker treatment differs too:",
-      "   `.fmdi .compare-card .compare-list li::before` is a sage bullet character (:512-515);",
-      "   the block's `.compare-card ul li::before` is a 12px hairline.",
-      "   WHAT CLOSES IT: ComparisonCardsBlock reading `lead` off each bullet row and drawing",
-      "   `<b>{lead}</b> {item}` with the literal space after `</b>`, the way MediaSplitBlock",
-      "   already draws `checklist` (MediaSplitBlock.astro:455). The `lead` sub-field is already",
-      "   on the repeater — block_list_field() puts it on all three lists — so this is a",
-      "   component change and a selection-set line, not a schema change. Both of this band's",
-      "   cards would then read as they do today, `.compare-list` class aside.",
+      "  - THE BULLET LISTS REACH THE PAGE. The selection set asks for",
+      "    `tiers { tag title body ribbon featured bullets { lead item } }` (src/blocks/manifest.ts:363)",
+      "    and ComparisonCardsBlock draws `<ul class=\"compare-list\">` with `<b>{lead}</b> {item}`",
+      "    per line, dropping the <b> and the leading space when a row has no lead",
+      "    (ComparisonCardsBlock.astro:346-367). The eight lines that were stored and undrawn are",
+      "    drawn, with their lead-ins and with the `.compare-list` class the sheet keys off.",
+      "  - THE `.alternatives-grid` CARDS HAVE A SLOT AND ARE DRAWN. `alt_columns` + `alt_cards` are",
+      "    on the layout (vs-content-model.php:2337-2389), in the fragment (src/blocks/manifest.ts:363",
+      "    `altColumns altCards { tag title body }`), and rendered by ComparisonCardsBlock as",
+      "    `<div class=\"alternatives-grid cols-N\">` > `<article class=\"config-card\">` > span.tag +",
+      "    <h4> + optional <p> (ComparisonCardsBlock.astro:399-409) — the same markup as",
+      "    vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:577-587.",
+      "    `rows.alt_cards` above MOVES both `alternatives` rows into it, tag from `meta`. The",
+      "    exemption went with them: `exempt.cards` is empty and all ten card rows are claimed.",
+      "  - THE PAIR IS STILL CENTRED. `alt_columns` \"2\" draws `.alternatives-grid.cols-2`, which",
+      "    reproduces `max-width: 820px` + `margin-inline: auto` as well as the two tracks",
+      "    (ComparisonCardsBlock.astro:728-732), because the sheet's own comment at",
+      "    full-mouth-dental-implants.css:537-541 says the max-width exists to centre a pair under a",
+      "    centred head. Columns without the centring would have stretched these two cards to the",
+      "    full wrap — a regression this map would have caused and not recorded.",
+      "  - The trade the old gap 3 refused is still refused. These two are `alt_cards` rows under",
+      "    their own sub-head, NOT `tiers` rows 3 and 4: two head-to-head options plus two lesser",
+      "    alternatives is not four peers in one grid, and folding them in would have wrapped them",
+      "    under the pair as though they belonged to it.",
       "",
-      "3. THE `.alternatives-grid` SUB-BAND HAS NO SLOT AND ITS TWO CMS ROWS ARE EXEMPT.",
-      "   vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:566-593 is a second shape inside this one band: a centred `.compare-sub-head`",
-      "   over `<div class=\"alternatives-grid\">` holding two `<article class=\"config-card\">`",
-      "   (tag, <h4>, <p>). comparison_cards has ONE card list and ONE aside. The aside is spent",
-      "   on the sub-head above, which keeps its <h3> and its paragraph; the two cards have",
-      "   nowhere to go, and the `<span class=\"eyebrow\">Alternatives</span>` at :568 goes with",
-      "   them.",
-      "   Those two cards are real CMS rows — the `alternatives` group, verified live — so they",
-      "   are listed in `exempt.cards` below rather than silently dropped, and the backfill will",
-      "   report them as claimed-by-nobody-on-purpose instead of failing.",
-      "   THEY WERE DELIBERATELY NOT FOLDED IN AS tiers ROWS 3 AND 4. That would have preserved",
-      "   the words at the cost of the argument: two head-to-head options plus two lesser",
-      "   alternatives under their own heading is not four peers in one grid, and .fmdi .compare",
-      "   is a two-track grid (:477), so they would have wrapped underneath the pair as though",
-      "   they belonged to it.",
-      "   WHAT CLOSES IT: a `sub_eyebrow` / `sub_heading` / `sub_body` trio plus a `sub_cards`",
-      "   repeater on comparison_cards, drawn by ComparisonCardsBlock as `.compare-sub` >",
-      "   `.compare-sub-head` + `.alternatives-grid` > `.config-card`. Four of the eight pages",
-      "   left in this phase carry a `.compare-sub` of this shape, so it is a family field and",
-      "   not a fix for this page — which is exactly why it is not invented here.",
+      "1. THE SUB-HEAD'S EYEBROW HAS NO FIELD, AND IT IS THE LAST COPY ON THIS BAND THAT DOES NOT.",
+      "   `<span class=\"eyebrow\">Alternatives</span>` at",
+      "   vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:568.",
+      "   `callout_heading` and `callout_body` carry the <h3> at :569 and the <p> at :571-575, and",
+      "   there is no third preamble field on the aside, so the one word above them is dropped —",
+      "   and with it the two 28px hairlines the sheet draws through its ::before / ::after",
+      "   (full-mouth-dental-implants.css:352-361), which have nothing left to attach to.",
+      "   WHAT CLOSES IT: a `callout_eyebrow` text field on comparison_cards, drawn above",
+      "   `callout_heading` inside the same aside and guarded the same way — blank draws no span,",
+      "   because eleven back-filled routes hold this layout and none of them has one. It is a",
+      "   FAMILY field and not a fix for this page: all-on-4-single-arch's `.what-sub-head` and",
+      "   bone-grafting's `#types` sub-head each carry the same eyebrow. That is why it is named",
+      "   here and not invented here, exactly as `alt_cards` was not invented on this route.",
       "",
-      "AND ONE THAT IS NOT COPY: the band draws three across. ComparisonCardsBlock's `.compare`",
-      "is repeat(3, 1fr) with no `columns` sub-field on the layout — the component's own comment",
-      "at ComparisonCardsBlock.astro:403-407 names this as a Phase 3 decision — while",
-      "`.fmdi .compare` is 1fr 1fr with max-width 1080px (:476-481). Two cards in a three-track",
-      "grid leave a third of the row empty. WHAT CLOSES IT: the `columns` sub-field that comment",
-      "asks for."
+      "AND THREE THAT ARE LOOK AND NOT COPY — R3 working as intended, a block owning its own",
+      "appearance so it can be dropped on any page. Recorded so the next person to diff this band",
+      "does not rediscover them:",
+      "",
+      "  - THE TWO HEAD-TO-HEAD CARDS DRAW THREE ACROSS. ComparisonCardsBlock's `.compare` is",
+      "    repeat(3, 1fr) with no `columns` sub-field on the layout — the component's own comment",
+      "    at ComparisonCardsBlock.astro:550-554 names this as a Phase 3 decision — while",
+      "    `.fmdi .compare` is 1fr 1fr with max-width 1080px (full-mouth-dental-implants.css:476-481).",
+      "    Two cards in a three-track grid leave a third of the row empty. WHAT CLOSES IT: the",
+      "    `columns` sub-field that comment asks for. `alt_columns` deliberately does NOT close it:",
+      "    `alt_columns` is a new field on a grid no saved row draws, where `columns` on `.compare`",
+      "    changes a grid eleven saved rows already draw and has to be reasoned about for all",
+      "    eleven at once.",
+      "  - THE CONFIG CARD IS REPRODUCED EXCEPT FOR ITS HOVER SHADOW. ComparisonCardsBlock's",
+      "    `.config-card` (:742-806) matches `.fmdi .config-card` (:375-395) value for value —",
+      "    36px 34px padding, 14px flex gap, 10.5px/0.22em tag, 22px display h4, 15px/1.75",
+      "    paragraph. The one delta is the hover: the block lifts on `var(--vs-shadow)` where this",
+      "    sheet's `--shadow` is a locally overridden two-layer value. The component names the",
+      "    trade at :752-758 — `.compare-card` in the same band already hovers on `var(--vs-shadow)`,",
+      "    and two cards in one band lifting under different shadows reads as a defect.",
+      "  - THE BULLET MARKER DIFFERS. `.fmdi .compare-card .compare-list li::before` is a sage",
+      "    bullet character (:512-515) where the block's `.compare-card ul li::before`",
+      "    (ComparisonCardsBlock.astro:636) is a hairline rule. Same class, same words, different",
+      "    marker."
      ]
     },
     {
@@ -4236,32 +4397,20 @@
    "exempt": {
     "_": [
      "Every repeater row on this page that no block above claims. The backfill fails, before",
-     "writing anything, on any row that is neither claimed nor listed here. On this route",
-     "`cards` is NOT empty — two of its ten rows are excused, and the reason is a layout hole,",
-     "not an editorial one. 10 sections by the 10 blocks, all 5 process_steps by `process`, all",
-     "6 faqs by `faq`, all 9 toc_links by the anchors above, 3 of 4 images by their bands."
+     "writing anything, on any row that is neither claimed nor listed here. `cards` IS empty",
+     "now: the two `alternatives` rows that used to be excused are claimed by the `compare`",
+     "block's `alt_cards`, so every one of this route's ten card rows has a field behind it.",
+     "10 sections by the 10 blocks, all 10 cards by the two card_grids and `compare`, all 5",
+     "process_steps by `process`, all 6 faqs by `faq`, all 9 toc_links by the anchors above,",
+     "3 of 4 images by their bands.",
+     "",
+     "The one entry that was here — the `alternatives` group, excused because comparison_cards",
+     "had one card list and one aside and no third slot — is gone because the slot exists. It",
+     "was NOT closed by folding the pair in as tiers rows 3 and 4; see the `compare` block's",
+     "known_gaps for why that trade stayed refused."
     ],
     "sections": [],
-    "cards": [
-     {
-      "group": "alternatives",
-      "rows": 2,
-      "titles": [
-       "Implant-supported overdentures",
-       "Individual implants per tooth"
-      ],
-      "reason": [
-       "The two `.config-card`s of the `.alternatives-grid` inside #compare (vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:577-591).",
-       "comparison_cards has one card list and one aside; the list holds the two head-to-head",
-       "cards and the aside holds the sub-head, so there is no third slot. Folding these two in",
-       "as tiers rows 3 and 4 would preserve the words and lose the argument — see gap 3 on the",
-       "`compare` block for why that trade was refused and for the `sub_cards` repeater that",
-       "closes it."
-      ],
-      "renders_today": "vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:580-586 — the alternatives.map() over article.config-card, which stays on the else branch of the guard.",
-      "cost_if_this_ships_unclosed": "Two card titles and two sentences, roughly 45 words, disappear from the migrated page. That is the largest single content loss on this route and it is the reason `compare` should be the first band revisited after the comparison_cards sub-band fields land."
-     }
-    ],
+    "cards": [],
     "process_steps": [],
     "faqs": [],
     "images": [
@@ -6322,19 +6471,22 @@
     "THIS PAGE'S `cards` REPEATER HOLDS 13 ROWS IN FOUR GROUPS AND THE TEMPLATE READS NONE OF",
     "THEM. causeCards (4), alternatives (3), techList (3) and costBullets (3) all exist in the",
     "live CMS — verified — while sinus-lift.astro declares four const arrays with the identical",
-    "copy and renders those instead. So three of the four groups are MOVED by the blocks below",
-    "rather than transcribed, and the migration quietly fixes a divergence: after the backfill",
-    "the alternatives, tech list and cost factors come from wp-admin, which is where an editor",
-    "has always been able to change them and where changing them has so far had no effect.",
-    "causeCards is the one group nothing can claim — see `exempt.cards`.",
+    "copy and renders those instead. All FOUR groups are MOVED by the blocks below rather than",
+    "transcribed, and the migration quietly fixes a divergence: after the backfill the causes,",
+    "the alternatives, the tech list and the cost factors come from wp-admin, which is where an",
+    "editor has always been able to change them and where changing them has so far had no",
+    "effect. causeCards was the last to find a home — `sub_cards` on media_split, added in the",
+    "secondary-grid batch — so `exempt.cards` is now empty rather than excusing four rows.",
     "",
-    "THREE BANDS LOSE SOMETHING AND ALL THREE LOSSES ARE STRUCTURAL, NOT COPY-SHAPED.",
+    "THREE BANDS STILL LOSE SOMETHING AND ALL THREE LOSSES ARE STRUCTURAL, NOT COPY-SHAPED.",
     "  #why    — the three-cell `.why-creds` strip (600+ hrs / 300+ reviews / Implant Pathway).",
-    "  #what   — the entire `.what-sub` \"Common Causes\" sub-grid: an eyebrow, an <h3>, a",
-    "            paragraph and four `.cause-card`s.",
+    "  #what   — the `.what-sub-head` EYEBROW \"Common Causes\", and nothing else on that band:",
+    "            its <h3> and paragraph are callout_heading / callout_body, and its four",
+    "            `.cause-card`s are `sub_cards` + `sub_columns`.",
     "  #investment — the two-column `.invest-grid` and the whole sage `.insurance-card` aside.",
     "Each is written out in full in `known_gaps` on its block, with what would close it. Nothing",
-    "was invented to cover them, no field was added, and no layout was proposed.",
+    "here is invented to cover them: this file names only fields the content model already",
+    "declares, and proposes no layout.",
     "",
     "THE FAQ BAND SPLITS body/pull THE OTHER WAY FROM porcelain-veneers, and this is the single",
     "easiest thing to get wrong by pattern-matching. Here the CMS `faq` row's body IS the",
@@ -6504,47 +6656,61 @@
       },
       "callout_body": {
        "literal": "Upper back tooth loss is the most common reason patients need a sinus lift, but periodontal disease, long-term denture wear, or naturally thin sinus anatomy can create the same problem. CBCT imaging measures the exact bone shortfall before treatment begins, so there are no surprises."
+      },
+      "sub_columns": {
+       "literal": "4"
       }
      },
      "layout_evidence": ".what-img precedes .what-text in the DOM (sinus-lift.astro:353, 361) and .sinuslift .what-grid is 1fr 1fr (sinus-lift.css:343-344) — photo left, even split. `even` is already the family default for a left photo (MediaSplitBlock.astro's familyRatio), so no ratio-* modifier is emitted and the grid div matches the template's exactly. The plate is 5/4 on both sides (sinus-lift.css:347 and the block's `.what-img`), so unlike `why` this band's photograph is unchanged.",
      "image_alt_note": "The images row for slot whatImg carries alt \"Cross-section illustration of a sinus lift — graft material placed beneath the lifted sinus membrane above an implant fixture\" — confirmed live, and character-for-character the string the template hardcodes at sinus-lift.astro:356. Moved, not transcribed.",
      "prose_note": "ONE paragraph in .prose (sinus-lift.astro:363-365), so no `body_2`. No pull quote and no aside in the split itself, so no `quote` and no callout pair.",
      "cta_variants_note": "Charcoal is a dark band, so MediaSplitBlock's primaryVariant is `light` and secondaryVariant is `ghost-light`, which is exactly the pair sinus-lift.astro:369 and :372 ship. The hover labels are derived from the HREF (CTA_HOVER): #consult -> \"Get a Video\" and #process -> \"View Steps\", which is what those two lines pass. Nothing is lost on the buttons.",
+     "sub_columns_evidence": "`.sinuslift .cause-grid` is `repeat(4, 1fr)` (sinus-lift.css:387-389) against the four `causeCards` rows below, so `4` is a measurement, not a preference. It is written out rather than left to the field, because the field's default is `2` and a default is not even what an un-set row returns: `sub_columns` is NULL on every row saved before this batch and the component reads null as 2 (vs-content-model.php, field_vs_blk_media_sub_columns). Left unset, this band's four cause cards re-flow into two rows of two — a visible change to a band the migration exists to leave alone. The two responsive re-flows (2-across under 1100px at sinus-lift.css:877, 1-across at :923) are the sheet's, not this field's; `sub_columns` is the desktop track count only.",
+     "rows": {
+      "sub_cards": {
+       "cards": "causeCards",
+       "fields": {
+        "tag": "meta",
+        "title": "title"
+       },
+       "note": "All 4 rows of the `causeCards` group, in order — re-verified live against https://1230613.us28.myftpupload.com/graphql: Most common / Upper back tooth loss, Cause / Periodontal disease, Cause / Long-term denture wear, Cause / Naturally thin sinus anatomy. That is character-for-character the const array at sinus-lift.astro:63-68 which the template renders instead, so this is a MOVE and not a transcription, and the same divergence closes here as on `alternatives`, `technology` and `investment`.",
+       "no_body_note": "`body` is deliberately unmapped. `sub_cards` declares tag, title AND body, but all four live rows return body null and every `.cause-card` in the template is a `.tag` over an <h4> with no `<p>` at all (sinus-lift.astro:393-400). Mapping body would write an empty string into the one sub-field the model made optional for this exact band (vs-content-model.php, field_vs_blk_media_sub_card_body), and an empty `<p>` is a gap the design has never had. Two of the three sub-fields is the correct shape here.",
+       "repeater_name_note": "`sub_cards`, not `cards`. A repeater mints its GraphQL type from the path of field names and the layout contributes nothing, so a second `cards` under `blocks` would mint PageFieldsBlocksCards twice and merge with card_grid's — which does not error, it just drops one side's sub-fields behind a schema that still looks healthy. `sub_cards` mints PageFieldsBlocksSubCards, claimed by nothing else in the model, and comparison_cards' grid is `alt_cards` for the same reason rather than a second `sub_cards`.",
+       "sub_head_is_not_here_note": "The grid's sub-head is NOT mapped into these rows. `.what-sub-head`'s <h3> and paragraph (sinus-lift.astro:382-391) are already carried by callout_heading / callout_body in `fields` above; repeating either as a card would print it twice."
+      }
+     },
      "known_gaps": [
-      "THE ENTIRE `.what-sub` \"COMMON CAUSES\" SUB-GRID IS LOST, AND IT IS ROUGHLY HALF THIS",
-      "BAND.",
+      "THE FOUR `.cause-card`s ARE NO LONGER LOST. `sub_cards` carries them from the CMS and",
+      "`sub_columns` carries the grid's four-across shape — see `rows` above. Of the `.what-sub`",
+      "unit that this band used to lose whole, ONE line is still missing, and it is named exactly.",
       "",
-      "sinus-lift.astro:380-400 hangs a second, self-contained unit off the bottom of the",
-      "media split, inside the same <section id=\"what\">:",
+      "THE `.what-sub-head` EYEBROW HAS NO SLOT. sinus-lift.astro:383 is",
+      "`<span class=\"eyebrow\">Common Causes</span>`, the label above the sub-head's <h3>.",
+      "`media_split` carries one eyebrow and it is the band's own — already mapped from the",
+      "sections row — so there is nowhere to put a second. Three words, and they disappear on",
+      "backfill.",
       "",
-      "  - `.what-sub-head` — eyebrow \"Common Causes\", an <h3> \"Why You Might Need a Sinus",
-      "    Lift for Dental Implants\", and a paragraph of prose (:382-394).",
-      "  - `.cause-grid` — four `.cause-card`s, each a `.tag` over an <h4>: Most common /",
-      "    Upper back tooth loss, Cause / Periodontal disease, Cause / Long-term denture wear,",
-      "    Cause / Naturally thin sinus anatomy (:393-400).",
+      "WHAT WOULD CLOSE IT: a `callout_eyebrow` TEXT field on media_split, drawn immediately",
+      "before callout_heading. A text field mints no GraphQL type — only repeaters and groups do",
+      "— so unlike `sub_cards` it cannot collide with anything under `blocks`, and the name-",
+      "collision reasoning that governs the repeaters does not apply to it. It is one field for",
+      "four bands, not one for this page: all-on-4-single-arch's `.what-sub-head` and both",
+      "`#compare` sub-heads carry the same orphaned eyebrow.",
       "",
-      "The four cards ARE in the CMS as the `causeCards` group — see `exempt.cards`, where they",
-      "are excused rather than dropped silently — but there is nowhere on `media_split` to put",
-      "them and no way to reach them: the layout has one image, one copy column, one optional",
-      "quote, one optional checklist, one optional aside and two buttons, and none of those is",
-      "a four-card grid with its own heading.",
-      "",
-      "WHY THIS IS NOT SOLVED BY SPLITTING THE BAND IN TWO. A `card_grid` block after this one",
-      "would draw the four cards, but as a SECOND <section> with its own band padding and its",
-      "own id — where the page has one section, one 110px band and one `#what` anchor. That",
-      "changes the page's structure and its rail target to save a mapping, which is the",
-      "opposite of the rule this file is written to.",
-      "",
-      "WHAT WOULD CLOSE IT: a `sub_cards { meta title }` repeater plus `sub_eyebrow`,",
-      "`sub_heading` and `sub_body` on `media_split`, drawn by MediaSplitBlock after the grid",
-      "as `.what-sub > .what-sub-head + .cause-grid`. The repeater name must not be `cards`,",
-      "`tiers`, `items`, `points`, `steps`, `checklist`, `plans` or `features` — every one of",
-      "those is already minted by another layout in `blocks`, and a shared repeater name",
-      "merges the two GraphQL types and silently drops one side's sub-fields",
-      "(vs-content-model.php:539-541, and manifest.ts says the same at the pricing_tiers",
-      "entry). `sub_cards` collides with none of them."
+      "AND ONE THING TO CHECK AGAINST THE RENDERED BAND, WHICH IS NOT A CONTENT GAP.",
+      "`.sinuslift .cause-grid` and `.sinuslift .cause-card` (sinus-lift.css:387-412, plus the",
+      "re-flows at :877 and :923) are keyed to class names this map does not choose —",
+      "MediaSplitBlock decides what it emits and ships its own scoped declarations for it. If it",
+      "emits `.cause-card`, the page rule is (0,2,0) and the component's scoped rule is (0,2,0)",
+      "too, so file order decides and the order between a page sheet and a component's scoped",
+      "styles is not guaranteed — the same trap `ratio_is_even_on_purpose` on the `why` block",
+      "steps around. If it emits some other name, the page rules simply do not apply and the",
+      "component's do. Either way the white background, 1px border, 28px/26px padding and 130px",
+      "min-height are the component's problem to reproduce, not this file's, and the copy is",
+      "carried in both cases. Recorded here so it is checked once against the live band rather",
+      "than re-discovered."
      ],
-     "callout_evidence": "sinus-lift.astro:382-391. Carried by callout_heading / callout_body, which the layout declares, manifest.ts selects and the component draws. It was recorded as a gap because the wrapper class differs from .veneers-callout — but that trades live client copy for a class name, and the class is a styling problem, not a content one. The eyebrow line and the cards below stay recorded gaps."
+     "callout_evidence": "sinus-lift.astro:382-391. Carried by callout_heading / callout_body, which the layout declares, manifest.ts selects and the component draws. It was recorded as a gap because the wrapper class differs from .veneers-callout — but that trades live client copy for a class name, and the class is a styling problem, not a content one. The four cards below are now carried too, by `sub_cards`; the eyebrow line above stays a recorded gap."
     },
     {
      "section_id": "process",
@@ -6944,22 +7110,19 @@
     "_": [
      "Every repeater row on this page that no block above claims. The backfill fails, before",
      "writing anything, on any row that is neither claimed nor listed here. On this route the",
-     "list is NOT empty, and that is the point of it: 8 sections by 8 blocks, all 4",
-     "process_steps by `process`, all 5 faqs by `faq`, all 7 toc_links by the anchors above,",
-     "and three of the four `cards` groups by `alternatives`, `technology` and `investment`.",
-     "One cards group and one image are excused, each with a reason."
+     "list is now ONE image and nothing else: 8 sections by 8 blocks, all 4 process_steps by",
+     "`process`, all 5 faqs by `faq`, all 7 toc_links by the anchors above, and all FOUR `cards`",
+     "groups — causeCards by `what`'s `sub_cards`, alternatives by `alternatives`, techList by",
+     "`technology`, costBullets by `investment`.",
+     "",
+     "`cards` was not empty before the secondary-grid batch: causeCards was excused here because",
+     "media_split had nowhere to put a four-card grid. It has `sub_cards` now, so the exemption",
+     "is REMOVED rather than left behind — backfill-blocks.php reads this list out as a warning",
+     "on every run, and an exemption for rows that are in fact migrated would tell the person",
+     "running it that four cards were dropped when they were not."
     ],
     "sections": [],
-    "cards": [
-     {
-      "group": "causeCards",
-      "rows": 4,
-      "reason": "The four `.cause-card`s of the \"Common Causes\" sub-grid inside the #what band (sinus-lift.astro:393-400). They are claimed by no block because `media_split` — the layout that carries the rest of that band — has nowhere to put a four-card grid, and splitting them into a `card_grid` block of their own would turn one <section> into two, with a second band of padding and a second id where the page has one of each. Named in that block's known_gaps in full, with the sub-field set that would close it.",
-      "destination": "Nothing today. They stay in the CMS, unclaimed and unrendered — which is also what happens to them right now: the template renders its own `causeCards` const array (sinus-lift.astro:63-68) and has never read these rows.",
-      "renders_today": "sinus-lift.astro:380-400, the `.what-sub` block inside <section id=\"what\">, from the const array rather than from these rows.",
-      "what_is_actually_lost": "The four cards disappear from the page on backfill. The CMS rows are not deleted and not overwritten, so closing the gap later is a component change plus a re-run, not a content recovery."
-     }
-    ],
+    "cards": [],
     "process_steps": [],
     "faqs": [],
     "images": [
@@ -7301,7 +7464,21 @@
          "title": "Porcelain Veneers",
          "body": "Porcelain veneers (thin custom shells bonded to the front of teeth) are Dr. Richardson's specialty and the most common centerpiece of a smile makeover plan. Vivid Smiles offers three prep levels:",
          "ribbon": "Centerpiece",
-         "featured": true
+         "featured": true,
+         "bullets": [
+          {
+           "lead": "Traditional veneers:",
+           "item": "Minimal enamel removal; considered permanent; 20+ year lifespan"
+          },
+          {
+           "lead": "Minimal-prep veneers:",
+           "item": "Less enamel reduction while preserving more natural tooth structure"
+          },
+          {
+           "lead": "No-prep veneers:",
+           "item": "No enamel removal; reversible when candidacy allows"
+          }
+         ]
         },
         {
          "tag": "Alignment",
@@ -7335,7 +7512,8 @@
         "",
         "Writing it anyway would move the words into markup this sheet does not paint, which is",
         "worse than recording the loss."
-       ]
+       ],
+       "bullets_note": "The featured card's <ul class=\"prep-list\">. Skipped when this entry was written because ComparisonCardsBlock drew a bare <ul> of plain <li> with no labels — true then, not now: commit 234062d selects `bullets { lead item }` and draws <b>{lead}</b> {item}. The label here ends in a colon rather than an em dash, which is this page's punctuation and is carried verbatim in `lead`. The template's <strong> becomes the component's <b>: same words, same weight, and the block's own .featured ul li b rule paints it white on this card."
       }
      },
      "cta_note": "ComparisonCardsBlock draws the closing .cta-row itself — Free Virtual Consult to #consult (sage, \"Get a Video\"), Read FAQ to #faq (ghost, \"See Answers\"), and the note \"No commitment · Personal video reply\" (ComparisonCardsBlock.astro:265-279). That is exactly what smile-makeover.astro:519-527 ships, variants included, because this is a paper band and isDarkBand is false. The layout has no cta sub-fields, so this map supplies nothing.",

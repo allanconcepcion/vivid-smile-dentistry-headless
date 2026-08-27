@@ -45,6 +45,52 @@
  * blank draws no aside at all, so adding them changes nothing until a page is
  * backfilled with them.
  *
+ * `altColumns` + `altCards` draw the `.alternatives-grid` of `.config-card`s
+ * that follows the comparison on all-on-4-single-arch.astro:611-620 and
+ * full-mouth-dental-implants.astro:577-586, and that OPENS bone-grafting's
+ * `#types` at bone-grafting.astro:527-536. A SECOND grid beside `tiers`, never a
+ * replacement for it: `tiers` draws the wide `.compare-card`s with their bullet
+ * lists, these are the smaller cards under them, and folding them into `tiers`
+ * would give them bullets they do not have and an `<h3>` where the markup has
+ * `<h4>`.
+ *
+ * WHERE IT SITS, AND WHY IT IS NOT INSIDE THE ASIDE. On the two `#compare`
+ * pages the grid's sub-head is a `.compare-sub-head` — an eyebrow, an `<h3>` and
+ * a paragraph — and the `<h3>` and paragraph are exactly what `calloutHeading` /
+ * `calloutBody` already carry, which is why the contract selects `altCards`
+ * immediately after `callout_body`. So the grid is drawn immediately after the
+ * `.safety-callout` aside and before the CTA row, in that DOM order.
+ *
+ * It is a SIBLING of the aside rather than a child of it, and that is a
+ * deliberate departure from the batch brief's wording, because nesting has two
+ * concrete failure modes:
+ *   1. `.safety-callout` is `max-width: 920px` with `36px 40px` of padding
+ *      (teeth-whitening.css:425-439, restated below). The grid is full
+ *      `.wrap` width — 1240px less 40px gutters — on all three source pages, so
+ *      nesting it would visibly narrow every card and paint the row cream.
+ *   2. bone-grafting's `#types` grid has NO sub-head at all (its section head
+ *      does that job), so `calloutHeading`/`calloutBody` are blank there and
+ *      `hasCallout` is false. A grid nested inside the aside would render
+ *      nothing at all on that page — the exact loss this batch exists to close.
+ * As a sibling, all three pages come out right with one code path: aside then
+ * grid where there is a sub-head, grid alone where there is not.
+ *
+ * ADDITIVE. No row saved before this batch holds an `altCards` row, so the list
+ * is empty and the `.alternatives-grid` WRAPPER IS INSIDE THE LENGTH TEST, not
+ * around it — an empty grid div is a visible gap on eleven bands nobody edited.
+ *
+ * NOT CLOSED BY THIS BATCH, recorded so it is not mistaken for done:
+ * bone-grafting's `#types` carries a second shape below the grid — a
+ * `.materials-block` with its own eyebrow / `<h3>` / `<p>` head and a
+ * `<dl class="materials-list">` of `<dt><span class="tag"><span class="label">`
+ * over `<dd>` rows (bone-grafting.astro:543-565). Its rows are the same
+ * {tag, title, body} triple, but it is a definition list in a different wrapper
+ * behind a SECOND sub-head, and `altCards` is already spent on that band's
+ * `.alternatives-grid`. Carrying it needs a third repeater plus its own head
+ * fields. It stays a known gap. So does the `.compare-sub-head` EYEBROW
+ * ("Alternatives") — `calloutHeading`/`calloutBody` carry the `<h3>` and the
+ * paragraph only, and no field holds the eyebrow.
+ *
  * `bullets` renders the `<ul>` variant the implant pages use
  * (implant-dentistry.css:734-762). The pilot's three cards have no bullets, so
  * on the pilot this branch never fires — it is here so Phase 3 does not have to
@@ -99,6 +145,25 @@ interface CardRow {
   featured?: boolean | null;
 }
 
+/**
+ * One card of the `.alternatives-grid` under the comparison.
+ *
+ * Three pieces of copy and no more. Read off the markup rather than the class
+ * names: `.config-card` is `<span class="tag">` + `<h4>` + `<p>` identically on
+ * all-on-4-single-arch.astro:614-618, full-mouth-dental-implants.astro:580-584
+ * and bone-grafting.astro:530-534. No `href`, no `ribbon`, no `featured` —
+ * nothing in any of those grids is a link or carries a flash.
+ *
+ * `body` is optional because the twin shape on the media_split side
+ * (sinus-lift's `.cause-card`) has no `<p>` at all, and a blank body must draw
+ * NO paragraph rather than an empty one.
+ */
+interface AltCardRow {
+  tag?: string | null;
+  title?: string | null;
+  body?: string | null;
+}
+
 interface Props {
   /** The DOM id, already deduplicated by PageBlocks.astro. Absent when blank. */
   id?: string;
@@ -128,6 +193,28 @@ interface Props {
    * split below for how two paragraphs survive a plain textarea.
    */
   calloutBody?: string | null;
+  /**
+   * How many `altCards` sit across a row on a desktop screen: "2", "3" or "4".
+   *
+   * NULL MEANS THREE, and null is what every one of the eleven back-filled
+   * routes returns — ACF writes its "3" default only when an editor ADDS a row,
+   * never onto rows saved before the field existed. A component that read null
+   * as "unset" and fell back to one column would collapse a grid that has
+   * always been three across on all-on-4-single-arch.css:530-531 and
+   * bone-grafting.css:530-531. Two is a real choice, not a guess:
+   * full-mouth-dental-implants.css:537-541 overrides to two because that page
+   * has two alternatives.
+   */
+  altColumns?: string | null;
+  /**
+   * The smaller cards under the comparison — the alternatives, the material
+   * sources, the other options. Named `altCards`, not `subCards`, because a
+   * repeater's GraphQL type is its field name appended to the parent's prefix
+   * and the layout contributes nothing: media_split's grid already mints
+   * PageFieldsBlocksSubCards, and a second repeater of that name would merge
+   * into it and silently stop one side's sub-fields being queryable.
+   */
+  altCards?: (AltCardRow | null)[] | null;
 }
 
 const {
@@ -139,6 +226,8 @@ const {
   tiers,
   calloutHeading,
   calloutBody,
+  altColumns,
+  altCards,
 } = Astro.props;
 
 // `?? null` rather than a default value: an unknown band from a future PHP
@@ -208,6 +297,35 @@ const calloutHeadingId =
     : id
       ? `${id}-safety-callout`
       : "safety-callout-h3";
+
+/* ── The alternatives grid ────────────────────────────────────────────────────
+   Trimmed and emptied-out here so the single length test below is a test for
+   real cards. A row an editor added and then left entirely blank must not draw
+   an empty `.config-card`, and — more to the point — must not be the one row
+   that makes `.alternatives-grid` render on a band that has no cards. */
+const altCardRows = (Array.isArray(altCards) ? altCards : [])
+  .map((row) => ({
+    tag: text(row?.tag),
+    title: text(row?.title),
+    body: text(row?.body),
+  }))
+  .filter((row) => row.tag !== "" || row.title !== "" || row.body !== "");
+
+/* A class rather than an inline `grid-template-columns`, because the count has
+   to change again at the mobile breakpoint and an inline style would outrank
+   the media query. Same three choices the PHP select offers
+   (vs-content-model.php:2337-2352). */
+const ALT_COLUMN_CLASS: Record<string, string> = {
+  "2": "cols-2",
+  "3": "cols-3",
+  "4": "cols-4",
+};
+
+/* `?? "cols-3"` is the null case spelled out, not a defensive shrug: see
+   `altColumns` above. An unrecognised future choice lands here too, which is
+   the right place for it — three across is the shape four of the five source
+   grids draw. */
+const altColumnClass = ALT_COLUMN_CLASS[text(altColumns)] ?? "cols-3";
 ---
 
 <section class:list={["section", bandModifier]} id={id} data-vs-reveal-batch>
@@ -263,6 +381,31 @@ const calloutHeadingId =
             calloutParagraphs.map((para) => <p set:html={para} />)
           )}
         </aside>
+      )
+    }{/* `}{` with nothing between, deliberately — the same idiom as
+        MediaSplitBlock.astro:430,476,508. An expression on its own line carries
+        a newline-and-indent TEXT NODE either side, and that survives into the
+        built HTML as a rendered space even when the condition is false. Eleven
+        routes are already back-filled against this layout and all eleven have an
+        empty `altCards`, so a line of its own here would move `</aside> <div
+        class="cta-row">` to `</aside>  <div class="cta-row">` on every one of
+        them and fail the byte-for-byte diff. Flushed against the callout's
+        closing brace, the pre-existing text node between the two just moves
+        behind this expression and the empty case is unchanged.
+
+        THE WRAPPER IS INSIDE THE TEST, not around it: `altCardRows.length > 0`
+        gates the `<div class="alternatives-grid">` itself, so a band with no
+        cards emits no empty grid div. */
+      altCardRows.length > 0 && (
+        <div class:list={["alternatives-grid", altColumnClass]}>
+          {altCardRows.map((card) => (
+            <article class="config-card">
+              {card.tag && <span class="tag">{card.tag}</span>}
+              {card.title && <h4>{card.title}</h4>}
+              {card.body && <p>{card.body}</p>}
+            </article>
+          ))}
+        </div>
       )
     }
 
@@ -551,6 +694,117 @@ const calloutHeadingId =
      where its `.prose` sits on charcoal, there is nothing here to invert. A
      local rule would only outrank the site's own link treatment. */
 
+  /* ── The alternatives grid ──────────────────────────────────────────────
+     Lifted from all-on-4-single-arch.css:371-394 and :530-531 (the `.aos4`
+     prefix stripped and the page's local `--sage` / `--ink` / `--line` /
+     `--r-lg` / `--f-display` aliases resolved back to the `--vs-*` tokens they
+     alias one-for-one, all-on-4-single-arch.css:6-27). bone-grafting.css:374-394
+     and full-mouth-dental-implants.css:375-395 are the same rules character for
+     character, so the three pages agree on everything except the column count.
+
+     Owned here rather than left to the page sheets for the reason this whole
+     phase exists: `.aos4 .config-card` is a DESCENDANT selector off a namespace
+     class the block is not inside, so it cannot reach a block-rendered card at
+     all. Without these rules a back-filled grid renders as three unstyled
+     `<article>`s.
+
+     The margin above the grid is `.compare-sub`'s `margin-top: 70px`
+     (all-on-4-single-arch.css:342-344), which is what separates the grid from
+     what precedes it — the comparison cards on bone-grafting's `#types`, the
+     `.safety-callout` aside on the two `#compare` bands. `.compare-sub-head`'s
+     own `margin-bottom: 32px` is NOT restated: it belongs to the head element,
+     and the head here is the aside, which carries its own spacing. */
+  .alternatives-grid {
+    margin-top: 70px;
+    display: grid;
+    gap: 24px;
+  }
+  /* Three source values, three classes. Two is the
+     full-mouth-dental-implants.css:537-541 override, and the `max-width` +
+     `margin: 0 auto` are part of that override rather than a separate decision —
+     the sheet's own comment says they exist to centre a pair under a centred
+     head. Reproducing the columns without them would leave that page's two
+     cards stretched to the full 1240px wrap, which is not what it draws today. */
+  .alternatives-grid.cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 820px;
+    margin-inline: auto;
+  }
+  /* all-on-4-single-arch.css:530-531 and bone-grafting.css:530-531, identical. */
+  .alternatives-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  /* No `.alternatives-grid` in the corpus is four across — the only 4-col value
+     for this card shape is sinus-lift.css:387-388's `.cause-grid`, which is the
+     media_split side of the same batch. It is here because the PHP select offers
+     "4" (vs-content-model.php:2341-2345) and a choice with no rule behind it
+     would render as a single implicit column. */
+  .alternatives-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+  .config-card {
+    background: var(--vs-paper);
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-lg);
+    padding: 36px 34px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  /* `var(--vs-shadow)` and not the two-layer value the three implant sheets
+     assign to their local `--shadow` (all-on-4-single-arch.css:19 and its two
+     twins override the token rather than aliasing it). Deliberate: this card
+     hovers in the same band as `.compare-card`, whose hover four rules up
+     already reads `var(--vs-shadow)`, and two cards in one band lifting under
+     different shadows is a defect a reader would blame on the block. The delta
+     is confined to the hover shadow on three pages. */
+  .config-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--vs-shadow);
+  }
+  .config-card .tag {
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+  }
+  /* THE DOUBLED CLASS IS LOAD-BEARING on both of these, exactly as it is on
+     `.safety-callout` above, and the arithmetic is worth writing down because
+     Astro's scoping does NOT help: it compiles to `:where(.astro-<hash>)`, which
+     contributes ZERO specificity, so what ships is what is written here.
+
+     `.config-card` is a WHITE card. On a charcoal or sage band `.section.alt p`
+     and `.section.sage p` above sit at (0,2,1) and would paint this card's
+     paragraph white on white — the regression global.css:194-200 says has been
+     flagged repeatedly. A single-class `.config-card p` is (0,1,1) and loses
+     outright. Doubled it is (0,2,1): a TIE, broken by source order, which this
+     rule wins because it comes later in this same scoped sheet. That is the
+     identical lever and the identical margin the `.safety-callout` rules run on,
+     so the two behave the same way rather than one of them being special.
+
+     global.css:228-249 also lists `.config-card.config-card` in the sitewide
+     white-card rescue at (0,3,1), which would catch this anyway — but a block
+     whose text colour depends on a global sheet it does not own is not
+     droppable on an arbitrary page (R3), so it is settled here.
+
+     `line-height: 1.1` and `margin: 0` come from the page sheets' h1-h4 group
+     rule (all-on-4-single-arch.css:39-42), collapsed to what actually renders —
+     the flex `gap` above is the only spacing this card is meant to have. */
+  .config-card.config-card h4 {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: 22px;
+    color: var(--vs-ink);
+    letter-spacing: -0.005em;
+    line-height: 1.1;
+    margin: 0;
+  }
+  .config-card.config-card p {
+    font-size: 15px;
+    line-height: 1.75;
+    color: var(--vs-ink-soft);
+    margin: 0;
+  }
+
   /* ── The CTA row ────────────────────────────────────────────────────────
      clear-aligners.css:446-463. `.cta-note` is the one part of this band whose
      colour the page sheet reads off the ancestor band (`.section.dark .cta-row
@@ -589,6 +843,28 @@ const calloutHeadingId =
      to the block set — 991 / 780 / 479 (FinalBand.astro:109,117). */
   @media (max-width: 991px) {
     .compare { grid-template-columns: 1fr; }
+    /* One step to a single column, which is what all three sheets do
+       (all-on-4-single-arch.css:825, full-mouth-dental-implants.css:837,
+       bone-grafting.css:870) — no intermediate 2-col stop for any of the three
+       counts, including `cols-4`, which no page draws yet and which nothing in
+       the corpus gives a middle value for.
+
+       991 and not the sheets' 1100 for the same reason `.compare` above is 991:
+       the block normalises to its own breakpoint set (3.2, step 3), and the two
+       grids in this band have to collapse together or the comparison stacks
+       while the alternatives under it stay three across.
+
+       `max-width` and `margin-inline` are reset with the columns rather than
+       left standing: `cols-2`'s 820px cap exists to centre a PAIR under a
+       centred head, and a single stacked column held to 820px inside a 22px
+       gutter would be narrower than the cards above it. */
+    .alternatives-grid.cols-2,
+    .alternatives-grid.cols-3,
+    .alternatives-grid.cols-4 {
+      grid-template-columns: 1fr;
+      max-width: none;
+      margin-inline: 0;
+    }
   }
 
   @media (max-width: 780px) {
@@ -601,5 +877,11 @@ const calloutHeadingId =
 
   @media (prefers-reduced-motion: reduce) {
     .compare-card { transition: none; }
+    /* all-on-4-single-arch.css:872 lists `.config-card` in the same
+       reduced-motion group as `.compare-card`, so it belongs here too — the
+       hover lift above is the transition being suppressed. No `!important`:
+       the page sheets need it to beat a namespaced rule, this block has only
+       its own. */
+    .config-card { transition: none; }
   }
 </style>

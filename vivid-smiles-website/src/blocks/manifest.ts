@@ -204,10 +204,46 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    * pages: MediaSplitBlock emits the second button only when `ctaLabel2` is
    * non-empty and the second paragraph only when `body2` is, so a row saved
    * before this batch renders byte-for-byte as it does now.
+   *
+   * `subColumns` and `subCards` (PHP `sub_columns`, `sub_cards`) are this
+   * batch's addition: the secondary card grid that closes the band —
+   * `.config-grid` under all-on-4-single-arch's `#what`, `.cause-grid` under
+   * sinus-lift's `#what`. Selected immediately after `calloutBody` because that
+   * is their order on the page: the aside's heading and paragraph are the grid's
+   * sub-head, and only the CARDS were missing. Do not also map that sub-head
+   * into the cards — it is already carried, and mapping it twice prints it twice.
+   *
+   * THREE SUB-FIELDS, READ OFF THE MARKUP. `.config-card` is
+   * `<span class="tag">` + `<h4>` + `<p>`; `.cause-card` is the same minus the
+   * `<p>`. So `body` is optional and the component must draw NO paragraph when
+   * it is empty — sinus-lift's four cause cards have never had one, and an empty
+   * `<p>` is a gap in a band nobody edited.
+   *
+   * `subCards` IS A REPEATER, SO ITS NAME IS A TYPE. It mints
+   * `PageFieldsBlocksSubCards` from the field name alone, because a layout's
+   * sub-fields hang off the flexible field and not off the layout
+   * (vs-content-model.php, walk_graphql_containers()). That makes it compete
+   * with every other repeater under `blocks`: `items`, `cards`, `checklist`,
+   * `preCards`, `steps`, `tiers`, `plans`, `features`, `points`, `bullets`.
+   * `sub_cards` is none of them — verified by reading the PHP, not the brief —
+   * and comparison_cards' grid below is `alt_cards` rather than a second
+   * `sub_cards` for exactly that reason. Sharing one would not error: it merges
+   * the two types and drops one side's fields, leaving a schema that looks
+   * healthy until a query stops validating.
+   *
+   * `subColumns` mints nothing — a select is a scalar. It arrives as the string
+   * "2" | "3" | "4", or as NULL on every row saved before this batch, and null
+   * MEANS TWO: `.config-grid` is `1fr 1fr` in every page sheet that has one, and
+   * the ACF default only applies to a row an editor adds. A component that read
+   * null as "no columns" would collapse the grid.
+   *
+   * Additive: eleven routes hold rows of this layout and none holds a `subCards`
+   * row, so the list comes back empty and MediaSplitBlock must draw no wrapper
+   * at all — the wrapper inside the length test, never around it.
    */
   PageFieldsBlocksMediaSplitLayout: {
     typeName: "PageFieldsBlocksMediaSplitLayout",
-    fields: `${BLOCK_PREAMBLE_FIELDS} ${BLOCK_IMAGE_FIELDS} imageAlt mediaSide ratio body2 calloutHeading calloutBody quote checklist { lead item } ctaLabel ctaHref ctaLabel2 ctaHref2`,
+    fields: `${BLOCK_PREAMBLE_FIELDS} ${BLOCK_IMAGE_FIELDS} imageAlt mediaSide ratio body2 calloutHeading calloutBody subColumns subCards { tag title body } quote checklist { lead item } ctaLabel ctaHref ctaLabel2 ctaHref2`,
   },
 
   /**
@@ -290,10 +326,41 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    * mistake, not a layout mode — the component renders whichever half is
    * present rather than suppressing both, so the mistake is visible on the page
    * instead of silently swallowing copy.
+   *
+   * `altColumns` and `altCards` (PHP `alt_columns`, `alt_cards`) are this
+   * batch's addition: the `.alternatives-grid` of `.config-card`s that follows
+   * the comparison on all-on-4-single-arch's and full-mouth-dental-implants'
+   * `#compare`, and that OPENS bone-grafting's `#types`. A SECOND grid beside
+   * `tiers`, not a replacement for it — `tiers` draws the wide `.compare-card`s
+   * with their bullet lists, these are the smaller cards under them. Folding
+   * them into `tiers` would give them bullets they do not have and an `<h3>`
+   * where the markup has `<h4>`.
+   *
+   * Same three sub-fields as `subCards`, and the same optional `body`, because
+   * `.config-card` and `.cause-card` are the same three pieces of copy. Selected
+   * after `calloutBody` for the same reason: `.compare-sub-head` is the grid's
+   * sub-head and `calloutHeading`/`calloutBody` already carry it.
+   *
+   * NAMED `altCards` BECAUSE `subCards` IS TAKEN — by media_split above, in this
+   * same change. That is the entire point of the pair of names. A repeater's
+   * type is its field name appended to the parent container's prefix and the
+   * layout contributes nothing, so two layouts calling their grid `sub_cards`
+   * would mint `PageFieldsBlocksSubCards` twice and merge. These mint
+   * `PageFieldsBlocksSubCards` and `PageFieldsBlocksAltCards`, and neither name
+   * — nor its concatenation alias, a top-level `blocks_alt_cards` — appears
+   * anywhere in vs-content-model.php.
+   *
+   * `altColumns` arrives as "2" | "3" | "4" or NULL, and NULL MEANS THREE:
+   * `.alternatives-grid` is `repeat(3, 1fr)` on all-on-4-single-arch and
+   * bone-grafting, and full-mouth-dental-implants overrides it to two because it
+   * has two alternatives. Every row saved before this batch returns null.
+   *
+   * Additive: no saved row holds an `altCards` row, so the list is empty and
+   * ComparisonCardsBlock must draw no `.alternatives-grid` wrapper for it.
    */
   PageFieldsBlocksComparisonCardsLayout: {
     typeName: "PageFieldsBlocksComparisonCardsLayout",
-    fields: `${BLOCK_PREAMBLE_FIELDS} tiers { tag title body ribbon featured bullets { lead item } } calloutHeading calloutBody`,
+    fields: `${BLOCK_PREAMBLE_FIELDS} tiers { tag title body ribbon featured bullets { lead item } } calloutHeading calloutBody altColumns altCards { tag title body }`,
   },
 
   /**
