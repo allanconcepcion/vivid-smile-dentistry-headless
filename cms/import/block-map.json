@@ -4844,12 +4844,12 @@
        "section": "body"
       },
       "intro": {
-       "literal": "A consultation with Dr. Richardson includes a full case review and cost estimate.",
-       "from_template": "full-mouth-rehabilitation.astro:527 — the FIRST paragraph inside .cost-body. `body` above is the section-head paragraph; these are two paragraphs in two places and the layout carries both."
+       "literal": "",
+       "from_template": "Blank ON PURPOSE. This band has no paragraph ABOVE its list — the .cost-card is list first, prose after (full-mouth-rehabilitation.astro:508-530) — and `intro` draws before the points. Both closing paragraphs ride in intro_2, which draws after them."
       },
       "intro_2": {
-       "literal": "No treatment begins without a clear picture of the plan.",
-       "from_template": "full-mouth-rehabilitation.astro:528 — the SECOND paragraph inside .cost-body. A second field rather than a blank-line split on `intro`: the split would change how every existing stat_callout `intro` is read, and three routes already have rows saved against this layout."
+       "literal": "A consultation with Dr. Richardson includes a full case review and cost estimate.\n\nNo treatment begins without a clear picture of the plan.",
+       "from_template": "full-mouth-rehabilitation.astro:526-529 — the two .cost-body paragraphs, joined with a blank line. StatCalloutBlock splits intro_2 on blank lines into one <p> each (the ComparisonCards callout_body convention), and draws it AFTER the points — this band is the only row anywhere that fills both intro_2 and points, and its template order is list first."
       },
       "points_plain": {
        "literal": true,

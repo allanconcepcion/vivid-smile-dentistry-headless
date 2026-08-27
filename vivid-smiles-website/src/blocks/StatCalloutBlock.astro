@@ -211,6 +211,14 @@ const introText = text(intro);
 // are JavaScript and emit nothing, which is why the expression is broken across
 // lines there instead. If you reformat that block, check the emitted output.
 const intro2Text = text(intro2);
+/* intro2 splits on blank lines into one <p> each — the same convention
+   ComparisonCardsBlock applies to callout_body, and for the same reason: a
+   band can close with TWO paragraphs (full-mouth-rehabilitation's #cost,
+   full-mouth-rehabilitation.astro:526-529), and running them together inside
+   one <p> is the same words in the wrong markup. A value with no blank line
+   is a one-element array, so every previously saved row renders exactly as
+   before. */
+const intro2Paragraphs = intro2Text === "" ? [] : intro2Text.split(/\n\s*\n/).map((part) => part.trim()).filter((part) => part !== "");
 
 // `=== true` rather than truthiness: the field is a boolean or NULL from
 // WPGraphQL, but every field here is read as if it might be the wrong type
@@ -284,9 +292,17 @@ const hasBody =
             <div class="lasting-body">
               {bodyHeadingText && <h3>{bodyHeadingText}</h3>}
               {introText && <p>{introText}</p>}{
-                intro2Text && <p>{intro2Text}</p>
-              }
-              {pointRows.length > 0 && (
+                /* THE LIST DRAWS BEFORE intro2, NOT AFTER — measured, not
+                   styled. intro2 is "the paragraph after the list, or after
+                   intro when there is no list": full-mouth-rehabilitation's
+                   #cost is intro -> three points -> a closing paragraph
+                   (full-mouth-rehabilitation.astro:513-533), and it is the
+                   ONLY row in the map or live WordPress that fills both
+                   fields, so this order changes exactly that band — to the
+                   order its template ships. Every other row has one field or
+                   the other and renders byte-identically either way. Checked
+                   against the live endpoint before reordering, not assumed. */
+                pointRows.length > 0 && (
                 <ul>
                   {pointRows.map((point) => (
                     <li>
@@ -294,7 +310,9 @@ const hasBody =
                     </li>
                   ))}
                 </ul>
-              )}
+              )}{
+                intro2Paragraphs.map((para) => <p>{para}</p>)
+              }
             </div>
           )}
         </div>
