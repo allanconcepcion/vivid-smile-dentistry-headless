@@ -468,6 +468,113 @@ function block_image_field( string $key, string $label = 'Image', string $name =
 }
 
 /**
+ * The closing `.cta-row` of a band — two buttons and a note, all optional.
+ *
+ * ONE SHAPE, FOUR LAYOUTS. The row this describes closes bands of four kinds on
+ * the un-migrated templates: card_grid (gum-contouring's `#why`, and inside
+ * sinus-lift `#investment`'s insurance panel), pricing_tiers
+ * (all-on-4-single-arch's `#cost`), gallery_marquee (smile-makeover's
+ * `#results`, buttons with no note) and comparison_cards (every band of the
+ * `#compare` family). One factory rather than four copies so the seven field
+ * NAMES stay identical across layouts — they are what the Astro fragments
+ * select, and a layout that quietly diverged (`cta_text` where a sibling says
+ * `cta_label`) renders wrong on only the one page that used it, which is the
+ * hardest kind of fault to find here. media_split is NOT built from this
+ * factory only because its four cta_* fields predate it, under keys that live
+ * rows already store; it declares `cta_hover` / `cta_hover_2` separately and
+ * the NAMES still match this factory's exactly.
+ *
+ * EMPTY IS THE CONTRACT. Every field is optional, and a component draws the row
+ * only when a label is non-empty — except comparison_cards, which falls back to
+ * the literal row it has always drawn (see that layout for why). Text fields
+ * mint no GraphQL type, so nothing here can collide with anything.
+ *
+ * THE HREF POLICY, WHICH IS THE ONE RULE AN EDITOR COULD BREAK SILENTLY. The
+ * booking page, the phone number and the map pin are SITE data
+ * (src/data/contact.ts), not page content. Stored per-page as pasted URLs they
+ * go stale per-page — that is how a site ends up phoning two different numbers
+ * from two different sections. So a link field stores an in-page anchor
+ * ("#consult"), a path on this site ("/smile-gallery/"), or one of three words
+ * the components resolve from contact.ts: "book", "phone", "map". Never the
+ * pasted booking/tel/maps URL itself. The instruction on each link field says
+ * the same thing to the editor, because this rule is enforced by nothing else.
+ *
+ * `cta_hover` / `cta_hover_2` are the word-swap labels a button shows on
+ * hover. Blank falls back to the component's own table keyed by destination
+ * ("#consult" → "Get a Video", "#process" → "View Steps", "#faq" → "See
+ * Answers", "book" → "Let's Talk", "phone" → "Tap to Dial", "map" → "Open
+ * Map"), and an unknown destination reuses the visible label. The override
+ * exists because that table cannot be right twice for one destination:
+ * teeth-whitening's `#process` button hovers "View Levels" where every sibling
+ * page hovers "View Steps", and deriving from the href alone cost that page
+ * exactly one word — the census line this field closes.
+ */
+function block_cta_fields( string $slug ): array {
+	$k = 'field_vs_blk_' . $slug . '_';
+
+	$href_instructions = 'An anchor on this page like #consult, a path on this site like /smile-gallery/, '
+		. 'or one of three words the site fills in for itself: "book" (the online booking page), '
+		. '"phone" (tap-to-call the practice) or "map" (directions to the office). '
+		. 'Never paste the booking, phone or map address itself — those live in one place '
+		. 'in the site precisely so they cannot go stale here.';
+
+	return [
+		[
+			'key'          => $k . 'cta_label',
+			'label'        => 'Button label',
+			'name'         => 'cta_label',
+			'type'         => 'text',
+			'instructions' => 'Optional. The first of the closing buttons under this section. '
+				. 'Leave both button labels blank and no button row is drawn at all.',
+		],
+		[
+			'key'          => $k . 'cta_href',
+			'label'        => 'Button link',
+			'name'         => 'cta_href',
+			'type'         => 'text',
+			'instructions' => $href_instructions,
+		],
+		[
+			'key'          => $k . 'cta_hover',
+			'label'        => 'Button hover label',
+			'name'         => 'cta_hover',
+			'type'         => 'text',
+			'instructions' => 'Optional. The word-swap shown while the pointer is over the button. '
+				. 'Leave it blank for the usual label for that destination.',
+		],
+		[
+			'key'          => $k . 'cta_label_2',
+			'label'        => 'Second button label',
+			'name'         => 'cta_label_2',
+			'type'         => 'text',
+			'instructions' => 'Optional. Leave it blank for a single button — nothing extra is drawn.',
+		],
+		[
+			'key'          => $k . 'cta_href_2',
+			'label'        => 'Second button link',
+			'name'         => 'cta_href_2',
+			'type'         => 'text',
+			'instructions' => $href_instructions,
+		],
+		[
+			'key'          => $k . 'cta_hover_2',
+			'label'        => 'Second button hover label',
+			'name'         => 'cta_hover_2',
+			'type'         => 'text',
+			'instructions' => 'Optional. As above, for the second button.',
+		],
+		[
+			'key'          => $k . 'cta_note',
+			'label'        => 'Note beside the buttons',
+			'name'         => 'cta_note',
+			'type'         => 'text',
+			'instructions' => 'Optional. The small line beside or under the buttons — an address, '
+				. '"No commitment · Personal video reply". Blank draws nothing.',
+		],
+	];
+}
+
+/**
  * Field groups.
  *
  * Requires Secure Custom Fields (WordPress.org's ACF fork), not ACF free — the
@@ -1594,6 +1701,28 @@ function register_field_groups(): void {
 										'ui'           => 1,
 										'default_value' => 0,
 									],
+									/**
+									 * The small eyebrow directly above the cards themselves — a
+									 * SECOND label, distinct from the preamble's `eyebrow`, which
+									 * sits in the section head. sinus-lift's `#investment` labels its
+									 * factor list "What affects your cost" while the section head
+									 * carries its own eyebrow, and with one slot for two labels the
+									 * backfill dropped the inner one.
+									 *
+									 * Blank on every saved row, and blank draws no element — the
+									 * eyebrow rule hangs hairlines off ::before/::after, so an empty
+									 * span is two floating rules, not an invisible nothing.
+									 */
+									[
+										'key'          => 'field_vs_blk_cards_cards_eyebrow',
+										'label'        => 'Label above the cards',
+										'name'         => 'cards_eyebrow',
+										'type'         => 'text',
+										'instructions' => 'Optional. A second small label directly above the cards, '
+											. 'inside the section — not the section\'s own Eyebrow at the top of '
+											. 'this row. Leave it blank and the cards start unlabelled, as every '
+											. 'section does today.',
+									],
 									[
 										'key'          => 'field_vs_blk_cards_cards',
 										'label'        => 'Cards',
@@ -1660,6 +1789,27 @@ function register_field_groups(): void {
 												'instructions' => 'Optional. A second paragraph under the first. Leave it blank and the '
 													. 'card shows one paragraph exactly as it does now.',
 											],
+											/**
+											 * The `.stat-line` at a card's foot — all-on-4's `#living`
+											 * card four closes on "Every 3–6 months", and that band is
+											 * NUMBERED, so `meta` cannot carry it: with `numbered` on,
+											 * the position is drawn where `meta` would be and the meta
+											 * value is drawn nowhere. Storing the stat in meta anyway —
+											 * which is what the first map did — parks the words on a
+											 * field the renderer never reads for that shape, which is
+											 * the silently-lost state this batch exists to end.
+											 *
+											 * Its own optional field, drawn after the body only when
+											 * non-empty. Blank on every saved row; blank draws nothing.
+											 */
+											[
+												'key'          => 'field_vs_blk_cards_card_stat',
+												'label'        => 'Closing figure',
+												'name'         => 'stat',
+												'type'         => 'text',
+												'instructions' => 'Optional. A short emphasised line at the foot of the card — '
+													. '"Every 3–6 months". Leave it blank and the card ends at its body.',
+											],
 											[
 												'key'   => 'field_vs_blk_cards_card_href',
 												'label' => 'Link',
@@ -1668,7 +1818,94 @@ function register_field_groups(): void {
 											],
 										],
 									],
-								]
+									/**
+									 * The CALLOUT PANEL this band can end in or stand beside — the
+									 * same eyebrow/heading/body trio media_split and comparison_cards
+									 * carry, under the same names, plus the two parts only this
+									 * layout's panels have: a plain list and a closing line.
+									 *
+									 * TWO REAL BANDS, TWO POSITIONS, hence `callout_placement`:
+									 * all-on-4's `#living` closes its four cards with a full-width
+									 * `.candidacy-sub` strip ("Maintenance & Longevity" / "How Long
+									 * All-on-4 Lasts" / one paragraph), while sinus-lift's
+									 * `#investment` stands a boxed sage panel BESIDE its cards, with
+									 * a list of four lines, two buttons and a "Bring your insurance
+									 * card(s)…" line inside it. Same three head fields, stated
+									 * position — a heuristic keyed on which parts are filled would
+									 * move one panel the day an editor edits the other.
+									 *
+									 * NULL MEANS THE STRIP. No saved row holds any of these, so there
+									 * is no back-compat state to preserve — but a component that read
+									 * null as "no position" would draw the head and drop the panel.
+									 *
+									 * THE BUTTONS FOLLOW THE PANEL. The block_cta_fields() row below
+									 * draws at the band's foot normally (gum-contouring's `#why`
+									 * closes on Book Online / Get Directions and the practice
+									 * address); when the placement is "aside" the same buttons and
+									 * note draw INSIDE the panel instead, because that is where the
+									 * only aside band in the corpus puts them. One pair of positions,
+									 * one set of fields — a second cta set for inside-the-panel would
+									 * be seven more controls and a page that could draw two button
+									 * rows nothing in the corpus has.
+									 *
+									 * `callout_points` IS A REPEATER AND ITS NAME IS A TYPE:
+									 * PageFieldsBlocksCalloutPoints, checked by enumeration against
+									 * every repeater under `blocks` — items, cards, checklist,
+									 * sub_cards, pre_cards, steps, tiers, bullets, alt_cards, plans,
+									 * features, points, creds, glossary — and against the
+									 * concatenation alias route (no top-level `blocks_callout_points`
+									 * exists). `points` alone is taken by stat_callout; sharing it
+									 * would not error, it would merge the two types and silently drop
+									 * one side's sub-fields behind a healthy-looking schema.
+									 */
+									[
+										'key'          => 'field_vs_blk_cards_callout_eyebrow',
+										'label'        => 'Panel label',
+										'name'         => 'callout_eyebrow',
+										'type'         => 'text',
+										'instructions' => 'Optional. The small label the closing panel opens with — '
+											. '"Maintenance & Longevity", "Insurance & Financing". Leave the whole '
+											. 'panel blank and nothing extra is drawn after the cards.',
+									],
+									[
+										'key'          => 'field_vs_blk_cards_callout_heading',
+										'label'        => 'Panel heading',
+										'name'         => 'callout_heading',
+										'type'         => 'text',
+										'instructions' => 'The panel\'s heading — "How Long All-on-4 Lasts".',
+									],
+									[
+										'key'          => 'field_vs_blk_cards_callout_body',
+										'label'        => 'Panel text',
+										'name'         => 'callout_body',
+										'type'         => 'textarea',
+										'rows'         => 5,
+										'instructions' => 'The panel\'s paragraph. A blank line starts a new paragraph, '
+											. 'and a link may be written inline.',
+									],
+									[
+										'key'           => 'field_vs_blk_cards_callout_placement',
+										'label'         => 'Panel position',
+										'name'          => 'callout_placement',
+										'type'          => 'select',
+										'choices'       => [
+											'below' => 'Full width, under the cards',
+											'aside' => 'Boxed panel beside the cards',
+										],
+										'default_value' => 'below',
+										'return_format' => 'value',
+										'allow_null'    => 0,
+										'multiple'      => 0,
+										'ui'            => 0,
+									],
+									block_list_field(
+										'field_vs_blk_cards_callout_points',
+										'Panel list',
+										'callout_points',
+										'Add a line'
+									),
+								],
+								block_cta_fields( 'cards' )
 							),
 						],
 						/**
@@ -1687,6 +1924,32 @@ function register_field_groups(): void {
 							'sub_fields' => array_merge(
 								block_preamble( 'media' ),
 								[
+									/**
+									 * The `<h3>` BETWEEN the two prose paragraphs — smile-makeover's
+									 * `#process` runs `.prose` as paragraph, `<h3 class="process-sub">`,
+									 * paragraph, and this layout had no slot for the heading, so the
+									 * backfill dropped "Preview Your New Smile Before You Commit" whole.
+									 *
+									 * A field of its own and not the first line of `body_2`, for the
+									 * reason stat_callout's `body_heading` is: it is a real heading in
+									 * the document outline, and a paragraph styled to look like one is
+									 * invisible to a screen reader's heading list and to Google.
+									 *
+									 * Declared above `body_2` because that is its place on the page —
+									 * it heads the second paragraph, not the first. Blank on every row
+									 * saved so far, and blank must draw no <h3> at all: an empty
+									 * heading between two paragraphs is a visible gap in a band nobody
+									 * edited.
+									 */
+									[
+										'key'          => 'field_vs_blk_media_body_2_heading',
+										'label'        => 'Heading above the second paragraph',
+										'name'         => 'body_2_heading',
+										'type'         => 'text',
+										'instructions' => 'Optional. A small heading between the first paragraph and the '
+											. 'second — leave it blank and the two paragraphs run straight on, '
+											. 'exactly as every section does today.',
+									],
 									/**
 									 * The SECOND paragraph of the copy column.
 									 *
@@ -1771,12 +2034,103 @@ function register_field_groups(): void {
 										'rows'         => 3,
 										'instructions' => 'Optional. Set larger, beside or under the copy.',
 									],
+									/**
+									 * The byline under the pull quote — gum-contouring's `#laser`
+									 * closes its quote with `.natural-quote-attrib`, "— Dr. Bryce
+									 * Richardson, DDS, Vivid Smiles Dentistry", and with no slot for
+									 * it the backfill dropped all eight words of the credit.
+									 *
+									 * IT CARRIES ITS OWN LEADING EM DASH, on the rule
+									 * block_list_field()'s `lead` documents for the trailing one: the
+									 * dash is inside the span in the markup being reproduced, so a
+									 * component that prepended one would double it on the only page
+									 * that has this line. The field holds exactly what the span holds.
+									 *
+									 * Blank on every row saved so far, and blank draws nothing — an
+									 * attribution with no quote above it is an editor mistake the
+									 * component shows rather than swallows, so the ATTRIBUTION is
+									 * gated only on itself, not on `quote`.
+									 */
+									[
+										'key'          => 'field_vs_blk_media_quote_attrib',
+										'label'        => 'Quote credit',
+										'name'         => 'quote_attrib',
+										'type'         => 'text',
+										'instructions' => 'Optional. The line under the pull quote naming who said it, '
+											. 'including the dash it opens with — "— Dr. Bryce Richardson, DDS". '
+											. 'Leave it blank and no credit line is drawn.',
+									],
 									block_list_field(
 										'field_vs_blk_media_checklist',
 										'Checklist',
 										'checklist',
 										'Add a point'
 									),
+									/**
+									 * The `.why-creds` strip — sinus-lift's `#why` closes its copy
+									 * column with three `.cred` blocks, each a large `.cred-stat`
+									 * figure over a small `.cred-label` line. No registered field
+									 * carried the pair, so the backfill dropped all fifteen words of
+									 * the practice's credentials.
+									 *
+									 * NAMED `creds`, AND THE NAME WAS COLLISION-CHECKED BY
+									 * ENUMERATION. A repeater's GraphQL type is its field name
+									 * appended to the parent container's prefix and the layout
+									 * contributes nothing, so this competes with every repeater under
+									 * `blocks`: items, cards, checklist, sub_cards, pre_cards, steps,
+									 * tiers, bullets, alt_cards, plans, features, points, glossary,
+									 * callout_points. `creds` is none of them, and mints
+									 * PageFieldsBlocksCreds, claimed nowhere else — including by the
+									 * concatenation alias route (no top-level `blocks_creds` exists).
+									 *
+									 * `stars` IS A SWITCH, NOT A TEXT FIELD, because the five stars
+									 * are decoration, not copy: the markup is `300+ <span
+									 * class="stars" aria-hidden="true">★★★★★</span>`, and asking an
+									 * editor to paste star glyphs into a stat figure is asking for
+									 * four stars on one page and six on another. On, the component
+									 * appends the span exactly as the template writes it; off — the
+									 * default, and the state of two of the three live creds — the
+									 * figure stands alone.
+									 *
+									 * ADDITIVE. No saved row holds a `creds` row, so GraphQL returns
+									 * an empty list and the component must draw no `.why-creds`
+									 * wrapper at all — inside the length test, not around it.
+									 */
+									[
+										'key'          => 'field_vs_blk_media_creds',
+										'label'        => 'Credential figures',
+										'name'         => 'creds',
+										'type'         => 'repeater',
+										'layout'       => 'table',
+										'button_label' => 'Add a figure',
+										'instructions' => 'Optional. The short row of credentials under the copy — a large '
+											. 'figure over a one-line label, like "600+ hrs" over "Advanced Surgical '
+											. 'Training". Leave it empty and nothing is drawn.',
+										'sub_fields'   => [
+											[
+												'key'          => 'field_vs_blk_media_cred_stat',
+												'label'        => 'Figure',
+												'name'         => 'stat',
+												'type'         => 'text',
+												'instructions' => 'Exactly as it should read — "600+ hrs", "300+", "Implant Pathway".',
+											],
+											[
+												'key'   => 'field_vs_blk_media_cred_label',
+												'label' => 'Label',
+												'name'  => 'label',
+												'type'  => 'text',
+											],
+											[
+												'key'           => 'field_vs_blk_media_cred_stars',
+												'label'         => 'Five stars after the figure',
+												'name'          => 'stars',
+												'type'          => 'true_false',
+												'ui'            => 1,
+												'default_value' => 0,
+												'instructions'  => 'Draws ★★★★★ after the figure, the way the review count shows them.',
+											],
+										],
+									],
 									[
 										'key'   => 'field_vs_blk_media_cta_label',
 										'label' => 'Button label',
@@ -1788,6 +2142,29 @@ function register_field_groups(): void {
 										'label' => 'Button link',
 										'name'  => 'cta_href',
 										'type'  => 'text',
+									],
+									/**
+									 * Hover overrides for the two buttons, same names and same
+									 * contract as block_cta_fields() — declared by hand only because
+									 * this layout's cta_* pairs predate that factory and keep their
+									 * live keys. See the factory for the fallback table and for why
+									 * deriving hover text from the destination alone cost
+									 * teeth-whitening one word ("View Levels" against the table's
+									 * "View Steps"). Blank falls back to that table, so every row
+									 * saved before today renders exactly as it does now.
+									 *
+									 * Declared apart from their label/href pairs (this one here, the
+									 * second after cta_href_2 below) so each hover sits with the
+									 * button it modifies and the editor meets the three controls of
+									 * one button together.
+									 */
+									[
+										'key'          => 'field_vs_blk_media_cta_hover',
+										'label'        => 'Button hover label',
+										'name'         => 'cta_hover',
+										'type'         => 'text',
+										'instructions' => 'Optional. The word-swap shown while the pointer is over the '
+											. 'button. Leave it blank for the usual label for that destination.',
 									],
 									/**
 									 * The SECOND button, beside the first.
@@ -1810,6 +2187,33 @@ function register_field_groups(): void {
 									 * not the href: a button with a link and no words is
 									 * invisible and unclickable, which is worse than absent.
 									 */
+									/**
+									 * The EYEBROW of the callout — the small label the boxed asides
+									 * and the sub-heads open with. The pair below carries the <h3>
+									 * and the paragraph, and on band after band the label above them
+									 * had no field: "Upper vs. Lower" on all-on-4's `#what`, "Common
+									 * Causes" on sinus-lift's, "Why four implants are enough" on the
+									 * robotics callouts, "Bone & Face Structure" on
+									 * single-tooth's, "If you don't qualify yet" / "If you have
+									 * reduced bone" / "The bottom line" on the candidacy subs,
+									 * "Causes" on bone-grafting's. Eight bands, one missing slot —
+									 * the exact both-sides-assumed-the-other-had-it failure the
+									 * bone-grafting callout already cost 55 words to.
+									 *
+									 * Blank on every row saved so far, and blank must draw NO label
+									 * element at all: `.what-sub-head`'s eyebrow rule hangs hairlines
+									 * off ::before and ::after, so an empty span renders as two
+									 * floating rules with a hole between them.
+									 */
+									[
+										'key'          => 'field_vs_blk_media_callout_eyebrow',
+										'label'        => 'Aside label',
+										'name'         => 'callout_eyebrow',
+										'type'         => 'text',
+										'instructions' => 'Optional. The small label above the aside\'s heading — '
+											. '"Upper vs. Lower", "The bottom line". Leave it blank and the aside '
+											. 'opens straight at its heading, as every saved section does today.',
+									],
 									[
 										// The same aside comparison_cards got, on the same terms. Both
 										// bands carry one: .safety-callout on compare, .veneers-callout
@@ -1830,6 +2234,46 @@ function register_field_groups(): void {
 										'rows'         => 4,
 										'instructions' => 'The aside\'s text. A blank line starts a new paragraph, and a '
 											. 'link may be written inline.',
+									],
+									/**
+									 * WHERE the callout is drawn, because the corpus puts the same
+									 * three pieces of copy in two different places and presence of an
+									 * eyebrow cannot tell them apart: the robotics callouts sit
+									 * INSIDE the copy column (boxed aside, label and all), while every
+									 * `.candidacy-sub` sits FULL WIDTH below the photo-and-copy grid.
+									 * A heuristic keyed on which fields are filled would move one of
+									 * the two the day an editor edits the other, so the position is a
+									 * stated value, not an inference.
+									 *
+									 * NULL MEANS THE COLUMN. Every row saved before today predates
+									 * this field and returns null — the ACF default below only
+									 * applies to a row an editor adds — and the column aside is what
+									 * those rows have always drawn. The component must read null and
+									 * "aside" identically or eleven live bands move.
+									 *
+									 * Inert while `sub_cards` has rows: with cards the callout is
+									 * their sub-head above the grid, exactly as before this field
+									 * existed. The instruction says so rather than conditional logic
+									 * hiding the control, on the rule pricing_tiers' `nested`
+									 * documents: a control that looks disabled while still posting is
+									 * worse than one plainly labelled as ignored.
+									 */
+									[
+										'key'           => 'field_vs_blk_media_callout_placement',
+										'label'         => 'Aside position',
+										'name'          => 'callout_placement',
+										'type'          => 'select',
+										'choices'       => [
+											'aside' => 'In the copy column, as a boxed aside',
+											'below' => 'Full width, under the photo and copy',
+										],
+										'default_value' => 'aside',
+										'return_format' => 'value',
+										'allow_null'    => 0,
+										'multiple'      => 0,
+										'ui'            => 0,
+										'instructions'  => 'Ignored when the section has “Cards below” — the aside is '
+											. 'then drawn as their heading, above the cards, wherever this is set.',
 									],
 									/**
 									 * The SECONDARY CARD GRID that closes this band — the
@@ -1944,6 +2388,34 @@ function register_field_groups(): void {
 											],
 										],
 									],
+									/**
+									 * The closing paragraph of the `.what-sub` — all-on-4's `#what`
+									 * ends its Upper-vs-Lower grid with a `.what-sub-foot` paragraph
+									 * ("Most patients prioritize whichever arch is more compromised…"),
+									 * and with no slot for it the backfill dropped all 33 words.
+									 *
+									 * Its own field rather than a second paragraph of `callout_body`
+									 * because they are two places in the markup: the callout is the
+									 * grid's HEAD, this is its FOOT, and the cards sit between them.
+									 * Folding both into one field would render the foot above the
+									 * cards — the same words in the wrong place.
+									 *
+									 * It belongs to the sub grid, so it draws inside `.what-sub`
+									 * after the cards. Filled with no cards and no sub-head it still
+									 * draws (the wrapper opens for whichever of the three parts
+									 * exists) — an editor mistake shown on the page rather than
+									 * swallowed, the rule the comparison callout already follows.
+									 * Blank on every row saved so far, and blank draws nothing.
+									 */
+									[
+										'key'          => 'field_vs_blk_media_sub_foot',
+										'label'        => 'Line under the cards below',
+										'name'         => 'sub_foot',
+										'type'         => 'textarea',
+										'rows'         => 3,
+										'instructions' => 'Optional. The closing paragraph under those cards. Leave it '
+											. 'blank and the grid ends at its last card, as it does now.',
+									],
 									[
 										'key'          => 'field_vs_blk_media_cta_label_2',
 										'label'        => 'Second button label',
@@ -1957,6 +2429,50 @@ function register_field_groups(): void {
 										'name'         => 'cta_href_2',
 										'type'         => 'text',
 										'instructions' => 'Where the second button goes. Without a label above it, this is ignored.',
+									],
+									// The second button's hover override — see cta_hover above; the
+									// pair is split only so each hover sits beside its own button.
+									[
+										'key'          => 'field_vs_blk_media_cta_hover_2',
+										'label'        => 'Second button hover label',
+										'name'         => 'cta_hover_2',
+										'type'         => 'text',
+										'instructions' => 'Optional. The word-swap shown while the pointer is over the '
+											. 'second button. Leave it blank for the usual label for that destination.',
+									],
+									/**
+									 * The `.inline-cta` plate under the whole band — smile-makeover's
+									 * `#process` is a media split that closes with the same sage
+									 * sentence-plus-buttons strip process_steps bands end in, and
+									 * this layout had no slot for it, so the backfill dropped the
+									 * sentence AND both buttons.
+									 *
+									 * SAME NAME, SAME CONTRACT AS process_steps' `cta_text`, on the
+									 * rule pricing_tiers' `nested` wrote down for duplicated
+									 * per-layout fields: the two copies must keep one name so the
+									 * Astro side asks one question of every block. One field, not
+									 * three, for the same reason as there: the buttons beside the
+									 * sentence are "Book Online" and "Call {number}" from
+									 * src/data/contact.ts on every band that has the plate, and a
+									 * per-page field for them is a per-page chance to publish the
+									 * wrong phone number.
+									 *
+									 * Carries inline markup (`<em>…</em>`), printed with set:html.
+									 * Blank is the safe state and the state of every saved row: no
+									 * sentence, no plate, no buttons — a bare button strip under a
+									 * band nobody touched is exactly the stray element the
+									 * byte-for-byte diff exists to catch.
+									 */
+									[
+										'key'          => 'field_vs_blk_media_cta_text',
+										'label'        => 'Closing line',
+										'name'         => 'cta_text',
+										'type'         => 'textarea',
+										'rows'         => 2,
+										'instructions' => 'Optional. One sentence in a plate under the whole section, '
+											. 'with the booking and phone buttons beside it. Leave it blank and '
+											. 'neither the sentence nor the buttons appear. May contain '
+											. '&lt;em&gt;…&lt;/em&gt; for the emphasised half.',
 									],
 								]
 							),
@@ -2158,17 +2674,27 @@ function register_field_groups(): void {
 						/**
 						 * The scrolling strip of smile photographs.
 						 *
-						 * No fields beyond the preamble on purpose: the tiles are
-						 * files in the repository, read by src/lib/smiles.ts, and
-						 * there is nothing here for an editor to fill in or get
-						 * wrong.
+						 * The preamble, plus the one thing a page has ever put inside
+						 * this band's head: smile-makeover's `#results` closes its
+						 * section-head with a two-button `.cta-row` (View the Smile
+						 * Gallery / Patient Stories), and with no fields for it the
+						 * backfill dropped both buttons and both hover labels. The
+						 * PHOTOGRAPHS stay out on purpose: the tiles are files in the
+						 * repository, read by src/lib/smiles.ts, and there is nothing
+						 * per-band for an editor to fill in or get wrong.
+						 *
+						 * Empty cta fields draw nothing, so the bands already saved
+						 * against this layout render exactly as they do now.
 						 */
 						[
 							'key'        => 'layout_vs_blk_gallery_marquee',
 							'name'       => 'gallery_marquee',
 							'label'      => 'Smile gallery strip',
 							'display'    => 'block',
-							'sub_fields' => block_preamble( 'gallery' ),
+							'sub_fields' => array_merge(
+								block_preamble( 'gallery' ),
+								block_cta_fields( 'gallery' )
+							),
 						],
 						/**
 						 * Side-by-side comparison cards — this against that,
@@ -2216,6 +2742,29 @@ function register_field_groups(): void {
 												'bullets',
 												'Add a bullet'
 											),
+											/**
+											 * The paragraph AFTER the bullets — smile-makeover's
+											 * featured veneers card runs body, prep-list, then a
+											 * second full paragraph ("Color, shape, and translucency
+											 * are customized…"), and with one body slot the backfill
+											 * dropped all 26 words of it.
+											 *
+											 * Declared after `bullets` because that is its place on
+											 * the card; a second field rather than a taller `body`,
+											 * on the house rule — two paragraphs typed into one
+											 * textarea come back as one <p> with a newline in the
+											 * source and no gap on the page. Blank on every saved
+											 * row, and blank must draw no <p> at all.
+											 */
+											[
+												'key'          => 'field_vs_blk_compare_card_body_2',
+												'label'        => 'Body — after the bullets',
+												'name'         => 'body_2',
+												'type'         => 'textarea',
+												'rows'         => 3,
+												'instructions' => 'Optional. A closing paragraph under the bullet list. Leave it '
+													. 'blank and the card ends exactly as it does now.',
+											],
 											[
 												'key'          => 'field_vs_blk_compare_card_ribbon',
 												'label'        => 'Ribbon',
@@ -2260,6 +2809,26 @@ function register_field_groups(): void {
 									 * paragraphs into one wall of text. It may also contain a
 									 * link, on the same terms as media_split's second body.
 									 */
+									/**
+									 * The callout's EYEBROW, added for the same census lines as
+									 * media_split's: `.compare-sub-head` opens with a small label —
+									 * "Alternatives" on both `#compare` pages — above the <h3> and
+									 * paragraph that `callout_heading` / `callout_body` already
+									 * carry. The label had no field, so two routes each lost the one
+									 * word. Blank on every saved row (the `.safety-callout` aside has
+									 * never had a label), and blank draws no element at all — the
+									 * eyebrow rule hangs hairlines off ::before/::after, so an empty
+									 * span is two floating rules, not an invisible nothing.
+									 */
+									[
+										'key'          => 'field_vs_blk_compare_callout_eyebrow',
+										'label'        => 'Callout label',
+										'name'         => 'callout_eyebrow',
+										'type'         => 'text',
+										'instructions' => 'Optional. The small label above the callout heading — '
+											. '"Alternatives". Leave it blank and the callout opens straight at its '
+											. 'heading, as every saved section does today.',
+									],
 									[
 										'key'          => 'field_vs_blk_compare_callout_heading',
 										'label'        => 'Callout heading',
@@ -2387,7 +2956,111 @@ function register_field_groups(): void {
 											],
 										],
 									],
-								]
+									/**
+									 * The GLOSSARY that closes bone-grafting's `#types` — the
+									 * `.materials-block`: its own sub-head (eyebrow, <h3>,
+									 * paragraph) beside a <dl> of tag / term / definition rows.
+									 * None of it had a field, which is 55 of that route's census
+									 * words — the whole "Where Does Bone Graft Material Come From?"
+									 * block, Allograft to Synthetic.
+									 *
+									 * ITS OWN HEAD TRIO, NOT A SECOND READING OF THE CALLOUT PAIR.
+									 * The callout pair already means two things on this layout (the
+									 * `.safety-callout` aside, or the `.compare-sub-head` when
+									 * `alt_cards` has rows), and bone-grafting's `#types` needs the
+									 * callout pair AND this glossary head in one band — the
+									 * procedures grid opens the band, the materials list closes it.
+									 * A third presence-keyed reading of one pair is exactly the
+									 * both-sides-assumed ambiguity that lost the 55 words in the
+									 * first place, so the glossary's head is stated, not inferred.
+									 *
+									 * `glossary` IS A REPEATER AND ITS NAME IS A TYPE:
+									 * PageFieldsBlocksGlossary, checked by enumeration against every
+									 * repeater under `blocks` — items, cards, checklist, sub_cards,
+									 * pre_cards, steps, tiers, bullets, alt_cards, plans, features,
+									 * points, creds, callout_points — and against the concatenation
+									 * alias route (no top-level `blocks_glossary` exists). Same
+									 * {tag, title, body} triple as `alt_cards`, and deliberately not
+									 * shared through a factory: two repeaters that must never share
+									 * a name are two declarations.
+									 *
+									 * ADDITIVE. No saved row holds any of this; the component draws
+									 * no `.materials-block` wrapper unless a head field or a row is
+									 * non-empty — the wrapper inside the test, never around it.
+									 */
+									[
+										'key'          => 'field_vs_blk_compare_glossary_eyebrow',
+										'label'        => 'Glossary label',
+										'name'         => 'glossary_eyebrow',
+										'type'         => 'text',
+										'instructions' => 'Optional. The small label above the glossary heading — '
+											. '"Material Sources". Leave the whole glossary empty and nothing '
+											. 'extra is drawn.',
+									],
+									[
+										'key'          => 'field_vs_blk_compare_glossary_heading',
+										'label'        => 'Glossary heading',
+										'name'         => 'glossary_heading',
+										'type'         => 'text',
+										'instructions' => 'The heading of the closing reference list — "Where Does Bone '
+											. 'Graft Material Come From?".',
+									],
+									[
+										'key'          => 'field_vs_blk_compare_glossary_body',
+										'label'        => 'Glossary text',
+										'name'         => 'glossary_body',
+										'type'         => 'textarea',
+										'rows'         => 3,
+										'instructions' => 'The one-line paragraph under that heading.',
+									],
+									[
+										'key'          => 'field_vs_blk_compare_glossary',
+										'label'        => 'Glossary rows',
+										'name'         => 'glossary',
+										'type'         => 'repeater',
+										'layout'       => 'row',
+										'button_label' => 'Add a row',
+										'instructions' => 'The definition rows — a small tag, the term, and what it means.',
+										'sub_fields'   => [
+											[
+												'key'          => 'field_vs_blk_compare_glossary_row_tag',
+												'label'        => 'Tag',
+												'name'         => 'tag',
+												'type'         => 'text',
+												'instructions' => 'The small label above the term — "Allograft".',
+											],
+											[
+												'key'          => 'field_vs_blk_compare_glossary_row_title',
+												'label'        => 'Term',
+												'name'         => 'title',
+												'type'         => 'text',
+												'instructions' => 'The short name — "Processed donor bone".',
+											],
+											[
+												'key'   => 'field_vs_blk_compare_glossary_row_body',
+												'label' => 'Definition',
+												'name'  => 'body',
+												'type'  => 'textarea',
+												'rows'  => 2,
+											],
+										],
+									],
+								],
+								/**
+								 * The closing `.cta-row`, now field-driven — WITH A FALLBACK THAT
+								 * IS THE WHOLE CONTRACT. ComparisonCardsBlock has always drawn one
+								 * literal row ("Free Virtual Consult" to #consult, "Read FAQ" to
+								 * #faq, "No commitment · Personal video reply"), and eleven
+								 * back-filled routes render it today with every one of these
+								 * fields absent. So the component must fall back to EXACTLY that
+								 * literal row whenever both labels are blank — never to no row,
+								 * and never to a partial one — or every live comparison band
+								 * changes on the next build. The fields exist because the row is
+								 * page copy the client must be able to reword, and because the
+								 * next page whose row differs from the literal would otherwise
+								 * lose it exactly as the census pages lost theirs.
+								 */
+								block_cta_fields( 'compare' )
 							),
 						],
 						/**
@@ -2655,7 +3328,17 @@ function register_field_groups(): void {
 										'instructions' => 'Optional. The line under the cards about insurance, financing or '
 											. 'what a consultation confirms. Leave it blank and nothing is drawn.',
 									],
-								]
+								],
+								/**
+								 * The `.cta-row` after the table — all-on-4-single-arch's `#cost`
+								 * closes on Free Virtual Consult / Get Directions with the
+								 * practice address as the note, and the block used to stop at the
+								 * financing note, so the backfill dropped the whole row. Empty on
+								 * every saved row and empty draws nothing, so the five live cost
+								 * bands are untouched. Ignored when `nested` is on: a tucked-in
+								 * table is not a band and has no foot to close.
+								 */
+								block_cta_fields( 'pricing' )
 							),
 						],
 						/**
@@ -2780,6 +3463,36 @@ function register_field_groups(): void {
 										'rows'         => 4,
 										'instructions' => 'Optional. A second paragraph under the first, still inside the card and '
 											. 'above the list. Leave it blank and the card reads exactly as it does now.',
+									],
+									/**
+									 * Whether the list's bold lead-ins take a colon.
+									 *
+									 * The component prints `<strong>lead:</strong> body` and the
+									 * colon has always belonged to the template — which is right for
+									 * porcelain-veneers' aftercare list and WRONG for
+									 * full-mouth-rehabilitation's `#cost`, whose baseline is
+									 * `<strong>Implants and restoration type</strong>` with no colon
+									 * at all. The appended colon turns "type" into "type:", and a
+									 * word-level diff counts that as a lost word — it is that
+									 * route's entire census entry, three words.
+									 *
+									 * A per-band switch rather than a change to the component,
+									 * because the live porcelain-veneers rows store their leads
+									 * WITHOUT colons and render WITH them: stop appending
+									 * unconditionally and that page changes; store the colon in the
+									 * lead instead and every already-saved row must be edited in the
+									 * same deploy. Off — the default, and the state of every saved
+									 * row — appends the colon exactly as today.
+									 */
+									[
+										'key'           => 'field_vs_blk_stat_points_plain',
+										'label'         => 'List without colons',
+										'name'          => 'points_plain',
+										'type'          => 'true_false',
+										'ui'            => 1,
+										'default_value' => 0,
+										'instructions'  => 'On, the bold opening of each line is printed exactly as typed. '
+											. 'Off — the usual thing — a colon is added after it for you.',
 									],
 									[
 										'key'          => 'field_vs_blk_stat_points',

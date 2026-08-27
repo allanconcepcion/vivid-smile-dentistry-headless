@@ -106,7 +106,9 @@
  *
  * Spec: docs/PAGE-BLOCKS.md 1.2, 1.3, 2.5, 3.3.
  */
+import Button from "../components/Button.astro";
 import PricingTiers from "../components/PricingTiers.astro";
+import { resolveCta } from "./cta";
 
 /**
  * The five bands, mapped to the modifier this block writes on its own section.
@@ -214,9 +216,23 @@ interface Props {
   plans?: PlanRow[] | null;
   /** The financing / insurance line under the table. */
   note?: string | null;
+  /** The optional closing CTA row after the table — all-on-4's #cost ships
+   *  "Free Virtual Consult / Get Directions" plus the address note there
+   *  (all-on-4-single-arch.astro:809-820). All seven blank = today's markup
+   *  byte-for-byte. NEVER drawn in nested mode: a price table tucked inside a
+   *  host band closes with the HOST's content, and no page ships a CTA row
+   *  inside .lasting-cost-wrap. */
+  ctaLabel?: string | null;
+  ctaHref?: string | null;
+  ctaHover?: string | null;
+  ctaLabel2?: string | null;
+  ctaHref2?: string | null;
+  ctaHover2?: string | null;
+  ctaNote?: string | null;
 }
 
-const { id, band, eyebrow, heading, body, nested, plans, note } = Astro.props;
+const { id, band, eyebrow, heading, body, nested, plans, note, ctaLabel,
+  ctaHref, ctaHover, ctaLabel2, ctaHref2, ctaHover2, ctaNote } = Astro.props;
 
 /**
  * The mode switch. Truthy, not `=== true` — see the header: null means "never
@@ -227,6 +243,26 @@ const { id, band, eyebrow, heading, body, nested, plans, note } = Astro.props;
  * back-filled routes take the standalone branch unchanged.
  */
 const isNested = Boolean(nested);
+
+/* The token map, hover table and resolvers live in ./cta.ts — ONE copy for
+   every block that draws a CTA row, extracted the day the fifth copy appeared.
+   The tables only work because the blocks agree, and five copies is five
+   places for the next hover-label edit to miss. */
+const cta1 = resolveCta(ctaHref, ctaHover);
+const cta2 = resolveCta(ctaHref2, ctaHover2);
+const hasCta = typeof ctaLabel === "string" && ctaLabel.trim() !== "";
+const hasCta2 = typeof ctaLabel2 === "string" && ctaLabel2.trim() !== "";
+/* Standalone only. A nested table must not grow a row the host band never
+   had — the fields can still be saved on a nested row, and they are ignored
+   the way the nested mode already ignores anchor and band. */
+const hasCtaRow = (hasCta || hasCta2) && !isNested;
+const ctaNoteText = typeof ctaNote === "string" ? ctaNote.trim() : "";
+/* Variants follow the band, same pairing as CardGridBlock: the only page
+   shipping this row today is all-on-4's charcoal #cost, which uses
+   light + ghost-light (all-on-4-single-arch.astro:811-816). */
+const isDarkBand = band === "charcoal" || band === "sage";
+const primaryVariant = isDarkBand ? "light" : "sage";
+const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
 
 // `?? null` rather than a default: an unknown band from a future PHP choice
 // falls through to the paper shell rather than emitting a class with no rule.
@@ -315,6 +351,29 @@ const hasTable = tiers.length > 0;
     {
       hasTable && (
         <PricingTiers tiers={tiers} financingNote={noteText || undefined} />
+      )
+    }{
+      /* all-on-4-single-arch.astro:809-820 — the closing row sits after the
+         table (whose component draws the financing note), inside .wrap.
+         Flushed `}{` so the three routes with standalone rows saved before
+         these fields existed render byte-for-byte. */
+      hasCtaRow && (
+        <div class="cta-row">
+          <div class="cta-buttons">
+            {hasCta && (
+              <Button variant={primaryVariant} href={cta1.href} hoverLabel={cta1.hover}>
+                {ctaLabel}
+              </Button>
+            )}{
+              hasCta2 && (
+              <Button variant={secondaryVariant} href={cta2.href} hoverLabel={cta2.hover}>
+                {ctaLabel2}
+              </Button>
+            )}
+          </div>{
+            ctaNoteText !== "" && <span class="cta-note">{ctaNoteText}</span>
+          }
+        </div>
       )
     }
   </div>
@@ -581,8 +640,47 @@ const hasTable = tiers.length > 0;
      margin is deliberately not among them — no page sheet in the family
      narrows it, so changing it here would be this block disagreeing with the
      five bands it replaces. */
+  /* ── CTA row ────────────────────────────────────────────────────────────
+     Copied from .aos4 .cta-row (all-on-4-single-arch.css:602-618), the page
+     whose #cost this reproduces, normalised to the block token set the way
+     CardGridBlock's copy of the same shape was. In the BLOCK's own scoped
+     style because a page sheet cannot restyle a compound a block draws. */
+  .cta-row {
+    margin-top: 56px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+  }
+  .cta-row .cta-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+    justify-content: center;
+  }
+  .cta-row .cta-note {
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--vs-muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section.dark .cta-row .cta-note {
+    color: var(--vs-ink-soft);
+  }
+  .section.alt .cta-row .cta-note,
+  .section.sage .cta-row .cta-note {
+    color: rgba(255, 255, 255, 0.75);
+  }
+
   @media (max-width: 780px) {
     .section { padding: 70px 0; }
     .wrap { padding: 0 22px; }
+    /* all-on-4-single-arch.css:851 — the row's top gap collapses on small
+       screens. */
+    .cta-row { margin-top: 36px; }
   }
 </style>

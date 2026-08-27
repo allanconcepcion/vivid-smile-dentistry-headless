@@ -106,12 +106,11 @@
  * the `<span>` — a space there is visible, because `.candidate-list li` is a
  * grid and the text column starts exactly where the span does.
  *
- * NOTE FOR WHOEVER RUNS THE NEXT PHASE: `checklist` is not in
- * blockSelectionSet() yet (manifest.ts says it "goes in when the component that
- * needs it does"). Until that one line is added the prop arrives `undefined`
- * and this draws nothing, which is exactly the pre-existing behaviour — but it
- * also means this markup is inert until the fragment asks for
- * `checklist { lead item }`.
+ * `checklist { lead item }` is in the manifest's selection set as of the
+ * census batch, so the markup below is live — the note that used to sit here
+ * saying it was inert is closed. The same batch selects every other field this
+ * component reads; a field selected here but missing there arrives `undefined`
+ * and draws nothing, silently, which is why the two files ship in one commit.
  *
  * Styles are co-located per docs/PAGE-BLOCKS.md 2.5, modelled on
  * FinalBand.astro: no page namespace, `--vs-*` tokens directly, band as a
@@ -119,7 +118,8 @@
  */
 import { Image } from "astro:assets";
 import Button from "../components/Button.astro";
-import { phoneHref } from "../data/contact";
+import { bookNowHref, directionsHref, phoneHref, phoneLabel } from "../data/contact";
+import { CTA_HOVER as SHARED_CTA_HOVER, CTA_TOKEN } from "./cta";
 
 /** The layout's image sub-field, as wpgraphql-acf returns an ACF image. */
 export interface MediaSplitImage {
@@ -141,6 +141,32 @@ export interface MediaSplitPoint {
   lead?: string | null;
   /** The line itself. */
   item?: string | null;
+}
+
+/**
+ * One row of the layout's `creds` repeater — GraphQL type
+ * `PageFieldsBlocksCreds` — a figure-over-label credential cell of the
+ * `.why-creds` strip (sinus-lift.astro:327-343). Three cells on the one band
+ * that ships the shape:
+ *
+ *   600+ hrs        / Advanced Surgical Training
+ *   300+ ★★★★★      / Five-Star Google Reviews
+ *   Implant Pathway / Clinical Staff Role
+ *
+ * `stars` is a boolean rather than five characters in `stat` because the star
+ * run is presentation, not copy: the template marks it `aria-hidden="true"`
+ * (sinus-lift.astro:335), so storing ★★★★★ in the text field would put it in
+ * the accessible name — a screen reader reading "300 plus black star black
+ * star…" is the failure the template's own markup guards against. The
+ * component draws the span; the editor only says whether it appears.
+ */
+export interface MediaSplitCred {
+  /** The figure — "600+ hrs", "300+", "Implant Pathway". */
+  stat?: string | null;
+  /** The uppercase label under it. */
+  label?: string | null;
+  /** true appends the aria-hidden ★★★★★ run after the figure. */
+  stars?: boolean | null;
 }
 
 /**
@@ -183,12 +209,35 @@ interface Props {
   heading?: string | null;
   body?: string | null;
   /**
+   * The `<h3 class="process-sub">` BETWEEN the two prose paragraphs —
+   * smile-makeover `#process`'s "Preview Your New Smile Before You Commit"
+   * (smile-makeover.astro:397). A field of its own rather than markup smuggled
+   * through `body_2`, for the reason that page's own comment gives: `body_2`
+   * renders inside a single `<p>`, and an `<h3>` inside a paragraph is invalid
+   * nesting the parser recovers from by closing the `<p>` early — a stray
+   * empty paragraph in the band. Blank draws no heading at all.
+   */
+  body2Heading?: string | null;
+  /**
    * A second paragraph in the same `.prose` column, rendered with `set:html`.
    * Carries inline markup — `<a class="vs-link">`, `<em>`, `<strong>`. See the
    * header for why this one is permissive and FaqBlock's answer had to argue
    * for it. Empty renders no paragraph at all.
    */
   body2?: string | null;
+  /**
+   * The small label the callout opens with, wherever the callout is drawn —
+   * "Why four implants are enough" (all-on-4-single-arch.astro:481), "Causes"
+   * (bone-grafting.astro:376), "Upper vs. Lower" (all-on-4-single-arch.astro:420),
+   * "If you don't qualify yet" (all-on-4-single-arch.astro:708). Eight bands in
+   * the census carry one and none had a slot. It follows the pair through all
+   * three positions: `<span class="label">` in the aside and the below strip,
+   * `<span class="eyebrow">` in the sub-head — the class each position's
+   * template markup uses. Blank draws no span, because an empty label in the
+   * sub-head would render as two floating hairline rules with a hole between
+   * them (`::before` AND `::after` hang off it).
+   */
+  calloutEyebrow?: string | null;
   /**
    * The `.veneers-callout` aside that sits after `.prose` on teeth-whitening's
    * `#natural` band (teeth-whitening.astro:554-570) — its `<h3>`.
@@ -206,6 +255,22 @@ interface Props {
    * split the same way comparison_cards does it.
    */
   calloutBody?: string | null;
+  /**
+   * "aside" | "below" — where the callout trio is drawn when there is no
+   * `subCards` grid to head.
+   *
+   * NULL MEANS "aside", and that is a compatibility statement rather than a
+   * default: ACF writes a select's value only when an editor ADDS a row, so
+   * every row saved before this field existed returns `null` — and every one of
+   * those rows has only ever drawn the in-column aside. Mapping null to
+   * anything else would move a rendered element on bands nobody edited.
+   *
+   * "below" is the full-width `.candidacy-sub` strip after the grid, which is
+   * where all four implant pages put it (all-on-4-single-arch.astro:707-712,
+   * bone-grafting.astro:639-643). Ignored while `subCards` has rows — the
+   * callout is then their sub-head, exactly as before this field existed.
+   */
+  calloutPlacement?: string | null;
   /**
    * "2" | "3" | "4" — the track count of the secondary grid below the split.
    *
@@ -233,6 +298,14 @@ interface Props {
    * is 70px of visible dead space at the foot of all eleven bands nobody edited.
    */
   subCards?: (MediaSplitSubCard | null)[] | null;
+  /**
+   * The `.what-sub-foot` closing paragraph under the `subCards` grid
+   * (all-on-4-single-arch.astro:440-446). Inside `.what-sub` and therefore
+   * inside its emptiness test: a foot with no cards draws nothing, because
+   * `.what-sub` carries `margin-top: 70px` and the only band that ships the
+   * shape ships it under a grid.
+   */
+  subFoot?: string | null;
   image?: MediaSplitImage | null;
   /** Overrides the media item's own alt text when the editor filled it in. */
   imageAlt?: string | null;
@@ -242,17 +315,54 @@ interface Props {
   ratio?: string | null;
   quote?: string | null;
   /**
+   * The `.natural-quote-attrib` byline under the pull quote — "— Dr. Bryce
+   * Richardson, DDS, Vivid Smiles Dentistry" on gum-contouring's `#laser`
+   * (gum-contouring.astro:329). The leading em dash is stored in the value, on
+   * the rule `checklist.lead` already states for its trailing dash: the dash
+   * belongs to the copy being reproduced, and a component that appended one
+   * would print two the day an editor types their own. Blank draws no span.
+   */
+  quoteAttrib?: string | null;
+  /**
    * The numbered `.candidate-list` under the pull quote. See the header for why
    * the marker is not in here and why `lead` carries its own dash. An empty or
    * absent list draws no `<ul>` — which is every band saved to date, since the
    * field has never been queried.
    */
   checklist?: (MediaSplitPoint | null)[] | null;
+  /**
+   * The `.why-creds` strip of figure-over-label credentials after the prose
+   * (sinus-lift.astro:322-343 — the strip directly follows the lede
+   * paragraph). See `MediaSplitCred` for the row shape and why the stars are a
+   * boolean. An empty or absent list draws no wrapper at all.
+   */
+  creds?: (MediaSplitCred | null)[] | null;
   ctaLabel?: string | null;
   ctaHref?: string | null;
+  /**
+   * Per-button override for the word-swap hover label. Blank falls back to
+   * CTA_HOVER exactly as before the field existed, so every saved row is
+   * untouched. It exists because the table cannot be right twice for one
+   * destination: `#process` hovers "View Steps" on five pages and "View
+   * Levels" on teeth-whitening's `#what` (teeth-whitening.astro:378) — that
+   * one word was the page's entire census.
+   */
+  ctaHover?: string | null;
   /** Secondary button. Empty label renders no second button. */
   ctaLabel2?: string | null;
   ctaHref2?: string | null;
+  /** The secondary button's hover override, on `ctaHover`'s terms. */
+  ctaHover2?: string | null;
+  /**
+   * The `.inline-cta.dark` plate after the whole grid — smile-makeover
+   * `#process`'s "Ready to see your preview? <em>Book online and we'll take it
+   * from here.</em>" (smile-makeover.astro:421). Same name and same contract
+   * as process_steps' field: the sentence is the content, the Book Online /
+   * Call buttons beside it are site data drawn from src/data/contact.ts and
+   * deliberately not editable — a per-page field for them is a per-page chance
+   * to publish the wrong phone number. Blank draws neither.
+   */
+  ctaText?: string | null;
 }
 
 /**
@@ -277,19 +387,41 @@ const BAND_CLASS: Record<string, string | undefined> = {
  * Hover labels, by destination.
  *
  * `hoverLabel` renders as a `data-hover` attribute and as the button's second
- * label span, so it is part of the markup this block has to reproduce — and
- * there is no CMS field for it. Deriving it from the destination is not a
- * guess: `href="#consult"` is paired with "Get a Video" in 52 of the 54 places
- * that label appears across src/pages, and the phone and booking links are
- * unanimous. An unknown destination yields `undefined`, which Button.astro
- * already treats as "reuse the visible label".
+ * label span, so it is part of the markup this block has to reproduce. The
+ * table is now the FALLBACK rather than the only answer — `ctaHover` /
+ * `ctaHover2` override it per row, because one destination can carry two
+ * hovers across the corpus (`#process` is "View Steps" on five pages and
+ * "View Levels" on teeth-whitening). Deriving the fallback from the
+ * destination is not a guess: `href="#consult"` is paired with "Get a Video"
+ * in 52 of the 54 places that label appears across src/pages, and the phone
+ * and booking links are unanimous. An unknown destination yields `undefined`,
+ * which Button.astro already treats as "reuse the visible label".
+ *
+ * KEYED BY THE STORED VALUE, BEFORE TOKEN RESOLUTION. `book`, `phone` and
+ * `map` are the values the href fields actually hold (see CTA_RESOLVE), so
+ * keying by the resolved URL would make every hover depend on what an editor
+ * typed into Practice Settings that morning. The `[phoneHref]` entry stays for
+ * any row saved before the token policy that stored the tel: URL itself.
  */
 const CTA_HOVER: Record<string, string> = {
-  "#consult": "Get a Video",
-  "#process": "View Steps",
-  "#faq": "See Answers",
+  // The shared table (./cta.ts) plus this block's one legacy key: a row saved
+  // before the token policy stored the tel: URL itself, and it must keep its
+  // hover. New keys go in cta.ts so all five CTA-drawing blocks agree.
+  ...SHARED_CTA_HOVER,
   [phoneHref]: "Tap to Dial",
 };
+
+/**
+ * The HREF POLICY's token map. A cta href field stores an in-page anchor
+ * ("#consult"), a site path ("/smile-gallery/"), or one of these three tokens
+ * — never a pasted booking/tel/maps URL, because those are site data
+ * (src/data/contact.ts, edited once in Practice Settings) and a per-band copy
+ * of one is a per-band chance to publish a stale phone number. Anything not in
+ * this map passes through unchanged, which is what keeps every saved anchor
+ * and path byte-identical.
+ */
+// The shared token map under this block's historical local name.
+const CTA_RESOLVE: Record<string, string> = CTA_TOKEN;
 
 const {
   id,
@@ -297,21 +429,30 @@ const {
   eyebrow,
   heading,
   body,
+  body2Heading,
   body2,
+  calloutEyebrow,
   calloutHeading,
   calloutBody,
+  calloutPlacement,
   subColumns,
   subCards,
+  subFoot,
   image,
   imageAlt,
   mediaSide = "left",
   ratio = "even",
   quote,
+  quoteAttrib,
   checklist,
+  creds,
   ctaLabel,
   ctaHref,
+  ctaHover,
   ctaLabel2,
   ctaHref2,
+  ctaHover2,
+  ctaText,
 } = Astro.props;
 
 const bandKey = typeof band === "string" && band !== "" ? band : "paper";
@@ -382,6 +523,15 @@ const body2Html = typeof body2 === "string" ? body2.trim() : "";
 const hasBody2 = body2Html !== "";
 const body2IsBlock = /^<(p|div|ul|ol|blockquote)[\s>]/i.test(body2Html);
 
+/** The `<h3>` between the two prose paragraphs. Plain text — a heading that
+    needed inline markup would be a heading field, and none in the corpus does. */
+const body2HeadingText = typeof body2Heading === "string" ? body2Heading.trim() : "";
+const hasBody2Heading = body2HeadingText !== "";
+
+/** The quote byline. Plain text, dash included in the value (see the prop). */
+const quoteAttribText = typeof quoteAttrib === "string" ? quoteAttrib.trim() : "";
+const hasQuoteAttrib = quoteAttribText !== "";
+
 /* The aside, on the same terms as `body_2` above and as
    ComparisonCardsBlock.astro's `.safety-callout`. Blank-line split, because the
    copy is two paragraphs and `.veneers-callout p + p` is what spaces them —
@@ -399,7 +549,19 @@ const calloutParagraphs = calloutBodyIsBlock
       .split(/\n\s*\n/)
       .map((part) => part.trim())
       .filter((part) => part !== "");
-const hasCallout = calloutHeadingText !== "" || calloutBodyHtml !== "";
+const calloutEyebrowText =
+  typeof calloutEyebrow === "string" ? calloutEyebrow.trim() : "";
+const hasCalloutEyebrow = calloutEyebrowText !== "";
+/* The eyebrow counts toward "there is a callout": a band where an editor
+   filled only the label must show that label rather than silently swallow it —
+   the same visibility-over-suppression rule the aside applies to a heading
+   with no body. */
+const hasCallout =
+  calloutHeadingText !== "" || calloutBodyHtml !== "" || hasCalloutEyebrow;
+
+/** "below" or the aside. NULL IS "aside" — see the prop for why that is a
+    compatibility statement about eleven saved rows, not a preference. */
+const calloutBelow = calloutPlacement === "below";
 
 /**
  * The secondary grid's cards, on exactly the terms `checklistPoints` below
@@ -474,8 +636,51 @@ const checklistPoints = (Array.isArray(checklist) ? checklist : [])
   .filter((point) => point.lead !== "" || point.item !== "");
 const hasChecklist = checklistPoints.length > 0;
 
+/**
+ * The credential rows, on `checklistPoints`' exact terms: `Array.isArray`
+ * first because an unqueried repeater arrives `undefined` and one an editor
+ * never opened arrives `null`. The filter keeps a row with EITHER text field —
+ * a stars-only row is the leftover of a clicked toggle on an abandoned "Add
+ * row" and draws a floating star run with nothing under it, so it is dropped
+ * with the blank rows. `=== true` on `stars` because ACF returns `null` for a
+ * true/false an editor never touched, and `null` must mean "no stars", not
+ * "maybe".
+ */
+const credRows = (Array.isArray(creds) ? creds : [])
+  .map((row) => ({
+    stat: typeof row?.stat === "string" ? row.stat.trim() : "",
+    label: typeof row?.label === "string" ? row.label.trim() : "",
+    stars: row?.stars === true,
+  }))
+  .filter((cred) => cred.stat !== "" || cred.label !== "");
+const hasCreds = credRows.length > 0;
+
+/* The sub-grid's closing paragraph, on the aside's terms: blank-line split so
+   a soft wrap in the textarea does not become a paragraph break, block-detect
+   so a wysiwyg conversion cannot nest `<p><p>`. */
+const subFootHtml = typeof subFoot === "string" ? subFoot.trim() : "";
+const subFootIsBlock = /^<(p|div|ul|ol|blockquote)[\s>]/i.test(subFootHtml);
+const subFootParagraphs = subFootIsBlock
+  ? []
+  : subFootHtml
+      .split(/\n\s*\n/)
+      .map((part) => part.trim())
+      .filter((part) => part !== "");
+const hasSubFoot = subFootHtml !== "";
+
+/* The closing plate's sentence. `set:html` for its `<em>`, same trust boundary
+   as `body_2` and the same rendering ProcessStepsBlock gives the same field. */
+const ctaTextHtml = typeof ctaText === "string" ? ctaText.trim() : "";
+const hasCtaText = ctaTextHtml !== "";
+
 const hasCta = typeof ctaLabel === "string" && ctaLabel.trim() !== "";
 const hasCta2 = typeof ctaLabel2 === "string" && ctaLabel2.trim() !== "";
+
+/* Blank overrides fall back to the table — `""` is what an untouched field
+   returns, and `"" || table` is the exact pre-override behaviour, which is
+   what keeps every saved row's hover byte-identical. */
+const ctaHoverText = typeof ctaHover === "string" ? ctaHover.trim() : "";
+const ctaHover2Text = typeof ctaHover2 === "string" ? ctaHover2.trim() : "";
 
 /**
  * The row is drawn for EITHER button, not just the first.
@@ -529,7 +734,18 @@ const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
             family's only pull-quote treatment and no `.what-quote` has ever
             existed, so naming it after the side it happens to appear on today
             would invent a second class for one appearance. */}
-        {quote && <div class="natural-quote">{quote}</div>}{/* `}{` with nothing
+        {quote && <div class="natural-quote">{quote}</div>}{/* Flush against the
+            quote, on the rule the checklist expression after it spells out at
+            length: a line of its own is a whitespace text node that renders on
+            every band with no byline. DIRECTLY after the quote, before the
+            checklist, because that is where the one page shipping it puts it
+            (gum-contouring.astro:329) — and its own CSS depends on the
+            adjacency: `margin-top: -14px` pulls it up into the quote's bottom
+            margin, which only reads as a byline when nothing sits between. */
+          hasQuoteAttrib && (
+            <span class="natural-quote-attrib">{quoteAttribText}</span>
+          )
+        }{/* `}{` with nothing
             between, on the same rule the callout and the second button below
             follow: an expression on its own line carries a newline-and-indent
             TEXT NODE either side, and that survives into the HTML as a rendered
@@ -560,19 +776,54 @@ const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
             </ul>
           )
         }
-        {/* `.prose` appears only if it would hold at least one paragraph — an
+        {/* `.prose` appears only if it would hold at least one element — an
             empty `body_2` on a band that has no `body` either must not leave a
-            bare `<div class="prose">` behind. */}
+            bare `<div class="prose">` behind. The heading counts: an editor
+            who filled only `body_2_heading` should see it on the page, not
+            lose it to a gate tuned for paragraphs. */}
         {
-          (body || hasBody2) && (
+          (body || hasBody2 || hasBody2Heading) && (
             <div class="prose">
-              {body && <p>{body}</p>}
+              {body && <p>{body}</p>}{/* flush against the paragraph: an
+                  expression on its own line would add a second whitespace text
+                  node between `body` and `body_2` on every saved row that
+                  fills both, and the harness reads that as a diff on pages
+                  that gained nothing. BETWEEN the two paragraphs, because that
+                  is where the one page shipping it puts it
+                  (smile-makeover.astro:396-398: body, h3.process-sub, the
+                  preview paragraph that `body_2` now carries). */
+                hasBody2Heading && (
+                  <h3 class="process-sub">{body2HeadingText}</h3>
+                )}
               {hasBody2 &&
                 (body2IsBlock ? (
                   <Fragment set:html={body2Html} />
                 ) : (
                   <p set:html={body2Html} />
                 ))}
+            </div>
+          )
+        }{/* Flush, same whitespace rule as the aside below. AFTER the prose,
+            which is where the one page shipping the strip puts it: the lede
+            paragraph ends at sinus-lift.astro:322 and `.why-creds` opens
+            directly under it at :323. The `{" "}` between the stat and its
+            star run is load-bearing: the space is a real text node in the
+            markup being reproduced (sinus-lift.astro:334,
+            `300+ <span class="stars"…`), and the compiler COLLAPSES a bare
+            space between an expression and an element on the same line — the
+            harness caught `300+<span` with a plain space here. The checklist's
+            `</b> {point.item}` survives because element-then-expression keeps
+            its literal space; expression-then-element does not. */
+          hasCreds && (
+            <div class="why-creds">
+              {credRows.map((cred) => (
+                <div class="cred">
+                  {(cred.stat !== "" || cred.stars) && (
+                    <div class="cred-stat">{cred.stars ? <Fragment>{cred.stat}{" "}<span class="stars" aria-hidden="true">★★★★★</span></Fragment> : cred.stat}</div>
+                  )}
+                  {cred.label !== "" && <div class="cred-label">{cred.label}</div>}
+                </div>
+              ))}
             </div>
           )
         }{/* `}{` with nothing between, deliberately. An expression on its own
@@ -583,10 +834,24 @@ const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
             the previous closing brace leaves exactly one whitespace node between
             the prose and the CTA row, which is what was there before this field
             existed. A comment node here would reintroduce the problem it
-            documents, so this comment lives INSIDE the same expression. */
-          hasCallout && !hasSubCards && (
+            documents, so this comment lives INSIDE the same expression.
+
+            `!calloutBelow` is new with `callout_placement`: a pair sent below
+            the grid must not ALSO draw here, or the same heading would print
+            twice in one band. NULL placement is not "below", so every saved
+            row still takes this branch — see the prop. */
+          hasCallout && !hasSubCards && !calloutBelow && (
             <aside class="veneers-callout">
-              {calloutHeadingText && <h3>{calloutHeadingText}</h3>}
+              {/* The label, flush against the heading, and this comment INSIDE
+                  the label's own expression — a comment node on its own line is
+                  a pair of whitespace text nodes, i.e. a byte diff on the two
+                  bands that already render this aside with the label blank.
+                  `<span class="label">` rather than `.eyebrow` because that is
+                  the class the boxed callouts this reproduces use
+                  (all-on-4-single-arch.astro:481) — and because `.eyebrow`
+                  inside `.what-text` would catch this block's own hairline
+                  `::before` rule and draw a floating rule inside the box. */
+              hasCalloutEyebrow && <span class="label">{calloutEyebrowText}</span>}{calloutHeadingText && <h3>{calloutHeadingText}</h3>}
               {calloutBodyIsBlock ? (
                 <Fragment set:html={calloutBodyHtml} />
               ) : (
@@ -599,11 +864,18 @@ const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
           hasCtaRow && (
             <div class="cta-row left">
               <div class="cta-buttons">
-                {hasCta && (
+                {/* href through CTA_RESOLVE (a stored token becomes the
+                     contact.ts URL, anything else passes through byte-for-byte)
+                     and hover through the override-then-table chain — both
+                     keyed by the STORED value, per the notes on the two maps.
+                     This comment is inside the expression: a comment node on
+                     its own line is a pair of whitespace text nodes and a byte
+                     diff on every band with a CTA row. */
+                hasCta && (
                   <Button
                     variant={primaryVariant}
-                    href={ctaHref ?? "#"}
-                    hoverLabel={CTA_HOVER[ctaHref ?? ""]}
+                    href={CTA_RESOLVE[ctaHref ?? ""] ?? ctaHref ?? "#"}
+                    hoverLabel={ctaHoverText || CTA_HOVER[ctaHref ?? ""]}
                   >
                     {ctaLabel}
                   </Button>
@@ -613,8 +885,8 @@ const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
                   hasCta2 && (
                   <Button
                     variant={secondaryVariant}
-                    href={ctaHref2 ?? "#"}
-                    hoverLabel={CTA_HOVER[ctaHref2 ?? ""]}
+                    href={CTA_RESOLVE[ctaHref2 ?? ""] ?? ctaHref2 ?? "#"}
+                    hoverLabel={ctaHover2Text || CTA_HOVER[ctaHref2 ?? ""]}
                   >
                     {ctaLabel2}
                   </Button>
@@ -664,7 +936,15 @@ const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
         <div class="what-sub">
           {calloutIsSubHead && (
             <div class="what-sub-head">
-              {calloutHeadingText && <h3>{calloutHeadingText}</h3>}
+              {/* The eyebrow keeps the class the sub-head markup being
+                  reproduced uses (all-on-4-single-arch.astro:420, "Upper vs.
+                  Lower"; sinus-lift.astro:388, "Common Causes") — unlike the
+                  aside's `.label`, this one IS the centred double-hairline
+                  eyebrow. Flush against the heading, comment inside the
+                  expression: both bands that render this head are saved rows
+                  with the label blank until the map lands, and a text node
+                  here is a byte diff on each. */
+              hasCalloutEyebrow && <span class="eyebrow">{calloutEyebrowText}</span>}{calloutHeadingText && <h3>{calloutHeadingText}</h3>}
               {/* The `.prose` wrapper is in the markup being reproduced here
                   (`.what-sub-head > .prose > p`) and is NOT in the aside above,
                   which puts its paragraphs directly in the `<aside>`. Same two
@@ -687,13 +967,12 @@ const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
               )}
             </div>
           )}
-          {/* The eyebrow above that `<h3>` — "Upper vs. Lower" on all-on-4,
-              "Common Causes" on sinus-lift — has NO field on this layout and is
-              a recorded known gap, so nothing is emitted for it. An empty
-              `<span class="eyebrow">` would be worse than nothing rather than
-              harmless: the head's eyebrow rule hangs a 28px hairline off
-              `::before` AND `::after`, so a label-less span renders as two
-              floating rules with a hole between them. */}
+          {/* This standalone comment stays ON ITS OWN LINE even though its old
+              text (the eyebrow gap, closed above) is gone: a comment node here
+              is flanked by two whitespace text nodes, and both are in the
+              rendered bytes of the two saved bands that draw this grid.
+              Deleting the line would fuse them into one — a diff on pages that
+              gained nothing. */}
           <div class:list={["config-grid", `cols-${subColumnsKey}`]}>
             {subCardRows.map((card) => (
               <article class="config-card">
@@ -702,6 +981,66 @@ const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
                 {card.body && <p>{card.body}</p>}
               </article>
             ))}
+          </div>{/* Flush against the grid it closes, comment inside the
+              expression — both saved `subCards` bands have this field blank
+              until the map lands, and a text node here is a byte diff on each.
+              INSIDE `.what-sub`, after the cards, which is where the one page
+              shipping the shape puts it (all-on-4-single-arch.astro:440-446). */
+            hasSubFoot && (
+              <div class="what-sub-foot">
+                {subFootIsBlock ? (
+                  <Fragment set:html={subFootHtml} />
+                ) : (
+                  subFootParagraphs.map((para) => <p set:html={para} />)
+                )}
+              </div>
+            )
+          }
+        </div>
+      )
+    }{/* Flush against the `.what-sub` expression, same rule as everywhere in
+        this file: eleven saved bands have no below-callout, and a line of its
+        own here would be a whitespace diff on all of them.
+
+        THE "below" PLACEMENT — the full-width `.candidacy-sub` strip AFTER the
+        grid, inside the same `.wrap`, which is where all four implant pages put
+        it (all-on-4-single-arch.astro:707-712, bone-grafting.astro:639-643,
+        single-tooth and full-mouth-dental-implants the same shape). Gated on
+        the same `hasCallout && !hasSubCards` as the aside plus the placement,
+        so ONE of the two ever draws — with cards present the pair is their
+        sub-head and both of these stay dark, exactly as before the field. */
+      hasCallout && !hasSubCards && calloutBelow && (
+        <div class="candidacy-sub">
+          {/* Label flush against the heading, comment inside the expression —
+              the strip is new markup, but keeping one whitespace discipline in
+              the file beats having two. `.label` is the strip's own class
+              (all-on-4-single-arch.astro:708). */
+          hasCalloutEyebrow && <span class="label">{calloutEyebrowText}</span>}{calloutHeadingText && <h3>{calloutHeadingText}</h3>}
+          {calloutBodyIsBlock ? (
+            <Fragment set:html={calloutBodyHtml} />
+          ) : (
+            calloutParagraphs.map((para) => <p set:html={para} />)
+          )}
+        </div>
+      )
+    }{/* Flush, same rule. The `.inline-cta.dark` closing plate, LAST inside
+        `.wrap` — the one page shipping it on a media_split puts it directly
+        after the grid with nothing else below (smile-makeover.astro:421-434).
+        Markup and buttons are character-for-character ProcessStepsBlock's
+        rendering of the same field: the sentence is content, the two buttons
+        are site data from src/data/contact.ts, and deliberately not editable —
+        a per-page field for them is a per-page chance to publish the wrong
+        phone number. */
+      hasCtaText && (
+        <div class="inline-cta dark">
+          <div class="ic-text" set:html={ctaTextHtml} />
+          <div class="ic-buttons">
+            <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">
+              Book Online
+            </Button>
+            <Button variant="ghost-light" href={phoneHref} hoverLabel="Tap to Dial">
+              Call {phoneLabel}
+            </Button>
           </div>
         </div>
       )
@@ -1008,6 +1347,76 @@ const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
     max-width: 36ch;
   }
 
+  /* The byline under the pull quote — gum-contouring.css:451-456, declaration
+     for declaration. The negative top margin is the adjacency the markup
+     comment names: it pulls the span up into the quote's own 26px bottom
+     margin so the pair reads as one unit. `--vs-muted` is what the page
+     sheet's `--muted` aliases (gum-contouring.css:39). */
+  .natural-quote-attrib {
+    display: block;
+    margin-top: -14px;
+    margin-bottom: 26px;
+    font-size: 11.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--vs-muted);
+    font-weight: 500;
+  }
+  /* gum-contouring.css:457-459 — the one band shipping the byline is
+     `.section.dark` (sage-pale), and muted is too faint there. The charcoal
+     bands have no shipping instance, so their value is derived the way this
+     block derives every charcoal accent: the eyebrow's own on-sage token —
+     muted (#7d7d78) on charcoal is close to invisible, which would read as a
+     missing byline rather than a styling choice. */
+  .section.dark .natural-quote-attrib {
+    color: var(--vs-ink-soft);
+  }
+  .section.alt .natural-quote-attrib,
+  .section.sage .natural-quote-attrib {
+    color: var(--vs-eyebrow-on-sage);
+  }
+
+  /* The `<h3>` between the two prose paragraphs — smile-makeover.css:393-398
+     plus `margin: 0` and `line-height: 1.1` from that page's heading reset at
+     smile-makeover.css:77-79, which no block inherits (the same omission the
+     `.what-sub-head h3` comment below walks through: without it the UA's 1em
+     margins and 1.15 line-height make the head visibly looser than the
+     page's). No `+ p` spacing rule on purpose: the page has none either — the
+     following paragraph butts directly under the heading, spaced by
+     line-height alone, and that is the rhythm being reproduced. */
+  .prose .process-sub {
+    margin: 22px 0 0;
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: 17px;
+    letter-spacing: 0;
+    line-height: 1.1;
+    color: var(--vs-ink);
+  }
+  /* The band inversions, stated at (0,4,0) so they beat the page-wide
+     `.smilemakeover .section.alt h3 { color: #fff }` class of rule (0,3,1)
+     with the same answer instead of tying with it. The one shipping band is
+     sage-pale, where the base ink above is already the page's rendered value. */
+  .section.alt .prose .process-sub,
+  .section.sage .prose .process-sub {
+    color: #fff;
+  }
+
+  /* The aside's opening label — all-on-4-single-arch.css:419-423, the
+     `.robotics-callout .label` this block's aside now carries. Named `.label`
+     rather than `.eyebrow` for the reason the markup comment gives: an
+     `.eyebrow` inside `.what-text` would catch the hairline `::before` above
+     and draw a floating rule inside the box. */
+  .veneers-callout .label {
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+    display: block;
+    margin-bottom: 8px;
+  }
+
   /* ---------- checklist ----------
      `auto 1fr` with `align-items: baseline`, so the italic numeral sits on the
      first BASELINE of its line's text rather than the top of the box — a marker
@@ -1074,6 +1483,80 @@ const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
     margin-top: 26px;
   }
 
+  /* ---------- the credentials strip ----------
+     `.why-creds` — sinus-lift.css:310-340, declaration for declaration; the
+     page's `--f-display`/`--sage`/`--line`/`--muted` are aliases for the
+     `--vs-*` tokens written here (sinus-lift.css:7-23). The strip ships on ONE
+     band, `#why` on paper, so the light-band values below are the page's own.
+     The mobile stack (border moves from left to top) is the page's 780px group
+     at sinus-lift.css:913-921 and lives in this block's own 780px group below,
+     per the note on that group. */
+  .why-creds {
+    margin-top: 40px;
+    padding-top: 32px;
+    border-top: 1px solid var(--vs-line);
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+  }
+  .why-creds .cred {
+    padding: 0 24px;
+    border-left: 1px solid var(--vs-line);
+  }
+  .why-creds .cred:first-child {
+    padding-left: 0;
+    border-left: 0;
+  }
+  .why-creds .cred-stat {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    font-size: clamp(18px, 1.7vw, 22px);
+    color: var(--vs-sage);
+    letter-spacing: -0.015em;
+    line-height: 1.2;
+  }
+  .why-creds .cred-stat .stars {
+    font-size: 12px;
+    color: var(--vs-sage);
+    letter-spacing: 0.1em;
+    display: inline-block;
+    margin-left: 4px;
+    vertical-align: 2px;
+  }
+  .why-creds .cred-label {
+    margin-top: 6px;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--vs-muted);
+    line-height: 1.35;
+  }
+  /* The dark bands, which no page exercises — derived the way the checklist's
+     charcoal colours were before a page shipped them: hairlines take the
+     0.25-alpha white this block already gives `.natural-quote`'s rules, the
+     figures take the on-sage accent, the labels the 0.75 white the site's dark
+     cta-notes use. `border-color` rather than `border-left-color` so the
+     mobile variant's border-TOP inverts with it instead of staying line-grey
+     on charcoal. */
+  .section.alt .why-creds,
+  .section.sage .why-creds {
+    border-top-color: rgba(255, 255, 255, 0.25);
+  }
+  .section.alt .why-creds .cred,
+  .section.sage .why-creds .cred {
+    border-color: rgba(255, 255, 255, 0.25);
+  }
+  .section.alt .why-creds .cred-stat,
+  .section.sage .why-creds .cred-stat,
+  .section.alt .why-creds .cred-stat .stars,
+  .section.sage .why-creds .cred-stat .stars {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .section.alt .why-creds .cred-label,
+  .section.sage .why-creds .cred-label {
+    color: rgba(255, 255, 255, 0.75);
+  }
+
   /* ---------- the secondary card grid ----------
      `.what-sub` sits after the split inside the same `.wrap`, and it is the same
      unit on both pages that ship it. Every declaration below is copied from a
@@ -1104,6 +1587,40 @@ const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
   .what-sub .what-sub-head {
     text-align: center;
     margin-bottom: 32px;
+  }
+  /* The head's eyebrow — all-on-4-single-arch.css:351-360 / sinus-lift.css:
+     373-379, identical: the centred DOUBLE hairline, `::before` AND `::after`,
+     unlike the single leading rule `.what-text .eyebrow` gets further up. This
+     pair of rules is why the markup only ever emits the span with a label in
+     it: empty, it renders as two floating rules with a hole between them. */
+  .what-sub .what-sub-head .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .what-sub .what-sub-head .eyebrow::before,
+  .what-sub .what-sub-head .eyebrow::after {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+  /* Both hairlines on the inverted bands. The block's own inversions further
+     up cover `::before` only — they predate any `::after` in this file — and
+     both saved bands drawing this head are charcoal, where the page reproduces
+     `.aos4 .section.alt .eyebrow::before, ::after { background:
+     rgba(255,255,255,0.6) }` (all-on-4-single-arch.css:233-234). Stated at
+     (0,5,0) so it outranks that page rule's (0,4,0) with the same value
+     instead of leaving `::after` to the base sage above. */
+  .section.alt .what-sub .what-sub-head .eyebrow::before,
+  .section.alt .what-sub .what-sub-head .eyebrow::after,
+  .section.sage .what-sub .what-sub-head .eyebrow::before,
+  .section.sage .what-sub .what-sub-head .eyebrow::after {
+    background: rgba(255, 255, 255, 0.6);
+  }
+  .section.dark .what-sub .what-sub-head .eyebrow::before,
+  .section.dark .what-sub .what-sub-head .eyebrow::after {
+    background: var(--vs-ink-soft);
   }
   /* all-on-4-single-arch.css:361-366 / sinus-lift.css:380-384 — identical.
      `margin` and `line-height` are NOT in those blocks: they come from the
@@ -1257,6 +1774,38 @@ const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
     line-height: 1.75;
   }
 
+  /* The closing paragraph under the grid — all-on-4-single-arch.css:396-403.
+     `margin-inline: auto` twice over: the sheet's `margin: 32px auto 0` centres
+     the capped column, and without it the 64ch block sits hard left in a
+     full-width strip. The `:global(p)` twin is for the pre-wrapped path, whose
+     paragraphs carry no scope attribute — same reason `.prose :global(p)`
+     exists further up. */
+  .what-sub .what-sub-foot {
+    margin: 32px auto 0;
+    max-width: 64ch;
+    text-align: center;
+  }
+  .what-sub .what-sub-foot p,
+  .what-sub .what-sub-foot :global(p) {
+    margin: 0;
+    font-size: 15.5px;
+    line-height: 1.75;
+    color: var(--vs-ink-soft);
+  }
+  /* What the live page actually renders on its charcoal band: the sheet's own
+     ink-soft at all-on-4-single-arch.css:401-403 LOSES to the page-wide
+     `.aos4 .section.alt p { color: rgba(255,255,255,0.85) }` — (0,2,1) against
+     (0,3,1) — so the shipping colour is the white, not the sheet's. Reproducing
+     the sheet without reproducing the cascade that overrides it would print
+     near-black on charcoal. Stated at (0,4,1) so the answer is this block's
+     own, not a tie the bundler resolves. */
+  .section.alt .what-sub .what-sub-foot p,
+  .section.alt .what-sub .what-sub-foot :global(p),
+  .section.sage .what-sub .what-sub-foot p,
+  .section.sage .what-sub .what-sub-foot :global(p) {
+    color: rgba(255, 255, 255, 0.85);
+  }
+
   /* THE FOUR-ACROSS CARD IS A DENSER CARD, not merely a narrower one, and these
      are the deltas of `.sinuslift .cause-card` (sinus-lift.css:390-413) against
      `.aos4 .config-card` above.
@@ -1314,6 +1863,132 @@ const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
     color: var(--vs-ink-soft);
   }
 
+  /* ---------- the "below" callout strip ----------
+     `.candidacy-sub` — all-on-4-single-arch.css:575-599, character for
+     character the declarations bone-grafting.css:575-599 and
+     single-tooth-dental-implants.css:488-510 also carry. A WHITE box, and all
+     four bands that ship it are `.section.alt` — which is the white-card
+     defect this project has had twice, and why global.css:213-250 already
+     lists `.candidacy-sub.candidacy-sub` in its rescue. Not relied on alone,
+     for the two reasons the `.config-card` comment above gives: that list
+     covers `.section.alt` and `.vs-band-sage` only, and this block also emits
+     `.section.sage`. The doubled-class rescue below is global.css's own idiom
+     at (0,4,1), decisively past the page-wide `.aos4 .section.alt h3/p`
+     (0,3,1) instead of tying with it.
+
+     `line-height: 1.1` and the zero margins on the `<h3>` come from the pages'
+     heading reset (all-on-4-single-arch.css:39-42), which no block inherits —
+     the same omission every heading in this file has to repair. */
+  .candidacy-sub {
+    margin-top: 70px;
+    max-width: 940px;
+    margin-left: auto;
+    margin-right: auto;
+    background: #fff;
+    border: 1px solid var(--vs-line);
+    border-left: 3px solid var(--vs-sage);
+    border-radius: var(--vs-r-lg);
+    padding: 36px 40px;
+    box-shadow: var(--vs-shadow);
+  }
+  .candidacy-sub .label {
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+    display: block;
+    margin-bottom: 10px;
+  }
+  .candidacy-sub h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    color: var(--vs-ink);
+    font-size: clamp(20px, 2vw, 24px);
+    letter-spacing: -0.005em;
+    line-height: 1.1;
+    margin: 0 0 14px;
+  }
+  .candidacy-sub p,
+  .candidacy-sub :global(p) {
+    margin: 0;
+    font-size: 15.5px;
+    line-height: 1.8;
+    color: var(--vs-ink-soft);
+  }
+  .candidacy-sub :global(p + p) {
+    margin-top: 14px;
+  }
+  /* The white-card rescue, per the header note above. Same colours the box
+     carries on a light band, restated so the band-wide white-text rules —
+     this block's own `.section.alt p` included — cannot reach into the box. */
+  .section.alt .candidacy-sub.candidacy-sub .label,
+  .section.sage .candidacy-sub.candidacy-sub .label {
+    color: var(--vs-sage);
+  }
+  .section.alt .candidacy-sub.candidacy-sub h3,
+  .section.sage .candidacy-sub.candidacy-sub h3 {
+    color: var(--vs-ink);
+  }
+  .section.alt .candidacy-sub.candidacy-sub p,
+  .section.alt .candidacy-sub.candidacy-sub :global(p),
+  .section.sage .candidacy-sub.candidacy-sub p,
+  .section.sage .candidacy-sub.candidacy-sub :global(p) {
+    color: var(--vs-ink-soft);
+  }
+
+  /* ---------- closing plate ----------
+     `.inline-cta` — copied from ProcessStepsBlock.astro's style block rule for
+     rule, because the field carries that block's exact contract and the two
+     plates must not drift apart: the first band where they differed would read
+     as a bug in whichever one shipped second. Always `.dark` in the markup,
+     but the cream base is kept too, for the same reason ProcessStepsBlock
+     keeps it — it is the variant the page sheets declare, and dropping half
+     the pair here is how the next copy diverges. */
+  .inline-cta {
+    margin-top: 44px;
+    background: var(--vs-cream);
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-lg);
+    padding: 28px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+    flex-wrap: wrap;
+  }
+  .inline-cta .ic-text {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    font-size: clamp(18px, 1.8vw, 22px);
+    color: var(--vs-ink);
+    letter-spacing: -0.005em;
+    line-height: 1.35;
+    max-width: 46ch;
+  }
+  /* `:global()` because the sentence is injected with `set:html`, so its
+     `<em>` carries no scope attribute. */
+  .inline-cta .ic-text :global(em) {
+    font-style: italic;
+    color: var(--vs-sage);
+    font-weight: 300;
+  }
+  .inline-cta .ic-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .inline-cta.dark {
+    background: var(--vs-sage-deep);
+    border-color: var(--vs-sage-deep);
+  }
+  .inline-cta.dark .ic-text {
+    color: #fff;
+  }
+  .inline-cta.dark .ic-text :global(em) {
+    color: var(--vs-eyebrow-on-sage);
+  }
+
   /* ---------- CTA ---------- */
   .cta-row {
     margin-top: 56px;
@@ -1363,6 +2038,36 @@ const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
     }
     .cta-row {
       margin-top: 36px;
+    }
+    /* sinus-lift.css:913-921 — the strip stacks and each cell's rule moves
+       from its left edge to its top. The border colour is inherited from the
+       base/inverted rules above, which is why those set `border-color` rather
+       than a single side. */
+    .why-creds {
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+    .why-creds .cred {
+      padding: 18px 0 0;
+      border-left: 0;
+      border-top: 1px solid var(--vs-line);
+    }
+    .section.alt .why-creds .cred,
+    .section.sage .why-creds .cred {
+      border-top-color: rgba(255, 255, 255, 0.25);
+    }
+    .why-creds .cred:first-child {
+      padding-top: 0;
+      border-top: 0;
+    }
+    /* all-on-4-single-arch.css:857 / bone-grafting.css:909 — identical. */
+    .candidacy-sub {
+      padding: 28px 24px;
+      margin-top: 50px;
+    }
+    /* ProcessStepsBlock's own 780px value for the same plate. */
+    .inline-cta {
+      padding: 24px 22px;
     }
   }
 

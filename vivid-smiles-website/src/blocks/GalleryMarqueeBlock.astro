@@ -73,6 +73,8 @@
  * Spec: docs/PAGE-BLOCKS.md 1.2, 1.3 (Wave A), 2.5, 3.3.
  */
 import { Image } from "astro:assets";
+import Button from "../components/Button.astro";
+import { resolveCta } from "./cta";
 import { smiles } from "../lib/smiles";
 
 /**
@@ -108,9 +110,23 @@ interface Props {
   /** May contain `<em>` and nothing else (Fact 3), so it is rendered set:html. */
   heading?: string | null;
   body?: string | null;
+  /** The optional CTA row inside the section-head, after the body paragraph —
+   *  smile-makeover's #results ships "View the Smile Gallery / Patient
+   *  Stories" there (smile-makeover.astro:635-644). All seven blank = today's
+   *  markup byte-for-byte; the fields were selected in the manifest one batch
+   *  before this component drew them, which is the unreachable-markup failure
+   *  this comment exists to stop repeating. */
+  ctaLabel?: string | null;
+  ctaHref?: string | null;
+  ctaHover?: string | null;
+  ctaLabel2?: string | null;
+  ctaHref2?: string | null;
+  ctaHover2?: string | null;
+  ctaNote?: string | null;
 }
 
-const { id, band, eyebrow, heading, body } = Astro.props;
+const { id, band, eyebrow, heading, body, ctaLabel, ctaHref, ctaHover,
+  ctaLabel2, ctaHref2, ctaHover2, ctaNote } = Astro.props;
 
 // `?? null` rather than a default: an unknown band from a future PHP choice
 // falls through to the paper shell rather than emitting a class with no rule.
@@ -122,6 +138,24 @@ const text = (input: unknown): string =>
 const eyebrowText = text(eyebrow);
 const headingHtml = text(heading);
 const bodyText = text(body);
+
+/* The token map, hover table and resolvers live in ./cta.ts — ONE copy for
+   every block that draws a CTA row, extracted the day the fifth copy appeared.
+   The tables only work because the blocks agree, and five copies is five
+   places for the next hover-label edit to miss. */
+const cta1 = resolveCta(ctaHref, ctaHover);
+const cta2 = resolveCta(ctaHref2, ctaHover2);
+const hasCta = typeof ctaLabel === "string" && ctaLabel.trim() !== "";
+const hasCta2 = typeof ctaLabel2 === "string" && ctaLabel2.trim() !== "";
+const hasCtaRow = hasCta || hasCta2;
+const ctaNoteText = typeof ctaNote === "string" ? ctaNote.trim() : "";
+/* Button variants follow the band this block draws for itself, same pairing
+   as CardGridBlock: light + ghost-light on the dark bands, sage + ghost on
+   the light ones. smile-makeover's #results is charcoal and ships
+   light + ghost-light (smile-makeover.astro:637-643). */
+const isDarkBand = band === "charcoal" || band === "sage";
+const primaryVariant = isDarkBand ? "light" : "sage";
+const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
 
 /**
  * The doubled track, exactly as the templates build it.
@@ -153,7 +187,30 @@ if (galleryTiles.length === 0) {
     <div class="section-head" data-vs-reveal>
       {eyebrowText && <span class="eyebrow light">{eyebrowText}</span>}
       {headingHtml && <h2><Fragment set:html={headingHtml} /></h2>}
-      {bodyText && <p>{bodyText}</p>}
+      {bodyText && <p>{bodyText}</p>}{
+        /* smile-makeover.astro:635-644 — the row lives INSIDE .section-head,
+           after the body paragraph, not at the band's foot. Flushed `}{` so an
+           empty row adds no text node to the eleven bands saved before these
+           fields existed. */
+        hasCtaRow && (
+          <div class="cta-row">
+            <div class="cta-buttons">
+              {hasCta && (
+                <Button variant={primaryVariant} href={cta1.href} hoverLabel={cta1.hover}>
+                  {ctaLabel}
+                </Button>
+              )}{
+                hasCta2 && (
+                <Button variant={secondaryVariant} href={cta2.href} hoverLabel={cta2.hover}>
+                  {ctaLabel2}
+                </Button>
+              )}
+            </div>{
+              ctaNoteText !== "" && <span class="cta-note">{ctaNoteText}</span>
+            }
+          </div>
+        )
+      }
     </div>
   </div>
 
@@ -339,9 +396,48 @@ if (galleryTiles.length === 0) {
      Re-united with the rules they modify rather than left in a trailing
      "responsive" section 200 lines away (3.2, step 3). Breakpoints normalised
      to the block set — 780 / 479 (FinalBand.astro:117, global.css). */
+  /* ── CTA row ────────────────────────────────────────────────────────────
+     Copied from .smilemakeover .cta-row (smile-makeover.css:524-540), the
+     page whose #results this reproduces, normalised to the block token set
+     the way CardGridBlock's copy of the same shape was. In the BLOCK's own
+     scoped style because a page sheet cannot restyle a compound a block
+     draws — the attribute-scoped selector outranks it. */
+  .cta-row {
+    margin-top: 56px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+  }
+  .cta-row .cta-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+    justify-content: center;
+  }
+  .cta-row .cta-note {
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--vs-muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section.dark .cta-row .cta-note {
+    color: var(--vs-ink-soft);
+  }
+  .section.alt .cta-row .cta-note,
+  .section.sage .cta-row .cta-note {
+    color: rgba(255, 255, 255, 0.75);
+  }
+
   @media (max-width: 780px) {
     .section { padding: 70px 0; }
     .wrap { padding: 0 22px; }
+    /* smile-makeover.css:766 collapses the row's top gap on small screens. */
+    .cta-row { margin-top: 36px; }
   }
 
   @media (max-width: 479px) {

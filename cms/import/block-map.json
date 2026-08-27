@@ -715,6 +715,10 @@
       },
       "cta_href_2": {
        "literal": "#process"
+      },
+      "cta_hover_2": {
+       "literal": "View Levels",
+       "from_template": "teeth-whitening.astro:378 hoverLabel=\"View Levels\". THE LAST WORD of this route's original 201-word loss. The hover table maps #process to \"View Steps\" — right on every sibling, wrong here — and one href cannot carry two labels, which is exactly why cta_hover_2 exists. MediaSplitBlock reads the override ahead of the table."
       }
      },
      "layout_evidence": ".what-img precedes .what-text in the DOM (teeth-whitening.astro:347, 355) and .twhitening .what-grid is 1fr 1fr (teeth-whitening.css:296-297) — photo left, even split. `even` is already the family default for a left photo (MediaSplitBlock.astro:168-170), so no ratio-* modifier class is emitted and the grid div matches the template's.",
@@ -2170,6 +2174,18 @@
       },
       "cta_href_2": {
        "literal": "#robotics"
+      },
+      "callout_eyebrow": {
+       "literal": "Upper vs. Lower",
+       "from_template": "all-on-4-single-arch.astro:420 — the <span class=\"eyebrow\"> of .what-sub-head. Drawn by MediaSplitBlock in the sub-head position because `sub_cards` is filled, so the pair of 28px hairlines finally has a label between them."
+      },
+      "sub_foot": {
+       "literal": "Most patients prioritize whichever arch is more compromised and evaluate adding the second after healing. A CBCT scan provides Dr. Richardson with the three-dimensional bone map that makes this determination accurate.",
+       "from_template": "all-on-4-single-arch.astro:440-446 — the one <p> of .what-sub-foot. MediaSplitBlock draws it inside `.what-sub` after the cards, only when non-empty."
+      },
+      "cta_hover_2": {
+       "literal": "See How",
+       "from_template": "all-on-4-single-arch.astro:410 — hoverLabel on the #robotics button. #robotics is not in the default hover table, so without this override the button falls back to its visible label and reads \"How It Works\" on hover."
       }
      },
      "layout_evidence": ".what-img precedes .what-text in the DOM (all-on-4-single-arch.astro:386, 394) and .aos4 .what-grid is 1fr 1fr with gap 80px (all-on-4-single-arch.css:336-338) — photo left, even split, and MediaSplitBlock's own `.what-grid` is the identical declaration. `even` is already the family default for a left photo (MediaSplitBlock.astro:281-283), so no ratio-* modifier is emitted and the grid div stays the bare `what-grid` the template ships.",
@@ -2194,39 +2210,20 @@
       }
      },
      "known_gaps": [
-      "1. THE `.what-sub` EYEBROW AND ITS CLOSING PARAGRAPH. Everything else on this sub-band is",
-      "   carried now: the two `.config-card`s (:424-434) by `sub_cards`, and the <h3> and the",
-      "   paragraph above them (:416, :417-422) by `callout_heading` / `callout_body`, which",
-      "   MediaSplitBlock draws as `.what-sub-head` precisely because the cards are there. What is",
-      "   left is about 45 words in two places:",
+      "NONE ANY MORE — BOTH RECORDED GAPS CLOSED BY THE cta/callout FIELD BATCH.",
       "",
-      "     <span class=\"eyebrow\">Upper vs. Lower</span>   (:415)",
-      "     <div class=\"what-sub-foot\"><p>Most patients prioritize whichever arch is more compromised and evaluate adding the second after healing. A CBCT scan provides Dr. Richardson with the three-dimensional bone map that makes this determination accurate.</p></div>   (:435-441)",
+      "1. CLOSED: THE `.what-sub` EYEBROW AND ITS CLOSING PARAGRAPH. The gap asked for a",
+      "   `sub_eyebrow` text and a `sub_foot` textarea; the batch shipped the first as",
+      "   `callout_eyebrow` (one field serving the sub-head, aside and below positions) and the",
+      "   second under its own name. `callout_eyebrow` = \"Upper vs. Lower\" (:420) and `sub_foot`",
+      "   = the closing paragraph (:440-446) are both mapped above, and MediaSplitBlock draws",
+      "   the eyebrow inside `.what-sub-head` — where `sub_cards` being filled already routes",
+      "   the callout pair — and the foot inside `.what-sub` after the cards.",
       "",
-      "   NEITHER HAS A FIELD ON ANY LAYOUT, and neither can borrow one. media_split's `eyebrow` is",
-      "   the BAND's eyebrow, already spent on the section head at :384; the callout pair is a",
-      "   heading and a body with nothing before them and nothing after them; and `sub_cards` rows",
-      "   are { tag, title, body } — a foot paragraph put in a card would draw a third card.",
-      "   MediaSplitBlock emits nothing at all for the eyebrow rather than an empty span, and says",
-      "   why at :690-696: `.what-sub-head .eyebrow` hangs a 28px hairline off BOTH `::before` and",
-      "   `::after`, so a label-less span renders as two floating rules with a hole between them.",
-      "",
-      "   WHAT CLOSES IT: a `sub_eyebrow` text and a `sub_foot` textarea beside `sub_cards`. The",
-      "   `sub_eyebrow` half also closes the identical eyebrow gap on `compare` below and on both",
-      "   `.candidacy-sub`s. That is a layout change, so it is not made here.",
-      "",
-      "2. THE SECONDARY BUTTON'S HOVER LABEL. The template passes hoverLabel=\"See How\" for",
-      "   #robotics (:405). MediaSplitBlock derives hover labels from the HREF (CTA_HOVER,",
-      "   MediaSplitBlock.astro:231-236) and that map holds #consult, #process, #faq and the",
-      "   phone number — not #robotics — so the button falls back to reusing its visible label",
-      "   and reads \"How It Works\" on hover instead of \"See How\". One word on one hover state.",
-      "   Closed by a `#robotics` entry in CTA_HOVER, which is the same one-line fix the",
-      "   teeth-whitening route already records for #process.",
-      "",
-      "   The primary button and both variants are exact: #consult -> \"Get a Video\" is what :402",
-      "   passes, and charcoal is a dark band so primaryVariant is `light` and secondaryVariant is",
-      "   `ghost-light` (MediaSplitBlock.astro:390-391, isDarkBand at :250), which is the pair",
-      "   :402-407 ships."
+      "2. CLOSED: THE SECONDARY BUTTON'S HOVER LABEL. `cta_hover_2` = \"See How\" (:410) is",
+      "   mapped above; MediaSplitBlock reads the override before consulting CTA_HOVER. The",
+      "   primary button still derives #consult -> \"Get a Video\" from the table, so no",
+      "   `cta_hover` is stored for it — blank means the table, per the href policy."
      ]
     },
     {
@@ -2263,6 +2260,10 @@
       },
       "callout_body": {
        "literal": "Four implants are sufficient because angled posterior placement increases bone-to-implant surface contact without requiring additional fixtures. The two front implants anchor upright; the two rear implants tilt at 30 to 45 degrees, engaging a longer section of denser bone without relying on posterior bone volume, which is the first to resorb after tooth loss. That spread of contact points distributes bite force across the arch, the way load-bearing columns distribute structural weight."
+      },
+      "callout_eyebrow": {
+       "literal": "Why four implants are enough",
+       "from_template": "all-on-4-single-arch.astro:481 — the <span class=\"label\"> of .robotics-callout. The `label` sub-field gap 4 asked for, shipped as `callout_eyebrow`; MediaSplitBlock draws it before the callout heading in every callout position."
       }
      },
      "layout_evidence": ".robotics-img precedes .robotics-text (all-on-4-single-arch.astro:463, 471) — photo left, so `media_side` is left and MediaSplitBlock selects the `.what-*` family. .aos4 .robotics-grid is 1.1fr 1fr (all-on-4-single-arch.css:406-407), which is NOT the left family's default 1fr 1fr, so `ratio` is `wide-media` and the block emits `.what-grid.ratio-wide-media` — grid-template-columns: 1.1fr 1fr (MediaSplitBlock.astro <style>, `.what-grid.ratio-wide-media`). The tracks are reproduced exactly; the class name is not, and that is in the gaps below.",
@@ -2305,23 +2306,15 @@
       "   change. `.aos4 .robotics-prose` is 16.5px/1.85 max-width 60ch (:411) against the",
       "   block's `.prose p` at 16.5px/1.85 max-width 70ch, so the measure widens by 10ch.",
       "",
-      "4. THE `.robotics-callout`. all-on-4-single-arch.astro:475-487 — a `.label`, an <h4> and",
-      "   a 70-word paragraph:",
-      "",
-      "     <span class=\"label\">Why four implants are enough</span>",
-      "     <h4>Engineering, not shortcuts</h4>",
-      "     <p>Four implants are sufficient because angled posterior placement increases bone-to-implant surface contact without requiring additional fixtures. The two front implants anchor upright; the two rear implants tilt at 30 to 45 degrees, engaging a longer section of denser bone without relying on posterior bone volume, which is the first to resorb after tooth loss. That spread of contact points distributes bite force across the arch, the way load-bearing columns distribute structural weight.</p>",
-      "",
-      "   `callout_heading` / `callout_body` come closest of anything on the layout and are still",
-      "   not it: they draw `<aside class=\"veneers-callout\">` with an <h3> and no `.label` slot,",
-      "   so the eyebrow line would be dropped and the remaining two elements would land in",
-      "   teeth-whitening's aside rather than this page's callout. Recorded rather than",
-      "   half-carried, on the same reasoning as the sub-bands.",
-      "",
-      "   WHAT CLOSES IT: a `label` sub-field beside the existing `callout_heading` /",
-      "   `callout_body` pair, and a `callout_class` select (or a per-band choice) so the aside",
-      "   can be drawn as `.robotics-callout` where that is the class the page has. One text",
-      "   field, one select, three lines in MediaSplitBlock."
+      "4. THE `.robotics-callout` — NOW ONLY THE WRAPPER CLASS. all-on-4-single-arch.astro:",
+      "   475-487 is a `.label`, an <h4> and a 70-word paragraph, and all three are carried:",
+      "   `callout_heading` / `callout_body` were mapped in the secondary-grid batch, and the",
+      "   cta/callout field batch added the `callout_eyebrow` this gap called a `label`",
+      "   sub-field — mapped above from :481, drawn by MediaSplitBlock before the callout",
+      "   heading. What remains is the wrapper class alone: the aside arrives as",
+      "   `.veneers-callout` where the page ships `.robotics-callout`. The geometry is the",
+      "   block's own scoped rule and no words are lost; a `callout_class` select would close",
+      "   it, and a class name is a styling problem, not a content one."
      ],
      "callout_evidence": "all-on-4-single-arch.astro:476-487. Carried by callout_heading / callout_body, which the layout declares, manifest.ts selects and the component draws. It was recorded as a gap because the wrapper class differs from .veneers-callout — but that trades live client copy for a class name, and the class is a styling problem, not a content one. The eyebrow line and the cards below stay recorded gaps."
     },
@@ -2400,6 +2393,10 @@
       },
       "alt_columns": {
        "literal": "3"
+      },
+      "callout_eyebrow": {
+       "literal": "Alternatives",
+       "from_template": "all-on-4-single-arch.astro:607 — the <span class=\"eyebrow\"> of .compare-sub-head. The `sub_eyebrow` gap 2(a) asked for, shipped as `callout_eyebrow`; ComparisonCardsBlock draws it above the callout heading."
       }
      },
      "columns_evidence": ".aos4 .compare is 1fr 1fr (all-on-4-single-arch.css:469-470) and the band carries 2 cards. The `tiers` grid has no columns sub-field — the count IS the row count — so there is nothing to set for it. TWO cards here, three on both worked examples. The SECONDARY grid is a separate question and does have one: see alt_columns_evidence.",
@@ -2481,56 +2478,27 @@
       "",
       "The eight compare bullets are NO LONGER a gap. comparison_cards has always declared",
       "`tiers.bullets`; commit 234062d added `bullets { lead item }` to the fragment and taught",
-      "ComparisonCardsBlock to draw `<b>{lead}</b> {item}` in a <ul class=\"compare-list\">. The rows",
-      "are now carried in rows.tiers above, so the words are on the page rather than quoted here.",
+      "ComparisonCardsBlock to draw `<b>{lead}</b> {item}` in a <ul class=\"compare-list\">. The",
+      "rows are carried in rows.tiers above, and the fragment selection is verified — manifest.ts",
+      "reads `tiers { tag title body bullets { lead item } body2 ribbon featured }`, so the",
+      "stale warning this list used to carry about an unqueried repeater is deleted, not merely",
+      "contradicted.",
+      "",
+      "The `.compare-sub` eyebrow closed in the cta/callout field batch: `callout_eyebrow` =",
+      "\"Alternatives\" (:607) is mapped above, the one-word field gap 2(a) asked for under the",
+      "name `sub_eyebrow`. The <h3> and paragraph were already `callout_heading` /",
+      "`callout_body`, and the three alternative cards are `alt_cards`, moved from the CMS",
+      "`alternatives` group.",
       "",
       "WHAT IS STILL MISSING ON THIS BAND",
       "",
-      "   THE FIELD EXISTS AND IS NOT QUERIED. `tiers.bullets` is registered in",
-      "   cms/mu-plugins/vs-content-model.php (field_vs_blk_compare_bullets, :2101-2103, built by",
-      "   the same block_list_field() factory behind media_split's checklist) and",
-      "   ComparisonCardsBlock already reads and renders it. What is missing is the sub-field in",
-      "   the comparison_cards fragment in src/blocks/manifest.ts, which today reads",
-      "   `tiers { tag title body ribbon featured }`. An unqueried repeater arrives undefined and",
-      "   the component's `bullets.length > 0` branch never fires, so rows written here would sit",
-      "   in the CMS drawing nothing — which is why they are recorded rather than written.",
-      "",
-      "   WHAT CLOSES IT, IN TWO PARTS, because one alone is not enough:",
-      "     (a) add `bullets { item }` inside `tiers` in manifest.ts. One word; the schema",
-      "         already has the type.",
-      "     (b) the component then draws a BARE `<ul>` of plain-text `<li>` — no `.compare-list`",
-      "         class, so `.aos4 .compare-card .compare-list` (:496-513, including the",
-      "         `li::before` marker and the `.featured` inversions at :520-522) does not match,",
-      "         and no `<b>` lead-in, so \"Scope —\" stops being bold. Closing (a) without (b)",
-      "         returns the words in unstyled markup. (b) is the `lead` sub-field the shared",
-      "         list factory already grew for media_split's checklist, plus the class on the",
-      "         <ul>.",
-      "",
-      "2. THE `.compare-sub` EYEBROW, AND THE WRAPPER THE REST OF IT ARRIVES IN. The sub-band",
-      "   at all-on-4-single-arch.astro:600-622 is no longer lost. The <h3> and the paragraph are",
-      "   `callout_heading` / `callout_body` above; the three `.config-card`s (:611-621) are",
-      "   `alt_cards` above, moved from the CMS `alternatives` group. Two things about the band",
-      "   are still not what the template ships:",
-      "",
-      "   (a) `<span class=\"eyebrow\">Alternatives</span>` (:602) has no field to go in.",
-      "       comparison_cards' `eyebrow` is the BAND's eyebrow and is already spent on the",
-      "       section head above, and the callout pair is a heading and a body with nothing",
-      "       before them. One word — and the same word is missing on `what`'s sub-band and on",
-      "       both `.candidacy-sub`s, so one `sub_eyebrow` text beside the cards repeater would",
-      "       close four bands on this page.",
-      "",
-      "   (b) THE WRAPPER, which is the price `callout_evidence` below says was paid. The pair",
-      "       draws an aside — `.safety-callout` on this layout, `.veneers-callout` on",
-      "       media_split — where this page has `.compare-sub-head`: centred, with a 28px rule",
-      "       either side of the eyebrow. `.aos4 .what-sub-head` and `.aos4 .compare-sub-head` are",
-      "       declared as ONE rule (all-on-4-single-arch.css:346-370), which is the evidence that",
-      "       this is one shape appearing twice and not two similar ones — and therefore that one",
-      "       component change closes it on both bands. Live client copy was judged worth more",
-      "       than the class name; the class name is still owed.",
-      "",
-      "   NOT A GAP ANY MORE, written down so nobody re-opens it: the three alternative cards.",
-      "   They are claimed by `alt_cards` above and gone from `exempt.cards` below, and the",
-      "   backfill carries them instead of warning that they are lost."
+      "1. THE WRAPPER, which is the price `callout_evidence` says was paid. The callout trio",
+      "   draws in the component's aside family where this page has `.compare-sub-head`:",
+      "   centred, with a 28px rule either side of the eyebrow. `.aos4 .what-sub-head` and",
+      "   `.aos4 .compare-sub-head` are declared as ONE rule (all-on-4-single-arch.css:346-370),",
+      "   which is the evidence that this is one shape appearing twice — and therefore that one",
+      "   component change closes it on both bands. Live client copy was judged worth more than",
+      "   the class name; the class name is still owed. No words are lost to it."
      ],
      "callout_evidence": "all-on-4-single-arch.astro:602-609. Carried by callout_heading / callout_body, which the layout declares, manifest.ts selects and the component draws. It was recorded as a gap because the wrapper class differs from .veneers-callout — but that trades live client copy for a class name, and the class is a styling problem, not a content one. The eyebrow line and the cards below stay recorded gaps."
     },
@@ -2569,6 +2537,14 @@
       },
       "callout_body": {
        "section": "body"
+      },
+      "callout_eyebrow": {
+       "literal": "If you don't qualify yet",
+       "from_template": "all-on-4-single-arch.astro:708 — the <span class=\"label\"> of .candidacy-sub."
+      },
+      "callout_placement": {
+       "literal": "below",
+       "from_template": "all-on-4-single-arch.astro:707-712 — the `.candidacy-sub` strip sits UNDER the grid, full width, not beside it. NULL means aside on media_split (the eleven saved rows), so this band must say below; MediaSplitBlock's below mode draws label + h3 + paragraph full-width after the grid."
       }
      },
      "layout_evidence": ".natural-text precedes .natural-img (all-on-4-single-arch.astro:656, 692) and .aos4 .natural-grid is 1fr 1.1fr (all-on-4-single-arch.css:535-536) — photo right, media column the wider one. `wide-media` is already the family default for a right photo (MediaSplitBlock.astro:281), so no ratio-* modifier is emitted and the div stays the bare `natural-grid` the template ships. candidacyImg is 1000x1250 — portrait, which is what the 4/5 `.natural-img` plate wants. Source, frame and side all agree on this band, unlike `robotics`.",
@@ -2622,33 +2598,16 @@
       "   derived rather than stored. This is the band `checklist` was added for and it lands",
       "   exactly.",
       "",
-      "2. THE `.candidacy-sub`. all-on-4-single-arch.astro:702-706:",
-      "",
-      "     <span class=\"label\">If you don't qualify yet</span>",
-      "     <h3>What If You Don't Have Sufficient Bone?</h3>",
-      "     <p>{sections.candidacy.body}</p>",
-      "",
-      "   and that body is 60 words of live client copy — \"Severe bone loss changes the treatment",
-      "   path. Options include bone grafting…, All-on-6…, or zygomatic implants for the upper",
-      "   jaw, which anchor in the cheekbone. Dr. Richardson evaluates each case using CBCT",
-      "   imaging and outlines every option before treatment begins.\" It is the band's answer to",
-      "   the question the heading asks, so losing it leaves a candidacy section that says who",
-      "   qualifies and never says what happens if you do not.",
-      "",
-      "   `callout_heading` / `callout_body` could carry the <h3> and the paragraph into an",
-      "   `<aside class=\"veneers-callout\">` and would still drop the `.label`. Rejected on the",
-      "   same grounds as the other three sub-bands: `.aos4 .candidacy-sub` (:575-600) is a",
-      "   left-bordered cream panel and `.veneers-callout` is not, so the copy would arrive in",
-      "   visibly different furniture and the difference would be attributed to the migration",
-      "   rather than to a missing field.",
-      "",
-      "   WHAT CLOSES IT, AND IT IS NOT `sub_cards`. That field holds CARDS and this sub-band",
-      "   has none — a `.label`, an <h3> and a paragraph — which is why the secondary-grid batch",
-      "   that closed `what` and `compare` left this gap exactly where it was. What closes it is",
-      "   a `label` sub-field beside `callout_heading` / `callout_body` plus a `callout_class`",
-      "   choice, so the aside can be drawn as `.candidacy-sub` and not `.veneers-callout`. That",
-      "   pair also closes gap 4 on `robotics` and gap 2 on `living`, three bands for one field",
-      "   pair."
+      "2. CLOSED: THE `.candidacy-sub`. all-on-4-single-arch.astro:707-712 — the `.label`, the",
+      "   <h3> and the 60-word `sections.candidacy.body` paragraph are all carried now. The",
+      "   heading and body were already mapped (`callout_heading` literal, `callout_body` <-",
+      "   the sections row this block deliberately kept off `body`); the cta/callout field",
+      "   batch added the two pieces this gap was waiting on: `callout_eyebrow` = the label",
+      "   (:708) and `callout_placement` = \"below\", which makes MediaSplitBlock draw the trio",
+      "   as a full-width strip after the grid instead of a `.veneers-callout` aside. The",
+      "   strip's geometry is the block's own scoped rule rather than the page sheet's",
+      "   `.candidacy-sub` — content whole, wrapper the family's, the same trade every callout",
+      "   on the route makes."
      ],
      "callout_evidence": "The .candidacy-sub <h3> and its paragraph (all-on-4-single-arch.astro:703). Carried by the callout_heading / callout_body pair, which media_split already declares, manifest.ts already selects and MediaSplitBlock already draws — the same pair single-tooth-dental-implants and full-mouth-dental-implants use for this identical shape. It was first left empty because .veneers-callout is not .candidacy-sub, but that trades a live client paragraph for a class name. The panel geometry and the .label line stay recorded gaps."
     },
@@ -2672,6 +2631,22 @@
       },
       "numbered": {
        "literal": true
+      },
+      "callout_eyebrow": {
+       "literal": "Maintenance & Longevity",
+       "from_template": "all-on-4-single-arch.astro:753 — the <span class=\"label\"> of the strip after the grid. The ampersand is a literal `&` in the source, stored as `&` and escaped on output — the trap the pilot route records for \"Brush & floss as before\"."
+      },
+      "callout_heading": {
+       "literal": "How Long All-on-4 Lasts",
+       "from_template": "all-on-4-single-arch.astro:754 — the <h3> of the strip."
+      },
+      "callout_body": {
+       "literal": "With consistent care, titanium implants can last 20 or more years because the fixture bonds with living bone and essentially becomes part of the jaw. The prosthesis is a separate consideration: acrylic bridges may need replacement after 10 to 15 years due to wear; zirconia bridges hold up longer under heavy bite forces. Annual checkpoints at Vivid Smiles include imaging to assess bone levels, bite evaluation, and prosthesis inspection, so small issues are detected before they become significant.",
+       "from_template": "all-on-4-single-arch.astro:755-761 — the <p> of the strip, transcribed verbatim."
+      },
+      "callout_placement": {
+       "literal": "below",
+       "from_template": "all-on-4-single-arch.astro:752-762 — the strip sits below the grid. NULL already means below on card_grid, but a row that SAYS below is one a reviewer can diff against the template, and it does not move if the default is ever changed — the same reasoning the `what` block gives for stating sub_columns."
       }
      },
      "eyebrow_is_moved_not_transcribed": "The template hardcodes <span class=\"eyebrow\">Daily Life</span> at :729, and the CMS `living` row holds eyebrow \"Daily Life\" — verified live, the same string. Mapped from the row rather than transcribed as a literal: rule 1 beats rule 2 when both are available, and a literal here would go stale the first time an editor changed the row.",
@@ -2681,7 +2656,8 @@
        "cards": "livingCards",
        "fields": {
         "title": "title",
-        "body": "body"
+        "body": "body",
+        "stat": "meta"
        },
        "note": "All 4 rows of the `livingCards` group, in order — verified live: \"Eating\", \"Food debris\", \"Cleaning\", \"Professional visits\". MOVED, not transcribed.",
        "meta_is_not_mapped_and_why": [
@@ -2700,6 +2676,30 @@
         "One slot, one rule, and no card that shows both a number and a label — that is the",
         "component's stated design, not an accident, which is why this is recorded as a layout",
         "gap rather than worked around here."
+       ],
+       "literal": [
+        {
+         "stat": ""
+        },
+        {
+         "stat": ""
+        },
+        {
+         "stat": ""
+        },
+        {}
+       ],
+       "stat_note": [
+        "`stat` <- `meta`, WITH A ZIP THAT BLANKS IT ON THE FIRST THREE ROWS. The four live",
+        "`meta` values are \"01\", \"02\", \"03\" and \"Every 3–6 months\" — verified live again for",
+        "this batch. Only the fourth is a stat; the first three are the numerals `numbered: true`",
+        "already derives from row position, and CardGridBlock draws `.stat-line` for ANY",
+        "non-empty stat, so mapping meta alone would print \"01\" in a stat line under card one.",
+        "The literal rows zipped on (row_kinds: merged positionally over the mapped fields)",
+        "override stat with the empty string on rows one to three and leave row four alone, so",
+        "the one real value is MOVED from the CMS rather than transcribed, and the numerals stay",
+        "derived. `numbered` stays true, so a reorder in wp-admin still cannot scramble the",
+        "figures."
        ]
       }
      },
@@ -2708,45 +2708,28 @@
       "   `.why-card` on every page (CardGridBlock.astro's header says the class names are the",
       "   family's on purpose), and this band ships `.benefits-grid` > `.benefits-card`",
       "   (all-on-4-single-arch.astro:734, 737). Both are four across; the page sheet's",
-      "   `.benefits-*` rules (all-on-4-single-arch.css:650-686) differ from its `.why-*` rules",
-      "   (:276-304) in gutter (22px vs 18px), card padding (34/30/32 vs 30/26/32), min-height",
-      "   (280 vs 260), inner gap (14 vs 12), h3 size (20 vs 19) and p size (14.5 vs 14). The",
-      "   band is legible and correctly proportioned either way; it is a few pixels different.",
+      "   `.benefits-*` rules differ from its `.why-*` rules in gutter (22px vs 18px), card",
+      "   padding, min-height, inner gap, h3 size and p size. The band is legible and correctly",
+      "   proportioned either way; it is a few pixels different.",
       "",
-      "   NOT WORTH A FIELD, and recorded so nobody adds one. `.benefits-*` is `.why-*` with a",
-      "   slightly roomier card, and the whole point of a shared card_grid is that one grid",
-      "   serves sixteen pages. What closes it, if anyone decides it should be closed, is",
-      "   deleting the `.benefits-*` block from this sheet in the stylesheet pass — not a",
-      "   `card_class` select, which would put the family back to two names for one shape.",
+      "   NOT WORTH A FIELD, and recorded so nobody adds one. What closes it, if anyone decides",
+      "   it should be closed, is deleting the `.benefits-*` block from this sheet in the",
+      "   stylesheet pass — not a `card_class` select, which would put the family back to two",
+      "   names for one shape.",
       "",
-      "2. THE `.stat-line` ON CARD FOUR. all-on-4-single-arch.astro:741 —",
-      "   `<div class=\"stat-line\">Every 3–6 months</div>`, a sage line under a top border",
-      "   (all-on-4-single-arch.css:679-685) summarising the card's own paragraph. The value is",
-      "   in the CMS as that row's `meta`; there is nowhere for it to go while `numbered` owns",
-      "   the one figure slot. See meta_is_not_mapped_and_why above.",
+      "2. CLOSED: THE `.stat-line` ON CARD FOUR. The `stat` sub-field this gap asked for now",
+      "   exists on the `cards` repeater, and rows.cards above maps it from `meta` — the slot",
+      "   the value was parked in — with a zip that keeps the derived numerals out of it (see",
+      "   stat_note). CardGridBlock draws `<div class=\"stat-line\">` after the body only when",
+      "   stat is non-empty, so cards one to three are unchanged and card four regains",
+      "   \"Every 3–6 months\". `numbered` stays true.",
       "",
-      "   WHAT CLOSES IT: a `stat` sub-field on the `cards` repeater — a second, separate slot",
-      "   drawn after `body`/`body_2` as `<div class=\"stat-line\">` and emitted only when",
-      "   non-empty, exactly the way `body_2` was added. It is a separate field precisely",
-      "   because it is a separate position in the card: folding it into the figure slot is the",
-      "   collision that produced this gap.",
-      "",
-      "3. THE `.candidacy-sub` MAINTENANCE CALLOUT. all-on-4-single-arch.astro:747-758:",
-      "",
-      "     <span class=\"label\">Maintenance & Longevity</span>",
-      "     <h3>How Long All-on-4 Lasts</h3>",
-      "     <p>With consistent care, titanium implants can last 20 or more years because the fixture bonds with living bone and essentially becomes part of the jaw. The prosthesis is a separate consideration: acrylic bridges may need replacement after 10 to 15 years due to wear; zirconia bridges hold up longer under heavy bite forces. Annual checkpoints at Vivid Smiles include imaging to assess bone levels, bite evaluation, and prosthesis inspection, so small issues are detected before they become significant.</p>",
-      "",
-      "   Roughly 80 words, and card_grid has no aside fields at all — not even the",
-      "   `callout_heading` / `callout_body` pair media_split and comparison_cards carry, so",
-      "   there is not even a wrong-element option to reject here.",
-      "",
-      "   WHAT CLOSES IT: the `callout_heading` / `callout_body` pair added to card_grid, with",
-      "   the `label` sub-field and the `callout_class` choice gap 1 on `candidacy` asks for. NOT",
-      "   `sub_cards`: that field belongs to media_split, it holds cards, and this sub-band has",
-      "   none. Note the ampersand in the label — it is a literal `&` in the source and would be",
-      "   stored as `&` and escaped on output, the same trap the pilot route records for",
-      "   \"Brush & floss as before\"."
+      "3. CLOSED: THE MAINTENANCE CALLOUT. card_grid gained the `callout_eyebrow` /",
+      "   `callout_heading` / `callout_body` / `callout_placement` set this gap said did not",
+      "   exist, and all four are mapped above from all-on-4-single-arch.astro:753-761 —",
+      "   label, h3 and the ~80-word paragraph, placement \"below\" so CardGridBlock draws the",
+      "   strip after the grid. The wrapper is the block's own scoped strip rather than the",
+      "   page sheet's `.candidacy-sub`, the same wrapper trade as every callout on the route."
      ]
     },
     {
@@ -2767,6 +2750,33 @@
       "note": {
        "literal": "Every case has a unique anatomy that shifts the final number — a free consultation with CBCT imaging is the only way to get an accurate quote. Vivid Smiles offers in-house financing to spread treatment cost into monthly payments; Cherry, CareCredit, and Proceed Finance partners are reviewed during your consultation.",
        "from_template": "all-on-4-single-arch.astro:801 — the `financingNote` prop. A field on the layout rather than a sub-field of the last plan, which is where the markup effectively kept it. PricingTiers guards its .vs-pricing-tiers__financing paragraph on the value being present, so a blank would draw nothing rather than a stray top border."
+      },
+      "cta_label": {
+       "literal": "Free Virtual Consult",
+       "from_template": "all-on-4-single-arch.astro:811-813 — the first button of the closing .cta-row."
+      },
+      "cta_href": {
+       "literal": "#consult"
+      },
+      "cta_hover": {
+       "literal": "Get a Video",
+       "from_template": "all-on-4-single-arch.astro:811 hoverLabel. Matches the default hover table for #consult; stored verbatim per the batch assignment."
+      },
+      "cta_label_2": {
+       "literal": "Get Directions",
+       "from_template": "all-on-4-single-arch.astro:814-816 — the second button."
+      },
+      "cta_href_2": {
+       "literal": "map",
+       "from_template": "all-on-4-single-arch.astro:814 href={directionsHref} — SITE data from src/data/contact.ts, so the href is stored as the `map` token the policy defines, never a pasted maps URL. PricingTiersBlock resolves it."
+      },
+      "cta_hover_2": {
+       "literal": "Open Map",
+       "from_template": "all-on-4-single-arch.astro:814 hoverLabel. Matches the default hover table for `map`; stored verbatim per the batch assignment."
+      },
+      "cta_note": {
+       "literal": "17167 Cedar Gulch Pkwy Ste 102 · Parker, CO",
+       "from_template": "all-on-4-single-arch.astro:818 — the <span class=\"cta-note\"> under the buttons."
       }
      },
      "rows": {
@@ -2823,33 +2833,18 @@
      },
      "markup_evidence": "PricingTiersBlock emits <section class=\"section alt\" id=… data-vs-reveal-batch> around a .wrap, a .section-head of eyebrow/h2/p, and the imported <PricingTiers> — line for line what all-on-4-single-arch.astro:774-802 ships, including the data-vs-reveal-batch on the section. The table itself is the SAME component, imported rather than redrawn, so it cannot drift from the template's.",
      "known_gaps": [
-      "THE CLOSING `.cta-row`. all-on-4-single-arch.astro:804-814:",
+      "NONE ANY MORE. THE CLOSING `.cta-row` — the band's only recorded loss — CLOSED in the",
+      "cta/callout field batch: pricing_tiers gained the cta seven and the pairs are mapped",
+      "above from all-on-4-single-arch.astro:811-821. PricingTiersBlock draws the row after the",
+      "financing note (never when nested), with the variant pair chosen from the band the way",
+      "MediaSplitBlock chooses it — charcoal is dark, so `light` + `ghost-light`, which is what",
+      ":811 and :814 pass. `cta_href_2` stores the `map` token, exactly the site-data shape the",
+      "old gap text asked for, so no per-page copy of the practice's maps URL exists to go",
+      "stale — only the visible note line, transcribed from :818.",
       "",
-      "  <Button variant=\"light\" href=\"#consult\" hoverLabel=\"Get a Video\">Free Virtual Consult</Button>",
-      "  <Button variant=\"ghost-light\" href={directionsHref} hoverLabel=\"Open Map\">Get Directions</Button>",
-      "  <span class=\"cta-note\">17167 Cedar Gulch Pkwy Ste 102 · Parker, CO</span>",
-      "",
-      "PricingTiersBlock emits section > wrap > section-head > PricingTiers and stops — no CTA",
-      "row, no note. So the band loses both buttons and the address line under them. This is the",
-      "band's only loss and it is the difference between this page's cost band and",
-      "porcelain-veneers', which has no row after its table and therefore recorded no gap.",
-      "",
-      "WHAT CLOSES IT: `cta_label` / `cta_href` / `cta_label_2` / `cta_href_2` / `cta_note` on",
-      "the pricing_tiers layout, drawn by PricingTiersBlock as the same `.cta-row` >",
-      "`.cta-buttons` + `.cta-note` the other blocks emit, with the variant pair chosen from the",
-      "band the way MediaSplitBlock chooses it (charcoal is dark, so `light` + `ghost-light`,",
-      "which is what :806 and :809 pass). The second href is `directionsHref` from",
-      "src/data/contact.ts — SITE data, like the phone number FaqBlock and ProcessStepsBlock",
-      "refuse to make editable — so `cta_href_2` should accept the token rather than a typed",
-      "URL, or the second button should be drawn as a literal the way the phone button is. A",
-      "per-page field for the practice's own address is a per-page chance to publish the wrong",
-      "one.",
-      "",
-      "Everything else on the band is carried: the section-head is the CMS `cost` row (eyebrow",
-      "\"Cost & Financing\", heading and body all non-null — verified live), and the plan's name,",
-      "from-price, qualifier, per-arch suffix, tagline, ribbon, centrepiece flag and five feature",
-      "lines are the `plans` row above. The rail entry survives too — the live toc_links carry",
-      "anchor `cost` labelled \"Cost & Financing\", claimed by this block's section_id."
+      "Everything else on the band was already carried: the section-head is the CMS `cost` row,",
+      "and the plan's name, from-price, qualifier, per-arch suffix, tagline, ribbon, centrepiece",
+      "flag and five feature lines are the `plans` row above. The rail entry survives too."
      ]
     },
     {
@@ -3021,20 +3016,20 @@
     "read off the RULE, and `band_evidence` names it; a reviewer who trusts the comments",
     "repaints four of these eight bands.",
     "",
-    "THIS PAGE HAS `cards` ROWS, IN THREE GROUPS, AND TWO OF THE THREE ARE MOVED. Verified",
+    "THIS PAGE HAS `cards` ROWS, IN THREE GROUPS, AND ALL THREE ARE MOVED. Verified",
     "live: whyCards (4 rows, meta 01-04), procedures (3 rows, meta \"Procedure\"), materials",
     "(3 rows, meta Allograft/Xenograft/Synthetic). whyCards fills the `why` card grid and",
     "procedures fills the `types` comparison cards. The three `materials` rows have no",
-    "layout that draws them and are listed in `exempt.cards` — they are the only rows on",
-    "this page that a backfill leaves behind, and they are real CMS content, not template",
-    "copy.",
+    "layout until comparison_cards minted `glossary`; they now fill it (see the `types`",
+    "block), so no row on this page is left behind any more — exempt.cards is empty and",
+    "the leftover check passes because everything is claimed.",
     "",
-    "THIS ROUTE LOSES MORE THAN EITHER WORKED EXAMPLE, AND THE LOSSES ARE THE THREE",
-    "ADAPTATIONS THE FILE HEADER LISTS (bone-grafting.astro:6-15). `.what-causes`, the whole",
-    "`.implants-intro` + `.implants-band` restructure, the `.materials-block` <dl>, and",
-    "`.candidacy-sub` have no field on any of the nine registered layouts. Each is named in",
-    "`known_gaps` on the block it belongs to, with the copy quoted verbatim so it is",
-    "recoverable from this file alone, and with what would close it.",
+    "THIS ROUTE'S THREE ADAPTATION LOSSES (bone-grafting.astro:6-15) ARE NOW CLOSED AS COPY:",
+    "`.what-causes` rides the #what callout trio, `.implants-band-text` rides the #implants",
+    "callout trio (both internal links intact — callout_body is HTML), the `.materials-block`",
+    "rides the `types` glossary head + repeater, and `.candidacy-sub` rides the candidacy",
+    "callout with `callout_placement: \"below\"`. What is NOT closed is shape: the #implants",
+    "intro-over-card geometry and the #types card rename stay on their blocks' known_gaps.",
     "",
     "WHAT THIS FILE DELIBERATELY DOES NOT DO: relocate template copy into a field that draws",
     "different markup. `.what-causes` and `.candidacy-sub` are both an <h3> over a <p> and",
@@ -3173,6 +3168,14 @@
       },
       "callout_body": {
        "literal": "Jawbone loss most often results from tooth extraction without replacement, periodontal disease, or a missing tooth left untreated for years. How quickly bone resorbs varies by patient. CBCT imaging reveals your current bone volume and determines whether grafting is necessary before implant planning begins."
+      },
+      "callout_eyebrow": {
+       "literal": "Causes",
+       "from_template": "bone-grafting.astro:376 <span class=\"eyebrow\">Causes</span> — the eyebrow of the .what-causes sub-block. callout_heading / callout_body were already mapped by the census batch; this completes the trio. callout_placement is deliberately UNSET: NULL means aside/in-column on media_split, which is where this callout sits (the .what-causes block is inside .what-text, bone-grafting.astro:374-385)."
+      },
+      "cta_hover_2": {
+       "literal": "See How",
+       "from_template": "bone-grafting.astro:391 hoverLabel=\"See How\" on the ghost-light #process button. Without this the component's CTA_HOVER table yields \"View Steps\" for #process; MediaSplitBlock now reads ctaHover2 over the table when non-empty."
       }
      },
      "layout_evidence": ".what-img precedes .what-text in the DOM (bone-grafting.astro:350, 358) and .bgraft .what-grid is 1fr 1fr with gap 80px (bone-grafting.css:336-339) — photo left, even split. `even` is already the family default for a left photo (MediaSplitBlock.astro:284-286), so no ratio-* modifier is emitted and the grid div matches the template's.",
@@ -3181,46 +3184,26 @@
      "sub_cards_note": "NO `sub_cards` ROWS, AND NONE TO TRANSCRIBE. The secondary-grid batch listed this band as carrying a `.cause-grid` beside `.what-grid`. It does not: grep for `cause-grid` and `cause-card` in bone-grafting.astro returns zero. What sits between .prose and .cta-row inside .what-text is `.what-causes` (bone-grafting.astro:369-379) — a hairline div, an eyebrow, one <h3> and ONE paragraph, and no card of any kind. sinus-lift's #what is the band with the four-card `.cause-grid`; this page's causes copy was rewritten as inline prose when the band was restructured, which the template states at :366-368 (\"instead of floating as a centered .what-sub block\"). So `sub_columns` and `sub_cards` are both unset here and stay unset. THE FAILURE MODE THAT MATTERS IS THE COMPONENT'S, NOT THIS FILE'S: MediaSplitBlock must put the `.what-sub` wrapper INSIDE the subCards length test, never around it, or this band — and the ten other saved rows of this layout — gain an empty div and a visible gap where there has never been one. The `.what-causes` loss is untouched by this batch and stays on known_gaps below.",
      "variant_note": "Charcoal is a dark band, so MediaSplitBlock's primaryVariant is `light` and secondaryVariant is `ghost-light` (MediaSplitBlock.astro:395-396, isDarkBand at :272), which is the pair bone-grafting.astro:383-388 ships.",
      "known_gaps": [
-      "TWO. ONE IS A HOVER LABEL; THE OTHER IS A WHOLE SUB-BLOCK.",
+      "NONE REMAINING AS COPY. Both gaps this block recorded are closed by this batch:",
       "",
-      "THE HOVER LABEL, and it is a component fact rather than a missing field.",
-      "MediaSplitBlock reads each button's hover label from CTA_HOVER, a table keyed by HREF",
-      "(MediaSplitBlock.astro:233-238), and \"#process\" maps to \"View Steps\" — which is not",
-      "what this template passes: bone-grafting.astro:386 passes hoverLabel=\"See How\". So the",
-      "second button returns with data-hover=\"View Steps\" and \"View Steps\" in its .l2 span.",
-      "Visible only on hover, and there is no value this map could supply: one href cannot",
-      "carry two labels, so closing it means a hover-label sub-field on the layout or a",
-      "per-band override in the component. The teeth-whitening route carries the identical",
-      "residue for the identical reason (\"View Levels\").",
+      "THE HOVER LABEL — closed by `cta_hover_2` = \"See How\" (bone-grafting.astro:391).",
+      "media_split now declares cta_hover / cta_hover_2 and MediaSplitBlock reads them over",
+      "its CTA_HOVER table, so the second button returns with the label the template passes.",
       "",
-      "THE `.what-causes` SUB-BLOCK IS LOST WHOLE — bone-grafting.astro:369-374, sitting",
-      "between .prose and .cta-row inside .what-text. It is four elements:",
+      "THE `.what-causes` COPY — closed by the callout trio: callout_eyebrow \"Causes\" (this",
+      "batch), callout_heading \"Why Jawbone Loss Happens\" and callout_body (the census",
+      "batch). MediaSplitBlock now draws calloutEyebrow in every callout position, so all",
+      "55 words plus the eyebrow are editable in WordPress.",
       "",
-      "  <div class=\"what-causes-rule\" aria-hidden=\"true\"></div>   (a 56px sage hairline, bone-grafting.css:923-929)",
-      "  <span class=\"eyebrow\">Causes</span>",
-      "  <h3>Why Jawbone Loss Happens</h3>",
-      "  <p>Jawbone loss most often results from tooth extraction without replacement, periodontal disease, or a missing tooth left untreated for years. How quickly bone resorbs varies by patient. CBCT imaging reveals your current bone volume and determines whether grafting is necessary before implant planning begins.</p>",
-      "",
-      "None of it is in the CMS, so a backfilled page shows no causes content at all and the",
-      "page's own header note (bone-grafting.astro:12-14) describes a layout the page no",
-      "longer has.",
-      "",
-      "NOT FILLED INTO `callout_heading` / `callout_body`, deliberately. That pair draws",
-      "<aside class=\"veneers-callout\"> (MediaSplitBlock.astro:445-455) — a different element,",
-      "a different class, no eyebrow and no rule div — and this sheet styles",
-      "`.bgraft .what-causes h3` and `.bgraft .what-text .what-causes + .cta-row`",
-      "(bone-grafting.css:933-950), neither of which would match. It would put the words back",
-      "in roughly the right place wearing the wrong markup, which the governing rule at the",
-      "top of block-map.json rules out.",
-      "",
-      "WHAT WOULD CLOSE IT is either (a) a `causes_*` field group on media_split plus the",
-      "`.what-causes` markup in MediaSplitBlock — a bespoke shape for one band, which is the",
-      "trade manifest.ts warns against — or (b) restyling `.what-causes` as a",
-      "`.veneers-callout` in this page's own markup FIRST, so the existing callout pair fits",
-      "with no new field. (b) is the same move teeth-whitening's price-table gap asks for and",
-      "is the cheaper of the two."
+      "STILL A DIFFERENCE AND NOT A WORD LOST: the markup. The component draws the trio as",
+      "its callout element, not as <div class=\"what-causes\"> with the 56px",
+      ".what-causes-rule hairline (bone-grafting.css:923-929), so this page's",
+      ".bgraft .what-causes rules stop matching and the hairline div is not reproduced.",
+      "Styling for the callout lives in MediaSplitBlock's own scoped <style> (page sheets",
+      "cannot restyle a block); if the hairline matters it is a component decision, not a",
+      "field."
      ],
-     "callout_evidence": "The .what-causes block (bone-grafting.astro:369-379): an <h3> and one paragraph. The batch that added sub_cards concluded this band was 'already fully carried by callout_heading / callout_body' — correct about the fields, wrong about this map, which never mapped them. The measurement caught it: 55 words that no other field claims. The .what-causes-rule divider and the 'Causes' eyebrow stay recorded gaps."
+     "callout_evidence": "The .what-causes block (bone-grafting.astro:369-379): eyebrow, <h3> and one paragraph. callout_heading / callout_body were mapped by the census batch after the measurement caught 55 unclaimed words; callout_eyebrow \"Causes\" is mapped by this batch, so the whole sub-block's copy is now field-carried. Only the .what-causes-rule divider — decoration, zero words — remains a markup difference, recorded in known_gaps."
     },
     {
      "section_id": "implants",
@@ -3250,6 +3233,18 @@
       },
       "ratio": {
        "literal": "even"
+      },
+      "callout_eyebrow": {
+       "literal": "Why grafting comes first",
+       "from_template": "bone-grafting.astro:441 <span class=\"eyebrow\"> inside .implants-band-text."
+      },
+      "callout_heading": {
+       "literal": "Foundation, then placement.",
+       "from_template": "bone-grafting.astro:442 <h3> inside .implants-band-text."
+      },
+      "callout_body": {
+       "literal": "Bone grafting is needed when bone loss is significant enough to prevent stable <a class=\"vs-link\" href=\"/implant-dentistry/single-tooth-dental-implants/\">implant placement</a>. Common candidates include patients with unpreserved extraction sites, multiple missing teeth, or denture wearers considering <a class=\"vs-link\" href=\"/implant-dentistry/full-mouth-dental-implants/\">implant-supported options</a>. Not all implant cases require grafting, and a CBCT evaluation at Vivid Smiles confirms whether it applies to you.",
+       "from_template": "bone-grafting.astro:443-452 — the .implants-band-text paragraph, transcribed with BOTH inline <a class=\"vs-link\"> anchors verbatim because callout_body renders as HTML. These are this page's only two internal links; they are load-bearing. callout_placement is deliberately UNSET (NULL = aside on media_split, the default position eleven saved rows depend on)."
       }
      },
      "layout_evidence": ".implants-band-img precedes .implants-band-text in the DOM (bone-grafting.astro:428, 436), so the photo is on the left and `media_side` is read from the band that actually holds it.",
@@ -3257,54 +3252,34 @@
      "image_alt_note": "The images row for slot implantsImg carries alt \"Close-up of an implant-supported restoration on a dental model\" — confirmed live, and the string the template hardcodes at :431. Moved.",
      "no_cta_note": "No cta pair: this band has no .cta-row (bone-grafting.astro:419-453). MediaSplitBlock draws the row only when a label is filled, so leaving both pairs empty keeps the band buttonless as it is today.",
      "known_gaps": [
-      "THE LARGEST SHAPE LOSS ON THIS ROUTE, AND THE ONE THE PAGE WAS EXPLICITLY BUILT TO",
-      "AVOID.",
+      "THE COPY IS NOW CARRIED; THE SHAPE IS STILL NOT. This batch closes the word loss by",
+      "mapping the whole .implants-band-text into the callout trio — callout_eyebrow \"Why",
+      "grafting comes first\", callout_heading \"Foundation, then placement.\", and",
+      "callout_body with BOTH internal links (/implant-dentistry/single-tooth-dental-",
+      "implants/ and /implant-dentistry/full-mouth-dental-implants/) verbatim, since",
+      "callout_body renders as HTML. All 74 words and both anchors are editable in",
+      "WordPress and render on the backfilled page.",
       "",
-      "WHAT SURVIVES: the CMS `implants` row (eyebrow \"Grafting & Implants\", heading",
-      "\"Bone Grafting and <em>Dental Implants</em>\", and its paragraph) and the implantsImg",
-      "photo with its alt.",
-      "",
-      "WHAT IS LOST IS THE STRUCTURE. The template stacks a centred .implants-intro",
-      "(max-width 760px, text-align center, bone-grafting.css:1043-1052) over a sage-tinted",
-      "asymmetric .implants-band card. media_split returns all of it as one .what-grid split",
-      "with .what-img beside .what-text — which is the 50/50 shape sitting directly above it",
-      "in #what, and which bone-grafting.astro:271-277 says in as many words was restructured",
-      "away from because it \"read as a duplicate layout\". The backfilled page reintroduces",
-      "exactly that.",
-      "",
-      "WHAT IS LOST AS COPY is the whole .implants-band-text, bone-grafting.astro:436-450,",
-      "none of it in the CMS:",
-      "",
-      "  <span class=\"eyebrow\">Why grafting comes first</span>",
-      "  <h3>Foundation, then placement.</h3>",
-      "  <p>Bone grafting is needed when bone loss is significant enough to prevent stable <a class=\"vs-link\" href=\"/implant-dentistry/single-tooth-dental-implants/\">implant placement</a>. Common candidates include patients with unpreserved extraction sites, multiple missing teeth, or denture wearers considering <a class=\"vs-link\" href=\"/implant-dentistry/full-mouth-dental-implants/\">implant-supported options</a>. Not all implant cases require grafting, and a CBCT evaluation at Vivid Smiles confirms whether it applies to you.</p>",
-      "",
-      "That paragraph carries this page's ONLY two internal links, to",
-      "/implant-dentistry/single-tooth-dental-implants/ and",
-      "/implant-dentistry/full-mouth-dental-implants/. A backfilled page links to neither.",
-      "",
-      "NOT FILLED INTO `body_2`, deliberately, even though body_2 is html-bearing and would",
-      "carry both anchors (MediaSplitBlock.astro:327, 469-473). body_2 draws a second <p>",
-      "INSIDE .prose, and this paragraph is not a second prose paragraph — it is the body of",
-      "a separate card with its own eyebrow and <h3>. Same refusal as `.what-causes` above,",
-      "and for the same reason.",
+      "WHAT REMAINS IS STRUCTURE, NOT WORDS. The template stacks a centred .implants-intro",
+      "(max-width 760px, bone-grafting.css:1043-1052) over a sage-tinted asymmetric",
+      ".implants-band card (minmax(280px, 0.62fr) 1fr, bone-grafting.css:1085-1097);",
+      "media_split returns the band as its standard .what-grid split with the callout in",
+      "its aside position. The words are all present; the bespoke intro-over-card geometry",
+      "and the .implants-band cream card with its 4px sage border are not reproduced, and",
+      "bone-grafting.astro:271-277's \"read as a duplicate layout\" concern applies to the",
+      "backfilled shape.",
       "",
       "ONE SMALLER DIFFERENCE, RECORDED SO IT IS NOT MISREAD AS A BUG: the parallax depth.",
       "The template gives .implants-band-img data-parallax=\"-15\" (bone-grafting.astro:428);",
       "MediaSplitBlock hardcodes -25 on its .what-img (MediaSplitBlock.astro:405). No field",
       "carries it.",
       "",
-      "WHAT WOULD CLOSE IT: this band is a candidate for `code_section`, not for a new",
-      "media_split field. It is one bespoke shape used once, its copy is entirely",
-      "hardcoded, and code_section exists exactly so such a band keeps a POSITION in the",
-      "ordered list without becoming editable — which is the whole difference between",
-      "\"stays in code\" and \"cannot be positioned\". Doing that means lifting",
-      "bone-grafting.astro:419-453 into a component, one entry in CodeSectionBlock.astro's",
-      "BANDS map and one choice `bone_grafting_implants` in BLOCK_CODE_BANDS",
-      "(vs-content-model.php), in the same commit — miss either side and the row writes",
-      "cleanly, resolves to nothing, and the band vanishes with a console warning as the only",
-      "trace. It would also change what `exempt` says: the implantsImg row and the `implants`",
-      "sections row would then be unclaimed and would have to move here."
+      "WHAT WOULD CLOSE THE SHAPE: still code_section, as recorded before this batch — lift",
+      "bone-grafting.astro:419-453 into CodeSectionBlock's BANDS map plus a",
+      "`bone_grafting_implants` choice in BLOCK_CODE_BANDS, in one commit. But note the",
+      "trade has changed: doing that now would take the copy back OUT of WordPress, so the",
+      "callout trio mapped here would have to be unmapped in the same edit or the words",
+      "draw twice."
      ]
     },
     {
@@ -3375,6 +3350,18 @@
       },
       "body": {
        "section": "body"
+      },
+      "glossary_eyebrow": {
+       "literal": "Material Sources",
+       "from_template": "bone-grafting.astro:550 <span class=\"eyebrow\"> in .materials-head."
+      },
+      "glossary_heading": {
+       "literal": "Where Does Bone Graft Material Come From?",
+       "from_template": "bone-grafting.astro:551 <h3> in .materials-head."
+      },
+      "glossary_body": {
+       "literal": "Graft material is selected based on your anatomy and the procedure required.",
+       "from_template": "bone-grafting.astro:552 <p> in .materials-head."
       }
      },
      "columns_evidence": ".bgraft .alternatives-grid is repeat(3, 1fr) gap 24px (bone-grafting.css:530-532) and the band carries 3 cards. comparison_cards has no columns sub-field — the count IS the row count — so there is nothing to set.",
@@ -3390,82 +3377,45 @@
        "note": "All three `procedures` rows, in order — verified live: Socket Preservation, Ridge Augmentation, Sinus Lifts. Moved, not transcribed. `tag` comes from the card's `meta`, which holds \"Procedure\" on all three and is exactly what the template prints in .config-card .tag (bone-grafting.astro:533); the legacy `cards` repeater has group/title/body/meta/href and no `tag`, so meta is the only sub-field that could carry it.",
        "no_ribbon_no_featured": "Neither is set and neither exists to set: none of the three .config-card articles carries a .ribbon or a `featured` class (bone-grafting.astro:532-536). Three equal cards, no centrepiece. Adding either would put a flag on a page that has never had one.",
        "repeater_name_note": "`tiers`, not `cards` and not `plans`. comparison_cards, card_grid and pricing_tiers do not share a repeater name — a repeater mints its GraphQL type from its field name, so sharing one merges two types and drops one side's sub-fields — and the backfill rejects the wrong name against the layout's shape before it plans anything."
+      },
+      "glossary": {
+       "cards": "materials",
+       "fields": {
+        "tag": "meta",
+        "title": "title",
+        "body": "body"
+       },
+       "note": "All three `materials` rows, in order — verified live against the GraphQL endpoint: meta Allograft / title \"Processed donor bone\", meta Xenograft / title \"Bovine-derived mineral\", meta Synthetic / title \"Lab-made scaffold\", bodies matching bone-grafting.astro:111-127 byte for byte. MOVED, not transcribed: these are the live CMS `cards` group `materials`, formerly the only unclaimed rows on this page (they were in exempt.cards until this batch). The glossary tag comes from the card's `meta` — the legacy cards repeater has group/title/body/meta/href and no `tag` sub-field, so meta is the only sub-field that can carry Allograft/Xenograft/Synthetic, exactly as `tiers` above reads \"Procedure\" from meta.",
+       "shape_note": "glossary is comparison_cards' new {tag, title, body} repeater minting PageFieldsBlocksGlossary, drawn by ComparisonCardsBlock as the .materials-block (head + <dl class=\"materials-list\"> of dt/dd rows) AFTER .alternatives-grid — the element the template ships at bone-grafting.astro:548-567, which alt_cards could never draw (it emits .config-card articles across 2/3/4 tracks, not a single column of definition rows; see alt_cards_note above)."
       }
      },
      "cta_note": "ComparisonCardsBlock draws the closing .cta-row itself — Free Virtual Consult to #consult, Read FAQ to #faq, and the note \"No commitment · Personal video reply\" — which is exactly what bone-grafting.astro:566-574 ships, down to the sage/ghost variants for a non-dark band (ComparisonCardsBlock.astro:610-620 equivalent, isDarkBand false on paper). The layout has no cta sub-fields, so this map supplies nothing.",
      "known_gaps": [
-      "TWO, AND THE SECOND IS THE ONLY PLACE ON THIS ROUTE WHERE LIVE CMS ROWS GO",
-      "UNRENDERED.",
+      "ONE REMAINING, AND IT IS THE CARD-MARKUP RENAME RECORDED BEFORE THIS BATCH.",
       "",
-      "ONE — THE CARD MARKUP IS RENAMED. The template draws these three as",
-      "<div class=\"alternatives-grid\"> of <article class=\"config-card\"> with a <span",
-      "class=\"tag\">, an <h4> and a <p> (bone-grafting.astro:529-539).",
-      "ComparisonCardsBlock draws <div class=\"compare\"> of <article class=\"compare-card\">",
-      "with the same <span class=\"tag\">, an <h3> and a <p>. So the grid class, the card class",
-      "and one heading level all change. The rendered columns happen to agree at desktop —",
-      ".bgraft .alternatives-grid is repeat(3, 1fr) (bone-grafting.css:530-532) and the",
-      "block's .compare is three across — but .bgraft .config-card's own type scale",
-      "(bone-grafting.css:374-394) stops matching, because no .config-card exists to match",
-      "it. What would close it is markup, not a field: renaming this band's grid and cards to",
-      ".compare / .compare-card and its <h4> to an <h3> in the .astro makes it the shape the",
-      "layout already draws, and needs nothing new anywhere.",
+      "THE `.materials-block` IS NO LONGER A GAP. This batch maps its head into the stated",
+      "glossary triple — glossary_eyebrow \"Material Sources\", glossary_heading \"Where Does",
+      "Bone Graft Material Come From?\", glossary_body (bone-grafting.astro:548-553) — and",
+      "its three definition rows into the new `glossary` repeater, MOVED from the live",
+      "`cards` group `materials` (meta→tag, title→title, body→body). ComparisonCardsBlock",
+      "draws the .materials-block (head + <dl>) after .alternatives-grid, which is where",
+      "the template puts it. The rows leave exempt.cards in this same edit: nothing on this",
+      "page is unclaimed any more. The head is stated rather than inferred from the callout",
+      "pair because this band needs the callout pair AND the glossary head at once — the",
+      "ambiguity that lost 55 words in #what is exactly what the separate fields prevent.",
       "",
-      "SINCE THIS BATCH THERE IS A SECOND AND CHEAPER CLOSURE, AND IT IS NOT SAFE TO TAKE FROM",
-      "THIS FILE. comparison_cards now has `alt_cards`, which draws exactly this band's shape —",
-      ".alternatives-grid of .config-card, span.tag / <h4> / <p> — so re-homing the three",
-      "`procedures` rows from `tiers` to `alt_cards` with `alt_columns: \"3\"` (.bgraft",
-      ".alternatives-grid is repeat(3, 1fr), bone-grafting.css:530-532) would make the backfilled",
-      "band match the template with no .astro edit at all. It is NOT done here because it is not",
-      "additive and this batch is: rows are already saved against `tiers` on this route, emptying",
-      "that repeater changes what a saved row renders, and ComparisonCardsBlock has no alt-grid",
-      "markup yet — doing it today blanks three cards on a live page until the component phase",
-      "lands. It is a one-line move for whoever ships that component, in that order.",
-      "",
-      "TWO — THE ENTIRE .materials-block IS LOST, bone-grafting.astro:545-564, and its three",
-      "definitions are CMS rows rather than template copy:",
-      "",
-      "  <div class=\"materials-head\">",
-      "    <span class=\"eyebrow\">Material Sources</span>",
-      "    <h3>Where Does Bone Graft Material Come From?</h3>",
-      "    <p>Graft material is selected based on your anatomy and the procedure required.</p>",
-      "  </div>",
-      "  <dl class=\"materials-list\"> — three .material-row, each a <dt> of <span class=\"tag\">",
-      "  plus <span class=\"label\">, and a <dd>:",
-      "    Allograft / Processed donor bone / \"Processed donor bone from a certified tissue bank; integrates predictably with natural jawbone.\"",
-      "    Xenograft / Bovine-derived mineral / \"Mineral derived from bovine bone, used for its structural compatibility with human jaw tissue.\"",
-      "    Synthetic / Lab-made scaffold / \"Lab-made scaffold material that supports new bone growth while your body rebuilds around it.\"",
-      "",
-      "Those three are the live `cards` group `materials` (meta / title / body), which is why",
-      "they are listed in `exempt.cards` below: the backfill's leftover check reports a",
-      "repeater that HAS rows and was not claimed, and these are the only such rows on the",
-      "page. Listing them is the honest form of \"nothing draws these\" — it is not permission",
-      "to forget them.",
-      "",
-      "NOT FILLED INTO `alt_cards`, WHICH IS THIS BATCH'S ANSWER AND IS THE WRONG ONE HERE. The",
-      "reasoning is on `alt_cards_note` above and comes to this: `.materials-list` is one column",
-      "of hairline-ruled <dt>/<dd> rows (bone-grafting.css:984-1023), `alt_columns` offers only",
-      "2/3/4, and the repeater emits .config-card articles inside an .alternatives-grid. Right",
-      "sub-fields, wrong element, and it would also lose the .materials-head eyebrow — this band",
-      "maps no callout pair, so there is nothing carrying that head either. These three rows stay",
-      "in `exempt.cards`.",
-      "",
-      "NOT FILLED INTO `callout_heading` / `callout_body`. That pair draws",
-      "<aside class=\"safety-callout\"> of an <h3> and paragraphs (ComparisonCardsBlock.astro:",
-      "584-596 equivalent). The head's <h3> and <p> would ride there and the eyebrow would",
-      "not, and the <dl> — three <dt>/<dd> pairs across a two-column grid",
-      "(bone-grafting.css:958-1023) — cannot become paragraphs without being rewritten,",
-      "which is authoring, not transcription. Three definitions flattened into prose is a",
-      "different band.",
-      "",
-      "WHAT WOULD CLOSE IT: a `definitions` repeater on comparison_cards (term / label /",
-      "body) plus the <dl> markup in ComparisonCardsBlock — and the name must be checked",
-      "against every repeater already in `blocks` before it is minted, because `items`,",
-      "`cards`, `checklist`, `steps`, `tiers`, `points`, `pre_cards`, `plans`, `features`,",
-      "`sub_cards` and `alt_cards` are taken, and a collision merges two types silently:",
-      "the schema still looks healthy while one side stops being queryable. The cheaper",
-      "alternative is a second block: split the materials into their own <section> so a",
-      "card_grid or a future glossary layout can hold it — but that mints a new anchor and",
-      "a new rail entry, and the seven toc_links rows do not have one."
+      "STILL OPEN — THE PRIMARY CARD MARKUP IS RENAMED. The template draws the three",
+      "procedure cards as <div class=\"alternatives-grid\"> of <article class=\"config-card\">",
+      "with an <h4> (bone-grafting.astro:529-539); ComparisonCardsBlock draws",
+      "<div class=\"compare\"> of <article class=\"compare-card\"> with an <h3>. The rendered",
+      "columns agree at desktop (.bgraft .alternatives-grid is repeat(3, 1fr),",
+      "bone-grafting.css:530-532) but .bgraft .config-card's type scale",
+      "(bone-grafting.css:374-394) stops matching because no .config-card exists to match",
+      "it. What closes it is unchanged from before this batch: either rename this band's",
+      "grid/cards/heading in the .astro to the shape the layout draws, or re-home the three",
+      "`procedures` rows from `tiers` to `alt_cards` with `alt_columns: \"3\"` once",
+      "ComparisonCardsBlock's alt-grid markup has shipped — a move that is NOT additive and",
+      "must be taken by whoever ships that component, in that order."
      ]
     },
     {
@@ -3507,6 +3457,14 @@
       },
       "callout_body": {
        "section": "body"
+      },
+      "callout_eyebrow": {
+       "literal": "The bottom line",
+       "from_template": "bone-grafting.astro:640 <span class=\"label\"> in .candidacy-sub."
+      },
+      "callout_placement": {
+       "literal": "below",
+       "from_template": "bone-grafting.astro:639-643 — .candidacy-sub is a full-width card BELOW .natural-grid, inside the same .wrap (bone-grafting.css:575-599). \"below\" is stored EXPLICITLY because media_split's NULL means aside — the in-column position eleven saved rows depend on — and this is one of the bands the placement choice was minted for. MediaSplitBlock's below mode draws label + h3 + paragraph full-width after the grid."
       }
      },
      "layout_evidence": ".natural-text precedes .natural-img (bone-grafting.astro:587, 626) and .bgraft .natural-grid is 1fr 1.1fr gap 80px (bone-grafting.css:535-538) — photo right, media column the wider one. `wide-media` is already the family default for a right photo (MediaSplitBlock.astro:284-286), so no ratio-* modifier is emitted.",
@@ -3541,40 +3499,28 @@
       }
      },
      "known_gaps": [
-      "ONE, AND IT TAKES A LIVE CMS PARAGRAPH WITH IT.",
+      "NONE REMAINING AS COPY. The `.candidacy-sub` card — the one gap this block recorded,",
+      "and the one that took a live CMS paragraph with it — is closed by this batch:",
       "",
-      "THE `.candidacy-sub` CARD IS LOST — bone-grafting.astro:636-640, a full-width 940px",
-      "white card with a 3px sage left border sitting BELOW .natural-grid inside the same",
-      ".wrap (bone-grafting.css:575-599). Three elements:",
+      "  label \"The bottom line\"        -> callout_eyebrow (this batch)",
+      "  h3 \"An imaging-guided …\"       -> callout_heading (census batch)",
+      "  the live `candidacy` row body   -> callout_body (census batch)",
+      "  the below-the-grid position     -> callout_placement \"below\" (this batch)",
       "",
-      "  <span class=\"label\">The bottom line</span>",
-      "  <h3>An imaging-guided foundation for implants</h3>",
-      "  <p>{section(\"candidacy\").body}</p>",
+      "callout_placement is what changed the refusal: the earlier map left the pair empty",
+      "because the callout drew ONLY as an in-column aside, which is not where the page",
+      "puts this card. media_split now declares placement (NULL = aside, so the eleven",
+      "saved rows are untouched) and MediaSplitBlock's below mode draws the label, the h3",
+      "and the paragraph full-width after the grid — the position bone-grafting.astro:",
+      "639-643 ships. The live paragraph renders again AND is editable.",
       "",
-      "The first two are hardcoded. The third is the LIVE `candidacy` row's body — \"Bone",
-      "grafting makes implant placement possible for patients who have experienced",
-      "significant jawbone loss, and Dr. Richardson's imaging-guided approach ensures every",
-      "decision is based on your actual anatomy. Understanding the timeline and your",
-      "candidacy removes the uncertainty that often delays treatment.\" — which is why `body`",
-      "above is blank rather than mapped: the paragraph exists in the CMS and there is",
-      "nowhere on this layout it can render where the page puts it.",
-      "",
-      "NOT FILLED INTO `callout_heading` / `callout_body`. Those draw",
-      "<aside class=\"veneers-callout\"> INSIDE .natural-text (MediaSplitBlock.astro:445-455),",
-      "i.e. inside the left column of a two-column grid, where .candidacy-sub is a centred",
-      "card below the whole grid. The element, the class and the position all differ and the",
-      ".label would still be lost, so filling them would relocate a card rather than",
-      "reproduce it.",
-      "",
-      "WHAT WOULD CLOSE IT: the shape is a labelled closing card, and three implant pages in",
-      "this family carry something like it — worth checking before inventing anything. If it",
-      "is genuinely one-off, the cheap close is markup: fold the <h3> and the paragraph into",
-      "the existing .natural-text column as a `.veneers-callout` in the .astro first, and the",
-      "deployed callout pair then carries them with no new field. The expensive close is a",
-      "`closing_card` group on media_split drawn after the grid, which is a new position in",
-      "the component as well as new fields."
+      "STILL A DIFFERENCE AND NOT A WORD LOST: the exact panel geometry. The template's",
+      ".candidacy-sub is a centred 940px white card with a 3px sage left border",
+      "(bone-grafting.css:575-599); the component draws its own below-strip markup from its",
+      "scoped <style>, and this page's .bgraft .candidacy-sub rules stop matching. Copy",
+      "complete, chrome approximate — the same trade every block band makes."
      ],
-     "callout_evidence": "The .candidacy-sub <h3> and its paragraph (bone-grafting.astro:638). Carried by the callout_heading / callout_body pair, which media_split already declares, manifest.ts already selects and MediaSplitBlock already draws — the same pair single-tooth-dental-implants and full-mouth-dental-implants use for this identical shape. It was first left empty because .veneers-callout is not .candidacy-sub, but that trades a live client paragraph for a class name. The panel geometry and the .label line stay recorded gaps."
+     "callout_evidence": "The .candidacy-sub card (bone-grafting.astro:639-643): <span class=\"label\">The bottom line</span>, <h3>An imaging-guided foundation for implants</h3>, and the live `candidacy` row's body. All three now field-carried — callout_eyebrow + callout_placement \"below\" from this batch, callout_heading + callout_body from the census batch."
     },
     {
      "section_id": "gallery",
@@ -3646,30 +3592,21 @@
    "exempt": {
     "_": [
      "Every repeater row on this page that no block above claims. The backfill fails, before",
-     "writing anything, on any row that is neither claimed nor listed here. Three of the five",
+     "writing anything, on any row that is neither claimed nor listed here. Four of the five",
      "lists are empty because those rows are all claimed: 8 sections by the 8 blocks, all 5",
-     "process_steps by `process`, all 5 faqs by `faq`, all 7 toc_links by the anchors above.",
-     "One image is exempt and it is the hero. Three `cards` rows are exempt and they are the",
-     "only content on this page a backfill leaves behind."
+     "process_steps by `process`, all 5 faqs by `faq`, all 7 toc_links by the anchors above,",
+     "and all 10 `cards` rows by `why` (whyCards), `types` tiers (procedures) and `types`",
+     "glossary (materials). One image is exempt and it is the hero."
     ],
     "sections": [],
-    "cards": [
-     {
-      "group": "materials",
-      "rows": 3,
-      "reason": "No registered layout draws a definition list. These three rows fill the <dl class=\"materials-list\"> inside #types (bone-grafting.astro:551-563) — Allograft / Processed donor bone, Xenograft / Bovine-derived mineral, Synthetic / Lab-made scaffold, each a meta, a title and a body. comparison_cards' `tiers` draws cards, not <dt>/<dd>; its callout pair draws paragraphs; and `alt_cards`, added for exactly this kind of secondary grid, draws .config-card articles across 2, 3 or 4 tracks when `.bgraft .materials-list` is a single column of hairline-ruled rows (bone-grafting.css:984-1023). None of the three reproduces the band. All three were checked; see the `types` block.",
-      "destination": "None today. Listed here so the leftover check passes deliberately rather than by accident, and so the rows stay visible to whoever closes the `types` gap. See known_gaps on the `types` block for what would claim them.",
-      "renders_today": "bone-grafting.astro:545-564, the .materials-block after .alternatives-grid and before the .cta-row."
-     }
-    ],
+    "cards": [],
     "cards_claimed_note": [
-     "The other two groups ARE claimed and neither is a literal: whyCards (4 rows) fills the",
-     "`why` card grid and procedures (3 rows) fills the `types` tiers. That makes this route",
-     "the first of the four to move `cards` rows into two different layouts — all three",
-     "cosmetic routes either have no cards at all (porcelain-veneers) or feed a single band",
-     "(teeth-whitening's treatmentLevels and maintenanceBullets). Nothing about the mechanism",
-     "is new; it is worth naming because a reviewer scanning for literals will find fewer",
-     "here than on any earlier route."
+     "ALL THREE groups are now claimed and none is a literal: whyCards (4 rows) fills the",
+     "`why` card grid, procedures (3 rows) fills the `types` tiers, and materials (3 rows)",
+     "fills the `types` glossary — moved out of exempt.cards by the batch that mapped the",
+     ".materials-block, so the backfill's leftover check now passes because nothing is",
+     "left over, not because anything is listed. That makes this route the first of the",
+     "four to move `cards` rows into two different layouts and three different repeaters."
     ],
     "process_steps": [],
     "faqs": [],
@@ -3694,11 +3631,11 @@
      "Who Needs It, FAQ, which is the order the template build puts them in. So the rail is",
      "not a difference on this route.",
      "",
-     "TWO RAIL LABELS PROMISE MORE THAN THE BACKFILLED BAND DELIVERS, and that is worth",
-     "seeing next to the gaps rather than only inside them. \"Grafting & Implants\" scrolls to",
-     "a band that has lost its .implants-band card and both of the page's internal links, and",
-     "\"Types & Materials\" scrolls to a band that has lost every material. Neither link",
-     "breaks; both under-deliver until the two gaps close."
+     "TWO RAIL LABELS USED TO PROMISE MORE THAN THE BACKFILLED BAND DELIVERED; both now",
+     "deliver their copy. \"Grafting & Implants\" scrolls to a band whose card text and both",
+     "internal links ride the callout trio, and \"Types & Materials\" scrolls to a band whose",
+     "materials fill the glossary repeater. The residual differences are markup shape, not",
+     "missing words; see known_gaps on `implants` and `types`."
     ]
    }
   },
@@ -3854,32 +3791,23 @@
       },
       "cta_href_2": {
        "literal": "#robotics"
+      },
+      "cta_hover_2": {
+       "literal": "See How",
+       "from_template": "vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:392 — the hoverLabel on the second button in .cta-row.left. #robotics is not in the default hover table (invariant 3), so without this field the hover falls back to reusing the visible label ‘How It Works’."
       }
      },
      "layout_evidence": ".what-img precedes .what-text in the DOM (vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:368, 376) and .fmdi .what-grid is 1fr 1fr (full-mouth-dental-implants.css:338) — photo left, even split. `even` is already the family default for a left photo (MediaSplitBlock.astro:284), so no ratio-* modifier is emitted and the grid div stays the bare `what-grid` the template ships. The plate matches too: .fmdi .what-img is aspect-ratio 5/4 (:317) and MediaSplitBlock's .what-img is 5/4.",
      "image_alt_note": "The images row for slot whatImg carries alt 'Full-arch restoration on a dental model, held in a gloved hand' — confirmed live, and character-for-character the string the template hardcodes at vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:233. Moved, not transcribed: the row exists.",
      "prose_note": "ONE paragraph in .prose (vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:379-381), so no `body_2`.",
      "known_gaps": [
-      "ONE HOVER LABEL, AND IT IS THE SAME RESIDUE THE WHITENING ROUTE RECORDS.",
-      "",
-      "Both buttons are carried by the two cta pairs above, all four sub-fields on the deployed",
-      "media_split layout, and the variants match: charcoal is a dark band, so primaryVariant is",
-      "`light` and secondaryVariant is `ghost-light` (MediaSplitBlock.astro:395-396), which is",
-      "the pair :384 and :387 ship.",
-      "",
-      "What does not survive is the SECOND button's hover label. MediaSplitBlock derives each",
-      "label from the HREF (CTA_HOVER, MediaSplitBlock.astro:233-238) and that map holds",
-      "#consult, #process, #faq and the phone number. This page's second button points at",
-      "#robotics and passes hoverLabel=\"See How\" (vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:387). #robotics is not in the map, so",
-      "the derived label is undefined and Button.astro falls back to reusing the visible label:",
-      "the button reads 'How It Works' on hover instead of 'See How', and its data-hover",
-      "attribute changes with it.",
-      "",
-      "WHAT CLOSES IT: one entry in CTA_HOVER — \"#robotics\": \"See How\" — in MediaSplitBlock.astro.",
-      "It is a component change, not a field, and it is additive: no band saved today points at",
-      "#robotics. Deliberately not done from this route, because the same map is what the other",
-      "seven pages of this phase are reading and the entry belongs in whichever change reviews",
-      "the whole map at once."
+      "NONE ANY MORE. The one residue this entry used to record — the second button’s",
+      "hover label, lost because #robotics is not in CTA_HOVER — is closed by the",
+      "`cta_hover_2` literal above: media_split now carries cta_hover / cta_hover_2",
+      "(vs-content-model.php field_vs_blk_media_cta_hover_2), the manifest selects",
+      "ctaHover2, and MediaSplitBlock reads the override before consulting the hover",
+      "table. Both buttons, both hrefs and both hover labels now have a field behind",
+      "them, and the variants still follow from `band` (charcoal → light + ghost-light)."
      ]
     },
     {
@@ -3918,6 +3846,10 @@
       "callout_body": {
        "literal": "Many full arch patients receive a temporary prosthesis the same day as surgery. The same-day restoration is a well-fitting temporary; the permanent bridge follows after osseointegration is confirmed. Qualification depends on bone density and implant stability achieved at surgery, both evaluated during your initial consultation with Dr. Richardson.",
        "from_template": "vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:430-436 — the single <p> inside .robotics-callout, hardcoded; there is no CMS field it could have come from."
+      },
+      "callout_eyebrow": {
+       "literal": "Same-day teeth",
+       "from_template": "vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:434 — the <span class=\"label\"> that opens .robotics-callout. callout_placement is deliberately NOT set: NULL means aside (invariant 4), and this callout sits in-column beside the copy, which is the aside position."
       }
      },
      "media_side_evidence": [
@@ -3943,51 +3875,33 @@
      ],
      "image_alt_note": "The images row for slot roboticsImg carries alt 'Dr. Bryce Richardson placing a dental implant with the Yomi robotic arm at Vivid Smiles Dentistry' — confirmed live, and the string the template hardcodes at vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:419. Moved.",
      "known_gaps": [
-      "THE LARGEST LOSS ON THIS ROUTE, AND IT IS A COMPONENT FAULT RATHER THAN A COPY FAULT.",
-      "Four things go. Every word of copy survives except the first.",
+      "THREE REMAIN, DOWN FROM FOUR, AND ALL THREE ARE LOOK RATHER THAN COPY. Every word",
+      "of this band’s copy now has a field behind it.",
       "",
-      "1. THE CALLOUT'S LABEL LINE IS LOST OUTRIGHT.",
-      "   `<span class=\"label\">Same-day teeth</span>` (vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:428) has no field on media_split:",
-      "   the layout's aside is `callout_heading` + `callout_body` and nothing else. Two words",
-      "   of copy, and the only copy on this page that no field can hold.",
-      "   WHAT CLOSES IT: a `callout_eyebrow` text sub-field on media_split (and on",
-      "   comparison_cards, which has the identical aside and the identical hole), drawn by",
-      "   MediaSplitBlock as the aside's first child. Additive: blank on every band saved today,",
-      "   and blank must draw no <span> at all. NOT added here — a sub-field is a schema change",
-      "   for all 48 routes and does not belong in a page's map entry.",
+      "WHAT CLOSED: the callout’s label line. `<span class=\"label\">Same-day teeth</span>`",
+      "(vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:434) was the one piece of copy on this page no field could hold; the",
+      "`callout_eyebrow` sub-field this entry asked for now exists on media_split",
+      "(vs-content-model.php field_vs_blk_media_callout_eyebrow), is selected by the",
+      "manifest, and is carried by the literal above. MediaSplitBlock draws it as the",
+      "aside’s first child; blank draws no span at all.",
       "",
-      "2. THE CALLOUT'S HEADING DROPS A LEVEL AND THE BOX CHANGES ELEMENT AND CLASS.",
+      "1. THE CALLOUT’S HEADING DROPS A LEVEL AND THE BOX CHANGES ELEMENT AND CLASS.",
       "   `<div class=\"robotics-callout\">` with an <h4> becomes",
-      "   `<aside class=\"veneers-callout\">` with an <h3> (MediaSplitBlock.astro:486-487). The",
-      "   heading TEXT is carried; its level and its container are not. `.fmdi` has no",
-      "   `.veneers-callout` rule and MediaSplitBlock ships none either — it draws the element",
-      "   and leaves the box to the page sheet, which on teeth-whitening.css:476-490 is where",
-      "   those rules live — so on this page the aside renders as an unboxed heading and",
-      "   paragraph: no cream plate, no sage left border, no radius.",
-      "   WHAT CLOSES IT: the box rules belong in MediaSplitBlock's own <style>, alongside the",
-      "   `.candidate-list` rules that were moved there for exactly this reason (a band rendered",
-      "   from the CMS cannot rely on a page-namespaced rule). Deliberately not done from this",
-      "   route: it changes how the band renders on teeth-whitening too, and that page's own",
-      "   sheet already styles it.",
+      "   `<aside class=\"veneers-callout\">` with an <h3> (MediaSplitBlock.astro). `.fmdi`",
+      "   has no `.veneers-callout` rule, so unless MediaSplitBlock’s own <style> boxes",
+      "   the aside in this batch’s component change, it renders as an unboxed heading",
+      "   and paragraph: no cream plate, no sage left border, no radius.",
       "",
-      "3. THE PROSE PARAGRAPH GAINS A WRAPPER AND 10ch OF MEASURE.",
+      "2. THE PROSE PARAGRAPH GAINS A WRAPPER AND 10ch OF MEASURE.",
       "   `<p class=\"robotics-prose\">` (vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:427) becomes `<div class=\"prose\"><p>`.",
-      "   Same font-size and line-height either way — 16.5px/1.85 in both",
-      "   full-mouth-dental-implants.css:418 and MediaSplitBlock's `.prose p` — but the measure",
-      "   goes from max-width 60ch to 70ch.",
+      "   Same font-size and line-height either way; the measure goes from max-width",
+      "   60ch to 70ch.",
       "",
-      "4. THE MOBILE STACKING ORDER FLIPS.",
-      "   At 1100px the sheet resets the order flip (`.fmdi .robotics-img, .fmdi .robotics-text",
-      "   { order: initial }`, :833) so the photo stacks ABOVE the text, and its comment says",
-      "   that is to match every other implant page. The `natural` family has the photo second",
-      "   in the DOM and no order property, so a stacked `natural-grid` puts the photo BELOW the",
-      "   text. Desktop is unchanged; mobile reads text-then-photo.",
-      "   WHAT CLOSES IT: nothing on this layout, and it is the price of choosing the family",
-      "   that matches the desktop composition. `media_side: left` would fix the mobile order",
-      "   and break the desktop one, which is the worse trade.",
-      "",
-      "NONE OF THE FOUR IS CLOSED BY A VALUE IN THIS FILE, which is why they are here rather",
-      "than worked around with a literal."
+      "3. THE MOBILE STACKING ORDER FLIPS.",
+      "   At 1100px the sheet resets the order flip (full-mouth-dental-implants.css:833)",
+      "   so the photo stacks ABOVE the text; the `natural` family stacks it below.",
+      "   Desktop is unchanged. Nothing on this layout closes it, and `media_side: left`",
+      "   would fix the mobile order and break the desktop one, which is the worse trade."
      ]
     },
     {
@@ -4064,6 +3978,10 @@
       },
       "alt_columns": {
        "literal": "2"
+      },
+      "callout_eyebrow": {
+       "literal": "Alternatives",
+       "from_template": "vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:573 — the <span class=\"eyebrow\"> that opens .compare-sub-head, above the <h3> carried by callout_heading. comparison_cards now has this field (vs-content-model.php field_vs_blk_compare_callout_eyebrow); ComparisonCardsBlock draws it above the sub-head’s <h3>, restoring the two 28px hairlines the sheet attaches to it."
       }
      },
      "alt_columns_evidence": ".fmdi .alternatives-grid is `repeat(2, 1fr)` (full-mouth-dental-implants.css:537-542) and the sheet says in its own comment why it is an override: this page has two alternatives where the family template has three. So this band stores \"2\". It is written out rather than left unset on purpose — the ACF default is \"3\" and NULL is documented to mean three as well (vs-content-model.php:2337-2354), so an unmapped row would draw the pair across three tracks and leave a third of the row empty, which is the same defect the head-to-head pair above already has.",
@@ -4138,7 +4056,8 @@
      },
      "cta_note": "ComparisonCardsBlock draws the closing .cta-row itself — Free Virtual Consult to #consult, Read FAQ to #faq, and the note 'No commitment · Personal video reply' — which is exactly what vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:595-603 ships. The layout has no cta sub-fields, so this map supplies nothing.",
      "known_gaps": [
-      "ONE, DOWN FROM THREE, AND IT IS THREE WORDS. Every other word of this band now has a field",
+      "NO COPY GAPS ANY MORE, DOWN FROM ONE. Every word of this band has a field behind",
+      "it AND a component drawing it.",
       "behind it AND a component drawing it.",
       "",
       "WHAT CLOSED SINCE THIS ENTRY WAS FIRST WRITTEN — recorded rather than quietly deleted, so a",
@@ -4169,19 +4088,13 @@
       "    alternatives is not four peers in one grid, and folding them in would have wrapped them",
       "    under the pair as though they belonged to it.",
       "",
-      "1. THE SUB-HEAD'S EYEBROW HAS NO FIELD, AND IT IS THE LAST COPY ON THIS BAND THAT DOES NOT.",
-      "   `<span class=\"eyebrow\">Alternatives</span>` at",
-      "   vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:568.",
-      "   `callout_heading` and `callout_body` carry the <h3> at :569 and the <p> at :571-575, and",
-      "   there is no third preamble field on the aside, so the one word above them is dropped —",
-      "   and with it the two 28px hairlines the sheet draws through its ::before / ::after",
-      "   (full-mouth-dental-implants.css:352-361), which have nothing left to attach to.",
-      "   WHAT CLOSES IT: a `callout_eyebrow` text field on comparison_cards, drawn above",
-      "   `callout_heading` inside the same aside and guarded the same way — blank draws no span,",
-      "   because eleven back-filled routes hold this layout and none of them has one. It is a",
-      "   FAMILY field and not a fix for this page: all-on-4-single-arch's `.what-sub-head` and",
-      "   bone-grafting's `#types` sub-head each carry the same eyebrow. That is why it is named",
-      "   here and not invented here, exactly as `alt_cards` was not invented on this route.",
+      "WHAT CLOSED IN THIS BATCH — the sub-head’s eyebrow, the last copy on this band",
+      "without a field. `<span class=\"eyebrow\">Alternatives</span>` (vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:573) is now",
+      "carried by the `callout_eyebrow` literal in `fields` above: the FAMILY field this",
+      "entry asked for exists on comparison_cards, the manifest selects calloutEyebrow,",
+      "and ComparisonCardsBlock draws it above `callout_heading` inside the same",
+      "sub-head, guarded so blank draws no span — the hairlines the sheet hangs off it",
+      "attach again. No copy gap remains on this band.",
       "",
       "AND THREE THAT ARE LOOK AND NOT COPY — R3 working as intended, a block owning its own",
       "appearance so it can be dropped on any page. Recorded so the next person to diff this band",
@@ -4249,6 +4162,14 @@
       },
       "callout_body": {
        "section": "body"
+      },
+      "callout_eyebrow": {
+       "literal": "If you have reduced bone",
+       "from_template": "vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:680 — the <span class=\"label\"> that opens .candidacy-sub."
+      },
+      "callout_placement": {
+       "literal": "below",
+       "from_template": "vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:679-683 — .candidacy-sub is a full-width strip UNDER the grid, not an in-column aside. NULL means aside (invariant 4), so this band must say ‘below’ out loud; MediaSplitBlock’s below mode draws label + <h3> + paragraph full-width after the grid."
       }
      },
      "layout_evidence": ".natural-text precedes .natural-img (vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:625, 664) and .fmdi .natural-grid is 1fr 1.1fr (full-mouth-dental-implants.css:546) — photo right, media column the wider one. `wide-media` is already the family default for a right photo (MediaSplitBlock.astro:284), so no ratio-* modifier is emitted. This is the one band on the page whose class names the block already draws: `.natural-grid`, `.natural-text`, `.natural-img` and `.natural-quote` are the template's own strings.",
@@ -4281,33 +4202,30 @@
       }
      },
      "known_gaps": [
-      "THE GRID IS EXACT. THE CARD BELOW IT IS NOT.",
+      "NONE ANY MORE, DOWN FROM TWO. THE GRID WAS ALWAYS EXACT; THE CARD BELOW IT NOW",
+      "TRAVELS TOO.",
       "",
       "Everything inside `.natural-grid` survives element for element: eyebrow, h2,",
-      "`.natural-quote`, `ul.candidate-list` with four `<li>` of marker + <b> + text, and the",
-      "portrait plate. That is the whole of the band's argument and it is the reason this route",
-      "was worth writing after `checklist` landed.",
+      "`.natural-quote`, `ul.candidate-list` with four <li> of marker + <b> + text, and",
+      "the portrait plate.",
       "",
-      "WHAT DOES NOT SURVIVE IS `.candidacy-sub` (vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:674-678), and it goes the same way",
-      "`robotics`'s callout does — the same layout hole, seen twice on one page:",
+      "WHAT CLOSED IN THIS BATCH — both halves of the `.candidacy-sub` loss this entry",
+      "used to record:",
       "",
-      "1. `<span class=\"label\">If you have reduced bone</span>` (:675) has no field. Five words,",
-      "   lost. Closed by the same `callout_eyebrow` sub-field the `robotics` block asks for.",
-      "2. The card MOVES. Today it is a full-width white plate below the grid — max-width 940px,",
-      "   centred, sage left border, box-shadow, margin-top 70px",
-      "   (full-mouth-dental-implants.css:585-596). As `callout_heading` + `callout_body` it",
-      "   becomes an `<aside class=\"veneers-callout\">` INSIDE `.natural-text`, in the left copy",
-      "   column, under the checklist. The heading text and the paragraph are both carried; the",
-      "   position and the plate are not, and `.fmdi` has no `.veneers-callout` rule so the",
-      "   aside draws unboxed.",
-      "   Closed by the same MediaSplitBlock <style> addition the `robotics` block asks for — and,",
-      "   for the position, by nothing short of a field that says which side of the grid the",
-      "   aside belongs on. Not invented here.",
+      "1. `<span class=\"label\">If you have reduced bone</span>` (vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:680) is carried",
+      "   by the `callout_eyebrow` literal above — the sub-field the old gap asked for,",
+      "   now on media_split and selected by the manifest.",
+      "2. THE CARD NO LONGER MOVES. `callout_placement` ‘below’ tells MediaSplitBlock to",
+      "   draw the callout as the full-width strip under the grid the template ships",
+      "   (vivid-smiles-website/src/pages/implant-dentistry/full-mouth-dental-implants.astro:679-683), instead of folding it into the copy column as an in-column",
+      "   aside. The strip’s plate styles live in MediaSplitBlock’s own scoped <style>",
+      "   (invariant 5), so the band no longer leans on the page-namespaced",
+      "   `.fmdi .candidacy-sub` rules.",
       "",
-      "WHY THE ASIDE AND NOT `body`: routing sections.candidacy.body to `body` would have put the",
-      "paragraph in the copy column as plain prose and dropped 'What If You Have Bone Loss?'",
-      "entirely, because a media_split has no second heading. The aside keeps both strings. That",
-      "is the whole of the choice, and it costs the plate."
+      "The routing choice stands: sections.candidacy.body feeds `callout_body`, not",
+      "`body`, because a media_split has no second heading and the aside keeps both",
+      "‘What If You Have Bone Loss?’ and the paragraph. With placement ‘below’ it no",
+      "longer even costs the plate."
      ]
     },
     {
@@ -4932,6 +4850,10 @@
       "intro_2": {
        "literal": "No treatment begins without a clear picture of the plan.",
        "from_template": "full-mouth-rehabilitation.astro:528 — the SECOND paragraph inside .cost-body. A second field rather than a blank-line split on `intro`: the split would change how every existing stat_callout `intro` is read, and three routes already have rows saved against this layout."
+      },
+      "points_plain": {
+       "literal": true,
+       "from_template": "full-mouth-rehabilitation.astro:513-527 — the .cost-list leads are bare <strong> with no trailing colon (\"Full mouth dental implants\", \"Insurance\", \"Financing\"), while StatCalloutBlock appends \":\" to a point lead unless points_plain is true, because porcelain-veneers' live rows ship WITH the colon. Three words of this route's baseline ride on the flag."
       }
      },
      "no_stat_note": "NO `value`, NO `unit`, NO `caption`, AND NONE ARE INVENTED. This band has no figure at all — where the veneers and aligners pages put a .lasting-stat (\"20+ years\", \"20–22 hrs\"), this one puts the .cost-list. StatCalloutBlock suppresses .lasting-stat entirely when value and caption are both blank (its hasStat guard), so nothing appears in that slot; what it does NOT do is reflow the card, and that is the first item in known_gaps below.",
@@ -5314,6 +5236,10 @@
       "quote": {
        "literal": "Most patients don't realize the procedure actually happened until they look in the mirror. The laser is that gentle.",
        "from_template": "gum-contouring.astro:320-323 <div class=\"natural-quote\">. Hardcoded today; there is no CMS field it could have come from."
+      },
+      "quote_attrib": {
+       "literal": "— Dr. Bryce Richardson, DDS, Vivid Smiles Dentistry",
+       "from_template": "gum-contouring.astro:329 <span class=\"natural-quote-attrib\"> — the byline immediately under the pull quote, leading em dash included. Hardcoded today; there is no CMS field it could have come from."
       }
      },
      "layout_evidence": ".natural-text precedes .natural-img (gum-contouring.astro:317, 333) and .gcontouring .natural-grid is 1fr 1.1fr (gum-contouring.css:405-408) — photo right, media column the wider one. `wide-media` is already the family default for a right photo (MediaSplitBlock.astro:283), so no ratio-* modifier is emitted and the grid div stays the bare `natural-grid` the template ships.",
@@ -5322,35 +5248,13 @@
      "eyebrow_light_note": "MediaSplitBlock adds `.light` to the eyebrow when the band is sage or sage-pale (MediaSplitBlock.astro:268), which reproduces the template's `eyebrow light` at :318. It follows from `band` above; nothing here supplies it.",
      "no_cta_note": "No cta pair: this band has no .cta-row (gum-contouring.astro:314-344 is section-head-less — eyebrow, h2, quote, attribution, prose, photo, and nothing else). Supplying one would add buttons the page has never had.",
      "known_gaps": [
-      "THE PULL-QUOTE BYLINE IS LOST. THIS IS THE ONE GAP ON THIS BAND AND IT IS A LAYOUT FAULT,",
-      "NOT A COPY FAULT.",
-      "",
-      "gum-contouring.astro:324 ships, immediately under the quote:",
-      "",
-      "  <span class=\"natural-quote-attrib\">— Dr. Bryce Richardson, DDS, Vivid Smiles Dentistry</span>",
-      "",
-      "media_split has `quote` and nothing else around it — the layout's sub-fields are the",
-      "preamble, the image pair, media_side, ratio, body_2, the callout pair, quote, checklist and",
-      "the two cta pairs (manifest.ts:210). There is no attribution field and MediaSplitBlock",
-      "draws no such element (MediaSplitBlock.astro:431). So the backfilled band shows an",
-      "unattributed quote, and a dentist's named clinical claim becomes an anonymous one.",
-      "",
-      "IT IS NOT FOLDED INTO `quote`, and that is deliberate. Appending the byline to the quote",
-      "string would put the dash line INSIDE the .natural-quote rule — 28px display italic sage,",
-      "between two hairlines (gum-contouring.css:428-438) — instead of the 11.5px uppercase",
-      "muted caption .natural-quote-attrib is (gum-contouring.css:449-456). Same words, wrong",
-      "markup, and a visibly different band.",
-      "",
-      "WHAT CLOSES IT: a `quote_attrib` sub-field on the media_split layout in",
-      "cms/mu-plugins/vs-content-model.php, one more name in the selection set in",
-      "src/blocks/manifest.ts, and a `<span class=\"natural-quote-attrib\">` emitted by",
-      "MediaSplitBlock immediately after the quote and only when the field is non-empty — the",
-      "same additive shape `body_2` and `cta_label_2` took. Both stylesheets already carry the",
-      "rule (gum-contouring.css:449-456 for paper, :457-459 for the sage-pale variant), so",
-      "nothing in the sheet has to change. Not done here: this route does not add fields.",
-      "",
-      "It is the only page in src/pages that carries this element today, which is why the field",
-      "has not existed — and why the loss would have been silent."
+      "NONE. The pull-quote byline — the one gap this band carried — is CLOSED in this batch:",
+      "`quote_attrib` now exists on the media_split layout (vs-content-model.php, selected in",
+      "manifest.ts) and this map stores the literal from gum-contouring.astro:329, em dash",
+      "included. MediaSplitBlock draws `<span class=\"natural-quote-attrib\">` immediately after",
+      "the quote, only when the field is non-empty — the same additive shape body_2 and",
+      "cta_label_2 took. Both stylesheets already carried the rule (gum-contouring.css:449-456",
+      "paper, :457-459 sage-pale variant), so nothing in the sheet changed."
      ]
     },
     {
@@ -5642,6 +5546,34 @@
       },
       "numbered": {
        "literal": false
+      },
+      "cta_label": {
+       "literal": "Book Online",
+       "from_template": "gum-contouring.astro:529 — the first button in the closing .cta-row, variant sage."
+      },
+      "cta_href": {
+       "literal": "book",
+       "href_policy": "Token, resolved from src/data/contact.ts by the component — the template's `bookNowHref`. Never a pasted booking URL."
+      },
+      "cta_hover": {
+       "literal": "Book Now",
+       "from_template": "gum-contouring.astro:529 hoverLabel=\"Book Now\". Stored because it differs from the hover table's default for `book` (\"Let's Talk\")."
+      },
+      "cta_label_2": {
+       "literal": "Get Directions",
+       "from_template": "gum-contouring.astro:530 — the second button, variant ghost."
+      },
+      "cta_href_2": {
+       "literal": "map",
+       "href_policy": "Token, resolved from src/data/contact.ts by the component — the template's `directionsHref`. Never a pasted maps URL."
+      },
+      "cta_hover_2": {
+       "literal": "Open Map",
+       "from_template": "gum-contouring.astro:530 hoverLabel=\"Open Map\". Matches the hover table's default for `map`; stored verbatim per the assignment."
+      },
+      "cta_note": {
+       "literal": "17167 Cedar Gulch Pkwy Ste 102 · Parker, CO",
+       "from_template": "gum-contouring.astro:532 <span class=\"cta-note\">."
       }
      },
      "columns_evidence": ".gcontouring .why-3up is grid-template-columns: repeat(2, 1fr) (gum-contouring.css:380-383) — TWO across, despite the class name, against two rows in the CMS `whyCards` group. So `columns` is \"2\" and CardGridBlock emits no modifier (CardGridBlock.astro:132), which is the same two-track grid. The name .why-3up and the template comment above it describe a six-card 3-up band that was planned and never shipped; the rule and the row count are what this value was read from.",
@@ -5661,49 +5593,26 @@
       }
      },
      "known_gaps": [
-      "TWO, AND THEY ARE BOTH REAL. THIS IS THE BAND THAT CHANGES MOST.",
+      "ONE LEFT, ONE CLOSED.",
       "",
-      "1. THE CARD CHROME. The template draws <article class=\"why-3up-card\"> holding",
-      "   <span class=\"tag\">, an <h3> and a <p> (gum-contouring.astro:512-519). CardGridBlock",
-      "   draws <article class=\"why-card\"> holding <div class=\"num\">, an <h3> and a <p>",
-      "   (CardGridBlock.astro:176-188). The words are identical and every one of them is",
-      "   carried — `meta` lands in the slot the tag occupied — but the tag's TYPE changes with",
-      "   the element: `.why-3up .tag` is 10.5px uppercase letter-spaced sage",
-      "   (gum-contouring.css:392-395) and `.why-card .num` is 36px display italic sage-soft",
-      "   (gum-contouring.css:304-307, and the same declarations in CardGridBlock's own style",
-      "   block). So \"DIGITAL PREVIEW\" as a small label becomes \"Digital Preview\" as a large",
-      "   italic line, and the card's padding goes from 32px 28px to 42px 38px and its gap from",
-      "   12px to 14px. No copy is lost; the band reads as a different card.",
+      "1. THE CARD CHROME — STILL OPEN, AND WHY: the template draws <article class=\"why-3up-card\">",
+      "   holding <span class=\"tag\">, an <h3> and a <p> (gum-contouring.astro:512-519).",
+      "   CardGridBlock draws <article class=\"why-card\"> holding <div class=\"num\">, an <h3> and a",
+      "   <p>. Every word is carried — `meta` lands in the slot the tag occupied — but the tag's",
+      "   TYPE changes with the element: `.why-3up .tag` is 10.5px uppercase letter-spaced sage",
+      "   (gum-contouring.css:392-395), `.why-card .num` is 36px display italic sage-soft. No copy",
+      "   is lost (the census counts zero words here); the band reads as a different card. Closing",
+      "   it is a design decision — either .why-3up becomes a CardGridBlock variant (a new",
+      "   sub-field) or the band accepts the family card. Recorded, not decided: not a copy loss.",
       "",
-      "   WHAT CLOSES IT: nothing in this file. Either the page's `.why-3up` treatment becomes a",
-      "   variant CardGridBlock can emit — which is a design decision and a new sub-field — or",
-      "   the band accepts the family's own card, which is what every other migrated page uses.",
-      "   Recorded rather than decided: this route does not add fields.",
-      "",
-      "2. THE CLOSING .cta-row IS LOST ENTIRELY. gum-contouring.astro:522-528 ships two buttons",
-      "   and a note:",
-      "",
-      "     Book Online -> bookNowHref (variant sage, hover \"Book Now\")",
-      "     Get Directions -> directionsHref (variant ghost, hover \"Open Map\")",
-      "     .cta-note \"17167 Cedar Gulch Pkwy Ste 102 · Parker, CO\"",
-      "",
-      "   card_grid has no cta sub-fields at all — the layout is preamble + columns + numbered +",
-      "   cards (manifest.ts:169) — and CardGridBlock draws no .cta-row. So the backfilled band",
-      "   ends at the last card and the page loses its only Get Directions button and its only",
-      "   in-body street address.",
-      "",
-      "   THE ADDRESS AND THE MAP LINK ARE SITE DATA, so the pair is not simply a two-field",
-      "   transcription: `directionsHref`, and the address in the note, come from",
-      "   src/data/contact.ts, which is the same argument that keeps ProcessStepsBlock's inline-CTA",
-      "   buttons out of the map. WHAT CLOSES IT is therefore the FaqBlock shape rather than the",
-      "   media_split shape: `cta_label` / `cta_href` on the card_grid layout for the page-content",
-      "   half, with the second button and the note drawn from contact.ts by the component. That",
-      "   is a PHP change, a manifest line and a CardGridBlock change, in one commit, and it is",
-      "   not done here.",
-      "",
-      "   Until it is, this band's conversion path is the page's other five CTAs — the hero, the",
-      "   `what` pair, the process inline CTA, the FAQ pair and <VirtualConsult> — none of which",
-      "   this migration touches."
+      "2. THE CLOSING .cta-row — CLOSED in this batch. card_grid now carries the shared",
+      "   block_cta_fields() seven (vs-content-model.php, selected in manifest.ts), and this map",
+      "   stores both buttons and the note from gum-contouring.astro:529-532: Book Online → book",
+      "   (hover \"Book Now\"), Get Directions → map (hover \"Open Map\"), note \"17167 Cedar Gulch",
+      "   Pkwy Ste 102 · Parker, CO\". The hrefs are the `book` / `map` tokens resolved from",
+      "   src/data/contact.ts by CardGridBlock, which draws the foot .cta-row + note — so the",
+      "   page's only Get Directions button and only in-body street address are back, and",
+      "   editable."
      ]
     },
     {
@@ -5939,6 +5848,10 @@
       "ratio": {
        "literal": "even"
       },
+      "callout_eyebrow": {
+       "literal": "Bone & Face Structure",
+       "from_template": "single-tooth-dental-implants.astro:366 — the <span class=\"label\"> inside .robotics-callout. Drawn by MediaSplitBlock as the span.label the page sheet already styles. Placement stays default: `callout_placement` is not set, and NULL means aside/in-column — exactly where this inset sits in the baseline."
+      },
       "callout_heading": {
        "literal": "Why Implants Preserve Your Jawbone and Face Structure",
        "from_template": "single-tooth-dental-implants.astro:362 — the <h4> inside .robotics-callout. See known_gaps: the aside this lands in emits <h3>."
@@ -5960,6 +5873,10 @@
       },
       "cta_href_2": {
        "literal": "#process"
+      },
+      "cta_hover_2": {
+       "literal": "See How",
+       "from_template": "single-tooth-dental-implants.astro:380 — hoverLabel on the second button in .cta-row.left. Overrides the CTA_HOVER table's derived \"View Steps\" for #process. The first button's hover is left blank: #consult derives \"Get a Video\", which is what :377 passes."
       }
      },
      "layout_evidence": ".what-img precedes .what-text in the DOM (single-tooth-dental-implants.astro:345, 354) and .singletooth .what-grid is 1fr 1fr (single-tooth-dental-implants.css:343-346) — photo left, even split. `even` is already the family default for a left photo (MediaSplitBlock.astro:284-286), so no ratio-* modifier is emitted and the grid div matches the template's bare `what-grid`.",
@@ -5968,56 +5885,32 @@
      "prose_note": "ONE paragraph in .prose (single-tooth-dental-implants.astro:357-359), so no `body_2`.",
      "no_checklist_note": "No `checklist` rows, and none are invented. The `checklist` repeater draws the numbered <ul class=\"candidate-list\"> that three of this page's implant siblings ship; this page has no such list in any band — `.candidate-list` appears nowhere in single-tooth-dental-implants.css. Supplying one would add a list the page has never had.",
      "known_gaps": [
-      "THE `.robotics-callout` INSET LOSES ITS `.label` EYEBROW AND CHANGES ELEMENT.",
+      "CLOSED — THE `.label` EYEBROW: `callout_eyebrow` (\"Bone & Face Structure\") now carries",
+      "single-tooth-dental-implants.astro:366. The field landed on media_split in this batch and",
+      "MediaSplitBlock draws it as the <span class=\"label\"> the page sheet already styles",
+      "(single-tooth-dental-implants.css:352-356). The six words are no longer lost.",
       "",
-      "The template's inset is three pieces (single-tooth-dental-implants.astro:360-369):",
+      "CLOSED — THE SECOND BUTTON'S HOVER LABEL: `cta_hover_2` = \"See How\" now overrides the",
+      "component's CTA_HOVER derivation (#process → \"View Steps\"). The hover state matches the",
+      "template at :380 exactly. The first button needs no override: #consult derives",
+      "\"Get a Video\", which is what :377 passes.",
       "",
-      "  <div class=\"robotics-callout\">",
-      "    <span class=\"label\">Bone & Face Structure</span>",
-      "    <h4>Why Implants Preserve Your Jawbone and Face Structure</h4>",
-      "    <p>…</p>",
-      "  </div>",
-      "",
-      "media_split's callout pair has slots for two of the three. MediaSplitBlock draws",
-      "<aside class=\"veneers-callout\"><h3>…</h3><p>…</p></aside> (MediaSplitBlock.astro:486-495),",
-      "so the heading and the paragraph are carried and \"Bone & Face Structure\" is LOST — six",
-      "words of live client copy, gone with the band still looking finished, which is the exact",
-      "failure shape `checklist` was drawn for on this same layout.",
-      "",
-      "Two smaller differences ride along: <div> becomes <aside>, and <h4> becomes <h3>. The",
-      "heading-level change is the one worth naming — this inset sits under the band's own <h2>",
-      "beside a <p>, and an <h3> there is arguably the more correct outline, but it is a change,",
-      "not a fix, and it is not this file's to make.",
-      "",
-      "WHAT CLOSES IT: a `callout_eyebrow` text sub-field on media_split, drawn as the",
-      "<span class=\"label\"> the two page sheets already style (:352-356 here, :499-503 for the",
-      "candidacy variant). One field, one line in the fragment, one line in the component — and",
-      "it is additive, because every band saved against this layout today has no eyebrow and",
-      "must keep emitting no span. NOT DONE HERE: adding a field is out of scope for a route",
-      "entry, and the same gap is open on the `candidacy` block below, so it wants closing once",
-      "rather than page by page.",
+      "REMAINING — ELEMENT AND HEADING LEVEL: <div class=\"robotics-callout\"> becomes",
+      "<aside class=\"veneers-callout\"> and <h4> becomes <h3> (MediaSplitBlock's fixed callout",
+      "markup). No words are lost — this is component structure, not copy — and the <h3> under",
+      "the band's own <h2> is arguably the more correct outline. Left open because changing the",
+      "emitted element per page is not a field's job.",
       "",
       "POSITION IS NOT A GAP ON THIS BAND. The inset sits inside .what-text between .prose and",
-      ".cta-row (single-tooth-dental-implants.astro:357-370), and that is exactly where",
-      "MediaSplitBlock puts its aside. The candidacy band below is the one where position moves.",
+      ".cta-row (single-tooth-dental-implants.astro:357-374), which is where MediaSplitBlock puts",
+      "its aside; `callout_placement` is deliberately unset (NULL means aside).",
       "",
-      "THE ASIDE IS NOT UNSTYLED, BUT ONLY BECAUSE THE SHEET GAINED AN ALIAS. `.veneers-callout`",
-      "is styled nowhere outside `.twhitening` (teeth-whitening.css:476-489) and MediaSplitBlock",
-      "carries no rule of its own for it, so this band would have backfilled into unstyled white",
-      "text on a charcoal ground. single-tooth-dental-implants.css now ends with an additive",
-      "`.singletooth .veneers-callout` block reproducing `.robotics-callout`'s own declarations",
-      "verbatim. Additive: nothing above it was changed or removed.",
-      "",
-      "THE SECOND BUTTON'S HOVER LABEL CHANGES, and it is the same residue teeth-whitening",
-      "records. MediaSplitBlock derives each hover label from the HREF (CTA_HOVER,",
-      "MediaSplitBlock.astro:233-238): #process resolves to \"View Steps\", and this page passes",
-      "\"See How\" at :375. The first button matches — #consult resolves to \"Get a Video\", which",
-      "is what :372 passes. Two words on a hover state; recorded so it is not mistaken for a",
-      "regression when it shows in a diff.",
+      "THE ASIDE IS STYLED VIA THE SHEET ALIAS: single-tooth-dental-implants.css ends with an",
+      "additive `.singletooth .veneers-callout` block reproducing `.robotics-callout`'s own",
+      "declarations verbatim. Additive: nothing above it was changed or removed.",
       "",
       "The variants match. Charcoal is a dark band, so primaryVariant is `light` and",
-      "secondaryVariant is `ghost-light` (MediaSplitBlock.astro:395-396, isDarkBand at :272),",
-      "which is the pair :372-377 ships."
+      "secondaryVariant is `ghost-light`, which is the pair :376-381 ships."
      ]
     },
     {
@@ -6226,6 +6119,10 @@
        "literal": "Most healthy adults with a single missing tooth, adequate bone, and healthy gums qualify for an implant.",
        "from_template": "single-tooth-dental-implants.astro:510-513 <div class=\"natural-quote\">. Hardcoded today; there is no CMS field it could have come from."
       },
+      "callout_eyebrow": {
+       "literal": "If you don't qualify yet",
+       "from_template": "single-tooth-dental-implants.astro:534 — the <span class=\"label\"> inside .candidacy-sub."
+      },
       "callout_heading": {
        "literal": "What If I Don't Have Enough Bone?",
        "from_template": "single-tooth-dental-implants.astro:530 — the <h3> inside .candidacy-sub. Heading level matches here: MediaSplitBlock's aside emits <h3> too."
@@ -6233,6 +6130,10 @@
       "callout_body": {
        "literal": "If bone volume is insufficient, grafting or a sinus lift can restore it; both are performed in-house at Vivid Smiles. These procedures add 3 to 6 months to the timeline but make implant placement possible for patients who would otherwise not qualify.",
        "from_template": "single-tooth-dental-implants.astro:531-535 — the one paragraph inside .candidacy-sub. One paragraph, no blank line, so the blank-line split produces exactly one <p>."
+      },
+      "callout_placement": {
+       "literal": "below",
+       "from_template": "single-tooth-dental-implants.astro:533-539 — .candidacy-sub is a sibling of .natural-grid inside .wrap, a full-width centred plate under the whole split (margin-top 70px, max-width 940px, auto side margins at single-tooth-dental-implants.css:488-497). MediaSplitBlock's `below` mode draws label + h3 + paragraph full-width after the grid, restoring the baseline position this entry previously recorded as an in-column gap."
       }
      },
      "layout_evidence": ".natural-text precedes .natural-img (single-tooth-dental-implants.astro:507, 518) and .singletooth .natural-grid is 1fr 1.1fr (single-tooth-dental-implants.css:471-474) — photo right, media column the wider one. `wide-media` is already the family default for a right photo (MediaSplitBlock.astro:284-286), so no ratio-* modifier is emitted and the grid div matches the template's bare `natural-grid`.",
@@ -6241,40 +6142,22 @@
      "prose_note": "ONE paragraph in .prose (single-tooth-dental-implants.astro:514-516), so no `body_2`.",
      "no_cta_note": "No cta pair: this band has no .cta-row at all (single-tooth-dental-implants.astro:504-538). MediaSplitBlock draws the row only when a label is filled (hasCtaRow, MediaSplitBlock.astro:386), so supplying nothing keeps the band buttonless as it is.",
      "known_gaps": [
-      "THE `.candidacy-sub` INSET MOVES INTO THE TEXT COLUMN, AND LOSES ITS `.label` EYEBROW.",
+      "CLOSED — POSITION: `callout_placement` = \"below\" now draws the plate as a full-width",
+      "sibling of the grid inside .wrap, which is where the template puts .candidacy-sub",
+      "(single-tooth-dental-implants.astro:533-539). The previous residue — the plate coming",
+      "back at half width inside the copy column — is corrected; this also closes the recorded",
+      "in-column position gap for this band. NULL would have meant aside; \"below\" is set",
+      "explicitly.",
       "",
-      "Position first, because it is the difference this band has and `what` does not. The",
-      "template puts .candidacy-sub OUTSIDE .natural-grid — a sibling of it, inside .wrap",
-      "(single-tooth-dental-implants.astro:526-536) — where the sheet gives it",
-      "margin-top: 70px, max-width: 940px and auto side margins",
-      "(single-tooth-dental-implants.css:488-497): a full-width centred plate under the whole",
-      "split. MediaSplitBlock has one slot for an aside and it is INSIDE the copy column, after",
-      ".prose (MediaSplitBlock.astro:486-495). So on a backfilled page this plate comes back at",
-      "roughly half width, tucked under the paragraph in the left column, beside the photograph",
-      "rather than below it.",
+      "CLOSED — THE `.label` EYEBROW: `callout_eyebrow` (\"If you don't qualify yet\") now",
+      "carries single-tooth-dental-implants.astro:534. Same field that closed the `what` band's",
+      "eyebrow, closed once in the layout as intended.",
       "",
-      "The copy survives intact and that is why the fields are filled anyway: the alternative is",
-      "leaving them blank and losing a heading and forty words about bone grafting entirely,",
-      "which is the worse of the two failures by a wide margin. But the band does not look like",
-      "the band it replaces, and nobody should read this row as lossless.",
-      "",
-      "AND THE `.label` GOES, exactly as it does on `what`. \"If you don't qualify yet\"",
-      "(single-tooth-dental-implants.astro:529) has no field on the layout. Same gap, same",
-      "cause, same fix — see the `what` block above; a `callout_eyebrow` sub-field closes both",
-      "at once, which is the reason to close it in the layout rather than here.",
-      "",
-      "WHAT CLOSES THE POSITION HALF: a `callout_position` select on media_split — `in-copy`",
-      "(today's behaviour, the default every saved band keeps) versus `below-split`, drawn as a",
-      "sibling of the grid inside .wrap. That is one select and one branch in the component, and",
-      "it is additive by construction. NOT DONE HERE: it is a field, and adding fields is out of",
-      "scope for a route entry.",
-      "",
-      "THE ASIDE IS STYLED, VIA THE SAME ALIAS `what` LEANS ON. The additive",
-      "`.singletooth .veneers-callout` block at the end of single-tooth-dental-implants.css",
-      "reproduces `.robotics-callout`'s declarations, which are `.candidacy-sub`'s treatment at",
-      "a smaller scale — white plate, 3px sage left border. The larger padding, the box-shadow",
-      "and the 940px cap are part of the position gap above, not separate from it: they only",
-      "make sense on a plate that spans the band."
+      "REMAINING — the plate's larger padding, box-shadow and 940px cap come from the page",
+      "sheet's `.candidacy-sub` rules (single-tooth-dental-implants.css:488-497); the component's",
+      "below-mode strip carries its own scoped styling. Any visual delta between the two is a",
+      "styling nuance of the below mode, not lost copy — every word of the plate (label,",
+      "heading, paragraph) is carried."
      ]
     },
     {
@@ -6673,28 +6556,6 @@
      "image_alt_note": "The images row for slot drRichardsonImg carries alt \"Dr. Bryce Richardson, lead surgeon at Vivid Smiles Dentistry in Parker, CO\" — confirmed live, and character-for-character the string the template hardcodes at sinus-lift.astro:314. Moved, not transcribed: the row exists.",
      "eyebrow_note": "The CMS `why` row holds eyebrow \"Why Vivid Smiles\", heading and body all non-null — verified live — and the template reads all three (sinus-lift.astro:320-322). Nothing here is a literal.",
      "known_gaps": [
-      "THE THREE-CELL `.why-creds` STRIP IS LOST. This is the largest loss on this route.",
-      "",
-      "sinus-lift.astro:323-338 is `.why-creds` — a three-column band under the lede, ruled off",
-      "with a border-top, holding three `.cred` cells:",
-      "",
-      "  600+ hrs        / Advanced Surgical Training",
-      "  300+ ★★★★★      / Five-Star Google Reviews",
-      "  Implant Pathway / Clinical Staff Role",
-      "",
-      "Six short strings and one inline star run. No registered layout has a repeater of",
-      "figure-plus-label pairs: `stat_callout` carries exactly ONE figure (`value` + `unit` +",
-      "`caption`), which is why it is not the layout for this band — the band is three, not",
-      "one, and folding two of them away to fit would delete two of the practice's three",
-      "credentials. `card_grid` could hold three cards but only by giving up the photograph",
-      "and the editorial split, which is more of the band than the strip is.",
-      "",
-      "WHAT WOULD CLOSE IT: a `stats { value unit caption }` repeater on `media_split`, drawn",
-      "by MediaSplitBlock as `.why-creds > .cred > .cred-stat + .cred-label` after the prose",
-      "— the same shape `checklist` got when four pages needed `.candidate-list`. It is one",
-      "repeater and one template branch, and three of the eight implant pages carry a",
-      "credentials strip of this shape. Adding it is a component change, not a page change.",
-      "",
       "THE PHOTO'S BOX CHANGES ORIENTATION, AND IT IS THE MOST VISIBLE OF THESE.",
       "`.sinuslift .why-image` is `aspect-ratio: 4/5` (sinus-lift.css:280) — a portrait plate.",
       "MediaSplitBlock's left-hand plate is `.what-img`, `aspect-ratio: 5/4`",
@@ -6723,6 +6584,38 @@
       "    (17px / line-height 1.85 / max-width 56ch, sinus-lift.css:302-305) is replaced by",
       "    the block's paragraph treatment. `.sinuslift .why-lede strong` (:306-309) goes with",
       "    it, but the CMS body carries no <strong>, so nothing rendered changes there."
+     ],
+     "rows": {
+      "creds": {
+       "literal": [
+        {
+         "stat": "600+ hrs",
+         "label": "Advanced Surgical Training"
+        },
+        {
+         "stat": "300+",
+         "label": "Five-Star Google Reviews",
+         "stars": true
+        },
+        {
+         "stat": "Implant Pathway",
+         "label": "Clinical Staff Role"
+        }
+       ],
+       "from_template": "sinus-lift.astro:328-343 — the three `.cred` cells of `.why-creds`, in order. Hardcoded in the template; no CMS rows exist for them, so these are transcriptions.",
+       "stars_note": "Row 2 sets `stars` true and stat \"300+\" only. The ★★★★★ run is `<span class=\"stars\" aria-hidden=\"true\">` in the template (sinus-lift.astro:335) — presentation, not copy — so MediaSplitBlock draws the star span itself, aria-hidden, whenever `stars` is true, and the glyphs never enter the CMS."
+      }
+     },
+     "closed_gaps": [
+      "THE THREE-CELL `.why-creds` STRIP IS CLOSED — this was the largest loss on this route.",
+      "The `creds { stat label stars }` repeater added to media_split in the secondary-grid",
+      "batch is exactly the figure-plus-label repeater the gap below asked for (it asked for",
+      "`stats { value unit caption }`; the shipped shape is `creds { stat label stars }`, one",
+      "figure and one label per row plus a boolean for the star run, which carries the same",
+      "three cells without inventing a unit sub-field no cell here uses). All three rows are",
+      "transcribed in `rows.creds` above from sinus-lift.astro:328-343, and MediaSplitBlock",
+      "draws `.why-creds > .cred > .cred-stat + .cred-label` after the checklist position,",
+      "with its declarations in the block's own scoped style."
      ]
     },
     {
@@ -6776,6 +6669,10 @@
       },
       "sub_columns": {
        "literal": "4"
+      },
+      "callout_eyebrow": {
+       "literal": "Common Causes",
+       "from_template": "sinus-lift.astro:387 — the `.what-sub-head` eyebrow, the label above the sub-head's <h3>. Drawn by MediaSplitBlock immediately before callout_heading."
       }
      },
      "layout_evidence": ".what-img precedes .what-text in the DOM (sinus-lift.astro:353, 361) and .sinuslift .what-grid is 1fr 1fr (sinus-lift.css:343-344) — photo left, even split. `even` is already the family default for a left photo (MediaSplitBlock.astro's familyRatio), so no ratio-* modifier is emitted and the grid div matches the template's exactly. The plate is 5/4 on both sides (sinus-lift.css:347 and the block's `.what-img`), so unlike `why` this band's photograph is unchanged.",
@@ -6797,24 +6694,9 @@
       }
      },
      "known_gaps": [
-      "THE FOUR `.cause-card`s ARE NO LONGER LOST. `sub_cards` carries them from the CMS and",
-      "`sub_columns` carries the grid's four-across shape — see `rows` above. Of the `.what-sub`",
-      "unit that this band used to lose whole, ONE line is still missing, and it is named exactly.",
+      "NO CONTENT GAP REMAINS — see `closed_gaps`. ONE thing to check against the rendered",
+      "band, which is not a content gap:",
       "",
-      "THE `.what-sub-head` EYEBROW HAS NO SLOT. sinus-lift.astro:383 is",
-      "`<span class=\"eyebrow\">Common Causes</span>`, the label above the sub-head's <h3>.",
-      "`media_split` carries one eyebrow and it is the band's own — already mapped from the",
-      "sections row — so there is nowhere to put a second. Three words, and they disappear on",
-      "backfill.",
-      "",
-      "WHAT WOULD CLOSE IT: a `callout_eyebrow` TEXT field on media_split, drawn immediately",
-      "before callout_heading. A text field mints no GraphQL type — only repeaters and groups do",
-      "— so unlike `sub_cards` it cannot collide with anything under `blocks`, and the name-",
-      "collision reasoning that governs the repeaters does not apply to it. It is one field for",
-      "four bands, not one for this page: all-on-4-single-arch's `.what-sub-head` and both",
-      "`#compare` sub-heads carry the same orphaned eyebrow.",
-      "",
-      "AND ONE THING TO CHECK AGAINST THE RENDERED BAND, WHICH IS NOT A CONTENT GAP.",
       "`.sinuslift .cause-grid` and `.sinuslift .cause-card` (sinus-lift.css:387-412, plus the",
       "re-flows at :877 and :923) are keyed to class names this map does not choose —",
       "MediaSplitBlock decides what it emits and ships its own scoped declarations for it. If it",
@@ -6827,7 +6709,18 @@
       "carried in both cases. Recorded here so it is checked once against the live band rather",
       "than re-discovered."
      ],
-     "callout_evidence": "sinus-lift.astro:382-391. Carried by callout_heading / callout_body, which the layout declares, manifest.ts selects and the component draws. It was recorded as a gap because the wrapper class differs from .veneers-callout — but that trades live client copy for a class name, and the class is a styling problem, not a content one. The four cards below are now carried too, by `sub_cards`; the eyebrow line above stays a recorded gap."
+     "callout_evidence": "sinus-lift.astro:382-391. Carried by callout_heading / callout_body, which the layout declares, manifest.ts selects and the component draws. It was recorded as a gap because the wrapper class differs from .veneers-callout — but that trades live client copy for a class name, and the class is a styling problem, not a content one. The four cards below are now carried too, by `sub_cards`; the eyebrow line above stays a recorded gap.",
+     "closed_gaps": [
+      "THE FOUR `.cause-card`s ARE NOT LOST. `sub_cards` carries them from the CMS and",
+      "`sub_columns` carries the grid's four-across shape — see `rows` below. (Closed in the",
+      "secondary-grid batch.)",
+      "",
+      "THE `.what-sub-head` EYEBROW IS NO LONGER LOST EITHER. `callout_eyebrow` — the TEXT",
+      "field the gap here asked for, added to media_split in this batch — now carries",
+      "\"Common Causes\" (sinus-lift.astro:387). A text field mints no GraphQL type, so the",
+      "name-collision reasoning that governs the repeaters does not apply to it. With it,",
+      "the whole `.what-sub` unit is carried and this band has no remaining content gap."
+     ]
     },
     {
      "section_id": "process",
@@ -7061,6 +6954,53 @@
       },
       "numbered": {
        "literal": true
+      },
+      "cards_eyebrow": {
+       "literal": "What affects your cost",
+       "from_template": "sinus-lift.astro:564 — the `.invest-factors` eyebrow labelling the factor list. CardGridBlock draws it directly above the cards."
+      },
+      "callout_eyebrow": {
+       "literal": "Insurance & Financing",
+       "from_template": "sinus-lift.astro:581 — `<span class=\"eyebrow light\">Insurance &amp; Financing</span>`, the `.insurance-card` aside's label. The entity decodes to the ampersand; the field stores the decoded text."
+      },
+      "callout_heading": {
+       "literal": "A clear estimate before any decisions.",
+       "from_template": "sinus-lift.astro:582 — the aside's <h3>."
+      },
+      "callout_body": {
+       "literal": "Every sinus lift is quoted against a CBCT scan — no surprises, no across-the-board pricing. We review your PPO benefits up front, document medical-necessity language when applicable, and offer financing for the balance.",
+       "from_template": "sinus-lift.astro:583-587 — the aside's paragraph, source whitespace collapsed to single spaces."
+      },
+      "callout_placement": {
+       "literal": "aside",
+       "note": "card_grid's `callout_placement` NULL means BELOW (unlike media_split, whose NULL means aside), so this band must say `aside` explicitly: the `.insurance-card` panel fills the right-hand column of `.invest-grid` (sinus-lift.css:636-643), beside the cards, with the buttons and the bring-line inside it."
+      },
+      "cta_label": {
+       "literal": "Free Virtual Consult",
+       "from_template": "sinus-lift.astro:595-597 — the first Button in `.insurance-card__actions`, variant light."
+      },
+      "cta_href": {
+       "literal": "#consult"
+      },
+      "cta_hover": {
+       "literal": "Get a Video",
+       "hover_note": "Matches the template's hoverLabel and the default hover table for #consult; written explicitly so the rendered band never depends on the table's defaults."
+      },
+      "cta_label_2": {
+       "literal": "Book a Quote",
+       "from_template": "sinus-lift.astro:598-600 — the second Button, variant outline-light, href {bookNowHref}."
+      },
+      "cta_href_2": {
+       "literal": "book",
+       "href_policy_note": "The template's href is {bookNowHref} resolved from src/data/contact.ts. Per the HREF POLICY this field stores the token `book`, never the pasted booking URL; the component resolves it from contact.ts."
+      },
+      "cta_hover_2": {
+       "literal": "Book Consult",
+       "hover_note": "The template's literal hoverLabel (sinus-lift.astro:598). NOT the `book` default \"Let's Talk\" — the override field exists for exactly this."
+      },
+      "cta_note": {
+       "literal": "Bring your insurance card(s) to the consultation.",
+       "from_template": "sinus-lift.astro:602 — `.insurance-card__bring`, the aside's closing line."
       }
      },
      "columns_evidence": "THREE ACROSS IS A CHANGE, AND IT IS THE HONEST ONE. `.sinuslift .cost-factor-list` is a vertical flex column of three ruled rows (sinus-lift.css:645-648), not a grid — it stacks because it shares the band with the insurance aside. `card_grid`'s `columns` offers 2, 3 and 4 and has no one-across choice, so three cards side by side is the nearest shape the layout can draw for three items. `2` would orphan the third and `4` would leave a hole; `3` at least keeps the three factors on one line and in order. Recorded in known_gaps rather than presented as a match.",
@@ -7075,69 +7015,67 @@
        "note": "All 3 rows of the `costBullets` cards group, in order — verified live: Graft material, Implant timing, Insurance coverage. Their text is character-for-character the const array at sinus-lift.astro:106-119 the template renders instead, so this is a move.",
        "no_lead_note": "`lead` is left empty and `body` carries the paragraph. `.cost-factor__copy` holds one <h3> and one unclassed <p> (sinus-lift.astro:565-568); CardGridBlock draws `lead` as `<p class=\"lead\">` and `body` as a plain `<p>`, so `body` is the one that matches. Putting the sentence in `lead` would give it the lead paragraph's treatment on a page that has never had one here.",
        "no_meta_note": "`meta` is not supplied and could not be used: CardGridBlock puts `meta` and the derived number in the SAME slot (its `figure()` helper), so a numbered grid shows the number and never the meta. These three cards have no label anyway."
+      },
+      "callout_points": {
+       "literal": [
+        {
+         "item": "PPO dental benefits reviewed pre-treatment"
+        },
+        {
+         "item": "Medical-plan language when sinus pathology is documented"
+        },
+        {
+         "item": "In-house & third-party financing partners"
+        },
+        {
+         "item": "Vivid Smiles membership plan for uninsured patients"
+        }
+       ],
+       "from_template": "sinus-lift.astro:589-592 — the four `.insurance-card__list` lines, in order. Hardcoded; no CMS rows exist for them. The third line's &amp; decodes to the ampersand.",
+       "no_lead_note": "`lead` is deliberately blank on all four rows. These are plain lines — no bold label, no colon — so `item` carries the whole line and a lead would print a label the design has never had."
       }
      },
      "known_gaps": [
-      "THIS IS THE BESPOKE BAND ON THIS PAGE AND IT LOSES THE MOST. Everything above the grid",
-      "survives; the grid's shape and everything beside it does not.",
+      "ONE PRESENTATIONAL DIFFERENCE REMAINS, AND IT IS ARRANGEMENT, NOT COPY:",
       "",
-      "1. THE WHOLE `.insurance-card` ASIDE IS LOST. sinus-lift.astro:575-598 is a sage plate",
-      "   (`.sinuslift .insurance-card { background: var(--sage); color: #fff }`,",
-      "   sinus-lift.css:682-691) filling the right-hand column, and it carries:",
+      "THE FACTOR LIST CHANGES SHAPE AND NAME. `ul.cost-factor-list` of `li.cost-factor`",
+      "becomes CardGridBlock's numbered grid: a stacked, ruled list of three (border-top on",
+      "each, border-bottom on the last, sinus-lift.css:649-657) becomes three cards, and the",
+      "oversized `.cost-factor__num` (clamp(38px, 4.2vw, 52px) sage, :658-666) becomes",
+      "CardGridBlock's `.num`. The words are all carried — titles and bodies in `rows.cards`,",
+      "the column label in `cards_eyebrow` — the arrangement is not. The 480px rule that",
+      "collapses `.cost-factor` to one column (sinus-lift.css:938) stops applying too.",
+      "Closing this would take a code_section band or a list-mode on card_grid; neither is",
+      "taken in this change, and no words hang on it."
+     ],
+     "closed_gaps": [
+      "THE WHOLE `.insurance-card` ASIDE IS CLOSED — it was the single largest block of copy",
+      "this route would lose, and the band's conversion path. The callout panel added to",
+      "card_grid in this batch carries all of it:",
       "",
-      "     - eyebrow \"Insurance & Financing\" (:576)",
-      "     - <h3> \"A clear estimate before any decisions.\" (:577)",
-      "     - a paragraph of prose about CBCT-based quoting and PPO review (:578-582)",
-      "     - four `.insurance-card__list` lines (:583-588): PPO dental benefits reviewed",
-      "       pre-treatment / Medical-plan language when sinus pathology is documented /",
-      "       In-house & third-party financing partners / Vivid Smiles membership plan for",
-      "       uninsured patients",
-      "     - TWO BUTTONS (:589-596): \"Free Virtual Consult\" (variant light, href #consult) and",
-      "       \"Book a Quote\" (variant outline-light, href bookNowHref)",
-      "     - the closing line \"Bring your insurance card(s) to the consultation.\" (:597)",
+      "  - `callout_eyebrow` \"Insurance & Financing\" (sinus-lift.astro:581)",
+      "  - `callout_heading` \"A clear estimate before any decisions.\" (:582)",
+      "  - `callout_body`, the CBCT-quoting / PPO-review paragraph (:583-587, whitespace collapsed)",
+      "  - `callout_points`, the four plain list lines (:589-592) — see `rows`",
+      "  - the cta seven: Free Virtual Consult -> #consult hover \"Get a Video\", Book a Quote",
+      "    -> token `book` hover \"Book Consult\", note \"Bring your insurance card(s) to the",
+      "    consultation.\" (:594-602)",
       "",
-      "   None of it is in the CMS and none of it has a field on any of the nine deployed",
-      "   layouts. It is the single largest block of copy this route would lose, and it is the",
-      "   band's conversion path — two of the page's CTAs are inside it.",
+      "With `callout_placement` = \"aside\", CardGridBlock renders the boxed panel BESIDE the",
+      "cards and puts the buttons and the note inside it — which also closes the two-column",
+      "`.invest-grid` loss recorded below it: the factors sit left, the panel right, and the",
+      "band has something to sit beside again.",
       "",
-      "2. THE TWO-COLUMN `.invest-grid` IS LOST. sinus-lift.css:636-643 is",
-      "   `minmax(0, 1.05fr) minmax(0, 0.95fr)` with a 56px gap and align-items: start; the",
-      "   factors sit left, the aside right. card_grid draws one full-width grid. With the",
-      "   aside gone there is nothing to sit beside, so this follows from (1) rather than being",
-      "   a separate decision.",
+      "THE \"What affects your cost\" EYEBROW IS CLOSED by `cards_eyebrow` (sinus-lift.astro:564),",
+      "drawn directly above the cards. It labels the factor column again.",
       "",
-      "3. THE FACTOR LIST CHANGES SHAPE AND NAME. `ul.cost-factor-list` of `li.cost-factor`",
-      "   becomes `div.why-grid.cols-3` of `article.why-card`: a stacked, ruled list of three",
-      "   (border-top on each, border-bottom on the last, sinus-lift.css:649-657) becomes three",
-      "   cards in a row, and the oversized `.cost-factor__num` (clamp(38px, 4.2vw, 52px) sage,",
-      "   :658-666) becomes CardGridBlock's `.num`. The words are all carried; the arrangement",
-      "   is not. The 480px rule that collapses `.cost-factor` to one column",
-      "   (sinus-lift.css:938) stops applying too.",
+      "THE RAIL STOPS LYING: the toc_links row for this anchor reads \"Cost & Insurance\", and",
+      "with the aside carried there is insurance content under it again.",
       "",
-      "4. THE \"What affects your cost\" EYEBROW IS LOST (:559). It labels the left column of a",
-      "   two-column band; with one column there is nothing for it to label, and card_grid has",
-      "   one eyebrow, already spent on the section head.",
-      "",
-      "WHAT WOULD CLOSE IT, AND IT IS ONE THING RATHER THAN FOUR: a `code_section` row naming",
-      "an `sinus_lift_investment` band, with the markup moved into a component and reproduced",
-      "verbatim in CodeSectionBlock's BANDS map — the same treatment LocalTrust gets on the",
-      "three cosmetic routes. That keeps the band exactly as it is, keeps it positionable and",
-      "keeps its \"Cost & Insurance\" rail entry pointing at prices, at the cost of the copy",
-      "staying in code until `map_visit` (Wave B, Phase 4) moves it.",
-      "",
-      "IT IS NOT DONE IN THIS CHANGE, DELIBERATELY. A code_section row needs a new choice in",
-      "BLOCK_CODE_BANDS (cms/mu-plugins/vs-content-model.php) and a new entry in",
-      "CodeSectionBlock.astro's BANDS map, and both files are shared by the seven other pages",
-      "being migrated concurrently. Nothing validates a select's CHOICES either: a row naming",
-      "an unregistered key writes cleanly, resolves to nothing, and the band vanishes from a",
-      "live page with a console warning as the only trace. So the band is mapped to the layout",
-      "that carries the most of it, the loss is written down here in full, and the code_section",
-      "route is left for a change that owns those two files.",
-      "",
-      "THE RAIL KEEPS SAYING SOMETHING THE PAGE WILL STOP SHOWING, and it is worth seeing",
-      "before the backfill runs, not after: the toc_links row for this anchor reads",
-      "\"Cost & Insurance\". After the backfill it still scrolls here, and there is no insurance",
-      "content under it."
+      "THE code_section ROUTE THE OLD GAP SKETCHED IS NOT NEEDED. The aside and the eyebrow",
+      "were the content; they now have fields. What code_section would additionally have",
+      "preserved is only the factor list's exact arrangement, recorded below as the one",
+      "remaining (presentational) difference."
      ]
     },
     {
@@ -7309,17 +7247,20 @@
     "so there was never anything to move. Five bands ship buttons and they split four ways:",
     "`options` and `faq` have theirs drawn by their components (ComparisonCardsBlock owns its",
     "whole cta-row; FaqBlock owns the phone button), `what` carries a transcribed pair because",
-    "media_split gates its row on cta_label, and `process` and `results` get none at all —",
-    "media_split cannot draw an .inline-cta and gallery_marquee is preamble-only. Those last",
-    "two are recorded gaps, not omissions.",
+    "media_split gates its row on cta_label, `process` carries its .inline-cta plate through",
+    "media_split's census-batch `cta_text` (the plate's two buttons are component literals",
+    "from contact.ts), and `results` carries its two-button row through gallery_marquee's",
+    "census-batch cta fields. Nothing button-shaped is recorded as lost any more.",
     "",
-    "FOUR GAPS, AND EVERY ONE OF THEM IS A MARKUP SHAPE THE PAGE INVENTED RATHER THAN A FIELD",
-    "SOMEONE FORGOT. #issues has a page-local `.issues-grid` 5-up; #process hangs a",
-    "`.process-sub` <h3> mid-prose and an `.inline-cta.dark` under the grid; #options nests a",
-    "`<ul class=\"prep-list\">` and a second paragraph inside its featured card and wraps all",
-    "three cards in stretched links; #results puts a two-button `.cta-row` inside a",
-    "gallery band's section-head. No field was added and no layout was invented for any of",
-    "them. See `known_gaps` on each block."
+    "FOUR GAPS WERE RECORDED WHEN THIS ENTRY WAS WRITTEN, AND EVERY ONE WAS A MARKUP SHAPE",
+    "THE PAGE INVENTED RATHER THAN A FIELD SOMEONE FORGOT. The census batch closed the",
+    "word-bearing ones: #process's `.process-sub` <h3> now rides `body_2_heading` and its",
+    "`.inline-cta.dark` rides `cta_text`; #options' nested `.prep-list` rides `tiers.bullets`",
+    "(commit 234062d) and its featured card's second paragraph rides `tiers.body_2`;",
+    "#results' two-button `.cta-row` rides gallery_marquee's cta fields. What remains is",
+    "wordless: #issues' page-local 5-up `.issues-grid` renders four across (see that block's",
+    "known_gaps), #options' three stretched links have no tier href field, and #results'",
+    "eyebrow gains an inert `light` class. See `known_gaps` on each block."
    ],
    "blocks": [
     {
@@ -7364,6 +7305,10 @@
       },
       "cta_href_2": {
        "literal": "#options"
+      },
+      "cta_hover_2": {
+       "literal": "See Options",
+       "from_template": "smile-makeover.astro:329 hoverLabel=\"See Options\" on the second button in .cta-row.left. media_split gained cta_hover / cta_hover_2 in the census batch and MediaSplitBlock reads them over its CTA_HOVER map, which never learned `#options` — so this field is what puts the hover word back."
       }
      },
      "layout_evidence": ".what-img precedes .what-text in the DOM (smile-makeover.astro:305, 313) and .smilemakeover .what-grid is 1fr 1fr (smile-makeover.css:333-334) — photo left, even split. `even` is already the family default for a left photo (MediaSplitBlock.astro:284-286), so no ratio-* modifier is emitted and the grid div stays the bare `what-grid` the template ships.",
@@ -7371,24 +7316,16 @@
      "prose_note": "ONE paragraph in .prose (smile-makeover.astro:316-318), so no `body_2`.",
      "variant_note": "Paper is not a dark band, so MediaSplitBlock's primaryVariant is `sage` and secondaryVariant is `ghost` (MediaSplitBlock.astro:395-396, isDarkBand at :272) — which is the pair :321 and :324 ship. This is where the page differs from porcelain-veneers, whose `what` is charcoal and therefore light/ghost-light.",
      "known_gaps": [
-      "THE SECOND BUTTON LOSES ITS HOVER LABEL. Both buttons are carried by the two cta pairs",
-      "above, all four sub-fields on the deployed layout, and the first is exact.",
+      "CLOSED. The one gap this band recorded — the second button losing its hover label —",
+      "is carried by the `cta_hover_2` field above (\"See Options\", smile-makeover.astro:329):",
+      "media_split gained `cta_hover` / `cta_hover_2` in the census batch and MediaSplitBlock",
+      "now reads them over its href-derived CTA_HOVER map, whose four destinations never",
+      "included `#options`.",
       "",
-      "MediaSplitBlock derives each hover label from the HREF rather than from a field",
-      "(CTA_HOVER, MediaSplitBlock.astro:233-238), and the map has four destinations:",
-      "#consult, #process, #faq and the practice phone number. `#options` is not among them,",
-      "so the second button comes back with no `data-hover` attribute and with \"Treatment",
-      "Options\" in its .l2 span, where the template ships data-hover=\"See Options\" and",
-      "\"See Options\" (smile-makeover.astro:324, Button.astro:61-64). The visible resting label",
-      "is unchanged; what is lost is the word that slides up on hover.",
-      "",
-      "The first button is exact: #consult -> \"Get a Video\", which is what :321 passes.",
-      "",
-      "WHAT WOULD CLOSE IT: one more entry in that CTA_HOVER map, `\"#options\": \"See Options\"`.",
-      "It is a component change and not a field — a hover label is chrome, not copy, and",
-      "giving an editor a field for it is how one page ends up with a hover word that",
-      "contradicts its button. This is the same residue teeth-whitening records for #process",
-      "-> \"View Levels\"."
+      "The first button still derives exactly — #consult -> \"Get a Video\", which is what",
+      ":321 passes — so `cta_hover` is deliberately left blank and the default table answers,",
+      "per the HREF policy: blank means table, and a field written where the table already",
+      "agrees is a second copy waiting to drift."
      ]
     },
     {
@@ -7499,9 +7436,17 @@
        "literal": "You should see exactly what your results will look like before any treatment begins.",
        "from_template": "smile-makeover.astro:387-389 <div class=\"natural-quote\">. Hardcoded today; there is no CMS field it could have come from."
       },
+      "body_2_heading": {
+       "literal": "Preview Your New Smile Before You Commit",
+       "from_template": "smile-makeover.astro:397 <h3 class=\"process-sub\"> — the sub-heading BETWEEN the two prose paragraphs. media_split gained this field in the census batch and MediaSplitBlock draws it between `body` and `body_2`, which is exactly where the template puts it. `body_2` below already carries the paragraph under it — nothing is remapped."
+      },
       "body_2": {
        "literal": "Digital smile design at Vivid Smiles maps your new smile onto your actual face using advanced imaging software, giving you a realistic, personalized preview before any work starts. This is not a generic approximation: it is a treatment roadmap built from your facial dimensions, tooth proportions, and cosmetic goals. You and Dr. Richardson refine the design together until the preview reflects exactly what you want, removing the guesswork that has historically been the biggest barrier to investing in cosmetic dentistry.",
        "from_template": "smile-makeover.astro:393-401 — the SECOND paragraph inside .prose. `body` above is the first. Two paragraphs in one place and the layout carries both; folding them into `body` would run them together inside a single <p>, the same words in the wrong markup."
+      },
+      "cta_text": {
+       "literal": "Ready to see your preview? <em>Book online and we'll take it from here.</em>",
+       "from_template": "smile-makeover.astro:421 — the .ic-text line of the .inline-cta.dark strip under the grid (:419-429), the <em> carried verbatim because the field renders as HTML. Same name and contract as process_steps’ cta_text: MediaSplitBlock draws the plate AFTER the grid with markup identical to ProcessStepsBlock’s, and the two buttons inside it — Book Online (booking URL, hover \"Let’s Talk\") and Call + the practice number (hover \"Tap to Dial\") — are component literals resolved from src/data/contact.ts, not fields, because a booking URL and a phone number are site data and not page copy."
       }
      },
      "layout_evidence": ".natural-text precedes .natural-img (smile-makeover.astro:384, 404) and .smilemakeover .natural-grid is 1fr 1.1fr (smile-makeover.css:481-482) — photo right, media column the wider one. `wide-media` is already the family default for a right photo (MediaSplitBlock.astro:284), so no ratio-* modifier is emitted and the grid div stays the bare `natural-grid`.",
@@ -7509,50 +7454,25 @@
      "eyebrow_light_note": "MediaSplitBlock adds `.light` to the eyebrow when the band is sage or sage-pale (MediaSplitBlock.astro:269), which reproduces the template's `eyebrow light` at :385. It follows from `band` above; nothing here supplies it.",
      "image_alt_note": "The images row for slot editorialImg carries alt \"Editorial close-up of a smile with berry lipstick\" — confirmed live, and the string the template hardcodes at :407. Moved.",
      "no_checklist_note": "No `checklist` rows. The repeater exists on the layout and MediaSplitBlock draws it as `<ul class=\"candidate-list\">` between the quote and the prose, but this band has no list — it is a quote and two paragraphs. Assembling one out of the second paragraph would put an <li> where the page has a <p>.",
-     "no_cta_note": "No cta pairs, and that is deliberate rather than an omission. This band DOES ship two buttons, but they sit in an `.inline-cta.dark` AFTER the grid (smile-makeover.astro:414-425), not in a `.cta-row left` inside the text column, which is the only place MediaSplitBlock can put them (MediaSplitBlock.astro:496-523). Supplying cta_label here would move both buttons into the text column and change the band's shape rather than restore it — so they are recorded as lost below instead of relocated.",
+     "no_cta_note": "No cta_label / cta_href pairs, and that is still deliberate: those fields draw a `.cta-row left` INSIDE the text column (MediaSplitBlock.astro:496-523), and this band's two buttons sit in an `.inline-cta.dark` AFTER the grid (smile-makeover.astro:414-425). Supplying cta_label would move both buttons into the text column and change the band's shape rather than restore it. The strip itself now travels through `cta_text` above — the census-batch field that draws the full-width plate in the right place — so nothing is recorded as lost any more.",
      "known_gaps": [
-      "TWO ELEMENTS OF THIS BAND HAVE NO FIELD ON ANY REGISTERED LAYOUT. This is the lossiest",
-      "band on the page.",
+      "BOTH GAPS THIS BAND RECORDED ARE CLOSED BY THE CENSUS BATCH.",
       "",
-      "1. THE `.process-sub` SUB-HEADING. smile-makeover.astro:392 is",
-      "   `<h3 class=\"process-sub\">Preview Your New Smile Before You Commit</h3>`, sitting",
-      "   BETWEEN the two prose paragraphs. media_split's `.prose` is `body` then `body_2` and",
-      "   nothing between them (MediaSplitBlock.astro:464-476). The words are lost and so is",
-      "   the document structure — the second paragraph loses its heading.",
+      "1. THE `.process-sub` SUB-HEADING is carried by `body_2_heading` above",
+      "   (smile-makeover.astro:397). media_split gained the field for exactly this shape and",
+      "   MediaSplitBlock draws it as an <h3> between `body` and `body_2` — a real heading in",
+      "   the document outline, not markup smuggled through a textarea. Blank on every",
+      "   previously saved media_split row, so additive.",
       "",
-      "   IT IS NOT SMUGGLED THROUGH `body_2`. That field is rendered as `<p set:html>` unless",
-      "   the value opens with p/div/ul/ol/blockquote (MediaSplitBlock.astro:326-327), and",
-      "   `<h3` is not in that list — so an h3 typed into it would be nested inside a",
-      "   paragraph, which is invalid and which the parser's recovery turns into a stray empty",
-      "   <p>. Authoring markup into a textarea is also exactly what",
-      "   `the_rule_that_governs_every_value_below` forbids.",
+      "2. THE `.inline-cta.dark` STRIP is carried by `cta_text` above",
+      "   (smile-makeover.astro:421), same name and contract as process_steps' field, drawn by",
+      "   MediaSplitBlock after the grid with markup identical to ProcessStepsBlock's. The two",
+      "   buttons in the plate are component literals from src/data/contact.ts — no per-page",
+      "   copy lives in them, so no field carries them.",
       "",
-      "   WHAT WOULD CLOSE IT: a `body_heading_2` (or, better named, `prose_heading`) text",
-      "   sub-field on media_split drawn between `body` and `body_2`, blank on every saved row",
-      "   so it is additive — the same shape stat_callout's `body_heading` already has for the",
-      "   <h3> that opens `.lasting-body`. One field, one component conditional, and it serves",
-      "   any page that breaks a prose column with a sub-head.",
-      "",
-      "2. THE `.inline-cta.dark` STRIP. smile-makeover.astro:414-425 is a full-width sage-deep",
-      "   panel under the grid: `.ic-text` reading \"Ready to see your preview? <em>Book online",
-      "   and we'll take it from here.</em>\" and `.ic-buttons` holding Book Online (light, to",
-      "   the booking URL) and Call + the practice number (ghost-light). The whole panel is",
-      "   lost, and with it the band's only conversion point.",
-      "",
-      "   The layout that HAS this field is process_steps — `cta_text`, drawn as the same",
-      "   `.inline-cta` with the same two buttons (ProcessStepsBlock) — and this band is not a",
-      "   process_steps band: it has no steps at all, and this page's `process_steps` repeater",
-      "   is null. Choosing process_steps to keep the strip would draw a `.section-head` and an",
-      "   empty `.process-grid` where the page has a `.natural-grid` with a photo in it, which",
-      "   loses more than it saves.",
-      "",
-      "   WHAT WOULD CLOSE IT: a `cta_text` sub-field on media_split, drawn by MediaSplitBlock",
-      "   after the grid exactly as ProcessStepsBlock draws it — the two components already",
-      "   agree on the markup, so this is moving one existing block of template, not designing",
-      "   anything. Blank on both live media_split rows, so additive.",
-      "",
-      "Everything else on the band is carried: eyebrow, heading, pull quote, both prose",
-      "paragraphs, the photo with its alt, the column order and the wider media column."
+      "Everything on the band now has a field or a component behind it: eyebrow, heading, pull",
+      "quote, both prose paragraphs and the sub-head between them, the photo with its alt, the",
+      "column order, the wider media column, and the conversion strip."
      ]
     },
     {
@@ -7595,7 +7515,8 @@
            "lead": "No-prep veneers:",
            "item": "No enamel removal; reversible when candidacy allows"
           }
-         ]
+         ],
+         "body_2": "Color, shape, and translucency are customized to your facial features, skin tone, and preferences. The goal is results that enhance your existing smile, not overwrite it."
         },
         {
          "tag": "Alignment",
@@ -7630,64 +7551,44 @@
         "Writing it anyway would move the words into markup this sheet does not paint, which is",
         "worse than recording the loss."
        ],
-       "bullets_note": "The featured card's <ul class=\"prep-list\">. Skipped when this entry was written because ComparisonCardsBlock drew a bare <ul> of plain <li> with no labels — true then, not now: commit 234062d selects `bullets { lead item }` and draws <b>{lead}</b> {item}. The label here ends in a colon rather than an em dash, which is this page's punctuation and is carried verbatim in `lead`. The template's <strong> becomes the component's <b>: same words, same weight, and the block's own .featured ul li b rule paints it white on this card."
+       "bullets_note": "The featured card's <ul class=\"prep-list\">. Skipped when this entry was written because ComparisonCardsBlock drew a bare <ul> of plain <li> with no labels — true then, not now: commit 234062d selects `bullets { lead item }` and draws <b>{lead}</b> {item}. The label here ends in a colon rather than an em dash, which is this page's punctuation and is carried verbatim in `lead`. The template's <strong> becomes the component's <b>: same words, same weight, and the block's own .featured ul li b rule paints it white on this card.",
+       "body_2_note": "The featured card's SECOND paragraph (smile-makeover.astro:489-492), the one AFTER the prep-list. `tiers.body_2` was added in the census batch and ComparisonCardsBlock draws it after `.compare-list`, which is this card's order: body, bullets, body_2. Neither secondary card has a second paragraph, so the field is absent from both — blank draws nothing."
       }
      },
      "cta_note": "ComparisonCardsBlock draws the closing .cta-row itself — Free Virtual Consult to #consult (sage, \"Get a Video\"), Read FAQ to #faq (ghost, \"See Answers\"), and the note \"No commitment · Personal video reply\" (ComparisonCardsBlock.astro:265-279). That is exactly what smile-makeover.astro:519-527 ships, variants included, because this is a paper band and isDarkBand is false. The layout has no cta sub-fields, so this map supplies nothing.",
      "no_callout_note": "No `callout_heading` / `callout_body`: this band has no aside. The .safety-callout that fills those on teeth-whitening has no counterpart here, and supplying them would add an <aside> this page has never had.",
      "known_gaps": [
-      "THREE THINGS ON THIS BAND HAVE NO FIELD, AND TWO OF THEM ARE ON THE FEATURED CARD.",
+      "TWO OF THE THREE GAPS THIS BAND RECORDED ARE CLOSED; ONE REMAINS.",
       "",
-      "1. THE `<ul class=\"prep-list\">` NESTED INSIDE THE FEATURED CARD.",
-      "   smile-makeover.astro:471-483 is a three-line list inside .compare-card.featured, each",
-      "   line a <strong> label followed by a description:",
+      "1. CLOSED — THE `<ul class=\"prep-list\">` NESTED IN THE FEATURED CARD. Commit 234062d",
+      "   added `bullets { lead item }` to the comparison_cards fragment in manifest.ts and",
+      "   taught ComparisonCardsBlock to draw <b>{lead}</b> {item}; the three lines ride the",
+      "   `bullets` rows on the featured tier above, colons carried verbatim in `lead`. See",
+      "   `bullets_note`.",
       "",
-      "     <strong>Traditional veneers:</strong> Minimal enamel removal; considered permanent; 20+ year lifespan",
-      "     <strong>Minimal-prep veneers:</strong> Less enamel reduction while preserving more natural tooth structure",
-      "     <strong>No-prep veneers:</strong> No enamel removal; reversible when candidacy allows",
+      "2. CLOSED — THE FEATURED CARD'S SECOND PARAGRAPH (smile-makeover.astro:489-492) is",
+      "   carried by `body_2` on the featured tier row above. The census batch added the",
+      "   `tiers.body_2` textarea and ComparisonCardsBlock draws it AFTER the bullets, which",
+      "   is this card's order: body, bullets, body_2.",
       "",
-      "   A LIST NESTED IN A CARD IS THE SHAPE comparison_cards HAS NO QUERYABLE SUB-FIELD FOR.",
-      "   `tiers.bullets` is the nearest thing and is unusable for the two reasons in",
-      "   `bullets_deliberately_unused` above. The three lines are lost, and the paragraph",
-      "   above them (\"…offers three prep levels:\") comes back ending in a colon that",
-      "   introduces nothing.",
-      "",
-      "   WHAT WOULD CLOSE IT: add `bullets { lead item }` to the comparison_cards fragment in",
-      "   manifest.ts AND teach ComparisonCardsBlock to draw it as `<ul class=\"prep-list\">`",
-      "   with the `lead` half in <b>, which is the treatment MediaSplitBlock already gives",
-      "   `checklist` (MediaSplitBlock.astro:451-459). Both halves in one commit — selecting",
-      "   the field without the markup change would produce an unstyled list, which reads as",
-      "   supported and is not.",
-      "",
-      "2. THE FEATURED CARD'S SECOND PARAGRAPH. smile-makeover.astro:484-488:",
-      "",
-      "     \"Color, shape, and translucency are customized to your facial features, skin tone, and preferences. The goal is results that enhance your existing smile, not overwrite it.\"",
-      "",
-      "   A `tiers` row has one `body`. The card ships two paragraphs with a list between them,",
-      "   so the second is lost whole.",
-      "",
-      "   WHAT WOULD CLOSE IT: a `body_2` textarea on `tiers`, drawn as a second <p> after the",
-      "   bullets — the same field, the same name and the same blank-is-additive rule that",
-      "   card_grid's and media_split's `body_2` already carry. Note the ORDER: on this card",
-      "   the second paragraph comes AFTER the list, so the component must draw body, bullets,",
-      "   body_2 in that sequence.",
-      "",
-      "3. THE THREE STRETCHED LINKS. Each card opens with",
+      "3. STILL OPEN — THE THREE STRETCHED LINKS. Each card opens with",
       "   `<a class=\"compare-card__stretch\" href=… aria-label=…>` covering the whole card",
       "   (smile-makeover.astro:459-462, 491-494, 505-508) — to porcelain-veneers,",
-      "   clear-aligners and teeth-whitening respectively. comparison_cards has no href on a",
-      "   tier, so all three cards come back unclickable, `.compare-card { cursor: pointer }`",
-      "   (smile-makeover.css:411) becomes a lie, and three internal links leave the page.",
+      "   clear-aligners and teeth-whitening respectively. comparison_cards still has no",
+      "   `href` on a tier — the census batch added none, because the aria-label is per-card",
+      "   copy that needs its own sub-field rather than being derived from the title, and",
+      "   that design was not settled. All three cards come back unclickable and",
+      "   `.compare-card { cursor: pointer }` (smile-makeover.css:411) remains a lie. WHAT",
+      "   WOULD CLOSE IT: `href` and `link_label` text sub-fields on `tiers`, with",
+      "   ComparisonCardsBlock emitting the anchor only when href is filled. NO WORDS are",
+      "   lost to this gap — it costs navigation, not copy — which is why it is not in the",
+      "   522-word census.",
       "",
-      "   WHAT WOULD CLOSE IT: `href` and `link_label` text sub-fields on `tiers`, with",
-      "   ComparisonCardsBlock emitting the anchor only when href is filled. card_grid already",
-      "   declares an unused `cards[].href` for the same reason, so the field shape is settled;",
-      "   what is not settled is the aria-label, which is per-card copy and needs its own",
-      "   sub-field rather than being derived from the title.",
-      "",
-      "Carried in full: all three tags, all three titles, the ribbon, the featured flag and",
-      "with it the full-width span, the first paragraph of every card, the section-head from",
-      "the CMS row, and the closing cta-row the component owns."
+      "Carried in full: all three tags, titles and first paragraphs, the ribbon, the featured",
+      "flag and its full-width span, the prep-list with its bold leads, the featured card's",
+      "closing paragraph, the section-head from the CMS row, and the closing cta-row the",
+      "component owns (drawn from its exact literal fallback — both cta labels here are",
+      "blank)."
      ]
     },
     {
@@ -7827,6 +7728,30 @@
       },
       "body": {
        "section": "body"
+      },
+      "cta_label": {
+       "literal": "View the Smile Gallery",
+       "from_template": "smile-makeover.astro:636-638 — the first button (variant light) in the .cta-row INSIDE .section-head. gallery_marquee gained the seven-field cta set in the census batch and GalleryMarqueeBlock draws the row inside the section-head after the body paragraph, which is where this template puts it."
+      },
+      "cta_href": {
+       "literal": "/smile-gallery/",
+       "from_template": "smile-makeover.astro:636. A site path, per the HREF policy — never a pasted URL."
+      },
+      "cta_hover": {
+       "literal": "Open Gallery",
+       "from_template": "smile-makeover.astro:636 hoverLabel. Required, not decorative: /smile-gallery/ is in no default hover table, and blank would fall through to the visible label."
+      },
+      "cta_label_2": {
+       "literal": "Patient Stories",
+       "from_template": "smile-makeover.astro:639-643 — the second button, ghost-light."
+      },
+      "cta_href_2": {
+       "literal": "/patient-testimonials/",
+       "from_template": "smile-makeover.astro:641. A site path, per the HREF policy."
+      },
+      "cta_hover_2": {
+       "literal": "Read Stories",
+       "from_template": "smile-makeover.astro:642 hoverLabel. Same grounds as cta_hover: /patient-testimonials/ is in no default hover table."
       }
      },
      "structural_note": [
@@ -7850,48 +7775,35 @@
      "tiles_note": "No sub-fields beyond the preamble by design: the tiles are files read by src/lib/smiles.ts and doubled into a marquee track by the component, the same source and the same doubling the template does at :648-660. Nothing to move.",
      "nav_label_note": "Resolves to \"Real Results\" from the `toc_links` row whose anchor is `results` — confirmed live, the seventh of this page's eight rows. Unlike both migrated siblings, whose gallery band has no toc_links row and drops out of the rail, this band IS in the rail, because on this page it is the results band and not a bare photo strip.",
      "known_gaps": [
-      "TWO, ONE OF THEM COSTING TWO BUTTONS AND TWO INTERNAL LINKS.",
+      "ONE OF THE TWO GAPS THIS BAND RECORDED IS CLOSED; THE OTHER — A SINGLE INERT BYTE",
+      "DIFFERENCE — REMAINS.",
       "",
-      "1. THE `.cta-row` INSIDE THE SECTION-HEAD. smile-makeover.astro:630-641 puts a cta-row",
-      "   INSIDE `.section-head`, holding View the Smile Gallery (light, /smile-gallery/,",
-      "   hover \"Open Gallery\") and Patient Stories (ghost-light, /patient-testimonials/, hover",
-      "   \"Read Stories\"). gallery_marquee is preamble-only — `anchor navLabel band eyebrow",
-      "   heading body` and nothing else (manifest.ts:265-268) — so both buttons are lost, and",
-      "   with them the page's only links to the gallery and testimonial pages.",
+      "1. CLOSED — THE `.cta-row` INSIDE THE SECTION-HEAD, the one gap on the route that cost",
+      "   navigation. Both buttons are carried by the six cta fields above (View the Smile",
+      "   Gallery -> /smile-gallery/ hover \"Open Gallery\"; Patient Stories ->",
+      "   /patient-testimonials/ hover \"Read Stories\"; no note, matching the template's",
+      "   note-less row at smile-makeover.astro:635-644). gallery_marquee gained the",
+      "   block_cta_fields() set in the census batch and GalleryMarqueeBlock draws the row",
+      "   inside `.section-head` after the body paragraph — the exact position this template",
+      "   uses. The hover labels ride their own fields because neither destination is in any",
+      "   default hover table.",
       "",
-      "   THIS IS THE ONE GAP ON THE ROUTE THAT COSTS NAVIGATION RATHER THAN CHROME. The two",
-      "   destinations appear nowhere else on the page: the breadcrumb goes up to",
-      "   /cosmetic-dentistry/, the #options cards link to the three sibling service pages, and",
-      "   the closing VirtualConsult and FinalBand link to neither.",
-      "",
-      "   WHAT WOULD CLOSE IT: `cta_label` / `cta_href` and `cta_label_2` / `cta_href_2` on",
-      "   gallery_marquee, drawn inside `.section-head` after the body paragraph — the field",
-      "   set media_split already carries, in the position this template puts it. The hover",
-      "   labels are the same derived-from-href problem the `what` band records: neither",
-      "   /smile-gallery/ nor /patient-testimonials/ is in any CTA_HOVER map today, so closing",
-      "   this properly means adding both destinations there as well.",
-      "",
-      "   NOT closed by moving this band to another layout. faq, card_grid and media_split all",
-      "   have cta fields and all three draw a `.cta-row` OUTSIDE the section-head, add a",
-      "   data-vs-reveal-batch this band does not have, and none of them draws the marquee at",
-      "   all.",
-      "",
-      "2. THE EYEBROW GAINS A `light` CLASS. GalleryMarqueeBlock hard-codes",
+      "2. STILL OPEN — THE EYEBROW GAINS A `light` CLASS. GalleryMarqueeBlock hard-codes",
       "   `<span class=\"eyebrow light\">` (GalleryMarqueeBlock.astro:154) rather than deriving",
       "   it from the band the way every other block does, and this template ships a plain",
       "   `<span class=\"eyebrow\">` at :627. Visually inert on this page —",
       "   `.smilemakeover .section.alt .eyebrow` (0,3,0) at smile-makeover.css:263 beats",
       "   `.eyebrow.light` — but it is a byte in the HTML and scripts/vr-html.mjs compares",
-      "   bytes.",
-      "",
-      "   WHAT WOULD CLOSE IT: give GalleryMarqueeBlock the same `eyebrowLight` derivation the",
-      "   other five band blocks share (band === sage || sage-pale). That is safe for the two",
-      "   migrated siblings, whose gallery bands are sage-pale and sage and therefore keep the",
+      "   bytes. Not part of the census (it costs no words) and not in this batch's component",
+      "   changes. WHAT WOULD CLOSE IT: give GalleryMarqueeBlock the same `eyebrowLight`",
+      "   derivation the other five band blocks share (band === sage || sage-pale) — safe for",
+      "   the two migrated siblings, whose gallery bands are sage-pale and sage and keep the",
       "   class they have today.",
       "",
-      "Carried: the eyebrow text, the heading, the intro paragraph, the id, the rail entry, the",
-      "reveal attributes and the marquee itself."
-     ]
+      "Carried: the eyebrow text, the heading, the intro paragraph, the id, the rail entry,",
+      "the reveal attributes, the marquee itself, and both buttons with their hover words."
+     ],
+     "cta_note_note": "No `cta_note`: the template's .cta-row here has no note line (smile-makeover.astro:635-644), and GalleryMarqueeBlock draws the note only when non-empty."
     },
     {
      "section_id": "faq",

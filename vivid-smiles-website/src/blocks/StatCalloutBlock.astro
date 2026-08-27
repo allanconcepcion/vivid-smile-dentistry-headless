@@ -152,6 +152,20 @@ interface Props {
    * rows keep their current markup byte for byte.
    */
   intro2?: string | null;
+  /**
+   * True prints each point's bold lead exactly as stored, with no colon
+   * appended (PHP `points_plain`, vs-content-model.php:3487-3496).
+   *
+   * The colon is template punctuation this component adds, and that is right
+   * for porcelain-veneers' live aftercare list — its saved leads carry no
+   * colon and must keep rendering one. But full-mouth-rehabilitation's #cost
+   * baseline prints its leads bare — `<strong>Implants and restoration
+   * type</strong>`, full-mouth-rehabilitation.astro:513-527 — so appending
+   * ":" there turns "type", "Insurance" and "Financing" into three census
+   * losses. A per-row switch, not a change of default: NULL (every row saved
+   * before the field existed) and false keep the colon byte-for-byte.
+   */
+  pointsPlain?: boolean | null;
   points?: PointRow[] | null;
 }
 
@@ -167,6 +181,7 @@ const {
   bodyHeading,
   intro,
   intro2,
+  pointsPlain,
   points,
 } = Astro.props;
 
@@ -196,6 +211,17 @@ const introText = text(intro);
 // are JavaScript and emit nothing, which is why the expression is broken across
 // lines there instead. If you reformat that block, check the emitted output.
 const intro2Text = text(intro2);
+
+// `=== true` rather than truthiness: the field is a boolean or NULL from
+// WPGraphQL, but every field here is read as if it might be the wrong type
+// (see NOTHING HERE THROWS above), and for this one the failure modes are not
+// symmetric — a stray truthy value silently deleting the colon changes
+// porcelain-veneers' live list, while a stray falsy value merely keeps
+// today's rendering. Anything but an explicit `true` therefore keeps the
+// colon. The suffix is interpolated where the literal ":" used to sit, and an
+// empty string emits zero bytes there, so rows with the field off — including
+// every row saved before it existed — still diff byte-for-byte.
+const leadSuffix = pointsPlain === true ? "" : ":";
 
 // A row with neither half is an empty line the editor added and abandoned; it
 // would render as a bare bullet.
@@ -264,7 +290,7 @@ const hasBody =
                 <ul>
                   {pointRows.map((point) => (
                     <li>
-                      {point.lead && <strong>{point.lead}:</strong>} {point.body}
+                      {point.lead && <strong>{point.lead}{leadSuffix}</strong>} {point.body}
                     </li>
                   ))}
                 </ul>

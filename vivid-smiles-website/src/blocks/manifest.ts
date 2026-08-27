@@ -199,10 +199,49 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    * blank on every one of them, and CardGridBlock emits the second `<p>` only
    * when `body2` is non-empty — so a card saved before this batch renders
    * byte-for-byte as it does now.
+   *
+   * THE REST OF THIS SELECTION IS THE CENSUS BATCH, and every name in it must
+   * reach CardGridBlock in the same batch that lands this line — a selected
+   * field nothing renders reads as supported, and an unselected field something
+   * renders is invisible markup; both halves ship together or the words stay
+   * lost. In DOM order:
+   *
+   * `cardsEyebrow` (PHP `cards_eyebrow`) — the SECOND small label, directly
+   * above the cards and inside the band ("What affects your cost" on
+   * sinus-lift's `#investment`); the preamble's `eyebrow` is the section
+   * head's and cannot serve both.
+   *
+   * `cards[].stat` — the `.stat-line` at a card's foot ("Every 3–6 months" on
+   * all-on-4's `#living` card four). It exists because that band is NUMBERED:
+   * with `numbered` on, the card's `meta` is never drawn, so the stat parked
+   * there was words on a field the renderer never reads. Draw it after the
+   * body, only when non-empty.
+   *
+   * `calloutEyebrow calloutHeading calloutBody calloutPlacement calloutPoints`
+   * — the closing panel: the same head trio the other layouts carry, plus the
+   * plain list only this layout's panels have. `calloutPlacement` arrives
+   * "below" | "aside" (never null on a row that has panel copy — the select
+   * defaults on add — but treat null as "below" anyway): "below" is
+   * all-on-4-`#living`'s full-width `.candidacy-sub` strip, "aside" is
+   * sinus-lift-`#investment`'s boxed sage panel BESIDE the cards, list,
+   * buttons and "Bring your insurance card(s)…" note inside it.
+   *
+   * `ctaLabel…ctaNote` — block_cta_fields() in the PHP, one shape across four
+   * layouts. The row draws at the band's foot (gum-contouring's `#why`: Book
+   * Online / Get Directions / the practice address) EXCEPT when
+   * `calloutPlacement` is "aside", when the same buttons and note draw inside
+   * the panel — the only aside band in the corpus keeps them there. Hrefs
+   * store an anchor, a site path, or the tokens "book" | "phone" | "map",
+   * resolved from src/data/contact.ts — never a pasted URL (the HREF policy in
+   * the PHP factory). `ctaHover`/`ctaHover2` override the hover table; blank
+   * falls back to it.
+   *
+   * All of it is additive: every field is blank on every saved row, and blank
+   * draws nothing — no wrapper, no empty span, no button row.
    */
   PageFieldsBlocksCardGridLayout: {
     typeName: "PageFieldsBlocksCardGridLayout",
-    fields: `${BLOCK_PREAMBLE_FIELDS} columns numbered cards { meta title lead body body2 }`,
+    fields: `${BLOCK_PREAMBLE_FIELDS} columns numbered cardsEyebrow cards { meta title lead body body2 stat } calloutEyebrow calloutHeading calloutBody calloutPlacement calloutPoints { lead item } ctaLabel ctaHref ctaHover ctaLabel2 ctaHref2 ctaHover2 ctaNote`,
   },
 
   /**
@@ -279,7 +318,51 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    */
   PageFieldsBlocksMediaSplitLayout: {
     typeName: "PageFieldsBlocksMediaSplitLayout",
-    fields: `${BLOCK_PREAMBLE_FIELDS} ${BLOCK_IMAGE_FIELDS} imageAlt mediaSide ratio body2 calloutHeading calloutBody subColumns subCards { tag title body } quote checklist { lead item } ctaLabel ctaHref ctaLabel2 ctaHref2`,
+    /**
+     * The census batch widens this selection eight ways, and every name must
+     * reach MediaSplitBlock in the same batch as this line — the two halves
+     * ship together or the words stay lost. In DOM order:
+     *
+     * `quoteAttrib` — the `.natural-quote-attrib` byline under the pull quote
+     * (gum-contouring `#laser`), leading em dash stored in the value.
+     *
+     * `creds { stat label stars }` — the `.why-creds` strip of figure-over-
+     * label credentials (sinus-lift `#why`). `stars` is a boolean: true
+     * appends the aria-hidden ★★★★★ span after the figure. The repeater mints
+     * PageFieldsBlocksCreds — checked by enumeration, claimed nowhere else.
+     *
+     * `body2Heading` (PHP `body_2_heading`) — the `<h3>` BETWEEN the two prose
+     * paragraphs (smile-makeover `#process`'s "Preview Your New Smile Before
+     * You Commit"). Blank draws no heading at all.
+     *
+     * `ctaHover` / `ctaHover2` — per-row overrides for the buttons' word-swap
+     * labels. Blank falls back to CTA_HOVER exactly as today, so every saved
+     * row is untouched; they exist because the table cannot be right twice for
+     * one destination — `#process` hovers "View Steps" on five pages and
+     * "View Levels" on teeth-whitening, which was that page's whole census.
+     *
+     * `calloutEyebrow` — the small label the asides and sub-heads open with
+     * ("Upper vs. Lower", "Common Causes", "The bottom line"…). Eight bands
+     * carry one and none had a slot.
+     *
+     * `calloutPlacement` — "aside" | "below" | NULL, and NULL MEANS "aside":
+     * every row saved before this batch returns null and has only ever drawn
+     * the in-column aside. "below" renders the pair (plus eyebrow) as the
+     * full-width `.candidacy-sub` strip after the grid, which is where all
+     * four implant pages put it. Ignored while `subCards` has rows — the
+     * callout is then their sub-head, exactly as before this field existed.
+     *
+     * `subFoot` — the `.what-sub-foot` closing paragraph under the `subCards`
+     * grid (all-on-4 `#what`).
+     *
+     * `ctaText` — the `.inline-cta` plate under the whole band, same name and
+     * same contract as process_steps' field: the sentence is the content, the
+     * Book Online / Call buttons beside it are site data drawn from
+     * src/data/contact.ts. Blank draws neither.
+     *
+     * All eight are blank on every saved row, and blank draws nothing.
+     */
+    fields: `${BLOCK_PREAMBLE_FIELDS} ${BLOCK_IMAGE_FIELDS} imageAlt mediaSide ratio quote quoteAttrib checklist { lead item } creds { stat label stars } body2Heading body2 calloutEyebrow calloutHeading calloutBody calloutPlacement subColumns subCards { tag title body } subFoot ctaLabel ctaHref ctaHover ctaLabel2 ctaHref2 ctaHover2 ctaText`,
   },
 
   /**
@@ -329,26 +412,62 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
   /**
    * The smile-gallery strip.
    *
-   * Preamble only, and that is the whole layout: the photographs come from
-   * wp-admin -> Practice Settings -> Smile gallery via src/lib/smiles.ts and
-   * appear in every marquee on the site, so there is nothing per-band for an
-   * editor to fill in. Asking this type for any other field fails the query.
+   * The photographs come from wp-admin -> Practice Settings -> Smile gallery
+   * via src/lib/smiles.ts and appear in every marquee on the site, so there is
+   * nothing per-band to select for THEM. The seven cta fields are the census
+   * batch: smile-makeover's `#results` closes its section-head with a
+   * two-button `.cta-row` (View the Smile Gallery / Patient Stories, hovers
+   * "Open Gallery" / "Read Stories", no note), and a preamble-only layout
+   * dropped all of it. Same block_cta_fields() shape as card_grid,
+   * comparison_cards and pricing_tiers — GalleryMarqueeBlock draws the row
+   * inside `.section-head`, after the body paragraph, only when a label is
+   * non-empty, so the bands already saved against this layout render exactly
+   * as they do now. Hrefs follow the HREF policy in the PHP factory: an
+   * anchor, a site path ("/smile-gallery/"), or "book" | "phone" | "map" —
+   * never a pasted URL.
    */
   PageFieldsBlocksGalleryMarqueeLayout: {
     typeName: "PageFieldsBlocksGalleryMarqueeLayout",
-    fields: BLOCK_PREAMBLE_FIELDS,
+    fields: `${BLOCK_PREAMBLE_FIELDS} ctaLabel ctaHref ctaHover ctaLabel2 ctaHref2 ctaHover2 ctaNote`,
   },
 
   /**
    * Side-by-side comparison cards.
    *
-   * No CTA fields are selected because this layout has none — unlike `faq`
-   * above. The `.cta-row` the band ends with is drawn by the component as a
-   * literal, on the same grounds as FaqBlock's phone button: all five `compare`
-   * bands in the family emit the identical pair of buttons and the identical
-   * note. Do not "fix" that by adding `ctaLabel ctaHref` here — naming a field
-   * the deployed layout does not have fails query validation for every page on
-   * the site.
+   * THE CTA ROW IS NOW FIELD-DRIVEN, WITH A FALLBACK THAT IS THE WHOLE
+   * CONTRACT. ComparisonCardsBlock has always drawn one literal `.cta-row`
+   * ("Free Virtual Consult" to #consult hover "Get a Video", "Read FAQ" to
+   * #faq hover "See Answers", note "No commitment · Personal video reply"),
+   * and eleven back-filled routes render it today with every cta field
+   * absent. So the component must fall back to EXACTLY that literal row
+   * whenever both labels are blank — never to no row and never to a partial
+   * one — or every live comparison band changes on the next build. The fields
+   * exist because the row is page copy the client must be able to reword; the
+   * hardcoded row is also why comparison bands were the one CTA-carrying
+   * shape with no census loss. Hrefs follow the HREF policy in the PHP
+   * factory (anchor, site path, or "book" | "phone" | "map" — never a pasted
+   * URL); `ctaHover`/`ctaHover2` blank falls back to the hover table.
+   *
+   * `tiers[].body2` (PHP `body_2`) is the paragraph AFTER the bullets —
+   * smile-makeover's featured veneers card runs body, `.prep-list`, then a
+   * second full paragraph, and one body slot dropped its 26 words. Emitted
+   * after the bullet list, only when non-empty.
+   *
+   * `calloutEyebrow` is the small label `.compare-sub-head` opens with —
+   * "Alternatives" on both `#compare` pages — above the <h3>/paragraph the
+   * callout pair already carries. Blank draws no element (the `.safety-callout`
+   * aside has never had one).
+   *
+   * `glossaryEyebrow glossaryHeading glossaryBody glossary { tag title body }`
+   * are bone-grafting `#types`'s closing `.materials-block`: its own sub-head
+   * beside a <dl> of tag/term/definition rows, drawn AFTER `altCards`. Its own
+   * head trio and not a third reading of the callout pair, because that band
+   * needs the callout pair AND this head at once — see the PHP for the
+   * ambiguity this refuses to recreate. `glossary` mints
+   * PageFieldsBlocksGlossary, checked by enumeration, claimed nowhere else.
+   *
+   * Every one of these is blank on every saved row, and blank draws nothing —
+   * except the cta fallback above, which is the point.
    *
    * `calloutHeading` and `calloutBody` ARE new, and they are not a CTA: they are
    * the `.safety-callout` aside that follows the cards on the pages that carry
@@ -396,7 +515,7 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    */
   PageFieldsBlocksComparisonCardsLayout: {
     typeName: "PageFieldsBlocksComparisonCardsLayout",
-    fields: `${BLOCK_PREAMBLE_FIELDS} tiers { tag title body ribbon featured bullets { lead item } } calloutHeading calloutBody altColumns altCards { tag title body }`,
+    fields: `${BLOCK_PREAMBLE_FIELDS} tiers { tag title body bullets { lead item } body2 ribbon featured } calloutEyebrow calloutHeading calloutBody altColumns altCards { tag title body } glossaryEyebrow glossaryHeading glossaryBody glossary { tag title body } ctaLabel ctaHref ctaHover ctaLabel2 ctaHref2 ctaHover2 ctaNote`,
   },
 
   /**
@@ -427,12 +546,21 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    * `.lasting-body` still opens with `intro` exactly as it does today, and blank
    * `intro2` means no second `<p>` between that paragraph and the `<ul>` — not
    * an empty one, which would show as a gap in a card nobody edited.
+   *
+   * `pointsPlain` (PHP `points_plain`, boolean, absent-or-false on every saved
+   * row) switches the colon off: the component prints
+   * `<strong>lead:</strong> body` and full-mouth-rehabilitation's `#cost`
+   * baseline is `<strong>Implants and restoration type</strong>` with no
+   * colon, so the appended ":" turned three lead words into three census
+   * losses. False — including NULL, which is what every saved row returns —
+   * keeps the colon exactly as today; porcelain-veneers' live aftercare list
+   * depends on that.
    */
   PageFieldsBlocksStatCalloutLayout: {
     typeName: "PageFieldsBlocksStatCalloutLayout",
     // The only component with a <slot />. See `hosts` above.
     hosts: true,
-    fields: `${BLOCK_PREAMBLE_FIELDS} value unit caption bodyHeading intro intro2 points { lead body }`,
+    fields: `${BLOCK_PREAMBLE_FIELDS} value unit caption bodyHeading intro intro2 pointsPlain points { lead body }`,
   },
 
   /**
@@ -515,14 +643,23 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    * than a seventh sub-field of the last plan, which is where the old markup
    * effectively kept it.
    *
-   * Nothing here is additive to a live page: no row of this layout exists yet,
-   * so the empty-field rule the other four entries carry has nothing to protect.
-   * PricingTiersBlock still has to tolerate an empty `plans` — an editor adds
-   * the row before filling it — and draw no `.plan-grid` for it.
+   * The paragraph above is now dated in one respect: rows of this layout DO
+   * exist (five back-filled cost bands), so the seven cta fields below ARE
+   * additive to live pages. They are block_cta_fields() in the PHP — the
+   * closing `.cta-row` all-on-4-single-arch's `#cost` ends in (Free Virtual
+   * Consult / Get Directions / the practice address as the note) and the block
+   * used to stop at the financing note. PricingTiersBlock draws the row after
+   * that note, only when a label is non-empty — blank on every saved row, so
+   * all five live cost bands render byte-for-byte — and not at all when
+   * `nested` is truthy: a tucked-in table is not a band and has no foot.
+   * Hrefs follow the HREF policy in the PHP factory (anchor, site path, or
+   * "book" | "phone" | "map" — never a pasted URL; the address note is TEXT,
+   * not a link). PricingTiersBlock still has to tolerate an empty `plans` —
+   * an editor adds the row before filling it — and draw no `.plan-grid` for it.
    */
   PageFieldsBlocksPricingTiersLayout: {
     typeName: "PageFieldsBlocksPricingTiersLayout",
-    fields: `${BLOCK_PREAMBLE_FIELDS} nested plans { name price meta priceNote priceSuffix ribbon highlighted features { item } } note`,
+    fields: `${BLOCK_PREAMBLE_FIELDS} nested plans { name price meta priceNote priceSuffix ribbon highlighted features { item } } note ctaLabel ctaHref ctaHover ctaLabel2 ctaHref2 ctaHover2 ctaNote`,
   },
 
   /**
