@@ -231,6 +231,12 @@
     },
     "ratio": {
      "literal": "wide-media"
+    },
+    "callout_heading": {
+     "literal": "Engineering, not shortcuts"
+    },
+    "callout_body": {
+     "literal": "Four implants are sufficient because angled posterior placement increases bone-to-implant surface contact without requiring additional fixtures. The two front implants anchor upright; the two rear implants tilt at 30 to 45 degrees, engaging a longer section of denser bone without relying on posterior bone volume, which is the first to resorb after tooth loss. That spread of contact points distributes bite force across the arch, the way load-bearing columns distribute structural weight."
     }
    },
    "layout_evidence": ".robotics-img precedes .robotics-text (all-on-4-single-arch.astro:463, 471) — photo left, so `media_side` is left and MediaSplitBlock selects the `.what-*` family. .aos4 .robotics-grid is 1.1fr 1fr (all-on-4-single-arch.css:406-407), which is NOT the left family's default 1fr 1fr, so `ratio` is `wide-media` and the block emits `.what-grid.ratio-wide-media` — grid-template-columns: 1.1fr 1fr (MediaSplitBlock.astro <style>, `.what-grid.ratio-wide-media`). The tracks are reproduced exactly; the class name is not, and that is in the gaps below.",
@@ -290,7 +296,8 @@
     "   `callout_body` pair, and a `callout_class` select (or a per-band choice) so the aside",
     "   can be drawn as `.robotics-callout` where that is the class the page has. One text",
     "   field, one select, three lines in MediaSplitBlock."
-   ]
+   ],
+   "callout_evidence": "all-on-4-single-arch.astro:476-487. Carried by callout_heading / callout_body, which the layout declares, manifest.ts selects and the component draws. It was recorded as a gap because the wrapper class differs from .veneers-callout — but that trades live client copy for a class name, and the class is a styling problem, not a content one. The eyebrow line and the cards below stay recorded gaps."
   },
   {
    "section_id": "process",
@@ -358,6 +365,12 @@
     },
     "body": {
      "section": "body"
+    },
+    "callout_heading": {
+     "literal": "Alternatives to All-on-4 Single Arch Implants"
+    },
+    "callout_body": {
+     "literal": "All-on-4 is the ideal choice when most or all arch teeth are failing, but other options exist for different clinical situations."
     }
    },
    "columns_evidence": ".aos4 .compare is 1fr 1fr (all-on-4-single-arch.css:469-470) and the band carries 2 cards. comparison_cards has no columns sub-field — the count IS the row count — so there is nothing to set. TWO cards here, three on both worked examples.",
@@ -436,7 +449,8 @@
     "",
     "   The three cards are the `alternatives` group and are named in `exempt.cards` below, so",
     "   the backfill reports them on every run instead of dropping them quietly."
-   ]
+   ],
+   "callout_evidence": "all-on-4-single-arch.astro:602-609. Carried by callout_heading / callout_body, which the layout declares, manifest.ts selects and the component draws. It was recorded as a gap because the wrapper class differs from .veneers-callout — but that trades live client copy for a class name, and the class is a styling problem, not a content one. The eyebrow line and the cards below stay recorded gaps."
   },
   {
    "section_id": "candidacy",
