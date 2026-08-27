@@ -221,9 +221,13 @@ const calloutHeadingId =
     <div class="compare">
       {
         cardRows.map((card) => {
+          // `lead` is the bolded lead-in and carries its own trailing em dash
+          // ("Adjacent teeth —"), because that dash sits INSIDE the <b> in every
+          // template this reproduces. A row with no lead draws no <b> and no
+          // leading space, so a list saved before `lead` existed is unchanged.
           const bullets = (Array.isArray(card?.bullets) ? card.bullets : [])
-            .map((row) => text(row?.item))
-            .filter((line) => line !== "");
+            .map((row) => ({ lead: text(row?.lead), item: text(row?.item) }))
+            .filter((row) => row.lead !== "" || row.item !== "");
 
           const tag = text(card?.tag);
           const title = text(card?.title);
@@ -237,9 +241,9 @@ const calloutHeadingId =
               {title && <h3>{title}</h3>}
               {cardBody && <p>{cardBody}</p>}
               {bullets.length > 0 && (
-                <ul>
-                  {bullets.map((line) => (
-                    <li>{line}</li>
+                <ul class="compare-list">
+                  {bullets.map((row) => (
+                    <li>{row.lead === "" ? row.item : (<Fragment><b>{row.lead}</b> {row.item}</Fragment>)}</li>
                   ))}
                 </ul>
               )}
@@ -495,7 +499,12 @@ const calloutHeadingId =
     height: 1px;
     background: var(--vs-ink-soft);
   }
+  .compare-card ul li b {
+    color: var(--vs-ink);
+    font-weight: 600;
+  }
   .compare-card.featured ul li { color: rgba(255, 255, 255, 0.88); }
+  .compare-card.featured ul li b { color: #fff; }
   .compare-card.featured ul li::before { background: rgba(255, 255, 255, 0.6); }
 
   /* ── The safety callout ─────────────────────────────────────────────────

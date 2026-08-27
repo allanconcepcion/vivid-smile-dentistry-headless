@@ -293,7 +293,7 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    */
   PageFieldsBlocksComparisonCardsLayout: {
     typeName: "PageFieldsBlocksComparisonCardsLayout",
-    fields: `${BLOCK_PREAMBLE_FIELDS} tiers { tag title body ribbon featured } calloutHeading calloutBody`,
+    fields: `${BLOCK_PREAMBLE_FIELDS} tiers { tag title body ribbon featured bullets { lead item } } calloutHeading calloutBody`,
   },
 
   /**
