@@ -279,6 +279,20 @@ interface Props {
   ctaHref2?: string | null;
   ctaHover2?: string | null;
   ctaNote?: string | null;
+  /**
+   * Draw NO closing row at all.
+   *
+   * BLANK LABELS ARE NOT THIS. With both label fields blank the component
+   * falls back to its literal row — that fallback is deliberate and four
+   * lossless routes depend on it — so blankness cannot mean "no row". A band
+   * that genuinely ends at the cards needs to say so, and implant's #compare
+   * is one: the template stops at the grid, and without this flag the
+   * migration ADDS two buttons and a note to a live page.
+   *
+   * A true_false, so it arrives boolean; tested for truthiness because an
+   * importer may write 1 and an unsaved field returns null.
+   */
+  ctaHide?: boolean | string | number | null;
 }
 
 const {
@@ -304,6 +318,7 @@ const {
   ctaHref2,
   ctaHover2,
   ctaNote,
+  ctaHide,
 } = Astro.props;
 
 // `?? null` rather than a default value: an unknown band from a future PHP
@@ -459,6 +474,10 @@ const ctaLabel2Text = text(ctaLabel2);
    BOTH blank is the literal row, byte-for-byte — invariant 2 of the census
    batch, eleven live routes depend on it. */
 const ctaIsFieldDriven = ctaLabelText !== "" || ctaLabel2Text !== "";
+
+/* See the `ctaHide` prop. Truthiness, not === true: an unsaved true_false comes
+   back null and an importer may write 1. */
+const hideCta = Boolean(ctaHide) && String(ctaHide) !== "0" && String(ctaHide) !== "false";
 
 interface CtaButton {
   label: string;
@@ -619,7 +638,7 @@ const ctaNoteText = ctaIsFieldDriven
       )
     }
 
-    <div class="cta-row">
+    {hideCta ? null : <div class="cta-row">
       <div class="cta-buttons">
         {ctaOne && (
           <Button
@@ -635,7 +654,7 @@ const ctaNoteText = ctaIsFieldDriven
         )}
       </div>
       {ctaNoteText && <span class="cta-note">{ctaNoteText}</span>}
-    </div>
+    </div>}
   </div>
 </section>
 

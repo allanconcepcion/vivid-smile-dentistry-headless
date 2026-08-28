@@ -192,7 +192,14 @@ const mapEmbedSrc = `https://maps.google.com/maps?q=${encodeURIComponent(address
             }
             <p class="area-address-line">
               <b>{addressStreet}</b><br />
-              {addressCity}, {addressState} {addressZip} · <a class="vs-link" href={phoneHref}>{phoneLabel}</a>
+              {/* ONE EXPRESSION, NOT THREE. Written as `{city}, {state} {zip}` the
+                  literal space between the state and the zip is a text node
+                  BETWEEN two expressions, and Astro's compressHTML collapses it
+                  away — the built page shipped "Parker, CO80134" on all three
+                  hubs while the templates ship "Parker, CO 80134". Building the
+                  string first puts the space inside a value, where nothing can
+                  collapse it. */}
+              {`${addressCity}, ${addressState} ${addressZip}`} · <a class="vs-link" href={phoneHref}>{phoneLabel}</a>
             </p>
             <div class="area-actions">
               <Button variant="sage" href={directionsHref} hoverLabel="Open Maps">Get Directions</Button>

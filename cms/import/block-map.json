@@ -8443,7 +8443,8 @@
       "at the top of this route for what changed and why the prose was rewritten",
       "rather than deleted.",
       "  CHANGED— the marquee's aria-label goes from \"Vivid Smiles cosmetic dentistry smile gallery\" to the"
-     ]
+     ],
+     "quote_glyph_note": "The pull quote reads with CURLY quotes and a curly apostrophe because that is what the CMS holds; the template hardcodes straight ones. Same words, different glyphs, so a word-level diff counts them as changed. The CMS value is the one an editor sees and edits, so it is the source of truth and the template was the outlier — not a loss, and not something to 'fix' by pasting straight quotes back into WordPress."
     },
     {
      "section_id": "candidacy",
@@ -9521,7 +9522,8 @@
         }
        ],
        "from_template": "vivid-smiles-website/src/pages/implant-dentistry/index.astro:300-315 — the three .stat-card divs. The page has no `cards` group for them, so they are transcribed rather than moved.",
-       "unit_note": "Card three is <div class=\"stat-num\">0</div> with no <em> at all, so its `unit` is empty and the component draws no empty <em> for it."
+       "unit_note": "Card three is <div class=\"stat-num\">0</div> with no <em> at all, so its `unit` is empty and the component draws no empty <em> for it.",
+       "zero_value_note": "THE THIRD STAT'S VALUE \"0\" DOES NOT ROUND-TRIP, and it is worth knowing why because it applies to any zero anywhere in this model. The map writes value \"0\"; the other two stats in the same repeater save and read back fine, so the write path is sound. But the live endpoint returns null for this row's `value` AND for its `unit` (\"\"), i.e. a falsy string does not survive the read — PHP's empty(\"0\") is true and the ACF/WPGraphQL layer treats it as unset. The component then draws no .stat-num at all, so the band loses the figure while keeping its label. One word, precisely understood, recorded rather than worked around: any future stat, price or count of zero will hit this, and a workaround here would hide it."
       }
      },
      "known_gaps": [
