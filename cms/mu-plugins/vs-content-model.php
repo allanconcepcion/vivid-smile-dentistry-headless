@@ -254,6 +254,32 @@ const BLOCK_CODE_BANDS = [
 	'general_dentistry_area'   => 'Service area — Parker map, address and directions (General Dentistry)',
 	'general_dentistry_trust'  => 'Why Parker trusts us — centred quote and review line (General Dentistry)',
 	'general_dentistry_payment' => 'Payment options and membership plan card (General Dentistry)',
+	/*
+	 * Phase 4 Wave B. Four bands on /emergency-dentistry/ and one on
+	 * /new-patients/, keyed <page>_<anchor> on the same rule as everything
+	 * above. Two of them reuse a component that already exists — `_trust` is
+	 * TrustBand with this page's copy (the same component general-dentistry's
+	 * `general_dentistry_trust` names) and `_area` is AreaBand with this
+	 * page's copy, its charcoal band and its Call/Directions button pair. The
+	 * other three name components that DO NOT EXIST YET; their entries in
+	 * src/blocks/CodeSectionBlock.astro are written out but commented, and the
+	 * build agent that creates each file uncomments its entry in the same
+	 * commit. A choice registered here with no entry there renders nothing and
+	 * warns, which is safe only because no page holds a row for any of these
+	 * five keys yet — checked against the live endpoint, not assumed.
+	 *
+	 * EACH OF THE FIVE FREEZES COPY THAT IS CMS-BACKED TODAY. That is the
+	 * code_section trade the eight entries above already make, and the wave's
+	 * block-map records the frozen `sections` rows band by band. It is taken
+	 * here only where the band's markup is genuinely not field-shaped: two
+	 * card shapes no layout draws, a centred prose plate, a map embed, and a
+	 * marquee fed by the reviews content collection.
+	 */
+	'emergency_dentistry_protocol' => 'First-aid scenario cards, plus the “in every case” card (Emergency Dentistry)',
+	'emergency_dentistry_trust'    => 'Why choose us — centred quote and review line (Emergency Dentistry)',
+	'emergency_dentistry_area'     => 'Service area — Parker map, address and directions (Emergency Dentistry)',
+	'emergency_dentistry_prevent'  => 'Preventing emergencies — centred prose and one button (Emergency Dentistry)',
+	'new_patients_reviews'         => 'Patient reviews — the draggable testimonial marquee (New Patients)',
 ];
 
 /**
@@ -1695,6 +1721,36 @@ function register_field_groups(): void {
 										'instructions' => 'Optional. The word-swap shown while the pointer is over the button. '
 											. 'Leave it blank for the usual label for that destination.',
 									],
+									/**
+									 * Wave B. WHICH OF THE TWO BUTTONS COMES FIRST.
+									 *
+									 * FaqBlock draws the editable button and then the practice's
+									 * phone number, which is the order all fifteen back-filled FAQ
+									 * bands ship. /emergency-dentistry/ ships the reverse — Call
+									 * first in the solid variant, "Send a Message" second in the
+									 * ghost — because on an emergency page the phone IS the primary
+									 * action. Nothing already stored tells the two apart, and a
+									 * component that picked one would either demote that page's
+									 * phone button or promote fifteen others'.
+									 *
+									 * The VARIANTS follow the order rather than being a second
+									 * field: whichever button is first takes the solid variant and
+									 * the second takes the ghost, which is what both shapes ship.
+									 *
+									 * Absent-or-false — every saved row — keeps today's order
+									 * exactly. Read it for truthiness, never `=== false`: an
+									 * unsaved true_false comes back null.
+									 */
+									[
+										'key'           => 'field_vs_blk_faq_cta_phone_first',
+										'label'         => 'Put the phone button first',
+										'name'          => 'cta_phone_first',
+										'type'          => 'true_false',
+										'ui'            => 1,
+										'default_value' => 0,
+										'instructions'  => 'Leave this off. On the emergency page the Call button leads and '
+											. 'the button above follows it; everywhere else it is the other way round.',
+									],
 								]
 							),
 						],
@@ -2021,6 +2077,46 @@ function register_field_groups(): void {
 											. 'This box may contain a link — paste it as '
 											. '&lt;a class="vs-link" href="/the-page/"&gt;the words&lt;/a&gt; — '
 											. 'which is how the cross-links to other treatment pages are written.',
+									],
+									/**
+									 * Wave B. A THIRD heading-and-paragraph pair, and the reason it
+									 * is a pair of fields rather than more text in `body_2`.
+									 *
+									 * /emergency-dentistry/ `#how` runs eyebrow, h2, paragraph,
+									 * `<h3>Advanced Diagnostic Technology</h3>`, paragraph,
+									 * `<h3>In-House Treatments</h3>`, paragraph — TWO sub-headings in
+									 * one copy column, where this layout stopped at one. Folding the
+									 * second pair into `body_2` would print a real heading as a
+									 * paragraph — invisible to a screen reader's heading list and to
+									 * Google — which is the same argument `body_2_heading` above
+									 * makes, one heading later.
+									 *
+									 * `body_3` carries markup on the same terms as `body_2`, and
+									 * MediaSplitBlock must print it with set:html inside `.prose`,
+									 * directly after `body_2`, flush against it so a blank pair adds
+									 * no whitespace text node to the eleven routes that hold rows of
+									 * this layout. Both are blank on every one of them, and blank
+									 * draws no <h3> and no <p> — not empty ones.
+									 *
+									 * `body_3` is `body3` over GraphQL, same derivation as `body_2`.
+									 * Text fields mint no type, so nothing here can collide.
+									 */
+									[
+										'key'          => 'field_vs_blk_media_body_3_heading',
+										'label'        => 'Heading above the third paragraph',
+										'name'         => 'body_3_heading',
+										'type'         => 'text',
+										'instructions' => 'Optional. A second small heading, further down the same column. '
+											. 'Leave it blank unless the section really has two.',
+									],
+									[
+										'key'          => 'field_vs_blk_media_body_3',
+										'label'        => 'Body — third paragraph',
+										'name'         => 'body_3',
+										'type'         => 'textarea',
+										'rows'         => 5,
+										'instructions' => 'Optional. A third paragraph under that heading. May contain a link, '
+											. 'written the same way as the second paragraph above.',
 									],
 									block_image_field( 'field_vs_blk_media_image' ),
 									[
@@ -3747,6 +3843,36 @@ function register_field_groups(): void {
 										'rows'         => 4,
 										'instructions' => 'Optional. The paragraph under that heading.',
 									],
+									/**
+									 * Wave B. The SECOND heading-and-paragraph pair in the copy
+									 * column — /emergency-dentistry/ `#when` runs eyebrow, h2,
+									 * paragraph, `<h3>Dental Emergencies</h3>`, paragraph,
+									 * `<h3>Urgent Dental Issues</h3>`, paragraph, and the three hub
+									 * bands this layout was extracted from stop at one pair.
+									 *
+									 * Named to match media_split's pair landing in the same change,
+									 * so one convention covers both: `body_3_heading` -> `body3Heading`,
+									 * `body_3` -> `body3`. Blank on all three saved rows, and blank
+									 * must draw no <h3> and no <p> — CopyPlusStatsBlock appends both
+									 * flush against the `body_2` expression, on the whitespace rule
+									 * its own header spells out.
+									 */
+									[
+										'key'          => 'field_vs_blk_cstats_body_3_heading',
+										'label'        => 'Third heading',
+										'name'         => 'body_3_heading',
+										'type'         => 'text',
+										'instructions' => 'Optional. A second small heading further down the same column. '
+											. 'Leave it blank unless the section really has two.',
+									],
+									[
+										'key'          => 'field_vs_blk_cstats_body_3',
+										'label'        => 'Third paragraph',
+										'name'         => 'body_3',
+										'type'         => 'textarea',
+										'rows'         => 4,
+										'instructions' => 'Optional. The paragraph under that second heading.',
+									],
 									[
 										'key'          => 'field_vs_blk_cstats_stats',
 										'label'        => 'Stat cards',
@@ -3986,9 +4112,34 @@ function register_field_groups(): void {
 										'label'         => 'Card style',
 										'name'          => 'card_style',
 										'type'          => 'select',
+										/*
+										 * Wave B adds the third choice, and it is a real third shape
+										 * rather than a variation on the first. All three draw the same
+										 * `a.svc-card.compact` photo card; what differs is the INSIDE of
+										 * `.svc-body`. `tiles` is `p.svc-desc` then `.svc-row-bot`
+										 * holding the `<h3>` and the arrow badge — title under the
+										 * reveal (cosmetic-dentistry/index.astro:398-404).
+										 * `tiles-heading-first` is `<h3>`, then `p.svc-desc`, then an
+										 * EMPTY `.svc-row-bot` holding a bare `<span>` and no badge —
+										 * title above the reveal (new-patients/index.astro:221-232).
+										 * The empty span is vestigial and is reproduced anyway: the
+										 * phase is graded on the built HTML, and dropping it is a diff
+										 * on a live band nobody asked to change.
+										 *
+										 * NOTHING ALREADY STORED SEPARATES THEM. Same card class, same
+										 * four fields, same overlay design in both sheets
+										 * (cosmetic-dentistry.css:327-345, new-patients.css:155-172) —
+										 * so a component that picked one order would move the heading
+										 * and add an arrow badge to whichever page lost.
+										 *
+										 * Additive: no page holds a service_cards row today, checked
+										 * against the live endpoint, and blank still resolves to `tiles`
+										 * in ServiceCardsBlock.
+										 */
 										'choices'       => [
-											'tiles'    => 'Linked tiles — photo, short line, arrow',
-											'features' => 'Feature cards — photo over always-visible description, no link',
+											'tiles'              => 'Linked tiles — photo, short line, arrow',
+											'tiles-heading-first' => 'Linked tiles — title above the line, no arrow',
+											'features'           => 'Feature cards — photo over always-visible description, no link',
 										],
 										'default_value' => 'tiles',
 										'return_format' => 'value',
@@ -4057,7 +4208,20 @@ function register_field_groups(): void {
 										'label'         => 'Stack to one column at',
 										'name'          => 'collapse_at',
 										'type'          => 'select',
+										/*
+										 * Wave B adds 479. /new-patients/ halves its four tiles to two
+										 * at 991px and only reaches one column at 479
+										 * (new-patients.css:339, :348) — a full breakpoint later than
+										 * any of the four sheets this select was minted from. Without
+										 * the choice that band would stack a column early between 479
+										 * and 640px, which is a design change on a live page and not a
+										 * content migration. ServiceCardsBlock derives the <Image>
+										 * `sizes` hint from this value, so the new choice needs its own
+										 * entry in that table too — one control, never two that can
+										 * contradict each other.
+										 */
 										'choices'       => [
+											'479' => '479px — the tiles stay two-up on a phone',
 											'640' => '640px — the tiles stay side by side on a small tablet',
 											'780' => '780px — the tiles stack one row earlier',
 										],
@@ -4452,6 +4616,139 @@ function register_field_groups(): void {
 										'name'         => 'cta_hover_2',
 										'type'         => 'text',
 										'instructions' => 'Optional. Blank uses the usual label for that destination.',
+									],
+								]
+							),
+						],
+
+						/**
+						 * ── Phase 4 Wave B ──────────────────────────────────────────
+						 *
+						 * A head over a bulleted list, and nothing else.
+						 *
+						 * THE ONE SHAPE THE MODEL DID NOT HAVE. Every list on the site
+						 * so far lives INSIDE something — media_split's `.candidate-list`
+						 * inside the copy column, card_grid's panel list inside the
+						 * insurance card, pricing_tiers' features inside a plan. Two pages
+						 * draw a list as the whole band: /emergency-dentistry/
+						 * `#emergencies` (`.emerg-callout-list`, seven lines) and
+						 * /privacy-policy/ (`.priv-callout-list`, which the emergency
+						 * sheet says in as many words it was lifted from —
+						 * emergency-dentistry/index.astro:36-38). One shape, two pages, no
+						 * home: that is the test for a layout rather than a code_section,
+						 * and taking the code_section here would have frozen seven live
+						 * `cards` rows of clinical copy.
+						 *
+						 * WHAT IT IS NOT. Not media_split with the picture left out —
+						 * MediaSplitBlock still emits its two-column grid with one child,
+						 * so the list would sit in half the width, and its `.candidate-list`
+						 * prints a derived `01`/`02` marker this shape does not have. Not
+						 * card_grid's below-panel either: that draws `.candidacy-sub` around
+						 * the list and a `<span class="label">` above it.
+						 *
+						 * `lines` IS A REPEATER, SO ITS NAME IS A TYPE — PageFieldsBlocksLines,
+						 * minted from the field name alone because a layout's sub-fields hang
+						 * off the flexible field and not off the layout. Checked by
+						 * enumerating every repeater and group name in this file:
+						 * alt_cards, bios, blocks, bullets, callout_points, cards, checklist,
+						 * creds, ctas, faqs, features, glossary, hero, images, items, ledger,
+						 * plans, points, pre_cards, process_steps, sections, stats, steps,
+						 * sub_cards, svc_cards, tech_cards, tiers, toc_links. `lines` is none
+						 * of them, and no top-level `blocks_lines` alias exists either.
+						 * `points` WAS the obvious name and is taken by stat_callout, whose
+						 * sub-fields are lead/body where this factory's are lead/item —
+						 * sharing it would merge the two types and drop one side's fields,
+						 * which reads as a healthy schema until a query stops validating.
+						 *
+						 * FOR THE ASTRO SIDE: a line's `item` CARRIES MARKUP. The seven live
+						 * rows are `<b>Severe toothache:</b> Diagnosed with CBCT imaging…`,
+						 * and one of them links out mid-sentence, so CalloutListBlock prints
+						 * `item` with set:html. `lead` is the shared factory's optional bold
+						 * opening and is blank on all seven — the bold is inside `item` on
+						 * this page because that is where the template has always had it, and
+						 * splitting it out would move a colon and a space.
+						 *
+						 * No cta fields: neither band draws a button row, and a field nothing
+						 * renders reads as supported.
+						 */
+						[
+							'key'        => 'layout_vs_blk_callout_list',
+							'name'       => 'callout_list',
+							'label'      => 'Bulleted list',
+							'display'    => 'block',
+							'sub_fields' => array_merge(
+								block_preamble( 'clist' ),
+								[
+									block_list_field(
+										'field_vs_blk_clist_lines',
+										'Lines',
+										'lines',
+										'Add a line'
+									),
+								]
+							),
+						],
+
+						/**
+						 * ── Phase 4 Wave B ──────────────────────────────────────────
+						 *
+						 * Visit us — the address, hours and map band.
+						 *
+						 * `.location-grid` > `.location-copy` (eyebrow, h2, `p.lede`, the
+						 * `.location-card` of address / phone / email / hours rows, two
+						 * buttons) beside `.location-map-wrap` > the Google iframe. TWO
+						 * PAGES SHIP IT CHARACTER FOR CHARACTER — our-office/index.astro:243-317
+						 * and contact/index.astro:216-290 — which is what makes it a layout
+						 * rather than two code_section keys. It is the band AreaBand.astro's
+						 * header calls `map_visit` and defers to this wave.
+						 *
+						 * THREE COPY FIELDS AND NOTHING ELSE, because everything else in the
+						 * band is SITE DATA. The street, the city, the phone number, the
+						 * email address, the opening hours, the two buttons and the map
+						 * embed all come from src/data/contact.ts and src/data/hours.ts
+						 * INSIDE the component, exactly as they do in the two templates and
+						 * exactly as AreaBand and LocalTrust already do. A per-band copy of
+						 * any of them is a per-band chance to publish a stale phone number,
+						 * which is the whole of the href policy in block_cta_fields() above.
+						 * So this layout has no cta fields and no address fields, and that is
+						 * a decision rather than an omission.
+						 *
+						 * WHY code_section WAS THE WRONG ANSWER HERE. Both pages fill this
+						 * band's eyebrow, heading and body from live `sections` rows — five
+						 * values between them, verified against the endpoint — and a
+						 * code_section freezes exactly those. The bands the escape hatch is
+						 * for are the ones whose copy is already in code.
+						 *
+						 * No repeater and no group, so it mints no GraphQL type.
+						 */
+						[
+							'key'        => 'layout_vs_blk_map_visit',
+							'name'       => 'map_visit',
+							'label'      => 'Visit us — address, hours and map',
+							'display'    => 'block',
+							'sub_fields' => array_merge(
+								block_preamble( 'visit' ),
+								[
+									/*
+									 * The section's own accessible name, because the two pages
+									 * disagree: `aria-label="Visit our office"` on /our-office/
+									 * and `"Visit our practice"` on /contact/. It is real copy —
+									 * a screen reader announces it — and nothing else stored tells
+									 * the two apart, so a component that picked one would rename
+									 * the landmark on the page that lost.
+									 *
+									 * Blank must draw NO attribute at all rather than an empty
+									 * one: `aria-label=""` on a <section> removes its accessible
+									 * name instead of leaving it to the heading.
+									 */
+									[
+										'key'          => 'field_vs_blk_visit_aria_label',
+										'label'        => 'Screen-reader name for this section',
+										'name'         => 'aria_label',
+										'type'         => 'text',
+										'instructions' => 'A short name a screen reader reads out when it reaches this '
+											. 'section — “Visit our office”. It is never shown on the page. Leave it '
+											. 'blank and the heading names the section instead.',
 									],
 								]
 							),

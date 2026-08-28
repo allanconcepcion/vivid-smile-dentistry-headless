@@ -226,6 +226,15 @@ interface Props {
    */
   body2?: string | null;
   /**
+   * The `<h3>` opening the THIRD block of prose. Same rules as `body2Heading`
+   * above — plain text, blank draws no heading. /emergency-dentistry/ `#how`
+   * is the first row to fill it; without it the band drops a real `<h3>` and
+   * ~46 words.
+   */
+  body3Heading?: string | null;
+  /** A third paragraph, rendered exactly as `body2` is — see the render. */
+  body3?: string | null;
+  /**
    * The small label the callout opens with, wherever the callout is drawn —
    * "Why four implants are enough" (all-on-4-single-arch.astro:481), "Causes"
    * (bone-grafting.astro:376), "Upper vs. Lower" (all-on-4-single-arch.astro:420),
@@ -431,6 +440,8 @@ const {
   body,
   body2Heading,
   body2,
+  body3Heading,
+  body3,
   calloutEyebrow,
   calloutHeading,
   calloutBody,
@@ -527,6 +538,15 @@ const body2IsBlock = /^<(p|div|ul|ol|blockquote)[\s>]/i.test(body2Html);
     needed inline markup would be a heading field, and none in the corpus does. */
 const body2HeadingText = typeof body2Heading === "string" ? body2Heading.trim() : "";
 const hasBody2Heading = body2HeadingText !== "";
+
+/* The third pair, derived exactly as the second is — same trim, same
+   already-wrapped detection, so a row that fills body_3 with a `<p>` does not
+   gain a nested paragraph. */
+const body3Html = typeof body3 === "string" ? body3.trim() : "";
+const hasBody3 = body3Html !== "";
+const body3IsBlock = /^<(p|div|ul|ol|blockquote)[\s>]/i.test(body3Html);
+const body3HeadingText = typeof body3Heading === "string" ? body3Heading.trim() : "";
+const hasBody3Heading = body3HeadingText !== "";
 
 /** The quote byline. Plain text, dash included in the value (see the prop). */
 const quoteAttribText = typeof quoteAttrib === "string" ? quoteAttrib.trim() : "";
@@ -800,7 +820,23 @@ const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
                   <Fragment set:html={body2Html} />
                 ) : (
                   <p set:html={body2Html} />
-                ))}
+                ))}{/* FLUSH `}{`, MEASURED NOT ASSUMED. An earlier pass wrote
+                  these on their own lines, reasoning that the whitespace run
+                  already present inside `.prose` would absorb them. It does
+                  not: a before/after build showed eight live service pages
+                  gaining spaces before `</div>`, exactly the diff this phase
+                  fails on. Every saved row leaves body_3 blank, so these two
+                  conditionals must cost those rows nothing at all. */
+                hasBody3Heading && (
+                  <h3 class="process-sub">{body3HeadingText}</h3>
+                )}{
+                hasBody3 &&
+                  (body3IsBlock ? (
+                    <Fragment set:html={body3Html} />
+                  ) : (
+                    <p set:html={body3Html} />
+                  ))
+              }
             </div>
           )
         }{/* Flush, same whitespace rule as the aside below. AFTER the prose,

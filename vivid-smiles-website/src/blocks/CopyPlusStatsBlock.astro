@@ -190,6 +190,15 @@ interface Props {
    * `<p>` are the same words in the wrong markup.
    */
   body2?: string | null;
+  /**
+   * The `<h3>` opening the THIRD block of copy, and its paragraph. Same
+   * independence rule as the pair above: /emergency-dentistry/ `#when` fills
+   * both, every other saved row fills neither, and a blank value must emit no
+   * element. Without these the band drops a real `<h3>` and ~50 words.
+   */
+  body3Heading?: string | null;
+  /** Mirrors `body2` exactly, including the escaping — see the render. */
+  body3?: string | null;
   stats?: (CopyPlusStatsRow | null)[] | null;
   /** The single ghost button. See the header for why there is only one. */
   ctaLabel?: string | null;
@@ -206,6 +215,8 @@ const {
   body,
   body2Heading,
   body2,
+  body3Heading,
+  body3,
   stats,
   ctaLabel,
   ctaHref,
@@ -260,6 +271,8 @@ const headingHtml = text(heading);
 const bodyText = text(body);
 const body2HeadingText = text(body2Heading);
 const body2Text = text(body2);
+const body3HeadingText = text(body3Heading);
+const body3Text = text(body3);
 
 /* The entity, not the character. `set:html` inserts this string raw, so the
    build emits `&nbsp;` exactly as the three templates wrote it; interpolating
@@ -318,6 +331,8 @@ const hasCopy =
   bodyText !== "" ||
   body2HeadingText !== "" ||
   body2Text !== "" ||
+  body3HeadingText !== "" ||
+  body3Text !== "" ||
   hasCta;
 const hasStats = rows.length > 0;
 
@@ -379,6 +394,15 @@ const hasAnything = hasCopy || hasStats;
                  and a row that fills neither must render byte-for-byte as its
                  template does today. */
               body2Text && <p>{body2Text}</p>
+            }{
+              /* Third pair, same flush idiom and the same reason. ESCAPED, not
+                 `set:html`, because that is what `body2` two lines up does:
+                 giving siblings different escaping is a trap for whoever fills
+                 them next. All four saved body_3 values are markup-free prose,
+                 so nothing is lost today; rich text here is a change to BOTH. */
+              body3HeadingText && <h3>{body3HeadingText}</h3>
+            }{
+              body3Text && <p>{body3Text}</p>
             }{
               /* And again for the button. No `.cta-row` and no `.cta-buttons`
                  wrapper: the three pages put `<Button>` straight into

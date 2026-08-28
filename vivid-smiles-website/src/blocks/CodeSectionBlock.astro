@@ -91,6 +91,9 @@ import LocalTrust from "../components/LocalTrust.astro";
 import AreaBand from "../components/AreaBand.astro";
 import TrustBand from "../components/TrustBand.astro";
 import PaymentBand from "../components/PaymentBand.astro";
+import ScenarioBand from "../components/ScenarioBand.astro";
+import PreventBand from "../components/PreventBand.astro";
+import ReviewsBand from "../components/ReviewsBand.astro";
 
 /** One registered bespoke band. */
 interface CodeBand {
@@ -300,6 +303,249 @@ const BANDS: Record<string, CodeBand> = {
         "<b>Single annual fee</b> — no claims, no waiting periods, no exclusions.",
       ],
       asideCtaLabel: "See Membership Plan",
+    },
+  },
+
+  /**
+   * ── Phase 4 Wave B — /emergency-dentistry/ and /new-patients/ ─────────────
+   *
+   * Five keys. TWO ARE LIVE BELOW; THREE ARE WRITTEN OUT AND COMMENTED, and
+   * the split is deliberate rather than unfinished.
+   *
+   * The two live ones name components that already exist — TrustBand and
+   * AreaBand, the same two general-dentistry and the three hubs already use —
+   * so registering them costs nothing and breaks nothing.
+   *
+   * The three commented ones name components that DO NOT EXIST YET. A static
+   * import of a missing file fails `astro check` and every build in the
+   * repository, including the ones sibling agents are running right now, so
+   * the import and the entry land in the SAME commit as the component file,
+   * which is also the order Wave A shipped in (components first, registrations
+   * second). Each block below is the finished entry: create the named file,
+   * add its import beside the three at the top of this file, uncomment the
+   * entry, and nothing else changes. The PHP select already carries all five
+   * keys — a key registered there and not here renders nothing and warns,
+   * which is safe only because no page holds a row for any of them yet
+   * (checked against the live endpoint, not assumed).
+   *
+   * EVERY STRING BELOW IS FROZEN COPY, and on four of the five bands part of
+   * it is a live `sections` row today. That is the code_section trade, taken
+   * band by band and recorded in the wave's block-map: the row stays movable
+   * and removable in wp-admin, the words become a developer edit HERE, and the
+   * `sections` rows stay in WordPress but stop feeding the render. Site data
+   * is NOT frozen — paragraphs carry `{street}` / `{city}` / `{phone}` /
+   * `{phone_href}` tokens where the templates interpolate src/data/contact.ts,
+   * and the component substitutes them at render, so an address or a phone
+   * change is still one field in Practice Settings.
+   */
+
+  /**
+   * /emergency-dentistry/ `#why-us` — the centred pull-quote band, and the
+   * SAME COMPONENT general-dentistry's `general_dentistry_trust` names.
+   * `.section.dark` on both pages, `.trust-quote` > eyebrow.light, h2,
+   * `p.trust-body` ×2, `p.trust-attr` with the aria-hidden stars — TrustBand
+   * draws exactly that and hardcodes the band, so there is nothing to add.
+   *
+   * Keyed per PAGE, not per component, for the reason the three LocalTrust
+   * entries above state: heading, body and body2 are page copy.
+   *
+   * FROZEN FROM THE CMS: `sections[why-us]` heading and body. The eyebrow,
+   * `body2` (html-bearing) and `attr` are the template's own literals
+   * (emergency-dentistry/index.astro:377-390) and were never editable.
+   */
+  emergency_dentistry_trust: {
+    component: TrustBand,
+    props: {
+      eyebrow: "Why choose Vivid Smiles",
+      heading: "Why choose Vivid Smiles <em>for emergency dental care.</em>",
+      body: "Vivid Smiles offers emergency care that goes beyond availability. Dr. Richardson graduated at the top of his class from Indiana University School of Dentistry, completed 600+ hours of advanced surgical training, and served as team dentist for the Indiana University basketball team. Dr. Westermeier's advanced residency adds capability for patients managing complex health conditions.",
+      body2:
+        "With over 300 five-star reviews highlighting a calm, welcoming environment, patients who arrive anxious leave <em>relieved.</em>",
+      attr: "5.0 · 300+ Google reviews",
+    },
+  },
+
+  /**
+   * /emergency-dentistry/ `#area` — the fourth AreaBand instance, and the
+   * first that is not the paper band with the Directions/Contact pair.
+   *
+   * AreaBand.astro MUST GAIN TWO PROPS IN THE SAME COMMIT THAT MAKES THIS ROW
+   * RENDERABLE, and both are named here because a prop this table passes and
+   * the component ignores is a band that draws the wrong thing with no error:
+   *
+   *   `band`    — "paper" (today's behaviour and the default, so the three hub
+   *               bands are untouched) | "charcoal". This page's band is
+   *               `<section class="section alt">`
+   *               (emergency-dentistry/index.astro:398), and AreaBand emits a
+   *               bare `class="section"`. The component also needs the charcoal
+   *               text colours for `.area-copy`, lifted from
+   *               emergency-dentistry.css:327-349 with the citation.
+   *   `actions` — "directions-contact" (today's sage "Get Directions" hover
+   *               "Open Maps" + ghost "Contact Us" hover "Reach Us", the
+   *               default) | "call-directions" (this page's light
+   *               "Call {phoneLabel}" hover "Tap to Dial" + ghost-light
+   *               "Get Directions" hover "Open Maps",
+   *               emergency-dentistry/index.astro:415-418). A NAMED PAIR, not
+   *               an array of hrefs: both pairs are site data resolved inside
+   *               the component, and an href in a prop is an href that can go
+   *               stale.
+   *
+   * FROZEN FROM THE CMS: `sections[area]` eyebrow and heading. The two
+   * paragraphs are template literals; `{street}` and `{city}` are AreaBand's
+   * existing tokens.
+   *
+   * ONE DELIBERATE ONE-WORD GAIN. The template writes the address line as
+   * `{addressCity}, {addressState} {addressZip}` — three expressions with
+   * literal spaces between them — and compressHTML collapses the space before
+   * the zip, so the built page ships "Parker, CO80134" today. AreaBand builds
+   * that string as ONE expression and ships "Parker, CO 80134". The same
+   * correction was taken and recorded on the three hub bands; the census must
+   * expect it here too rather than read it as a diff.
+   */
+  emergency_dentistry_area: {
+    component: AreaBand,
+    props: {
+      band: "charcoal",
+      actions: "call-directions",
+      eyebrow: "Visit the office",
+      heading: "Same-day emergencies <em>in Parker.</em>",
+      paragraphs: [
+        "Vivid Smiles Dentistry is located at {street}, in {city}. Same-day emergency appointments are accepted; call ahead so we can prep the operatory and get you seen as quickly as possible.",
+        "After-hours? Leave a voicemail and follow the first-aid steps above while waiting for a return call from Dr. Richardson or Dr. Westermeier.",
+      ],
+    },
+  },
+
+  /*
+   * ── The three below landed with their component files ────────────────────
+   * Their imports are at the top of this file. An entry and its import move
+   * together, always; either half alone is a broken build for everyone.
+   */
+
+  /*
+   * /emergency-dentistry/ `#protocol` — the first-aid band.
+   *
+   * COMPONENT: src/components/ScenarioBand.astro. It draws
+   * `<section class="section" id={id} data-vs-reveal-batch>` (paper) >
+   * `.wrap` > `.section-head` (eyebrow, h2 via set:html, p) >
+   * `.scenario-grid` of four `<article class="scenario-card">`, each a
+   * `<span class="scenario-tag">In case of</span>`, an `<h3>` and a `<p>`,
+   * then ONE `<article class="scenario-card scenario-card--always">` OUTSIDE
+   * that grid with `<span class="scenario-tag">In every case</span>`, an
+   * `<h3>` and a `<p>` printed with set:html. CSS lifted from
+   * emergency-dentistry.css:533-612 with the citation; write every selector
+   * at least two compounds deep, because a single scoped compound ties the
+   * page sheet's `.emerg .scenario-card` at (0,2,0) and bundle order decides.
+   *
+   * WHY THIS IS NOT card_grid. The two tag strings are CONSTANTS — the same
+   * five words on four cards and one on the fifth — so they are furniture the
+   * component owns, not per-card content an editor should retype four times.
+   * And the fifth card is the same class with a modifier, drawn OUTSIDE the
+   * grid; card_grid's only below-the-grid shape is `.candidacy-sub`, a
+   * different element with a `<span class="label">` in it. Reaching this
+   * through card_grid would mean a skin switch on the layout sixteen live
+   * pages and 187 saved rows depend on, to save one page's four card rows.
+   *
+   * FROZEN FROM THE CMS: `sections[protocol]` eyebrow, heading and body, and
+   * the four `cards[scenarios]` rows. The heaviest freeze in the wave, taken
+   * knowingly. UN-FREEZE PATH: if a second page ever ships this shape, it
+   * earns a layout and this key is retired by leaving it registered and
+   * pointing the row at the layout instead.
+   */
+  emergency_dentistry_protocol: {
+    component: ScenarioBand,
+    props: {
+      eyebrow: "First aid",
+      heading: "What to do <em>before you reach our office.</em>",
+      body: "The right first-aid response depends on what happened. Find your scenario below and follow the steps for that situation — these are independent, not sequential.",
+      scenarios: [
+        {
+          title: "Knocked-out tooth",
+          body: "Handle by the crown, rinse gently without scrubbing, and store in milk or saliva. Get to our office within an hour.",
+        },
+        {
+          title: "Severe pain",
+          body: "Rinse with warm salt water and apply a cold compress to the outside of your face; over-the-counter pain relief is appropriate.",
+        },
+        {
+          title: "Broken tooth",
+          body: "Save all pieces, rinse your mouth, and apply gauze if bleeding.",
+        },
+        {
+          title: "Lost crown or filling",
+          body: "Retrieve the crown if possible; temporary dental cement from a pharmacy can protect the exposed tooth until you arrive.",
+        },
+      ],
+      alwaysTitle: "And always — call ahead",
+      // `{phone_href}` and `{phone}` are substituted inside the component from
+      // src/data/contact.ts, the same way AreaBand substitutes {street}. A
+      // tel: URL in a prop is a phone number with a second home.
+      alwaysBody:
+        "By calling <a class=\"vs-link\" href=\"{phone_href}\">{phone}</a> before you arrive, our team can prepare and get you seen as quickly as possible.",
+    },
+  },
+
+  /*
+   * /emergency-dentistry/ `#prevent` — the centred prose plate.
+   *
+   * COMPONENT: src/components/PreventBand.astro. It draws
+   * `<section class="section" id={id} data-vs-reveal-batch>` (paper) >
+   * `.wrap` > `.section-head` (eyebrow, h2 via set:html — NO paragraph) >
+   * `.prevent-prose` holding two `<p>` printed with set:html and a
+   * `.prevent-actions` div with ONE ghost `<Button href="/general-dentistry/"
+   * hoverLabel="See Care">Explore General Dentistry</Button>`. CSS from
+   * emergency-dentistry.css:888-909.
+   *
+   * WHY NOT A LAYOUT. Nothing in the model draws a centred 720px prose column
+   * with the button inside it: card_grid's foot row is a `.cta-row` sibling of
+   * the grid, faq's row forces a second, hardcoded phone button this band does
+   * not have, and media_split cannot render without a picture. The shape is on
+   * one page, so by the method it is the escape hatch, not a new layout.
+   *
+   * FROZEN FROM THE CMS: `sections[prevent]` eyebrow, heading and body — three
+   * scalars, no repeater rows. The second paragraph is a template literal.
+   */
+  emergency_dentistry_prevent: {
+    component: PreventBand,
+    props: {
+      eyebrow: "Prevention",
+      heading: "Preventing <em>dental emergencies.</em>",
+      paragraphs: [
+        "Most dental emergencies are preventable. Regular checkups catch cracked fillings, early decay, and gum disease before they become urgent. Custom mouthguards, a natural extension of Dr. Richardson's team dentist background, protect teeth during contact sports; a nightguard addresses grinding that erodes enamel. Avoiding ice, hard candy, and using teeth as tools eliminates common fracture causes.",
+        "Consistent <a class=\"vs-link\" href=\"/general-dentistry/\">general dentistry care</a> is the best prevention strategy.",
+      ],
+    },
+  },
+
+  /*
+   * /new-patients/ `#reviews` — the draggable testimonial marquee.
+   *
+   * COMPONENT: src/components/ReviewsBand.astro. It draws
+   * `<section class="section" id={id} data-vs-reveal-batch>` (paper) >
+   * `.wrap` > `.section-head.center` (eyebrow, h2 via set:html, p), then
+   * `<ReviewMarquee reviews={reviews} ariaLabel="Patient reviews"
+   * class="np-reviews" />` OUTSIDE the wrap, then a second `.wrap` holding
+   * `.reviews-foot` with one ghost `<Button href="/patient-testimonials/"
+   * hoverLabel="See All">Read all reviews</Button>`
+   * (new-patients/index.astro:250-268).
+   *
+   * THE REVIEWS ARE NOT PROPS. The component calls
+   * `getCollection("reviews")` and sorts newest-first itself, exactly as the
+   * template does — that is a content collection, not page fields, so it is
+   * reachable from a component and nothing about it is frozen.
+   *
+   * WHY NOT gallery_marquee. That layout draws the SMILE GALLERY strip from
+   * Practice Settings; this is a different component over different data that
+   * happens to scroll. One name, two bands, no relation.
+   *
+   * FROZEN FROM THE CMS: `sections[reviews]` eyebrow, heading and body.
+   */
+  new_patients_reviews: {
+    component: ReviewsBand,
+    props: {
+      eyebrow: "Patient Stories · 300+ Five-Star Reviews",
+      heading: "Why Parker keeps <em>coming back</em>.",
+      body: "We don't push five-star reviews — they happen on their own. Drag through a few, in our patients' own words.",
     },
   },
 };

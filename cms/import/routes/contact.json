@@ -1,0 +1,178 @@
+{
+ "route": "/contact/",
+ "template": "vivid-smiles-website/src/pages/contact/index.astro",
+ "stylesheet": "vivid-smiles-website/src/styles/pages/contact.css",
+ "wrapper_class": "contact",
+ "notes": [
+  "TWO BLOCKS FOR FIVE TOP-LEVEL BANDS, and the other three are accounted for below rather than",
+  "left out. The page draws, in order: .crumbs, header.hero#contact-form, section#reach,",
+  "section#visit, section#faq, <FinalBand>. #visit and #faq are the two blocks; the rest is",
+  "unguarded template markup, and the split is deliberate on each one.",
+  "",
+  "THE PAGE HAS THREE `sections` ROWS — reach, visit, faq — verified against the live endpoint on",
+  "2026-08-29. Two are claimed by the blocks above; `reach` is claimed by nothing and is listed",
+  "under `exempt.sections`, WITHOUT the usual freeze warning, because its band is not migrating:",
+  "it stays in the template and keeps reading the row live. `faqs`, `cards`, `images`,",
+  "`process_steps` and `toc_links` all come back null, so there is nothing else to claim.",
+  "",
+  "BAND VOCABULARY IS INVERTED ON THIS SHEET, as it is on the pilot and on the hubs.",
+  "`.section.alt` is CHARCOAL (contact.css:162) and `.section.dark` is SAGE-PALE (contact.css:169).",
+  "Both `band` values below are resolved from those rules, not from the class name.",
+  "",
+  "NO RAIL ON THIS ROUTE. There is no `.toc` nav in the template and `pageFields.tocLinks` is null,",
+  "so `nav_label` resolves blank on both blocks — which is the documented way a band stays out of a",
+  "rail — and the template carries no derivedTocLinks loop.",
+  "",
+  "#reach IS THE ONE BAND THAT COULD LOOK LIKE AN OMISSION AND IS NOT. Its four .contact-card",
+  "anchors carry FontAwesome icons, an <ArrowBadge>, and — the decisive part — three of the four",
+  "card TITLES are site data: card 2 prints `phoneLabel` and card 4 prints `emailAddress`",
+  "(contact/index.astro:263-291 in the pre-migration file, :258-283 now). Storing those as literal",
+  "card rows would give this one page its own copy of the practice's phone number and email, which",
+  "is exactly what block_cta_fields()' href policy exists to prevent, and a `code_section` cannot",
+  "help either: it would freeze the eyebrow, heading and body that `sections.reach` feeds live",
+  "today. So the band stays template markup, unguarded, editable, and in place.",
+  "",
+  "THAT IS ORDER-SAFE BECAUSE #reach LEADS. It sits ABOVE the whole block run, and PageBlocks is",
+  "mounted at #visit's position, so DOM order is reproduced exactly. This is the mirror image of",
+  "the general-dentistry `.closing` case (an unguarded band that is safe because it TRAILS the",
+  "run) and the opposite of the LocalTrust fault (a band left out of the list that should have",
+  "been in it, which came out at the bottom of the page). Neither risk applies while #reach is the",
+  "only leading band and #faq is the last block.",
+  "",
+  "THE ON-PAGE TYPEFORM IS NOT A BAND. It lives inside header.hero (id `#contact-form`,",
+  "contact/index.astro:222-250) beside the hero copy, not in a section of its own, so /contact/",
+  "needs no form `code_section` — the hero is chrome and is never a block (spec 7). The four",
+  ".contact-card links and <FinalBand> both point at `#contact-form`, and the hero keeps emitting",
+  "that id on both branches."
+ ],
+ "blocks": [
+  {
+   "section_id": "visit",
+   "layout": "map_visit",
+   "band": "charcoal",
+   "band_evidence": "contact/index.astro:288 <section class=\"section alt\" id=\"visit\"> — contact.css:162 — .contact .section.alt { background: var(--charcoal-green); color: #fff } with --charcoal-green aliased to --vs-charcoal-green at contact.css:20. `.alt` is the DARK one on this sheet and `.dark` is sage-pale (contact.css:169); reading the class name instead of the rule would put sage-pale here.",
+   "fields": {
+    "eyebrow": {
+     "literal": "Visit our practice",
+     "from_template": "contact/index.astro:292 <span class=\"eyebrow light\">Visit our practice</span>. The CMS row `sections.visit.eyebrow` is NULL on the live endpoint (verified 2026-08-29), so this word only exists in the template; leaving the field blank would delete it from the band."
+    },
+    "heading": {
+     "section": "heading"
+    },
+    "body": {
+     "section": "body"
+    },
+    "aria_label": {
+     "literal": "Visit our practice",
+     "from_template": "contact/index.astro:288 aria-label=\"Visit our practice\" on the <section>. Same string as the eyebrow and a DIFFERENT job: this one is the landmark name a screen reader announces, and /our-office/ ships \"Visit our office\" for the same band — which is why the layout has the field at all. Blank must emit no attribute; \"\" strips the landmark name instead of falling back to the heading."
+    }
+   },
+   "no_cta_fields_note": "This layout has no cta fields, and the two buttons in the band are not missing. \"Get Directions\" and \"Call {phone}\" resolve from src/data/contact.ts INSIDE MapVisitBlock, as do the street, city, state, zip, email, the officeHours table and the map embed. A per-band copy of any of them is a per-band chance to publish a stale phone number — the href policy.",
+   "reveal_attributes_note": "The <section> itself carries NO data-vs-reveal-batch on this band — contact/index.astro:288 has none. The reveal hooks sit one level in: data-vs-reveal-batch on .location-copy (:290) and data-vs-reveal on .location-map-wrap (:339). MapVisitBlock has to reproduce that placement or the band animates as one unit instead of two.",
+   "known_gaps": [
+    "ONE CLASS TOKEN IS LOST AND IT IS DELIBERATE. The template writes <span class=\"eyebrow light\"> on this charcoal band (:292); MapVisitBlock follows the house rule every other block follows and emits `light` only on the sage-pale and sage bands, so /contact/ ships class=\"eyebrow\" here. Nothing moves visually: `light` is inert under the current cascade — .contact .location-copy .eyebrow (0,3,0) at contact.css:274-277 already sets --vs-eyebrow-on-sage and beats .eyebrow.light (0,2,0) at contact.css:47 — and the block owns the charcoal eyebrow colour in its own scoped CSS. Recorded here rather than left for the class-level diff to find, because a section-class diff is exactly what this phase measures."
+   ]
+  },
+  {
+   "section_id": "faq",
+   "layout": "faq",
+   "band": "paper",
+   "band_evidence": "contact/index.astro:360 <section class=\"section\"> — bare, no modifier. contact.css:160 gives .contact .section padding only and no background, so this band is the page ground, which is global.css:25 body { background-color: var(--vs-paper) } = tokens.css:12 #ffffff. FaqBlock's `paper` maps to no modifier class (BAND_CLASS), so it emits the same bare class=\"section\".",
+   "fields": {
+    "eyebrow": {
+     "section": "eyebrow"
+    },
+    "heading": {
+     "section": "heading"
+    },
+    "body": {
+     "section": "body"
+    }
+   },
+   "body_not_pull_note": "sections.faq.body -> `body`, NOT -> `pull`. The template puts the paragraph inside the centred .section-head (contact/index.astro:365) and this page has no .pull column at all — contact.css defines no such rule. Writing it to `pull` would move the paragraph beside the questions; writing it to both would print it twice.",
+   "no_cta_note": "cta_label and cta_href are unset, and blank is correct: contact/index.astro:360-378 has no .cta-row at all. FaqBlock draws the CTA only when ctaLabel is a non-empty string, so the band ends at the accordion exactly as it does today.",
+   "rows": {
+    "items": {
+     "literal": [
+      {
+       "question": "Are you accepting new patients?",
+       "answer": "Yes — Vivid Smiles is welcoming new patients, both locally and from out of state. Many of our smile-design and implant patients travel in from across Colorado and beyond. Request a visit through any of the contact methods on this page and our front desk will reach out within one business day.",
+       "open": true
+      },
+      {
+       "question": "Where do I park?",
+       "answer": "There is free, on-site parking directly in front of the building at 17167 Cedar Gulch Pkwy, Suite 102. Accessible spaces are nearest the entrance. Our suite is on the ground floor — no stairs."
+      },
+      {
+       "question": "Do you take my insurance?",
+       "answer": "We're in-network with most major PPO plans and we file claims on your behalf. We also offer an in-house dental membership plan for patients without insurance. Send your plan details through the form and our team will verify benefits before your visit."
+      },
+      {
+       "question": "How quickly will you reply to my message?",
+       "answer": "We aim to reply to every message within one business day. Calls during office hours reach our front desk live; voicemails left after hours are returned the next morning."
+      },
+      {
+       "question": "What if I have a dental emergency?",
+       "answer": "Please call <a href=\"{phone_href}\">{phone}</a> first — same-day care is available for active pain, dental injuries, and trauma. <a href=\"/emergency-dentistry/\">See our emergency dentistry page</a> for what counts as urgent and what to do before you arrive."
+      },
+      {
+       "question": "What should I bring to my first visit?",
+       "answer": "A photo ID, your insurance card if you have one, and a list of any medications you take. <a href=\"/new-patients/\">Our new-patients page</a> has the full first-visit guide, including what to expect during the consultation."
+      }
+     ],
+     "from_template": "contact/index.astro:87-113 — the `faqs` array in the frontmatter, transcribed in order. /contact/ has NO `faqs` repeater in WordPress (pageFields.faqs is null on the live endpoint, verified 2026-08-29), so there is nothing to move and these six are the second kind of value this file allows: template copy, transcribed verbatim, with the line named.",
+     "open_note": "Only row 1 carries `open`. It is a true_false whose default is 0, so the five rows without it save closed, which is what open={undefined} renders today.",
+     "phone_tokens_note": "Row 5 stores {phone_href} and {phone} where the template interpolates ${phoneHref} and ${phoneLabel} (:107). The number is site data (src/data/contact.ts) and a tel: URL in a field is a phone number with a second home — the href policy. src/blocks/site-tokens.ts fills both before FaqBlock set:html's the answer, and an unknown token passes through untouched.",
+     "html_in_answers_is_load_bearing_here": "Rows 5 and 6 carry <a> anchors — to /emergency-dentistry/ and /new-patients/ — and row 5 also carries the phone link. FaqBlock renders answers with set:html, exactly as contact/index.astro:363 does, so the links survive. Checked for the escaping trap: no answer contains a bare & or an entity, so nothing double-escapes."
+    }
+   }
+  }
+ ],
+ "exempt": {
+  "_": [
+   "Every repeater row on this page that no block above claims. The backfill fails, before writing",
+   "anything, on any row that is neither claimed nor listed here. Exactly one row is listed, and it",
+   "is the one kind of exemption that costs nothing."
+  ],
+  "sections": [
+   {
+    "section_id": "reach",
+    "reason": "Its band stays in the template, unguarded — see the #reach note above. Unlike a code_section exemption, NOTHING FREEZES: contact/index.astro:260-262 still renders section(\"reach\").eyebrow / .heading / .body on both branches, so the eyebrow, heading and body in this row keep reaching the page after the backfill exactly as they do now.",
+    "read_this_before_running": [
+     "This row is exempt because its band is not migrating, not because its copy is being given up.",
+     "If #reach is ever migrated, delete this entry in the same change — an exemption that outlives",
+     "its reason is how an unclaimed row stops being noticed."
+    ]
+   }
+  ]
+ },
+ "known_gaps": [
+  "NOTHING ON THIS ROUTE FREEZES. Both blocks map their eyebrow/heading/body from live `sections`",
+  "rows and the exempt band keeps reading its own, so every editable word on /contact/ is still",
+  "editable after the backfill. That is the whole reason #visit is a `map_visit` layout and not a",
+  "`code_section`: the escape hatch is for bands whose copy is already in code, and five of this",
+  "page's values are not.",
+  "",
+  "THE SIX FAQ ITEMS CHANGE HANDS, WHICH IS A GAIN AND A NEW DEPENDENCY. They are template copy",
+  "today and become editable rows in wp-admin after this runs. The page's FAQPage JSON-LD therefore",
+  "had to be rebuilt from the block's `items` (contact/index.astro:115-166): left pointing at the",
+  "template array it would keep describing the pre-migration questions the first moment anyone",
+  "edited one, silently, because structured data is invisible on the page. FaqBlock's own header",
+  "says the same — structured data lives on the page, so it cannot move into the band.",
+  "",
+  "ONE PIECE OF DEBT IN THAT REBUILD. The JSON-LD fills {phone} / {phone_href} with two inline",
+  "String.split().join() calls instead of importing fillSiteTokens from src/blocks/site-tokens.ts,",
+  "because that file is created in a sibling Wave-B commit and a static import of a file that does",
+  "not exist yet fails `astro check` and every concurrent build — the same ordering rule that keeps",
+  "three CodeSectionBlock entries commented out. Switch the page to fillSiteTokens once",
+  "src/blocks/site-tokens.ts has landed; the substitution is duplicated until then.",
+  "",
+  "THE FAQPage SCRIPT IS UNCONDITIONAL, as it is on all fifteen migrated routes. An editor who",
+  "deletes the FAQ band leaves an empty `mainEntity` behind. Not fixed here: wrapping the <script>",
+  "in a guard adds whitespace text nodes on BOTH branches and this route's else-branch is verified",
+  "byte-for-byte, so the fix belongs in a change that re-measures every FAQ route at once.",
+  "",
+  "#visit LOSES ONE `light` CLASS TOKEN FROM ITS EYEBROW — colour unchanged, block-owned. The",
+  "reasoning is on the block itself under `known_gaps`."
+ ]
+}

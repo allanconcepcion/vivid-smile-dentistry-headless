@@ -176,7 +176,8 @@ interface Props {
   /** "2" | "3" | "4" | "5" — ACF returns a select's value as a string. */
   columns?: string | number | null;
   /**
-   * The width at which this grid collapses to a single column: "640" or "780".
+   * The width at which this grid collapses to a single column: "479", "640"
+   * or "780".
    *
    * A FIELD RATHER THAN A CONSTANT BECAUSE THE PAGES GENUINELY DISAGREE, and
    * no other field can tell them apart. cosmetic-dentistry.css:975,
@@ -187,6 +188,13 @@ interface Props {
    * sees between 640px and 780px on whichever page lost, which is a design
    * change, and this migration changes the words and not the design.
    * Blank = "640", the majority.
+   *
+   * "479" IS A LADDER, NOT A SINGLE STOP. /new-patients/ runs four tiles ->
+   * two at 991 -> one at 479 (new-patients.css:188, :339, :348), a full
+   * breakpoint later than any sheet this select was minted from. Left on
+   * "640" that band would stack a column early between 479 and 640px AND
+   * halve from four to two at 1100 instead of 991 — two visible design
+   * changes on a live page, which is what this field exists to prevent.
    */
   collapseAt?: string | null;
   svcCards?: (ServiceCard | null)[] | null;
@@ -315,6 +323,15 @@ const eyebrowLight = bandKey === "sage-pale" || bandKey === "sage";
 
 const isFeatures = text(cardStyle) === "features";
 
+/* The third tile shape. /new-patients/ writes the <h3> ABOVE the description
+   and closes with an EMPTY `.svc-row-bot > span` — no heading in the bottom
+   row and no arrow badge, even though all four of its cards are links
+   (new-patients/index.astro:199-205). Left to fall through to `tiles` the
+   backfill would move four headings below their descriptions and add four
+   arrow badges the page has never drawn: adding markup to a live band, which
+   is the same failure `ctaHide` was. */
+const isHeadingFirst = text(cardStyle) === "tiles-heading-first";
+
 /**
  * The column count, and the class that carries it.
  *
@@ -353,7 +370,9 @@ const colsClass = `cols-${cols}`;
 const countClass = `svc-grid-${(Array.isArray(svcCards) ? svcCards : []).filter(Boolean).length}`;
 
 /* Blank = 640, which is what three of the four sheets do. */
-const collapseWidth = String(collapseAt ?? "").trim() === "780" ? "780" : "640";
+const rawCollapse = String(collapseAt ?? "").trim();
+const collapseWidth =
+  rawCollapse === "780" || rawCollapse === "479" ? rawCollapse : "640";
 
 let imageSpec = IMAGE_SPEC[`${isFeatures ? "features" : "tiles"}-${cols}`];
 
@@ -370,6 +389,19 @@ if (collapseWidth === "780" && !isFeatures) {
   imageSpec = {
     widths: imageSpec.widths,
     sizes: cols === "2" ? "(max-width: 991px) 100vw, 50vw" : "(max-width: 991px) 100vw, 33vw",
+  };
+}
+
+/* The 479 ladder overrides BOTH halves, unlike the 780 case above. Its stops
+   are 479/991 rather than 640/1100, so the sizes string has to name them or
+   the browser picks a candidate for a layout this band does not have; and the
+   one page shipping it also ships its own widths, transcribed here so the
+   built `srcset` is the template's and not a near-miss.
+   Source: new-patients/index.astro:194-195. */
+if (collapseWidth === "479" && !isFeatures) {
+  imageSpec = {
+    widths: [320, 520, 720, 960],
+    sizes: "(max-width: 479px) 100vw, (max-width: 991px) 50vw, 25vw",
   };
 }
 
@@ -569,7 +601,7 @@ const hasNestedHead = isNested && hasNestedHeadCopy;
         /* cosmetic-dentistry.astro:292-311, services.astro:183-202 and
            implant-dentistry.astro:347-365 — the same tile to the character,
            plus the `.svc-tag` services.astro:274 adds on `#everyday`. */
-        <div class:list={["svc-grid", countClass, colsClass, collapseWidth === "780" && "at-780", isNested && "nested"]}>
+        <div class:list={["svc-grid", countClass, colsClass, collapseWidth === "780" && "at-780", collapseWidth === "479" && "at-479", isNested && "nested"]}>
           {rows.map((card) => {
             /* An `<a>` with no href is not a link — see the header. The badge
                and `data-vs-arrow` go with it, because both exist to promise a
@@ -603,7 +635,19 @@ const hasNestedHead = isNested && hasNestedHeadCopy;
                      a text node to every tile on all five. */
                   card.tag !== "" && <span class="svc-tag">{card.tag}</span>
                 }{
-                  (card.body !== "" || hasRowBot) && (
+                  isHeadingFirst ? (
+                    (card.body !== "" || card.title !== "") && (
+                      <div class="svc-body">
+                        {card.title !== "" && <h3>{card.title}</h3>}{
+                          card.body !== "" && <p class="svc-desc" set:html={card.body} />
+                        }
+                        <div class="svc-row-bot">
+                          <span></span>
+                        </div>
+                      </div>
+                    )
+                  ) : (
+                    (card.body !== "" || hasRowBot) && (
                     <div class="svc-body">
                       {card.body !== "" && <p class="svc-desc" set:html={card.body} />}{
                         hasRowBot && (
@@ -615,6 +659,7 @@ const hasNestedHead = isNested && hasNestedHeadCopy;
                         )
                       }
                     </div>
+                    )
                   )
                 }
               </Fragment>
@@ -1367,6 +1412,43 @@ const hasNestedHead = isNested && hasNestedHeadCopy;
     .svc-grid-4.cols-3,
     .svc-grid-4.cols-4,
     .svc-grid-4.cols-5 {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* ---------- the 479 ladder ----------
+     `.at-479` does not just move the single-column stop; it replaces the whole
+     ladder, because /new-patients/ halves at 991 and stacks at 479 where the
+     generic rules halve at 1100 and stack at 640 (new-patients.css:188, :339,
+     :348).
+
+     WRITTEN AS OVERRIDES, NOT AS `:not(.at-479)` ON THE GENERIC RULES. Adding
+     `:not()` would raise every generic selector by one class and change how
+     each of them ties with the four un-migrated hub sheets — sixteen live
+     bands re-decided to serve one. These are (0,3,0) against the generic
+     (0,2,0), so they win on specificity; and because they are all equally
+     specific to each other, SOURCE ORDER decides between them, which is why
+     they are ordered widest-first. Reordering these four blocks changes the
+     layout. */
+  @media (max-width: 1100px) {
+    /* Hold four across — the generic rule has already halved by here. */
+    .svc-grid.at-479.cols-4 {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  @media (max-width: 991px) {
+    .svc-grid.at-479.cols-4 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 640px) {
+    /* Hold two across — the generic rule stacks here. */
+    .svc-grid.at-479.cols-4 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 479px) {
+    .svc-grid.at-479.cols-4 {
       grid-template-columns: 1fr;
     }
   }

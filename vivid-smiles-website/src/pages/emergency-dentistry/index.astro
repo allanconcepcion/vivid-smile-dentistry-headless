@@ -84,11 +84,63 @@ import "../../styles/pages/emergency-dentistry.css";
 // Real Vivid Smiles content, exactly matches the page's "we'll see you today"
 // emergency framing. Previous placeholder was a yomi-robotic shot which read
 // as routine implant work, not emergency triage.
-import { getPageContent } from '../../lib/page-content';
+import { getPageContent, type TocLink } from '../../lib/page-content';
+import PageBlocks from '../../blocks/PageBlocks.astro';
 // tocLinks is edited in WordPress (Pages -> Emergency Dental Care in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, section, image, seo } = await getPageContent(Astro.url.pathname);
+const { blocks, hasBlocks, tocLinks, section, image, seo } =
+  await getPageContent(Astro.url.pathname);
+
+/**
+ * THE MIGRATION SWITCH (docs/PAGE-BLOCKS.md 2.3), documented HERE and nowhere
+ * in the markup below — deliberately.
+ *
+ * `hasBlocks` means "this build can draw this page from its blocks", not
+ * "WordPress sent rows" (src/lib/page-content.ts). When it is true, PageBlocks
+ * draws the eight bands in the order an editor arranged them, at the position
+ * `#when` used to start; when it is false — every build until this route is
+ * back-filled, and again the moment an editor empties the field — every band
+ * renders exactly as it always has.
+ *
+ * WHY NO `{/* … *\/}` COMMENTS ON THE GUARDS. Astro preserves whitespace
+ * between expressions, so a comment expression on its own line leaves
+ * newline-and-indent TEXT NODES either side of itself that survive into the
+ * built HTML on BOTH branches. That exact mistake put 14 bytes into a live page
+ * earlier in this project, and the else-branch of this file is verified
+ * byte-for-byte against the pre-migration build. So the rationale lives in this
+ * comment, and every guard below is written flush where its `<section>` sat:
+ * `hasBlocks ? … : <section` on the opening line, `</section>}` on the closing
+ * one, no line of its own for either.
+ *
+ * WHICH BANDS ARE GUARDED, and why the rest are not. Eight bands are blocks and
+ * each has exactly one row in cms/import/routes/emergency-dentistry.json:
+ * #when, #protocol, #how, #emergencies, #why-us, #area, #prevent, #faq — the
+ * same eight anchors the `toc_links` repeater holds, so the derived rail is the
+ * rail. Everything else stays unguarded, in two different senses:
+ *
+ *   `.crumbs`, `.hero`, the `.toc` rail and <FinalBand> are CHROME — never
+ *   blocks (spec 7: "Not a block, even though it is a band"). Only the rail's
+ *   CONTENTS move, which is the one ternary on the rail below.
+ *
+ *   `.closing` and `#contact-form` are page copy no registered layout can
+ *   express — the second is a Typeform embed, which is the shape `code_section`
+ *   exists for but which needs no row here. Guarding either with no row would
+ *   delete it from a live page, so both stay unguarded. That is ORDER-SAFE
+ *   because they are the LAST TWO content bands: they follow #faq, the last
+ *   block, so the block run ending there leaves them exactly where they were.
+ *   Add a block after #faq in wp-admin and both jump above it — that is the
+ *   LocalTrust fault at one remove, and it is recorded as a known gap on the
+ *   `faq` block in cms/import/block-map.json.
+ *
+ *   `#contact-form` therefore keeps reading `sections[contact-form]` live on
+ *   BOTH branches. It is the one `sections` row on this page that no block
+ *   claims and that no code_section freezes.
+ *
+ * A band guarded with no row VANISHES on backfill; a band with a row and no
+ * guard renders TWICE and lands at the bottom carrying a duplicate id. Both
+ * have happened on this project. There is no third outcome.
+ */
 
 
 // 5 first-aid scenarios — each is a parallel "if this happens, do that" panel,
@@ -163,6 +215,124 @@ const faqs = [
 const heroLede =
   "Dental emergencies don't follow business hours, and knowing where to go in Parker can be the difference between saving a tooth and losing one. Vivid Smiles Dentistry offers same-day emergency appointments, 3D diagnostic imaging, and in-house surgical expertise to resolve most cases on the first visit. The following is how to recognize a dental emergency, what to do before you arrive, and why Vivid Smiles is equipped to handle it.";
 
+/**
+ * The "On this page" rail, derived from the blocks themselves (docs/PAGE-BLOCKS.md 1.2).
+ *
+ * Used only when this page renders from `blocks`. The `toc_links` repeater is
+ * eight rows that restate the order of the eight bands below it, so a reorder
+ * in wp-admin moves a band and leaves its rail entry pointing at the old
+ * neighbour — the single largest way a reorder breaks a link. Reading the
+ * anchors off the blocks makes that unrepresentable: there is one ordering and
+ * the rail is a projection of it.
+ *
+ * Three rules, in the order they bite:
+ *
+ * 1. A blank anchor is skipped. Not tidiness — src/scripts/toc-spy.ts:24 feeds
+ *    each rendered href straight to document.querySelector(), and
+ *    querySelector("") throws a SyntaxError that kills the whole spy, not just
+ *    the one entry. PageBlocks.astro emits no id at all for a blank anchor
+ *    (`id={anchor || undefined}`), so there is nothing to link to either.
+ * 2. An anchor that is not a valid id selector is skipped for the same reason —
+ *    "#3-reasons" is legal HTML and an illegal CSS selector. Dropping one rail
+ *    entry costs one link; letting it through costs every link on the page,
+ *    plus the mobile pill auto-centering.
+ * 3. Duplicate anchors follow PageBlocks.astro's dedup exactly, second
+ *    occurrence onward suffixed `-2`, `-3`. The counter has to advance on every
+ *    non-blank anchor, including blocks with no nav_label, or the rail's idea
+ *    of "the second #faq" drifts from the id the renderer actually emitted.
+ *
+ * A blank nav_label means "leave this block out of the rail" (1.2), which is
+ * how a band that should not be navigable opts out.
+ */
+const ANCHOR_IS_ID_SELECTOR = /^[A-Za-z_][A-Za-z0-9_-]*$/;
+
+const anchorsSeen = new Map<string, number>();
+// Typed as TocLink[] rather than an equivalent inline shape so the ternary in
+// the rail below collapses to one type instead of a union of two array types,
+// which TypeScript will not let you call .map() on.
+const derivedTocLinks: TocLink[] = [];
+
+for (const block of blocks) {
+  // A nested block is drawn INSIDE the band above it, not as a band of its own,
+  // so it has no id to link to. Without this the rail emits an entry pointing at
+  // an anchor nothing renders — a dead link in the "On this page" list.
+  if (block?.nested) continue;
+
+  const anchor = typeof block.anchor === 'string' ? block.anchor.trim() : '';
+  if (anchor === '') continue;
+
+  const nth = (anchorsSeen.get(anchor) ?? 0) + 1;
+  anchorsSeen.set(anchor, nth);
+
+  const label = typeof block.navLabel === 'string' ? block.navLabel.trim() : '';
+  if (label === '') continue;
+
+  if (!ANCHOR_IS_ID_SELECTOR.test(anchor)) {
+    console.warn(
+      `[blocks] anchor "${anchor}" on ${Astro.url.pathname} cannot be used as a selector — ` +
+        `omitting "${label}" from the On this page rail so toc-spy keeps working`,
+    );
+    continue;
+  }
+
+  derivedTocLinks.push({ href: `#${nth > 1 ? `${anchor}-${nth}` : anchor}`, label });
+}
+
+/**
+ * THE `FAQPage` PAYLOAD FOLLOWS THE SAME SWITCH THE VISIBLE ACCORDION DOES.
+ *
+ * Structured data lives on the PAGE and not in the band, so a migrated route
+ * whose editor rewords or reorders a question would keep describing the
+ * pre-migration copy — a claim only Google reads, which is exactly why nobody
+ * would catch it. The five `items` rows the backfill writes are transcribed
+ * from the `faqs` array above, so this is a no-op on the day it runs and stops
+ * being one on the first edit.
+ *
+ * Answer 2 stores `{phone_href}` / `{phone}` rather than a tel: URL and a
+ * number, per the href policy: a phone number in a stored field is a phone
+ * number with a second home. FaqBlock substitutes them at render from
+ * src/data/contact.ts; the same two values, imported at the top of this file,
+ * substitute them here. WHEN src/blocks/site-tokens.ts LANDS, replace this
+ * table with an import of `fillSiteTokens` — two tables over one source is how
+ * a token gets added to one and not the other, and then the schema ships
+ * literal braces at a search engine.
+ */
+const SITE_TOKENS: Record<string, string> = {
+  phone_href: phoneHref,
+  phone: phoneLabel,
+};
+
+const fillTokens = (value: string): string =>
+  value.replace(/\{(phone_href|phone)\}/g, (whole, name: string) =>
+    Object.hasOwn(SITE_TOKENS, name) ? SITE_TOKENS[name] : whole,
+  );
+
+/**
+ * Blocks-side questions, or the template array. NOT a merge and not a
+ * fallback-when-empty: if an editor deletes the FAQ band, this page no longer
+ * shows an accordion, and a FAQPage listing questions the page does not answer
+ * is worse than no FAQPage at all. So an empty list here emits no script.
+ *
+ * Annotated rather than inferred, for the reason `derivedTocLinks` is: the
+ * ternary would otherwise collapse to a union of two array types, which
+ * TypeScript will not let you call .map() on.
+ *
+ * Every field is read defensively because an ACF row an editor has never saved
+ * comes back null, and `null.trim()` on a live route is a failed build rather
+ * than a missing question.
+ */
+const blockFaqItems: Array<{ q: string; a: string }> = hasBlocks
+  ? blocks
+      .filter((b) => !b?.nested && b?.__typename === 'PageFieldsBlocksFaqLayout')
+      .flatMap((b) => (Array.isArray(b.items) ? (b.items as unknown[]) : []))
+      .map((row) => (row ?? {}) as { question?: unknown; answer?: unknown })
+      .map((row) => ({
+        q: typeof row.question === 'string' ? row.question : '',
+        a: typeof row.answer === 'string' ? fillTokens(row.answer) : '',
+      }))
+      .filter((row) => row.q !== '')
+  : faqs.map((f) => ({ q: f.q, a: f.a }));
+
 ---
 
 <BaseLayout
@@ -218,13 +388,13 @@ const heroLede =
         <span class="toc-label">On this page</span>
         <div class="toc-scroll">
           <div class="toc-list">
-            {tocLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+            {(hasBlocks ? derivedTocLinks : tocLinks).map((l) => <a href={l.href}>{l.label}</a>)}
           </div>
         </div>
       </div>
     </nav>
 
-    <section class="section alt" id="when" data-vs-reveal-batch>
+    {hasBlocks ? <PageBlocks blocks={blocks} /> : <section class="section alt" id="when" data-vs-reveal-batch>
       <div class="why-grid">
         <div class="why-copy">
           <span class="eyebrow">{section("when").eyebrow}</span>
@@ -264,9 +434,9 @@ const heroLede =
           </div>
         </div>
       </div>
-    </section>
+    </section>}
 
-    <section class="section" id="protocol" data-vs-reveal-batch>
+    {hasBlocks ? null : <section class="section" id="protocol" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow">{section("protocol").eyebrow}</span>
@@ -290,9 +460,9 @@ const heroLede =
           <p set:html={callAhead.body}></p>
         </article>
       </div>
-    </section>
+    </section>}
 
-    <section class="section alt" id="how" data-vs-reveal-batch>
+    {hasBlocks ? null : <section class="section alt" id="how" data-vs-reveal-batch>
       <div class="wrap">
         <div class="what-grid">
           <div class="what-text">
@@ -324,9 +494,9 @@ const heroLede =
           </div>
         </div>
       </div>
-    </section>
+    </section>}
 
-    <section class="section" id="emergencies" data-vs-reveal-batch>
+    {hasBlocks ? null : <section class="section" id="emergencies" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow">{section("emergencies").eyebrow}</span>
@@ -340,9 +510,9 @@ const heroLede =
           ))}
         </ul>
       </div>
-    </section>
+    </section>}
 
-    <section class="section dark" id="why-us" data-vs-reveal-batch>
+    {hasBlocks ? null : <section class="section dark" id="why-us" data-vs-reveal-batch>
       <div class="wrap">
         <div class="trust-quote">
           <span class="eyebrow light">Why choose Vivid Smiles</span>
@@ -358,9 +528,9 @@ const heroLede =
           </p>
         </div>
       </div>
-    </section>
+    </section>}
 
-    <section class="section alt" id="area" data-vs-reveal-batch>
+    {hasBlocks ? null : <section class="section alt" id="area" data-vs-reveal-batch>
       <div class="wrap">
         <div class="area">
           <div class="area-copy">
@@ -393,9 +563,9 @@ const heroLede =
           </div>
         </div>
       </div>
-    </section>
+    </section>}
 
-    <section class="section" id="prevent" data-vs-reveal-batch>
+    {hasBlocks ? null : <section class="section" id="prevent" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow">{section("prevent").eyebrow}</span>
@@ -410,9 +580,9 @@ const heroLede =
           </div>
         </div>
       </div>
-    </section>
+    </section>}
 
-    <section class="section alt" id="faq" data-vs-reveal-batch>
+    {hasBlocks ? null : <section class="section alt" id="faq" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow">FAQ</span>
@@ -436,7 +606,7 @@ const heroLede =
           </div>
         </div>
       </div>
-    </section>
+    </section>}
 
     <section class="closing" data-vs-reveal>
       <div class="wrap">
@@ -526,15 +696,15 @@ const heroLede =
       },
     })} />
 
-    <script type="application/ld+json" is:inline set:html={JSON.stringify({
+    {blockFaqItems.length > 0 && <script type="application/ld+json" is:inline set:html={JSON.stringify({
       "@context": "https://schema.org",
       "@type": "FAQPage",
-      "mainEntity": faqs.map((f) => ({
+      "mainEntity": blockFaqItems.map((f) => ({
         "@type": "Question",
         "name": f.q,
         "acceptedAnswer": { "@type": "Answer", "text": f.a },
       })),
-    })} />
+    })} />}
 
     <script type="application/ld+json" is:inline set:html={JSON.stringify({
       "@context": "https://schema.org",

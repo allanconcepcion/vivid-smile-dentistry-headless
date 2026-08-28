@@ -97,6 +97,7 @@
  */
 import Button from "../components/Button.astro";
 import { phoneHref, phoneLabel, bookNowHref } from "../data/contact";
+import { fillSiteTokens } from "./site-tokens";
 
 /** One row of the layout's `steps` repeater. */
 export interface ProcessStep {
@@ -409,8 +410,18 @@ const stepCountClass = `pgrid-${rows.length}`;
     }{
       /* The closing paragraph, outside the steps container in every shape —
          cosmetic-dentistry/index.astro:541 puts it after `.pgrid-card` and
-         inside `.wrap`, which is exactly here. */
-      hasSubFoot && <p class="process-outro">{subFoot}</p>
+         inside `.wrap`, which is exactly here.
+
+         set:html AND the token fill, both required. /referral-program/ stores
+         an inline `<a class="vs-link" href="{phone_href}">{phone}</a>` here;
+         escaped, a patient would read the tag and the class attribute as body
+         copy, and set:html alone would ship a link whose href is the literal
+         string "{phone_href}". Both live rows that reach this line are
+         markup-free prose (all-on-4-single-arch and cosmetic-dentistry's
+         sedation sentence), so the switch cannot change what they draw. */
+      hasSubFoot && (
+        <p class="process-outro" set:html={fillSiteTokens(subFoot)} />
+      )
     }
 
     {

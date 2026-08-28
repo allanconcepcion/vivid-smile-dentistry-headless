@@ -1,0 +1,305 @@
+{
+ "route": "/our-office/",
+ "template": "vivid-smiles-website/src/pages/our-office/index.astro",
+ "stylesheet": "vivid-smiles-website/src/styles/pages/our-office.css",
+ "wrapper_class": "vs-office",
+ "notes": [
+  "TWO BLOCKS FOR FIVE CONTENT BANDS, AND THAT IS THE WHOLE DECISION ON THIS ROUTE. The page",
+  "has exactly five `sections` rows — tour, technology, expect, visit, faq, in the order the",
+  "template draws them, verified against the live endpoint on 2026-08-29. Two are claimed here",
+  "(#visit, #faq). The other three keep their template markup, unguarded, on both sides of the",
+  "switch, and keep reading their `sections` rows LIVE — they are listed under",
+  "`exempt.sections` with an un-defer condition each, and unlike a code_section exemption they",
+  "freeze nothing.",
+  "",
+  "THE THREE UNMIGRATED BANDS LEAD THE PAGE, WHICH IS THE ONLY REASON LEAVING THEM UNGUARDED IS",
+  "SAFE. #tour, #technology and #expect all sit ABOVE #visit, the first block, so a block run",
+  "that starts at #visit leaves the three exactly where they were. The mirror image of",
+  "general-dentistry's `.closing`, which is safe only while its `faq` block stays LAST. Put a",
+  "block above #tour — in wp-admin, by reordering — and this becomes the LocalTrust fault at one",
+  "remove: the three template bands would stay at the top while their neighbours moved below",
+  "them. Recorded again in `known_gaps` on the `visit` block, which is the block they now depend",
+  "on being first.",
+  "",
+  "BAND VOCABULARY IS INVERTED ON THIS SHEET, as it is on the pilot and on the four hubs.",
+  "`.section.alt` is CHARCOAL (our-office.css:100) and `.section.dark` is SAGE-PALE",
+  "(our-office.css:113). Both `band` values below are resolved from those two rules, not from",
+  "the class name: reading the class would put a dark band under #faq and a pale one under",
+  "#visit, which is exactly the defect a word-level diff cannot see (src/lib/page-content.ts,",
+  "`unwrapSelects`).",
+  "",
+  "NO RAIL ON THIS PAGE. `tocLinks` comes back null from the endpoint and the template has no",
+  "`.toc` nav at all, so every `nav_label` resolves blank through the map's default",
+  "({ toc_label: true } with no matching row), which keeps both blocks out of a rail that does",
+  "not exist. No derived-TOC loop was added to the template — one would feed nothing.",
+  "",
+  "#visit IS A LAYOUT, NOT A code_section, AND THE ANSWER BINDS /contact/ TOO. Both pages ship",
+  "this band character for character (our-office/index.astro:318-384 and",
+  "contact/index.astro:288-357), and on BOTH of them the eyebrow, heading and body come from a",
+  "live `sections` row — five editable values between the two pages. A code_section freezes",
+  "exactly those, and the bands the escape hatch is for are the ones whose copy is ALREADY in",
+  "code. So it is the `map_visit` layout registered in cms/mu-plugins/vs-content-model.php",
+  "(:4725) and src/blocks/manifest.ts (:1081). Everything else in the band — street, city,",
+  "phone, email, opening hours, both buttons, the map embed — is site data and resolves from",
+  "src/data/contact.ts and src/data/hours.ts inside the component, never from a field.",
+  "",
+  "THE COMPONENT THIS ROUTE DEPENDS ON HAS LANDED, and it is not in this agent's two files.",
+  "src/blocks/MapVisitBlock.astro now exists and PageFieldsBlocksMapVisitLayout is bound to it",
+  "in src/blocks/registry.ts:75. Re-read after this map was written, and it satisfies every",
+  "line of the contract below: no `data-vs-reveal-batch` on the <section>, both reveal hooks on",
+  "the two columns, `<p class=\"lede\">` and no `.section-head`, `light` on the eyebrow only for",
+  "the sage-pale and sage bands, aria-label omitted entirely when blank, and the address line",
+  "built as ONE `${addressCity}, ${addressState} ${addressZip}` expression. Written as a",
+  "statement of fact rather than deleted: a gap note that still says \"cannot\" after it can is",
+  "how two real losses started on this project.",
+  "",
+  "THE `expectTiles` CARDS ARE LIVE IN WORDPRESS AND THE TEMPLATE HAS NEVER READ THEM. Four",
+  "rows, group `expectTiles`, verified on the endpoint; the template hardcodes the same four",
+  "tiles as a local array (:90-111) because `.expect-tile` carries a FontAwesome icon and no",
+  "card row can hold one. The CMS text and the template text are word-for-word identical today",
+  "— checked, not assumed — so nothing is drifting, but the rows are unclaimed and are exempted",
+  "below rather than left for the leftover check to refuse."
+ ],
+ "blocks": [
+  {
+   "section_id": "visit",
+   "layout": "map_visit",
+   "band": "charcoal",
+   "band_evidence": "our-office/index.astro:318 <section class=\"section alt\" id=\"visit\"> — our-office.css:100 — .vs-office .section.alt { background: var(--vs-charcoal-green); color: #fff }. `.alt` is the DARK one on this sheet; the header comment at :99 says so in as many words.",
+   "fields": {
+    "eyebrow": {
+     "section": "eyebrow"
+    },
+    "heading": {
+     "section": "heading"
+    },
+    "body": {
+     "section": "body"
+    },
+    "aria_label": {
+     "literal": "Visit our office",
+     "from_template": "our-office/index.astro:318 — the section's own aria-label. Stored rather than derived because /contact/ writes \"Visit our practice\" on the identical band (contact/index.astro:288) and nothing else on the row tells the two apart. Blank must emit NO attribute: aria-label=\"\" strips a landmark's accessible name instead of leaving it to the heading."
+    }
+   },
+   "layout_evidence": ".vs-office .location-grid is grid-template-columns: 1fr 1fr with align-items: stretch (our-office.css:326-329) — the copy-beside-map split this layout draws. The map cell is .location-map-wrap at aspect-ratio 4/5 (:407-414), not an image frame.",
+   "body_is_lede_note": "sections.visit.body -> `body`, and the component must draw it as `<p class=\"lede\">` (our-office/index.astro:324), NOT as a bare <p> inside a `.section-head`. This band has no `.section-head` at all: the eyebrow, the h2 and the lede sit directly in `.location-copy` (:321-324). our-office.css:339 re-asserts the charcoal colour on `.section.alt .location-copy .lede` precisely because `.lede` at (0,3,1) outranks `.section.alt p` at (0,3,0) — the component owns both sides of that in its own scoped CSS and inherits neither.",
+   "eyebrow_class_note": "THIS PAGE LOSES NOTHING HERE AND /contact/ LOSES ONE TOKEN. our-office writes a plain <span class=\"eyebrow\"> on this charcoal band (:322) while contact writes <span class=\"eyebrow light\"> (:292). MapVisitBlock follows the house rule every other block follows — `light` only on the sage-pale and sage bands — so this route matches byte for byte and /contact/ drops that one class. Colour is unchanged either way: the block owns the charcoal eyebrow colour in its own scoped CSS. Recorded in src/blocks/manifest.ts:1067-1073 as an expected normalisation.",
+   "reveal_note": "THE SECTION ITSELF CARRIES NO `data-vs-reveal-batch`, unlike every other band on this page. The reveal attributes sit on the two children: `data-vs-reveal-batch` on .location-copy (:321) and `data-vs-reveal` on .location-map-wrap (:373). A component that put the batch attribute on the <section> would re-time the whole band's animation and change three attributes in the diff.",
+   "site_data_note": "NO cta fields, no address fields and no hours rows, deliberately. The two buttons are variant=\"light\" -> directionsHref hoverLabel \"Open Map\" and variant=\"ghost-light\" -> phoneHref hoverLabel \"Tap to Dial\" (:368-369), the address rows and the hours table read src/data/contact.ts and src/data/hours.ts (:326-364), and the iframe src is built from addressLine (:37, :375-380). Storing any of them would be a per-band copy of a phone number, which is the whole of the href policy in block_cta_fields().",
+   "address_line_note": "THE ADDRESS LINE MUST BE BUILT AS ONE EXPRESSION. The template writes {addressCity}, {addressState} {addressZip} as three spliced expressions (:331); compressHTML collapses the whitespace text node between two of them, which is how \"Parker, CO80134\" shipped on three live pages. The component builds `${addressCity}, ${addressState} ${addressZip}` as a single template literal. The output is the corrected string, so this route gains the same one-space correction the three hub `area` bands already took.",
+   "known_gaps": [
+    "THIS BLOCK MUST STAY FIRST OR THREE TEMPLATE BANDS LAND IN THE WRONG PLACE. #tour,",
+    "#technology and #expect (our-office/index.astro:199, :253, :295) are unguarded template",
+    "markup that no registered layout expresses. They render above whatever PageBlocks draws,",
+    "which is correct only while this block is the first row in the list. Reorder in wp-admin so",
+    "any band precedes `visit` and the three stay pinned at the top while their neighbours move",
+    "below them. Their un-defer conditions are on `exempt.sections`; until one of them is met,",
+    "an editor reordering this page can produce a wrong order that nothing warns about.",
+    "",
+    "CLOSED — the component gap this note described is filled. src/blocks/MapVisitBlock.astro",
+    "exists and is bound at src/blocks/registry.ts:75, and it honours the four notes above",
+    "(`body_is_lede_note`, `eyebrow_class_note`, `reveal_note`, `address_line_note`) as written.",
+    "The layout was already registered in vs-content-model.php (:4725) and manifest.ts (:1081),",
+    "so the window in which this band would have drawn UnknownBlock is shut. The map was still",
+    "written first on purpose, so the component had a written contract to satisfy.",
+    "",
+    "AND THE PHP MUST REACH THE CMS HOST BEFORE THE NEXT BUILD. The manifest now selects",
+    "`ariaLabel` on PageFieldsBlocksMapVisitLayout; against a host still running the",
+    "pre-Wave-B vs-content-model.php the capability probe (src/loaders/pages.ts:191-266) throws",
+    "and all 48 routes fail to build. Standing PHP-before-manifest order, armed now."
+   ]
+  },
+  {
+   "section_id": "faq",
+   "layout": "faq",
+   "band": "sage-pale",
+   "band_evidence": "our-office/index.astro:387 <section class=\"section dark\" id=\"faq\"> — our-office.css:113 — .vs-office .section.dark { background: var(--vs-sage-pale); color: var(--vs-ink) }. `.dark` is the LIGHT one on this sheet; the comment at :111-112 states the flip.",
+   "fields": {
+    "eyebrow": {
+     "literal": "Office FAQ",
+     "from_template": "our-office/index.astro:390 — <span class=\"eyebrow light\">Office FAQ</span>. Transcribed, not moved: sections.faq.eyebrow is NULL on the live endpoint, so the template's own string is the only copy of it. FaqBlock re-derives the `light` token from the band (eyebrowLight is true for sage-pale), so the class comes back on its own."
+    },
+    "heading": {
+     "section": "heading"
+    }
+   },
+   "body_decision": "NOT SET, and blank is correct. sections.faq.body is null on the live endpoint and the template draws no <p> in the head (:389-392), so FaqBlock's `body &&` guard emits nothing — the same shape either way.",
+   "pull_decision": "NOT SET. This page has no `.pull` aside; the hub variant maps sections.faq.body -> `body` and the ten detail routes map it -> `pull`, and this row has neither because the source is null. Writing it to `pull` would invent an aside the page has never had.",
+   "cta_decision": "NO CTA FIELDS. The template's FAQ band ends at </div></div> with no button row (:394-402); the closing call to action on this page is <VirtualConsult> below it, which is chrome and not a block. FaqBlock's `hasCta` is false for a blank cta_label, so it draws no .cta-row and no phone button — including no `cta_phone_first`, which is an emergency-dentistry field and stays off this row.",
+   "rows": {
+    "items": {
+     "faqs": true,
+     "fields": {
+      "question": "question",
+      "answer": "answer",
+      "open": "open"
+     },
+     "note": "All 4 rows, in order, MOVED — nothing here is transcribed. Row 1 is the only one with open=true, which the template passes through as `open={f.open}` (:396) and FaqBlock as `open={f.open ?? false}`. Row 4's answer carries an inline <a href=\"/new-patients/\">; FaqBlock renders answers with set:html (its `.answer` div), exactly as the template does at :398, so the anchor survives. Verified against the endpoint on 2026-08-29: this page's answers contain one tag and no bare `<` or `&`, which is the pre-flight FaqBlock's header requires before an escaped-FAQ template becomes this block. NOTE the anchor has no class — the page sheet styles `.faq .answer a` positionally (our-office.css:470-474) and FaqBlock does not carry that rule, so the link renders in body colour rather than sage. Listed in known_gaps."
+    }
+   },
+   "known_gaps": [
+    "ONE CLASS TOKEN IS LOST ON THE HEAD, AND IT IS THE FIRST TIME THIS PROJECT HAS SEEN IT.",
+    "The template writes <div class=\"section-head center\"> (:389); FaqBlock emits",
+    "<div class=\"section-head\"> and centres in its own scoped CSS (`text-align: center`,",
+    "`margin: 0 auto 64px`). No previously migrated page used the `center` modifier — the four",
+    "hubs and the eleven detail pages all write a bare `.section-head` — so this is new to Wave",
+    "B and four other Wave-B routes carry the same token. The centring survives and so does the",
+    "eyebrow's second flanker: our-office.css:136-138 adds the ::after only under",
+    "`.section-head.center`, while FaqBlock draws ::before AND ::after unconditionally, so the",
+    "eyebrow still reads \"— OFFICE FAQ —\". Recorded here so the class-level comparison",
+    "(scripts/vr-html.mjs) has an expected difference to match rather than a surprise.",
+    "",
+    "THE ACCORDION'S SURFACE COLOURS ARE BLOCK-OWNED AND DIFFER FROM THIS SHEET. The page sheet",
+    "draws the list on a translucent white over the sage-pale band — background",
+    "rgba(255,255,255,.55), borders rgba(0,0,0,.12) and .1, and rgba(255,255,255,.75) when open",
+    "(our-office.css:424-450). FaqBlock draws #fff, var(--vs-line), and var(--vs-cream) open.",
+    "The block's rules are two compounds deep under its own scope attribute, so they win",
+    "outright and the page sheet's copies go unused — no tie, nothing decided by bundle order.",
+    "Visible as a slightly more opaque card. Same normalisation the eleven detail routes took;",
+    "recorded rather than argued, and undone by the stylesheet pass, not by this map.",
+    "",
+    "ONE MORE, SMALLER: our-office.css:470-474 colours `.faq .answer a` sage with an underline.",
+    "FaqBlock has no `.answer a` rule at all, so row 4's /new-patients/ link renders in",
+    "var(--vs-ink-soft) with the global anchor treatment. One link, one colour, on one page —",
+    "but it is a real difference and it belongs to whoever owns FaqBlock, not to this route.",
+    "",
+    "<VirtualConsult> DEPENDS ON THIS BLOCK STAYING LAST, in the mirror of the dependency the",
+    "`visit` block carries. It is chrome (spec 7) and stays unguarded at :406, after everything",
+    "PageBlocks draws — which is the right place while `faq` is the last row. Unlike",
+    "general-dentistry's `.closing` this one is a component with no page copy of its own, so a",
+    "reorder misplaces a band rather than losing words; it is still a reorder nobody is warned",
+    "about.",
+    "",
+    "THE FAQPage JSON-LD IS REBUILT ON THE PAGE, and that is not optional. Structured data",
+    "lives on the page, not in the band, so FaqBlock cannot own it; left reading `faqs` the",
+    "script would keep describing the pre-migration list the moment an editor reorders or",
+    "deletes a question inside the block. our-office/index.astro now derives `faqEntities` from",
+    "the block's own `items` when hasBlocks and from `faqs` otherwise — element for element, so",
+    "the else-branch payload is byte-identical to the pre-migration build. The Dentist and",
+    "BreadcrumbList payloads (:412-438) read only site data and are unchanged on both sides."
+   ]
+  }
+ ],
+ "exempt": {
+  "_": [
+   "Every repeater row on this page that no block above claims. The backfill fails, before",
+   "writing anything, on any row that is neither claimed nor listed here.",
+   "",
+   "THE THREE `sections` ENTRIES BELOW ARE NOT THE USUAL KIND. On the four hub routes an",
+   "exempt `sections` row means a code_section took its band and froze its copy. Here it means",
+   "the opposite: the band is still TEMPLATE markup on both sides of the switch, so the row",
+   "keeps feeding the page live and an editor's changes keep landing. Nothing freezes on this",
+   "route. What is lost is reorderability, not editability — and each entry names the one",
+   "change that would end the deferral."
+  ],
+  "sections": [
+   {
+    "section_id": "tour",
+    "reason": "The 5-tile image bento (our-office/index.astro:199-250). No registered layout carries a bento, and code_section is worse than useless here: a code-owned component cannot reach the page's `images` repeater, so the five CMS attachments would be unrenderable. Stays template markup, unguarded, still reading sections.tour live.",
+    "read_this_before_running": [
+     "NOTHING FREEZES. Eyebrow, heading and body still come from this row at :202-204 after the",
+     "back-fill, exactly as they do today.",
+     "Un-defer condition: a layout with an images repeater whose rows carry a grid-area name.",
+     "The bento is a fixed 4x3 areas grid with named tiles a/b/c/d/e (our-office.css:185-209), so",
+     "the tile count is part of the design, not a column choice — a five-slot layout, not a",
+     "generic gallery. gallery_marquee is a scrolling strip and does not carry it."
+    ]
+   },
+   {
+    "section_id": "technology",
+    "reason": "The Yomi band (:253-292). `tech_grid` does NOT carry it, and the name is the trap: tech_grid draws .tech-grid > .tech-card > .tech-num + h4 + p — the hubs' numbered cards. THIS page's .tech-grid is a two-column split of .tech-copy beside a two-image <ImageFrame> (our-office.css:227-232), with a .tech-list of .tech-pill + <p> pairs (:243-271) that is also structurally unlike sinus-lift's .tech-list (marker + <b>lead</b> item), so media_split.checklist cannot take it either. Stays template markup, unguarded, still reading sections.technology live.",
+    "read_this_before_running": [
+     "NOTHING FREEZES. The heading and body still come from this row at :258-259. The eyebrow",
+     "already does not — sections.technology.eyebrow is null on the endpoint and the template",
+     "hardcodes \"Technology in the Room\" at :257, which is unchanged by the back-fill.",
+     "Un-defer condition: media_split gains a second image (ImageFrame mode) plus a pill-style",
+     "checklist. Worth doing when /about-us/ enters scope — it ships the same frame."
+    ]
+   },
+   {
+    "section_id": "expect",
+    "reason": "The 4-tile arrival strip (:295-312). .expect-tile is a FontAwesome icon + h3 + p (our-office.css:285-320) and NO layout in the model has an icon field — migrating it through card_grid would drop four icons. Stays template markup, unguarded, still reading sections.expect live.",
+    "read_this_before_running": [
+     "NOTHING FREEZES. Eyebrow and heading still come from this row at :298-299. sections.expect.body",
+     "is null on the endpoint and the template draws no paragraph here, so there is nothing else",
+     "in the row to lose.",
+     "Un-defer condition: an `icon` sub-field on card_grid.cards. That also unblocks the four",
+     "`expectTiles` card rows exempted below, which are this band's text already sitting in",
+     "WordPress waiting for somewhere to go."
+    ]
+   }
+  ],
+  "cards": [
+   {
+    "group": "expectTiles",
+    "reason": "Four live rows the template has never read. It hardcodes the same four tiles as a local array (our-office/index.astro:90-111) because each needs a FontAwesome class no card row can hold. Exempt because the band they belong to (#expect) is itself deferred — not because the rows are surplus.",
+    "read_this_before_running": [
+     "The CMS text and the template text are identical today, word for word, checked against the",
+     "endpoint on 2026-08-29: \"Free on-site parking\", \"Ground-floor entrance\", \"Calm, modern",
+     "interior\", \"300+ five-star reviews\", with matching bodies. So no editor edit is being",
+     "silently discarded TODAY — but every one of them already is, and has been since the rows",
+     "were imported. That is a pre-existing divergence this migration inherits and does not",
+     "widen. It closes with the same one change as #expect: an `icon` sub-field on card_grid."
+    ]
+   }
+  ],
+  "images": [
+   {
+    "slot": "heroPrimary",
+    "reason": "The hero is not a block — a `hero` group field, one per page, always first, never reordered (docs/PAGE-BLOCKS.md 1.3, 7). Renders at our-office/index.astro:190-193, unguarded on both sides."
+   },
+   {
+    "slot": "heroInset",
+    "reason": "The hero <ImageFrame>'s inset. Same reasoning as heroPrimary; same line."
+   },
+   {
+    "slot": "bentoA",
+    "reason": "Bento tile a. Belongs to #tour, which stays template markup — see exempt.sections. Still drawn at :209-215."
+   },
+   {
+    "slot": "bentoB",
+    "reason": "Bento tile b. Same band, same reason. Drawn at :217-223."
+   },
+   {
+    "slot": "bentoC",
+    "reason": "Bento tile c. Same band, same reason. Drawn at :225-231."
+   },
+   {
+    "slot": "bentoD",
+    "reason": "Bento tile d. Same band, same reason. Drawn at :233-239."
+   },
+   {
+    "slot": "bentoE",
+    "reason": "Bento tile e. Same band, same reason. Drawn at :241-247."
+   },
+   {
+    "slot": "techPrimary",
+    "reason": "The <ImageFrame> primary on #technology, which stays template markup — see exempt.sections. Drawn at :286-289."
+   },
+   {
+    "slot": "techInset",
+    "reason": "That frame's inset. Same band, same reason; same lines."
+   }
+  ],
+  "images_decision": [
+   "ALL NINE SLOTS ARE EXEMPT AND NONE IS UNCLAIMED-BY-ACCIDENT, which is the opposite of the",
+   "state /general-dentistry/ was deliberately left in. There the four service-tile slots were",
+   "left off this list so the planner would REFUSE the route rather than ship photo-less cards;",
+   "here every slot belongs to a band that is still drawn by the template, so every one keeps",
+   "rendering from the same line it renders from today. Neither block on this route has an",
+   "image field at all."
+  ],
+  "faqs": [],
+  "faqs_note": "EMPTY BECAUSE ALL FOUR ROWS ARE CLAIMED by the `faq` block above, not because they are excused.",
+  "process_steps": [],
+  "process_steps_note": "`processSteps` comes back null from the endpoint. This page has no numbered-process band.",
+  "toc_links": [],
+  "toc_links_decision": [
+   "EMPTY BECAUSE THE PAGE HAS NO SUCH ROWS. `tocLinks` is null on the endpoint and the template",
+   "renders no `.toc` nav, so both blocks' nav_label resolve blank through the map default",
+   "({ toc_label: true } with no matching row) and neither appears in a rail. The leftover check",
+   "only reports rows that exist, so an empty list is correct and would start reporting the day",
+   "somebody adds a rail to this page — which is the behaviour worth keeping."
+  ]
+ }
+}

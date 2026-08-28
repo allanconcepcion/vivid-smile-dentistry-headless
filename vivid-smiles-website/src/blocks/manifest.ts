@@ -176,9 +176,29 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    * census loss of exactly the class teeth-whitening's "View Levels" was.
    * FaqBlock must read it in the same batch that lands this line.
    */
+  /**
+   * WAVE B ADDS `ctaPhoneFirst`, AND IT ALSO CLOSES A GAP THIS ENTRY OPENED.
+   *
+   * `ctaHover` above is selected and NOT READ: FaqBlock.astro:207 still
+   * derives the hover from `CTA_HOVER[ctaHref]` and never destructures the
+   * field. That is the project's most-repeated defect — a field declared in
+   * PHP, selected here, and read by nothing — and it is benign only because
+   * the value is null on all fifteen saved rows (checked against the live
+   * endpoint). The component change that lands `ctaPhoneFirst` reads BOTH,
+   * through `resolveCta()` in src/blocks/cta.ts, or this entry is still
+   * lying about what the site supports.
+   *
+   * `ctaPhoneFirst` (PHP `cta_phone_first`, true_false) is which of the two
+   * buttons comes first. FaqBlock draws the editable button and then the
+   * practice's phone number; /emergency-dentistry/ ships Call first in the
+   * solid variant and "Send a Message" second in the ghost, because on that
+   * page the phone IS the primary action. The variants follow the order
+   * rather than being a second field. Absent-or-false — every saved row —
+   * is today's order exactly; read it for truthiness, never `=== false`.
+   */
   PageFieldsBlocksFaqLayout: {
     typeName: "PageFieldsBlocksFaqLayout",
-    fields: `${BLOCK_PREAMBLE_FIELDS} pull items { question answer open } ctaLabel ctaHref ctaHover`,
+    fields: `${BLOCK_PREAMBLE_FIELDS} pull items { question answer open } ctaLabel ctaHref ctaHover ctaPhoneFirst`,
   },
 
   /**
@@ -374,8 +394,19 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
      * src/data/contact.ts. Blank draws neither.
      *
      * All eight are blank on every saved row, and blank draws nothing.
+     *
+     * WAVE B ADDS A NINTH AND TENTH: `body3Heading` / `body3` (PHP
+     * `body_3_heading`, `body_3`), the SECOND heading-and-paragraph pair in
+     * `.prose`. /emergency-dentistry/ `#how` runs paragraph, `<h3>Advanced
+     * Diagnostic Technology</h3>`, paragraph, `<h3>In-House Treatments</h3>`,
+     * paragraph, and this layout stopped at one heading — so a backfill
+     * without them drops a real heading and ~60 words. `body3` carries markup
+     * on the same terms as `body2` and is printed with set:html, emitted
+     * FLUSH against the `body2` expression so a blank pair adds no whitespace
+     * text node to the eleven routes that already hold rows here. Blank on
+     * every one of them, and blank draws no <h3> and no <p>.
      */
-    fields: `${BLOCK_PREAMBLE_FIELDS} ${BLOCK_IMAGE_FIELDS} imageAlt mediaSide ratio quote quoteAttrib checklist { lead item } creds { stat label stars } body2Heading body2 calloutEyebrow calloutHeading calloutBody calloutPlacement subColumns subCards { tag title body } subFoot ctaLabel ctaHref ctaHover ctaLabel2 ctaHref2 ctaHover2 ctaText`,
+    fields: `${BLOCK_PREAMBLE_FIELDS} ${BLOCK_IMAGE_FIELDS} imageAlt mediaSide ratio quote quoteAttrib checklist { lead item } creds { stat label stars } body2Heading body2 body3Heading body3 calloutEyebrow calloutHeading calloutBody calloutPlacement subColumns subCards { tag title body } subFoot ctaLabel ctaHref ctaHover ctaLabel2 ctaHref2 ctaHover2 ctaText`,
   },
 
   /**
@@ -773,9 +804,23 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    * book|phone|map via src/blocks/cta.ts — the component imports it, never
    * copies it).
    */
+  /**
+   * WAVE B ADDS `body3Heading` / `body3` (PHP `body_3_heading`, `body_3`) —
+   * the SECOND heading-and-paragraph pair in the copy column.
+   * /emergency-dentistry/ `#when` is this exact band (`.why-grid` >
+   * `.why-copy` + `.why-stats`, no `.wrap`, three stat cards) but runs
+   * eyebrow, h2, paragraph, `<h3>Dental Emergencies</h3>`, paragraph,
+   * `<h3>Urgent Dental Issues</h3>`, paragraph — two pairs where the three
+   * hub bands this layout was extracted from have one.
+   *
+   * Same names as media_split's pair, landing in the same change, so one
+   * convention covers both. Blank on all three saved rows, and blank draws no
+   * <h3> and no <p>: CopyPlusStatsBlock appends both FLUSH against the
+   * `body2` expression, on the whitespace rule its own header spells out.
+   */
   PageFieldsBlocksCopyPlusStatsLayout: {
     typeName: "PageFieldsBlocksCopyPlusStatsLayout",
-    fields: `${BLOCK_PREAMBLE_FIELDS} body2Heading body2 stats { value unit label detail stars } ctaLabel ctaHref ctaHover`,
+    fields: `${BLOCK_PREAMBLE_FIELDS} body2Heading body2 body3Heading body3 stats { value unit label detail stars } ctaLabel ctaHref ctaHover`,
   },
 
   /**
@@ -845,6 +890,31 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    * Additive with nothing to prove around it: no page holds a service_cards
    * row at all today (checked against the live endpoint, not inferred from
    * the maps), so there is no saved band this can move.
+   */
+  /**
+   * WAVE B WIDENS TWO SELECTS AND CHANGES NOT ONE CHARACTER OF THIS FRAGMENT,
+   * WHICH IS EXACTLY WHY IT IS WRITTEN DOWN HERE. Both fields are already
+   * queried; what changed in the PHP is the set of values they may hold, and
+   * a select value arrives as a plain string that query validation and
+   * scripts/check-block-schema.mjs cannot see. Same blind spot as
+   * process_steps' fifth column.
+   *
+   * `cardStyle` gains "tiles-heading-first" — /new-patients/ `#services`
+   * draws the same `a.svc-card.compact` photo card as the hubs but orders its
+   * inside differently: `<h3>`, then `p.svc-desc`, then an EMPTY
+   * `.svc-row-bot` holding a bare `<span>` and no arrow badge
+   * (new-patients/index.astro:221-232), where the hubs draw `p.svc-desc` then
+   * `.svc-row-bot` with the `<h3>` and the badge inside it. A component that
+   * maps 2 of 3 styles and falls through for the third silently moves that
+   * band's heading and adds an arrow to a live page.
+   *
+   * `collapseAt` gains "479" — that page halves four tiles to two at 991px
+   * and reaches one column only at 479 (new-patients.css:339, :348), a
+   * breakpoint later than any of the four sheets the select was minted from.
+   * ServiceCardsBlock derives the <Image> `sizes` hint from this value, so
+   * the new choice needs its own IMAGE_SPEC entry in the same change —
+   * `(max-width: 479px) 100vw, (max-width: 991px) 50vw, 25vw`, which is what
+   * that page ships — or the band picks a candidate sized for the wrong grid.
    */
   PageFieldsBlocksServiceCardsLayout: {
     typeName: "PageFieldsBlocksServiceCardsLayout",
@@ -916,6 +986,101 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
   PageFieldsBlocksCandidacyLedgerLayout: {
     typeName: "PageFieldsBlocksCandidacyLedgerLayout",
     fields: `${BLOCK_PREAMBLE_FIELDS} copyHeading copyBody copyHeading2 copyBody2 ledgerSkin ledgerEyebrow ledgerHeading ledger { title body tag } ctaLabel ctaHref ctaHover ctaLabel2 ctaHref2 ctaHover2`,
+  },
+
+  /**
+   * ── Phase 4 Wave B ───────────────────────────────────────────────────────
+   *
+   * A head over a bulleted list, and nothing else — the one shape the model
+   * did not have. Every other list on the site lives inside something:
+   * media_split's `.candidate-list` in the copy column, card_grid's list in
+   * the insurance panel, pricing_tiers' features in a plan. Two pages draw a
+   * list as the whole band — /emergency-dentistry/ `#emergencies`
+   * (`ul.emerg-callout-list`, seven lines) and /privacy-policy/
+   * (`.priv-callout-list`, which the emergency page's own header says it was
+   * lifted from). One shape, two pages, no home.
+   *
+   * NOT media_split with the picture omitted: that block still emits its
+   * two-column grid with a single child, so the list would occupy half the
+   * width, and its `.candidate-list` prints a position-derived `01`/`02`
+   * marker this shape does not have — adding seven numerals to a live band.
+   *
+   * `lines` MINTS PageFieldsBlocksLines, from the field name alone, because a
+   * layout's sub-fields hang off the flexible field rather than off the
+   * layout. Checked by enumerating every repeater and group name in
+   * vs-content-model.php — alt_cards, bios, blocks, bullets, callout_points,
+   * cards, checklist, creds, ctas, faqs, features, glossary, hero, images,
+   * items, ledger, plans, points, pre_cards, process_steps, sections, stats,
+   * steps, sub_cards, svc_cards, tech_cards, tiers, toc_links — and `lines`
+   * is none of them, nor is there a top-level `blocks_lines` alias. `points`
+   * was the obvious name and is stat_callout's, whose sub-fields are
+   * lead/body where this factory's are lead/item: sharing it would MERGE the
+   * two types and drop one side's fields.
+   *
+   * `lines { lead item }` is the house list-of-lines shape from
+   * block_list_field(), so `lead` comes along with it. It is blank on all
+   * seven live rows — the `<b>` and the colon are inside `item`, where the
+   * template has always had them — and CalloutListBlock prints `item` with
+   * set:html because those rows carry `<b>` and one carries an inline link.
+   * This is the first fragment to select `lead`, so it is also the first
+   * component that must draw it; blank draws no <b> and no separator.
+   *
+   * No cta fields: neither band draws a button row, and a selected field
+   * nothing renders reads as supported.
+   *
+   * NO COMPONENT IS BOUND IN registry.ts YET. A manifest entry with no
+   * component resolves to UnknownBlock, which renders nothing in production —
+   * inert while no page holds a row, which is the case today. The build agent
+   * creates src/blocks/CalloutListBlock.astro and binds it there in the same
+   * commit, BEFORE any map agent writes a row against this layout.
+   */
+  PageFieldsBlocksCalloutListLayout: {
+    typeName: "PageFieldsBlocksCalloutListLayout",
+    fields: `${BLOCK_PREAMBLE_FIELDS} lines { lead item }`,
+  },
+
+  /**
+   * ── Phase 4 Wave B ───────────────────────────────────────────────────────
+   *
+   * Visit us — `.location-grid` > `.location-copy` (eyebrow, h2, `p.lede`,
+   * the `.location-card` of address / phone / email / hours rows, then two
+   * buttons) beside `.location-map-wrap` > the Google iframe. /our-office/
+   * `#visit` and /contact/ `#visit` ship it character for character; this is
+   * the band AreaBand.astro's header calls `map_visit` and defers to Wave B.
+   *
+   * THREE COPY FIELDS AND `ariaLabel`, BECAUSE EVERYTHING ELSE IS SITE DATA.
+   * The street, city, state, zip, phone, email, opening hours, both buttons
+   * and the map embed all resolve from src/data/contact.ts and
+   * src/data/hours.ts inside the component — the same rule AreaBand and
+   * LocalTrust already follow, and the reason this layout has no cta fields
+   * at all. Two consequences the component must honour: the address line is
+   * built as ONE expression (`${city}, ${state} ${zip}`), never as three
+   * spliced together, because compressHTML collapses the space between two
+   * expressions and shipped "Parker, CO80134" on three live pages that way;
+   * and the hours table is rendered from `officeHours`, not stored.
+   *
+   * `ariaLabel` is the section's accessible name, and it is a field because
+   * the two pages disagree — "Visit our office" against "Visit our practice".
+   * Blank must emit NO attribute rather than an empty one: `aria-label=""`
+   * strips a landmark's name instead of leaving it to the heading.
+   *
+   * ONE MARKUP NORMALISATION IS EXPECTED AND IS NOT A LOSS. /contact/ writes
+   * `<span class="eyebrow light">` on this charcoal band while /our-office/
+   * writes a plain `<span class="eyebrow">`; the component follows the house
+   * rule every other block follows (`light` only on the sage-pale and sage
+   * bands), so /contact/ loses that one class token. The block owns the
+   * charcoal eyebrow colour in its own scoped CSS, so nothing moves visually
+   * — record it in the map rather than letting the diff find it.
+   *
+   * No repeater and no group, so it mints no GraphQL type.
+   *
+   * NO COMPONENT IS BOUND IN registry.ts YET — same inert half-state as
+   * callout_list above. The build agent creates
+   * src/blocks/MapVisitBlock.astro and binds it there in the same commit.
+   */
+  PageFieldsBlocksMapVisitLayout: {
+    typeName: "PageFieldsBlocksMapVisitLayout",
+    fields: `${BLOCK_PREAMBLE_FIELDS} ariaLabel`,
   },
 
   /**

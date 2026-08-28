@@ -1,0 +1,155 @@
+---
+/**
+ * /emergency-dentistry/ `#prevent` — the centred prose plate.
+ *
+ * A code_section band, registered as `emergency_dentistry_prevent` in
+ * src/blocks/CodeSectionBlock.astro, which freezes `sections[prevent]`'s
+ * eyebrow, heading and body — three scalars, no repeater rows.
+ *
+ * WHY NOT A LAYOUT. Nothing in the model draws a centred 720px prose column
+ * with the button INSIDE it: `card_grid`'s foot row is a `.cta-row` sibling of
+ * the grid, `faq`'s row forces a second hardcoded phone button this band does
+ * not have, and `media_split` cannot render without a picture. The shape exists
+ * on one page, so by the method it is the escape hatch and not a new layout.
+ *
+ * THE SECTION HEAD HAS NO PARAGRAPH. The template
+ * (emergency-dentistry/index.astro:398-407) puts the eyebrow and the h2 in
+ * `.section-head` and the body copy in `.prevent-prose` below it, which is why
+ * `paragraphs` is a list and there is no separate `body` prop — the first entry
+ * IS the section's body, and the second is the closing line. Adding a `<p>` to
+ * the head would centre it at a different width and margin.
+ *
+ * SPECIFICITY: same rule as ScenarioBand. Astro scopes by attribute, so a bare
+ * `.prevent-prose` would tie the page sheet's `.emerg .prevent-prose` at
+ * (0,2,0) and leave bundle order to decide. Everything below is rooted at
+ * `.section`. Values from emergency-dentistry.css:885-909.
+ */
+import Button from "./Button.astro";
+
+interface Props {
+  /** The DOM id. CodeSectionBlock overrides it with the row's deduped anchor. */
+  id?: string;
+  eyebrow?: string | null;
+  /** May carry inline markup (`<em>`); blank draws no `<h2>`. */
+  heading?: string | null;
+  /**
+   * The prose column, in order, each rendered as its own `<p>` with `set:html`
+   * — the second one carries an inline `<a class="vs-link">`. An empty list
+   * draws no column at all, not an empty one.
+   */
+  paragraphs?: (string | null | undefined)[] | null;
+}
+
+const { id = "prevent", eyebrow, heading, paragraphs } = Astro.props;
+
+const text = (v?: string | null) => (typeof v === "string" ? v.trim() : "");
+
+const eyebrowText = text(eyebrow);
+const headingHtml = text(heading);
+const hasHead = eyebrowText !== "" || headingHtml !== "";
+
+const paras = (Array.isArray(paragraphs) ? paragraphs : [])
+  .map((p) => text(p))
+  .filter((p) => p !== "");
+---
+
+<section class="section" id={id} data-vs-reveal-batch>
+  <div class="wrap">
+    {
+      hasHead && (
+        <div class="section-head">
+          {eyebrowText !== "" && <span class="eyebrow">{eyebrowText}</span>}
+          {headingHtml !== "" && (
+            <h2>
+              <Fragment set:html={headingHtml} />
+            </h2>
+          )}
+        </div>
+      )
+    }
+
+    <div class="prevent-prose">
+      {paras.map((p) => <p set:html={p} />)}
+      {/* The button is furniture, not a field: it points at
+          /general-dentistry/, which is the band's whole argument, and giving it
+          an href field would let one page's "prevention" button lead somewhere
+          that is not prevention. Inside `.prevent-prose`, which is what centres
+          it — see the header. */}
+      <div class="prevent-actions">
+        <Button variant="ghost" href="/general-dentistry/" hoverLabel="See Care">
+          Explore General Dentistry
+        </Button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* emergency-dentistry.css:324-326 and :65-69. Paper band — padding only. */
+  .section {
+    padding: 110px 0;
+  }
+  .section .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  /* emergency-dentistry.css:385-401. */
+  .section .section-head {
+    max-width: 760px;
+    margin: 0 auto 64px;
+    text-align: center;
+  }
+  .section .section-head .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .section .section-head .eyebrow::before,
+  .section .section-head .eyebrow::after {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+
+  /* emergency-dentistry.css:888-909. A flex column with an 18px gap, which is
+     why the paragraphs below carry no vertical margins of their own. */
+  .section .prevent-prose {
+    max-width: 720px;
+    margin: 0 auto;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  .section .prevent-prose p {
+    font-size: 16.5px;
+    line-height: 1.75;
+    color: var(--vs-ink-soft);
+    margin: 0;
+  }
+  .section .prevent-actions {
+    margin-top: 8px;
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    align-self: center;
+  }
+
+  /* emergency-dentistry.css:1199-1202, :1221-1223, :1227-1229 — the 780 block
+     changes the shell, not this band's own elements. */
+  @media (max-width: 780px) {
+    .section {
+      padding: 70px 0;
+    }
+    .section .wrap {
+      padding: 0 22px;
+    }
+    .section .section-head {
+      margin-bottom: 44px;
+    }
+  }
+</style>

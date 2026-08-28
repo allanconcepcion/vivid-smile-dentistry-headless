@@ -26,10 +26,61 @@ import "../../styles/pages/our-office.css";
 // in the bento grid so they crop cleanly instead of squashing.
 
 import { getPageContent } from '../../lib/page-content';
+import PageBlocks from '../../blocks/PageBlocks.astro';
 // faqs is edited in WordPress (Pages -> Our Office in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+const { blocks, hasBlocks, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+
+/**
+ * THE MIGRATION SWITCH (docs/PAGE-BLOCKS.md 2.3), documented HERE and nowhere
+ * in the markup below — deliberately.
+ *
+ * `hasBlocks` means "this build can draw this page from its blocks", not
+ * "WordPress sent rows" (src/lib/page-content.ts). When it is true, PageBlocks
+ * draws this page's two block bands in the order an editor arranged them, at
+ * the position `#visit` used to start; when it is false — every build until
+ * this route is back-filled, and again the moment an editor empties the field
+ * — every band renders exactly as it always has.
+ *
+ * WHY NO `{/* … *\/}` COMMENTS ON THE GUARDS. Astro preserves whitespace
+ * between expressions, so a comment expression on its own line leaves
+ * newline-and-indent TEXT NODES either side of itself that survive into the
+ * built HTML on BOTH branches. That exact mistake put 14 bytes into a live
+ * page earlier in this project, and the else-branch of this file is verified
+ * byte-for-byte against the pre-migration build. So the rationale lives in
+ * this comment, and both guards below are written flush where their
+ * `<section>` sat: `hasBlocks ? … : <section` on the opening line,
+ * `</section>}` on the closing one, no line of its own for either.
+ *
+ * ONLY TWO BANDS ARE BLOCKS, and each has exactly one row in
+ * cms/import/routes/our-office.json: #visit (map_visit) and #faq (faq).
+ * Everything else is unguarded, in two different senses:
+ *
+ *   `.crumbs`, the `.hero` and <VirtualConsult> are CHROME — never blocks
+ *   (spec 7: "Not a block, even though it is a band").
+ *
+ *   #tour, #technology and #expect are content bands that NO registered
+ *   layout can express today, so each stays template markup on both sides of
+ *   the switch — which is order-safe only because all three LEAD the page:
+ *   they sit above #visit, the first block, so the block run starting there
+ *   leaves them exactly where they were. Put a block above them and this
+ *   becomes the LocalTrust fault (CodeSectionBlock.astro's `local_trust`
+ *   entry exists because that band was left out of the list and came out at
+ *   the bottom of the page). The three are NOT code_section rows on purpose:
+ *   a code_section would freeze the `sections` copy all three still read live
+ *   from WordPress, and #tour's five images live in the page's `images`
+ *   repeater, which a code-owned component cannot reach at all. Each one's
+ *   un-defer condition is recorded on this route in cms/import/block-map.json.
+ *
+ * NO RAIL ON THIS PAGE. There is no `.toc` nav in the markup and `tocLinks`
+ * comes back null from the endpoint, so there is no rail source to switch and
+ * no derived-TOC loop here. Adding one would feed nothing.
+ *
+ * A band guarded with no row VANISHES on backfill; a band with a row and no
+ * guard renders TWICE and lands at the bottom carrying a duplicate id. Both
+ * have happened on this project. There is no third outcome.
+ */
 
 
 
@@ -61,6 +112,35 @@ const expectTiles = [
 
 const description =
   "Tour our Parker, CO dental office. Free on-site parking, ground-floor entrance, a calm modern interior, and Yomi robotic-assisted implant surgery. 300+ five-star reviews.";
+
+/**
+ * The FAQPage payload's source, which has to follow the accordion that is
+ * actually drawn.
+ *
+ * FaqBlock's own header says it: structured data lives on the PAGE, not in the
+ * band, so it cannot move into the component — and left reading `faqs` it would
+ * keep describing the pre-migration list the moment an editor reorders or
+ * deletes a question inside the block. Google would then be told about an
+ * answer nobody can see on the page, which is the failure this rebuild exists
+ * to prevent.
+ *
+ * Two shapes, one pair: an `items` row is { question, answer, open } and a
+ * `faqs` row is { q, a, open }. The typename is the literal
+ * `PageFieldsBlocksFaqLayout` — the key src/blocks/manifest.ts registers the
+ * faq layout under, and the same string registry.ts binds FaqBlock to.
+ *
+ * WHEN `hasBlocks` IS FALSE THIS IS `faqs`, ELEMENT FOR ELEMENT, so the
+ * else-branch payload is byte-identical to the pre-migration build.
+ */
+const faqEntities: { q: string; a: string }[] = hasBlocks
+  ? blocks
+      .filter((b) => b.__typename === "PageFieldsBlocksFaqLayout")
+      .flatMap((b) => (Array.isArray(b.items) ? (b.items as Record<string, unknown>[]) : []))
+      .map((row) => ({
+        q: typeof row.question === "string" ? row.question : "",
+        a: typeof row.answer === "string" ? row.answer : "",
+      }))
+  : faqs.map((f) => ({ q: f.q, a: f.a }));
 
 ---
 
@@ -235,7 +315,7 @@ const description =
          Mirrors the /contact/ band — two-column: location card (address,
          phone, email, hours table) + iframe map. Re-themed for the cream
          background; same data sources. */}
-    <section class="section alt" id="visit" aria-label="Visit our office">
+    {hasBlocks ? <PageBlocks blocks={blocks} /> : <section class="section alt" id="visit" aria-label="Visit our office">
       <div class="wrap">
         <div class="location-grid">
           <div class="location-copy" data-vs-reveal-batch>
@@ -301,10 +381,10 @@ const description =
           </div>
         </div>
       </div>
-    </section>
+    </section>}
 
     {/* ---------- FAQ (sage dark) — native details/summary ---------- */}
-    <section class="section dark" id="faq" data-vs-reveal-batch>
+    {hasBlocks ? null : <section class="section dark" id="faq" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head center">
           <span class="eyebrow light">Office FAQ</span>
@@ -320,7 +400,7 @@ const description =
           ))}
         </div>
       </div>
-    </section>
+    </section>}
 
     {/* ---------- CLOSING — VirtualConsult (cream default) ---------- */}
     <VirtualConsult id="consult" eyebrow="Plan your first visit">
@@ -370,7 +450,7 @@ const description =
     <script type="application/ld+json" is:inline set:html={JSON.stringify({
       "@context": "https://schema.org",
       "@type": "FAQPage",
-      "mainEntity": faqs.map((f) => ({
+      "mainEntity": faqEntities.map((f) => ({
         "@type": "Question",
         "name": f.q,
         "acceptedAnswer": {

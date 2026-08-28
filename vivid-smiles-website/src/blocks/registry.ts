@@ -18,6 +18,7 @@
 
 import type { AstroComponentFactory } from "astro/runtime/server/index.js";
 
+import CalloutListBlock from "./CalloutListBlock.astro";
 import CandidacyLedgerBlock from "./CandidacyLedgerBlock.astro";
 import CardGridBlock from "./CardGridBlock.astro";
 import CodeSectionBlock from "./CodeSectionBlock.astro";
@@ -26,6 +27,7 @@ import CopyPlusStatsBlock from "./CopyPlusStatsBlock.astro";
 import DoctorProfilesBlock from "./DoctorProfilesBlock.astro";
 import FaqBlock from "./FaqBlock.astro";
 import GalleryMarqueeBlock from "./GalleryMarqueeBlock.astro";
+import MapVisitBlock from "./MapVisitBlock.astro";
 import MediaSplitBlock from "./MediaSplitBlock.astro";
 import PricingTiersBlock from "./PricingTiersBlock.astro";
 import ProcessStepsBlock from "./ProcessStepsBlock.astro";
@@ -56,6 +58,21 @@ const COMPONENTS: Record<string, AstroComponentFactory> = {
   PageFieldsBlocksServiceCardsLayout: ServiceCardsBlock,
   PageFieldsBlocksDoctorProfilesLayout: DoctorProfilesBlock,
   PageFieldsBlocksCandidacyLedgerLayout: CandidacyLedgerBlock,
+
+  // Phase 4 Wave B. Same rule as every entry above, and the reason this line
+  // is written in the SAME commit as the component file: a manifest entry with
+  // no component renders UnknownBlock — a visible placeholder in dev, a blank
+  // band in production — and a component with no entry here is never queried.
+  // The manifest has carried `callout_list` since Wave B's schema commit
+  // (manifest.ts:1037) with this binding deliberately absent, so the layout has
+  // been inert; it stops being inert here, before any map agent writes a row.
+  PageFieldsBlocksCalloutListLayout: CalloutListBlock,
+  // Same wave, same rule, same inert-until-bound history: `map_visit` has been
+  // in the manifest (manifest.ts:1081) with no component since the schema
+  // commit, and binds here alongside src/blocks/MapVisitBlock.astro. It draws
+  // the "visit us" band /contact/ and /our-office/ both ship — copy column,
+  // address card, embedded map.
+  PageFieldsBlocksMapVisitLayout: MapVisitBlock,
 
   // The escape hatch. Unlike every entry above, this component draws no band of
   // its own — it looks its row's `band_key` up in its own BANDS map and renders

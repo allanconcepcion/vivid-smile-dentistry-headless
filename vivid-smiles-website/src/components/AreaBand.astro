@@ -94,9 +94,44 @@ interface Props {
    * paragraphs at all — not an empty one.
    */
   paragraphs?: (string | null | undefined)[] | null;
+  /**
+   * The band colour. "paper" is the three hubs' behaviour and the default, so
+   * they are untouched. "charcoal" emits `class="section alt"`, which is what
+   * emergency-dentistry/index.astro:363 ships.
+   *
+   * THE COMPONENT CARRIES THE CHARCOAL COLOURS ITSELF rather than leaning on
+   * emergency-dentistry.css:327-349. It has to: Astro compiles scoped styles
+   * with ATTRIBUTE scoping, so this file's `.area .area-copy p` is (0,4,0)
+   * and the page sheet's `.emerg .section.alt p` is (0,3,0) — the component
+   * wins, and the band would paint ink-soft body copy and a `--vs-ink`
+   * heading onto a charcoal-green background. Invisible text, no error.
+   */
+  band?: string | null;
+  /**
+   * WHICH PAIR of buttons, as a NAMED PAIR and not an array of hrefs — both
+   * pairs are site data resolved inside this component, and an href in a prop
+   * is an href that can go stale.
+   *
+   *   "directions-contact" — sage "Get Directions" + ghost "Contact Us".
+   *                          Today's behaviour and the default.
+   *   "call-directions"    — light "Call {phone}" + ghost-light "Get
+   *                          Directions" (emergency-dentistry:381-382), where
+   *                          the phone IS the primary action.
+   */
+  actions?: string | null;
 }
 
-const { id = "area", eyebrow, heading, paragraphs } = Astro.props;
+const { id = "area", eyebrow, heading, paragraphs, band, actions } = Astro.props;
+
+/* Normalised the same way CodeSectionBlock normalises its band key: the value
+   crosses a system boundary as a bare string and a dash/underscore drift must
+   not silently produce the wrong band. Unknown values fall back to today's
+   behaviour, never to a blank band. */
+const bandKey = typeof band === "string" ? band.trim().toLowerCase() : "";
+const isCharcoal = bandKey === "charcoal";
+
+const actionsKey = typeof actions === "string" ? actions.trim().toLowerCase() : "";
+const callFirst = actionsKey === "call-directions";
 
 /**
  * Null-safe trim. ACF hands back `null` for any field an editor has never
@@ -161,9 +196,13 @@ const mapEmbedSrc = `https://maps.google.com/maps?q=${encodeURIComponent(address
 
 {
   hasCopy && (
-    <section class="section" id={id} data-vs-reveal-batch>
+    <section
+      class:list={["section", isCharcoal && "alt"]}
+      id={id}
+      data-vs-reveal-batch
+    >
       <div class="wrap">
-        <div class="area">
+        <div class:list={["area", isCharcoal && "on-charcoal"]}>
           <div class="area-copy">
             {eyebrowText !== "" && <span class="eyebrow">{eyebrowText}</span>}{/* Flushed
                 `}{` against the eyebrow, and the same at the two braces below.
@@ -202,8 +241,17 @@ const mapEmbedSrc = `https://maps.google.com/maps?q=${encodeURIComponent(address
               {`${addressCity}, ${addressState} ${addressZip}`} · <a class="vs-link" href={phoneHref}>{phoneLabel}</a>
             </p>
             <div class="area-actions">
-              <Button variant="sage" href={directionsHref} hoverLabel="Open Maps">Get Directions</Button>
-              <Button variant="ghost" href="/contact/" hoverLabel="Reach Us">Contact Us</Button>
+              {callFirst ? (
+                <Fragment>
+                  <Button variant="light" href={phoneHref} hoverLabel="Tap to Dial">Call {phoneLabel}</Button>
+                  <Button variant="ghost-light" href={directionsHref} hoverLabel="Open Maps">Get Directions</Button>
+                </Fragment>
+              ) : (
+                <Fragment>
+                  <Button variant="sage" href={directionsHref} hoverLabel="Open Maps">Get Directions</Button>
+                  <Button variant="ghost" href="/contact/" hoverLabel="Reach Us">Contact Us</Button>
+                </Fragment>
+              )}
             </div>
           </div>
           <div class="area-map" aria-label="Map showing Vivid Smiles Dentistry">
@@ -305,6 +353,45 @@ const mapEmbedSrc = `https://maps.google.com/maps?q=${encodeURIComponent(address
     width: 28px;
     height: 1px;
     background: var(--vs-sage);
+  }
+
+  /* ---------- the charcoal band ----------
+     Lifted from emergency-dentistry.css:327-349, which is the sheet that
+     paints `.emerg .section.alt` today, and RESTATED HERE because it cannot
+     reach this band. Astro compiles scoped styles with attribute scoping, so
+     every rule above is (0,4,0) and the page sheet's `.emerg .section.alt p`
+     is (0,3,0): the page sheet loses to the component's own defaults, and the
+     band would ship `--vs-ink` headings and ink-soft copy on charcoal-green.
+
+     Every selector below is (0,5,0) — one compound deeper than the default it
+     overrides — so it beats this file's own paper rules outright rather than
+     tying and leaving bundle order to decide. Same rule the ledger skin and
+     the three hub bands follow. */
+  .area.on-charcoal .area-copy .eyebrow {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .area.on-charcoal .area-copy .eyebrow::before {
+    background: rgba(255, 255, 255, 0.6);
+  }
+  .area.on-charcoal .area-copy h2 {
+    color: #fff;
+  }
+  .area.on-charcoal .area-copy h2 :global(em) {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .area.on-charcoal .area-copy p {
+    color: rgba(255, 255, 255, 0.85);
+  }
+  /* The address line needs its own entry because this file's (0,4,0) rule for
+     it outranks the page sheet, but its <b> deliberately does NOT get one.
+     Checked against the template rather than assumed: on `.section.alt` the
+     street renders `--ink`, because `.emerg .area-address-line b` (0,2,1) is
+     the only rule matching it and `--ink` aliases `--vs-ink` — the same value
+     this file's own `b` rule already sets. Dark-on-charcoal is what ships
+     today; whitening it here would be a silent visual change that neither the
+     word diff nor the class diff would catch. */
+  .area.on-charcoal .area-address-line {
+    color: rgba(255, 255, 255, 0.85);
   }
 
   /* The heading's colour is the one declaration none of the three sheets states

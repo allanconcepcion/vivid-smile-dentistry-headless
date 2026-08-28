@@ -1,0 +1,280 @@
+{
+ "route": "/referral-program/",
+ "template": "vivid-smiles-website/src/pages/referral-program/index.astro",
+ "stylesheet": "vivid-smiles-website/src/styles/pages/referral-program.css",
+ "wrapper_class": "rp",
+ "notes": [
+  "THE SMALLEST PAGE IN PHASE 4: FIVE TOP-LEVEL BANDS, TWO OF THEM BLOCKS. Walked in DOM",
+  "order — `.crumbs` (chrome), `.hero` (chrome), `#program` (template, unguarded, LEADING),",
+  "`#how-it-works` (block 1), `#faq` (block 2), `<FinalBand>` (chrome). Every band is a block",
+  "with exactly one row here, or deliberately-unguarded chrome/template copy. There is no",
+  "third outcome and both failure directions have cost this project time.",
+  "",
+  "`#program` IS THE ONE CONTENT BAND THAT STAYS IN THE TEMPLATE, and the reason is its aside,",
+  "not its prose. `.story-grid` is a two-column copy-beside-card split, and the card is",
+  "`aside.reward-card` (index.astro:186-222): a `.reward-stack` of two `.reward-row` price",
+  "blocks with a `$`/`50` split numeral, a `.reward-plus` divider, a three-item `.reward-meta`",
+  "checklist and a `.reward-jump` anchor with an `.arrow-mini`. `pricing_tiers` draws plan",
+  "cards with name/price/features; `card_grid` draws prose cards; neither is this shape, and",
+  "`copy_plus_stats` puts stat numerals in a column, not a $50-plus-$50 stack. Minting a",
+  "layout for one aside on one page is how a content model rots, so the band stays template",
+  "markup on both sides of the switch.",
+  "",
+  "THAT IS ORDER-SAFE ONLY BECAUSE `#program` LEADS. It sits ABOVE the first block, so the",
+  "block run starting at `#how-it-works` leaves it exactly where it was. Put a block before it",
+  "and this becomes the LocalTrust fault — the band that came out at the bottom of the pilot",
+  "page because it was left out of the list. Its `sections[program]` row is therefore claimed",
+  "by no block, keeps feeding the template live, and is listed under `exempt.sections`. The",
+  "precedent is general-dentistry's `.closing`, which is the same decision at the other end of",
+  "the page.",
+  "",
+  "NO RAIL. `tocLinks` comes back null from the live endpoint (verified 2026-08-29) and the",
+  "template draws no `.toc` nav at all, so `nav_label` resolves blank on both rows by the map",
+  "default and the template carries no derived-TOC loop. A loop feeding nothing would be",
+  "code that reads like a rail and is not one.",
+  "",
+  "BAND VOCABULARY IS INVERTED ON THIS SHEET, as it is on every page in this family. `.dark`",
+  "is the LIGHT band — `.rp .section.dark { background: var(--vs-sage-pale) }`",
+  "(referral-program.css:95), and the sheet's own comment at :93-94 says so in as many words:",
+  "\"Now a light band; text must read dark.\" `.alt` is the CHARCOAL one (:82). Every `band`",
+  "below is read off those rules, never off the class name. Reading the class would have put",
+  "charcoal on `#how-it-works`, which is the exact defect that let a word-level diff report",
+  "\"0 of 48 differ\" for days while 26 bands rendered the wrong colour.",
+  "",
+  "EVERY LIVE ROW IS ACCOUNTED FOR, verified against https://1230613.us28.myftpupload.com/",
+  "graphql on 2026-08-29: 3 `sections` rows (program, how-it-works, faq), 3 `cards` rows (all",
+  "in group `steps`), 4 `faqs` rows, 1 `images` row (heroPrimary), `processSteps` null,",
+  "`tocLinks` null. Two rows are claimed by blocks, two are exempt with a reason.",
+  "",
+  "THIS ROUTE MUST NOT BE BACK-FILLED BEFORE THE TWO COMPONENT CHANGES IT DEPENDS ON. Both",
+  "are named in `blocked_on` below. The `sub_foot` one is not cosmetic: ProcessStepsBlock",
+  "renders that field as `{subFoot}` today, which would print this route's anchor tag as",
+  "visible source text on a live client page."
+ ],
+ "blocked_on": [
+  "1. cms/mu-plugins/vs-content-model.php MUST BE ON THE CMS HOST BEFORE THE NEXT BUILD.",
+  "   The manifest now names fields the un-deployed host does not have, and the capability",
+  "   probe (vivid-smiles-website/src/loaders/pages.ts:191-266) throws for ALL 48 routes when",
+  "   it finds them missing. This is the project's standing PHP-before-manifest order; it is",
+  "   armed now and it is not this route's to close.",
+  "",
+  "2. src/blocks/ProcessStepsBlock.astro:413 renders `<p class=\"process-outro\">{subFoot}</p>`.",
+  "   This route's `sub_foot` carries an anchor, so as written the band would print",
+  "   `<a class=\"vs-link\" href=\"{phone_href}\">…` as TEXT. The component owner's change — render",
+  "   it with `set:html` and pass it through the new src/blocks/site-tokens.ts `fillSiteTokens`",
+  "   — must land first. As of this map being written, src/blocks/site-tokens.ts does not exist",
+  "   in the working tree. A field declared, selected and read by nothing is this project's #1",
+  "   failure, four times over; this is the mirror of it and it is why the literal is written",
+  "   with tokens rather than with a `tel:` URL.",
+  "",
+  "3. src/blocks/FaqBlock.astro must carry the `.answer` paragraph metrics before this route's",
+  "   FAQ band ships — see `known_gaps` on the `faq` block. Not a blocker for correctness, a",
+  "   blocker for the four answers reading at the size they read at today."
+ ],
+ "blocks": [
+  {
+   "section_id": "how-it-works",
+   "layout": "process_steps",
+   "band": "sage-pale",
+   "band_evidence": "referral-program/index.astro:228 <section class=\"section dark\"> — referral-program.css:95 — .rp .section.dark { background: var(--vs-sage-pale); color: var(--vs-ink) }. The sheet's comment at :93-94 names the inversion: this class is the LIGHT band on this page. ProcessStepsBlock maps sage-pale -> class `dark` (BAND_CLASS), so the emitted section class string is unchanged, and its `eyebrowLight` derivation (ProcessStepsBlock.astro:214) is true for sage-pale — which is what reproduces `class=\"eyebrow light\"` at index.astro:231 without a field for it.",
+   "layout_evidence": "`.rp .process-grid` is `repeat(3, 1fr)` (referral-program.css:364-367) wrapping `.process-card` > `.step-tag` + `.num` + h3 + p (index.astro:238-243). That is the `grid` shape at three columns, and THE LABEL COMES FIRST — which is the whole reason the shape is stated here rather than inferred. ProcessStepsBlock's `card` shape prints `.pstep-lbl` LAST; mapping this band as `card` would move the label to the bottom of three live step cards while leaving every word on the page, and a word-level diff cannot see that.",
+   "fields": {
+    "eyebrow": {
+     "literal": "How It Works",
+     "from_template": "referral-program/index.astro:231. NOT moved: `sections[how-it-works].eyebrow` is null on the live endpoint, so the words exist only in the template. Transcribed, not authored."
+    },
+    "heading": {
+     "section": "heading"
+    },
+    "body": {
+     "section": "body"
+    },
+    "layout": {
+     "literal": "grid"
+    },
+    "columns": {
+     "literal": "3"
+    },
+    "sub_foot": {
+     "literal": "Referral cards are available at the front desk — call us at <a class=\"vs-link\" href=\"{phone_href}\">{phone}</a> to grab a few on your next visit.",
+     "from_template": "referral-program/index.astro:247-251, the `.process-foot` paragraph. Written as ONE string with the anchor inline. The template builds it from three JSX pieces separated by newlines-and-indent, which Astro emits as text nodes and compressHTML collapses to single spaces — so the rendered sentence has exactly one space before `<a` and one after `</a>`, and this literal has exactly that. Splicing it as separate expressions is how \"Parker, CO80134\" shipped on three pages.",
+     "token_note": "`{phone_href}` and `{phone}` are resolved by src/blocks/site-tokens.ts at render, from src/data/contact.ts. A `tel:` URL stored here would be the practice's phone number with a second home, which is what the href policy forbids; unknown tokens pass through untouched, per AreaBand's rule."
+    }
+   },
+   "cta_text_note": "Left unset deliberately. `cta_text` draws the `.inline-cta` plate with a Book Online and a Call button beside the sentence, and this band has never had buttons. `sub_foot` is the bare-paragraph field and is the one this band needs (vs-content-model.php field_vs_blk_steps_sub_foot, whose own comment draws the same distinction).",
+   "rows": {
+    "steps": {
+     "cards": "steps",
+     "fields": {
+      "num": "meta",
+      "title": "title",
+      "body": "body"
+     },
+     "literal": [
+      { "tag": "Step One" },
+      { "tag": "Step Two" },
+      { "tag": "Step Three" }
+     ],
+     "note": "ALL 3 CMS ROWS MOVED, with the three template labels zipped onto them positionally. The page has a `cards` group named `steps` whose meta/title/body are word-for-word the hardcoded `steps` array at index.astro:22-41 — verified row by row against the live endpoint on 2026-08-29 — so the words move rather than being re-typed. `tag` is the one sub-field the CMS has nowhere to hold: \"Step One/Two/Three\" lives only in the template, so it is transcribed and zipped. Three literals against three cards; the backfill refuses a length mismatch.",
+     "num_note": "`num` comes from the card's `meta` (\"01\", \"02\", \"03\"), NOT from `@index2`. That derivation exists for the legacy `process_steps` repeater, which has no `num` sub-field; this page's numbers are real stored values and moving them is what keeps them the numbers the page prints."
+    }
+   },
+   "known_gaps": [
+    "`.process-foot` BECOMES `.process-outro`, AND THE TWO RULES DISAGREE. The page sheet",
+    "(referral-program.css:400-407) sets 14px/1.65; the block's scoped `.process-outro`",
+    "(ProcessStepsBlock.astro:1139-1146) sets 15.5px/1.7. `max-width: 60ch`, `margin: 40px auto",
+    "0` and `text-align: center` are identical in both. The class name changes, so the page rule",
+    "stops matching entirely — there is no cascade contest, the block's metrics simply apply.",
+    "Reconciling the two is the component owner's call and is named in `blocked_on` 2.",
+    "",
+    "THE INLINE LINK KEEPS ITS COLOUR. `.rp .section.dark .vs-link { color: var(--sage) }`",
+    "(referral-program.css:408-410) is (0,3,0) and still matches: the block's `<section",
+    "class=\"section dark\">` renders INSIDE `div.rp`. It has to be the page sheet that does this,",
+    "because `set:html` content carries no scope attribute, so no scoped rule in the component",
+    "can reach that anchor at all.",
+    "",
+    "`.section-head center` LOSES ITS `center` TOKEN. The template writes `<div class=\"section-",
+    "head center\">` (index.astro:230); the block emits `<div class=\"section-head\">` and centres",
+    "unconditionally in its own scoped rule (ProcessStepsBlock.astro:507-511, `margin: 0 auto",
+    "64px; text-align: center`). Centring is preserved; the measure is not — `.rp .section-head`",
+    "is `max-width: 60ch; margin: 0 0 56px` (referral-program.css:104-107) against the block's",
+    "760px/64px. This is the same one-token loss every migrated route in the family already",
+    "carries, and it is block-owned.",
+    "",
+    "THE EYEBROW GAINS TWO 28px RULES. `.rp .section-head .eyebrow` is `display: inline-block`",
+    "(referral-program.css:112) at (0,3,0); the block's scoped `.section-head .eyebrow` compiles",
+    "to (0,4,0) and wins, adding `inline-flex` plus the `::before`/`::after` hairlines",
+    "(ProcessStepsBlock.astro:512-523). Inherited from the block library, identical on all",
+    "fifteen migrated routes, recorded here rather than discovered later.",
+    "",
+    "THE MOBILE STEP DIFFERS, THE DESKTOP DOES NOT. `.rp .process-grid` collapses 3 -> 1 at",
+    "991px (referral-program.css:473). The block collapses `.cols-3` to 2 at 991px",
+    "(ProcessStepsBlock.astro:1200-1209) and to 1 at 780px (:1219-1230), and its compound is",
+    "(0,3,0) against the page rule's (0,2,0), so the block wins inside the page's own media",
+    "query. Three cards therefore draw 2+1 between 780px and 991px where they draw 1+1+1 today.",
+    "Block-owned and shared with every other grid band in the library.",
+    "",
+    "A SPECIFICITY TIE EXISTS ON `.process-card` AND IS INHERITED, NOT NEW. `.rp .process-card`",
+    "(referral-program.css:369) is (0,2,0); the block's scoped `.process-card` compiles to",
+    "`.process-card[data-astro-cid-…]`, also (0,2,0), and bundle order decides. That is the tie",
+    "the house rule says never to BUILD on — this map builds nothing on it. The identical tie",
+    "already ships on the ten back-filled routes whose sheets carry the same rule",
+    "(clear-aligners.css:369, teeth-whitening.css:351 and eight more), all of which measure",
+    "lossless, so the condition is settled in practice and is recorded here so nobody rediscovers",
+    "it as a defect of this route."
+   ]
+  },
+  {
+   "section_id": "faq",
+   "layout": "faq",
+   "band": "paper",
+   "band_evidence": "referral-program/index.astro:256 <section class=\"section\"> — referral-program.css:79 — .rp .section sets padding only and declares no background, so the body paper shows through. Read off the sheet, never off the class name. FaqBlock maps paper -> undefined (BAND_CLASS, FaqBlock.astro:98), so the emitted string is `class=\"section\"`, exactly what the template ships, and `eyebrowLight` is false — reproducing the bare `<span class=\"eyebrow\">` at index.astro:259.",
+   "fields": {
+    "eyebrow": {
+     "section": "eyebrow"
+    },
+    "heading": {
+     "section": "heading"
+    }
+   },
+   "body_note": "DELIBERATELY UNMAPPED. `sections[faq].body` is null on the live endpoint and the template's FAQ head has no paragraph (index.astro:258-261 is eyebrow + h2 and nothing else). Mapping it would be inert today and would ADD a `<p>` to a live band the first time an editor typed into that box — a band gaining an element nobody asked for is exactly the ctaHide failure. The row is still claimed by this block through `eyebrow` and `heading`, so the leftover check is satisfied.",
+   "pull_note": "Left unset. `pull` is the aside beside the questions on the detail-page family; this page has no `.pull` element anywhere in its markup or its sheet, and FaqBlock draws nothing for a blank one.",
+   "cta_note": "NO CTA ROW. The template's FAQ band ends at `.faq-list` (index.astro:263-273) — there is no `.cta-row`, no button pair, nothing after the list. `cta_label` blank means FaqBlock's `hasCta` is false and the whole row is unemitted, which is the byte-identical outcome. Writing a label here would put two buttons on a band that has never had them.",
+   "cta_phone_first_note": "Not set, and not needed: it only reorders the pair inside a `.cta-row` this band does not draw. Recorded because the field is new in this wave and a reviewer will look for it.",
+   "rows": {
+    "items": {
+     "faqs": true,
+     "fields": {
+      "question": "question",
+      "answer": "answer",
+      "open": "open"
+     },
+     "note": "ALL 4 ROWS, IN ORDER, MOVED — including `open`, which is true on the first row only, verified live on 2026-08-29. `open` matters: the template writes `open={f.open}` (index.astro:267) and FaqBlock writes `open={f.open ?? false}`, so the first `<details>` renders expanded on both sides."
+    }
+   },
+   "known_gaps": [
+    "THE `<p>` INSIDE `.answer` IS LOST, AND IT IS THE ONLY MARKUP THIS ROUTE GIVES UP. The",
+    "template writes `<div class=\"answer\"><p>{f.a}</p></div>` (index.astro:270); FaqBlock writes",
+    "`<div class=\"answer\" set:html={f.answer} />` (FaqBlock.astro:185). All four answers on this",
+    "page are tag-free plain sentences — verified against the live endpoint — so `set:html`",
+    "changes nothing visible about the text itself, and the `<div>` keeps its class. What goes is",
+    "the paragraph element and the rule keyed to it: `.rp .faq .answer p { margin: 0; color:",
+    "var(--ink-soft) }` (referral-program.css:462). The block's `.answer` rule must carry those",
+    "metrics — 15px/1.78, ink-soft, no paragraph margin — for the four answers to read as they",
+    "read today. That is change 2 in the component owner's list and is named in `blocked_on` 3.",
+    "",
+    "FaqBlock's ctaHover DEFECT DOES NOT REACH THIS ROUTE. FaqBlock.astro:207 still resolves the",
+    "hover label as `CTA_HOVER[ctaHref]` and never destructures the `ctaHover` field the manifest",
+    "selects. This band has no CTA at all, so no value here is affected; recorded because a",
+    "reviewer comparing the five Wave-B faq rows will ask which of them the defect touches."
+   ]
+  }
+ ],
+ "exempt": {
+  "_": [
+   "Every repeater row on this page that no block above claims. The backfill fails, before",
+   "writing anything, on any row that is neither claimed nor listed here."
+  ],
+  "sections": [
+   {
+    "section_id": "program",
+    "reason": "Its band stays in the template, unguarded, and is the LEADING content band — see the notes above. `.story-grid` plus `aside.reward-card` is a shape no registered layout expresses and no `code_section` band key holds a place for.",
+    "read_this_before_running": [
+     "NOTHING FREEZES. Unlike a code_section exemption, this row keeps feeding the page live:",
+     "referral-program/index.astro:176-177 still reads `section(\"program\").heading` and",
+     "`.body`, on both sides of the switch. An editor's edits to this row keep reaching the",
+     "page after the backfill exactly as they do before it."
+    ]
+   }
+  ],
+  "cards": [],
+  "cards_note": [
+   "EMPTY BECAUSE THE ONE GROUP IS CLAIMED, not because nothing is here. All three `cards` rows",
+   "belong to group `steps` and all three move into the `process_steps` block above. An empty",
+   "list is the correct state and would start reporting the moment a second group appeared."
+  ],
+  "process_steps": [],
+  "process_steps_note": "Null on the live endpoint. This page's numbered steps live in `cards[group=steps]`, not in the legacy `process_steps` repeater — which is why the rows above are a `cards` source and `num` is a moved `meta` rather than the `@index2` derivation.",
+  "faqs": [],
+  "faqs_note": "Empty because all four rows are claimed by the `faq` block.",
+  "toc_links": [],
+  "toc_links_note": "Null on the live endpoint. This page has no rail; see the notes.",
+  "images": [
+   {
+    "slot": "heroPrimary",
+    "reason": "The hero is not a block. It is a `hero` group field on group_vs_page — one per page, always first, never reordered (docs/PAGE-BLOCKS.md 1.3, 7).",
+    "destination": "hero.image, filled by whatever moves the hero across. Not this script's field.",
+    "renders_today": "referral-program/index.astro:131-168, the <header class=\"hero\"> — which stays unguarded on both sides of the migration switch."
+   }
+  ]
+ },
+ "structured_data_note": [
+  "THE FAQPage JSON-LD NOW READS THE BLOCK, NOT THE LEGACY REPEATER.",
+  "referral-program/index.astro derives `faqEntities` from the rendered source: the `items` of",
+  "the `PageFieldsBlocksFaqLayout` row when `hasBlocks`, the `faqs` repeater otherwise.",
+  "Structured data lives on the page and not in the band, so left alone it would keep",
+  "describing the pre-migration content the moment an editor edited the block's rows — a rich",
+  "result that disagrees with the page it is attached to. The two sources are identical the day",
+  "this runs, because the block's items are MOVED from that same repeater; the false branch",
+  "serialises byte-for-byte what it always has, which is what the byte-identity check below",
+  "proves."
+ ],
+ "verification": [
+  "TEMPLATE ELSE-BRANCH PROVEN BYTE-IDENTICAL TO HEAD. Both files compiled with",
+  "@astrojs/compiler 3.0.1 `transform`; the emitted render bodies differ at exactly four sites",
+  "— the two guard wrappers, and `faqs.map` -> `faqEntities.map` in the FAQPage script. Every",
+  "surrounding static chunk, INCLUDING the newline-and-indent text nodes between bands, is",
+  "byte-identical. Separately, reverse-substituting the guards out of the new source yields a",
+  "file that diffs empty against `git show HEAD:` of it.",
+  "",
+  "LIVE ROWS RE-READ, NOT ASSUMED. Every section id, card group, faq row and image slot named",
+  "above was pulled from the endpoint on 2026-08-29 and matched against the template text",
+  "line by line.",
+  "",
+  "FIELD NAMES CHECKED AGAINST THE MANIFEST. `layout columns preCards steps { tag num tagline",
+  "title body } subFoot ctaText` (manifest.ts:473) and `pull items { question answer open }",
+  "ctaLabel ctaHref ctaHover ctaPhoneFirst` (manifest.ts:201) — every name this route uses is",
+  "in one of those two selections, and the PHP sub-field names it writes (`layout`, `columns`,",
+  "`sub_foot`, `steps`, `items`) are the ones vs-content-model.php declares."
+ ]
+}

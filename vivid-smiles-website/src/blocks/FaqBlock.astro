@@ -48,6 +48,8 @@
  */
 import Button from "../components/Button.astro";
 import { phoneHref, phoneLabel } from "../data/contact";
+import { resolveCta } from "./cta";
+import { fillSiteTokens } from "./site-tokens";
 
 /** One row of the layout's `items` repeater. */
 export interface FaqItem {
@@ -74,6 +76,25 @@ interface Props {
   items?: FaqItem[] | null;
   ctaLabel?: string | null;
   ctaHref?: string | null;
+  /**
+   * Per-row hover override. Selected since the pilot and, until this line, READ
+   * BY NOTHING — the project's most-repeated defect, benign here only because
+   * the value is null on all fifteen saved rows. `#contact-form` is in neither
+   * hover table, so /emergency-dentistry/ is the first row that needs it.
+   */
+  ctaHover?: string | null;
+  /**
+   * Which of the two buttons comes first. FaqBlock draws the editable button
+   * and then the practice's phone number; /emergency-dentistry/ ships Call
+   * first in the solid variant because on that page the phone IS the primary
+   * action. THE VARIANTS FOLLOW THE ORDER rather than being a second field —
+   * whichever button is first is solid, the second is the ghost.
+   *
+   * Truthiness, not `=== true`: an unsaved ACF true_false arrives as null and a
+   * saved-false can arrive as the string "0". Absent-or-false — every one of
+   * the fifteen saved rows — must reproduce today's order exactly.
+   */
+  ctaPhoneFirst?: boolean | string | number | null;
 }
 
 /**
@@ -102,23 +123,17 @@ const BAND_CLASS: Record<string, string | undefined> = {
   charcoal: "alt",
 };
 
-/**
- * Hover labels, by destination.
+/*
+ * THE HOVER TABLE MOVED TO src/blocks/cta.ts.
  *
- * `hoverLabel` renders as a `data-hover` attribute and as the second label span
- * inside the button, so it is part of the markup this block has to reproduce —
- * and there is no CMS field for it. Deriving it from the destination is not a
- * guess: `href="#consult"` is paired with "Get a Video" in 52 of the 54 places
- * that label appears across src/pages, and the phone and booking links are
- * unanimous. An unknown destination yields `undefined`, which is what
- * Button.astro already treats as "reuse the visible label".
+ * This file used to carry its own copy, keyed on the RESOLVED phone URL rather
+ * than on the stored destination — vestigial, because the href policy means a
+ * stored href is never a pasted tel: URL, so that key could not match. All
+ * fifteen saved rows store `#consult`, which both tables mapped to "Get a
+ * Video", so adopting the shared one is inert on every live row; it is taken
+ * here because `ctaHover` needs reading in the same change (see the prop) and
+ * `resolveCta` is where the field-beats-table precedence already lives.
  */
-const CTA_HOVER: Record<string, string> = {
-  "#consult": "Get a Video",
-  "#process": "View Steps",
-  "#faq": "See Answers",
-  [phoneHref]: "Tap to Dial",
-};
 
 const {
   id,
@@ -130,7 +145,57 @@ const {
   items,
   ctaLabel,
   ctaHref,
+  ctaHover,
+  ctaPhoneFirst,
 } = Astro.props;
+
+/** Field override first, shared table second, undefined (= visible label) last. */
+const { href: ctaResolvedHref, hover: ctaResolvedHover } = resolveCta(
+  ctaHref,
+  ctaHover,
+);
+
+/* See the `ctaPhoneFirst` prop for why this is truthiness and not `=== true`.
+   The same coercion ComparisonCardsBlock.astro:480 runs on `ctaHide`. */
+const phoneFirst =
+  Boolean(ctaPhoneFirst) &&
+  String(ctaPhoneFirst) !== "0" &&
+  String(ctaPhoneFirst) !== "false";
+
+/**
+ * THE ORDER IS DECIDED HERE, NOT IN THE MARKUP, and that is a correctness
+ * requirement rather than a style choice. Branching in the template — two
+ * `<Fragment>`s in a ternary — put whitespace text nodes into `.cta-buttons`
+ * that the fifteen saved rows do not have today; a before/after build caught
+ * it on /cosmetic-dentistry/. Deciding here leaves ONE pair of `<Button>`
+ * elements in the markup, formatted exactly as they have always been, so the
+ * false branch cannot differ by a byte.
+ *
+ * `label` is a plain string for both, because the element below renders it as
+ * a single expression — the same shape the phone button's `Call {phoneLabel}`
+ * compiled to.
+ */
+const editableBtn = {
+  href: ctaResolvedHref,
+  hover: ctaResolvedHover,
+  label: ctaLabel,
+};
+const phoneBtn = {
+  href: phoneHref,
+  hover: "Tap to Dial",
+  /* THE LEADING NEWLINE IS LOAD-BEARING, and it is measured, not guessed. This
+     button was written `Call {phoneLabel}` — a text node and an expression —
+     and Astro emitted the indentation before "Call" as a newline that survives
+     compressHTML: every one of the fifteen saved rows ships
+     `<span class="l1">\nCall (303) 841-5313</span>` today. Collapsing the pair
+     into one expression dropped it on fourteen live pages until this line put
+     it back. Inside a value nothing can collapse it — the same fix AreaBand's
+     address line uses. */
+  label: `\nCall ${phoneLabel}`,
+};
+const [firstBtn, secondBtn] = phoneFirst
+  ? [phoneBtn, editableBtn]
+  : [editableBtn, phoneBtn];
 
 const bandKey = typeof band === "string" && band !== "" ? band : "paper";
 const bandClass = BAND_CLASS[bandKey];
@@ -181,8 +246,11 @@ const hasCta = typeof ctaLabel === "string" && ctaLabel.trim() !== "";
                 </span>
               </summary>
               {/* See the header: escaped on this template today, tag-free on
-                  this page, so the switch is invisible here and deliberate. */}
-              <div class="answer" set:html={f.answer ?? ""} />
+                  this page, so the switch is invisible here and deliberate.
+                  `{phone}` / `{phone_href}` are substituted here rather than
+                  stored, because a stored phone number is a second place for it
+                  to go stale — the same rule cta.ts states for hrefs. */}
+              <div class="answer" set:html={fillSiteTokens(f.answer)} />
             </details>
           ))}
         </div>
@@ -203,22 +271,24 @@ const hasCta = typeof ctaLabel === "string" && ctaLabel.trim() !== "";
           <div class="cta-buttons">
             <Button
               variant={isDarkBand ? "light" : "sage"}
-              href={ctaHref ?? "#"}
-              hoverLabel={CTA_HOVER[ctaHref ?? ""]}
+              href={firstBtn.href}
+              hoverLabel={firstBtn.hover}
             >
-              {ctaLabel}
+              {firstBtn.label}
             </Button>
-            {/* The second button is the practice's phone number, which is site
+            {/* One of these two is the practice's phone number, which is site
                 data (src/data/contact.ts), not page content — every FAQ band in
                 the detail-page family pairs its CTA with exactly this button.
                 Giving an editor a field for it would let them publish a wrong
-                phone number on one page. */}
+                phone number on one page. WHICH one comes first is editable
+                (`ctaPhoneFirst`), and the solid variant follows the order; both
+                are resolved in the frontmatter so this markup never branches. */}
             <Button
               variant={isDarkBand ? "ghost-light" : "ghost"}
-              href={phoneHref}
-              hoverLabel="Tap to Dial"
+              href={secondBtn.href}
+              hoverLabel={secondBtn.hover}
             >
-              Call {phoneLabel}
+              {secondBtn.label}
             </Button>
           </div>
         </div>
