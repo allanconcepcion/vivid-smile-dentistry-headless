@@ -133,6 +133,22 @@ interface Props {
   /** Rail label. Read by the page that builds the rail, not by this band. */
   navLabel?: string | null;
   band?: string | null;
+  /**
+   * The heading column's width, as a class the PAGE SHEET hooks.
+   *
+   * "default" (and blank) emits `class="section-head"` — every one of the
+   * fifteen saved rows, byte-identical to today. "center" adds `center`.
+   *
+   * NOT DECORATION, AND NOT REDUNDANT WITH THIS FILE'S OWN CENTRING.
+   * /new-patients/, /our-office/ and /referral-program/ style a bare
+   * `.section-head` as a LEFT-aligned 60ch grid and centre it only through
+   * `.section-head.center`. Dropping the class on backfill left those bands on
+   * this file's own `.section-head` rule — still centred, but 760px instead of
+   * 60ch, so the heading column grew by about a third and re-wrapped. Measured
+   * in a browser against the built pages: 760px against 587.355px. A word diff
+   * and a section-class diff are both blind to it.
+   */
+  headAlign?: string | null;
   eyebrow?: string | null;
   /** May contain `<em>`, and nothing else (docs/PAGE-BLOCKS.md, Fact 3). */
   heading?: string | null;
@@ -190,6 +206,7 @@ const BAND_CLASS: Record<string, string | undefined> = {
 const {
   id,
   band = "sage-pale",
+  headAlign,
   eyebrow,
   heading,
   body,
@@ -200,6 +217,12 @@ const {
   subFoot,
   ctaText,
 } = Astro.props;
+
+/* See the `headAlign` prop. Unknown values fall back to today's class, never to
+   a band that centres itself by accident. */
+const headKey = String(headAlign ?? "").trim().toLowerCase();
+const headClass = headKey === "center" || headKey === "narrow" ? headKey : undefined;
+
 
 const bandKey = typeof band === "string" && band !== "" ? band : "sage-pale";
 const bandClass = BAND_CLASS[bandKey];
@@ -305,7 +328,7 @@ const stepCountClass = `pgrid-${rows.length}`;
   <div class="wrap">
     {
       hasHead && (
-        <div class="section-head">
+        <div class:list={["section-head", headClass]}>
           {eyebrow && <span class:list={["eyebrow", eyebrowLight && "light"]}>{eyebrow}</span>}
           {heading && (
             <h2>
@@ -519,6 +542,40 @@ const stepCountClass = `pgrid-${rows.length}`;
     max-width: 760px;
     margin: 0 auto 64px;
     text-align: center;
+  }
+
+  /* ---------- the narrow heading column ----------
+     THE CLASS ALONE DOES NOT DELIVER THIS, which is why both rules restate the
+     whole box. The three sheets that use this house style put only the centring
+     in `.section-head.center` and leave the width, the grid and the bottom
+     margin on the bare `.section-head` — which TIES this file's own (0,2,0)
+     rule and loses to bundle order. Measured, not assumed: adding the class
+     moved the class attribute and left the column at 760px.
+
+     Both rules are (0,3,0), so they beat this file's own default outright, and
+     they match only rows that set `head_align` — the fifteen saved rows never
+     do. Values are identical across new-patients.css:88-95,
+     our-office.css:124-127 and referral-program.css:104-110; one pair of rules
+     covers all three pages.
+
+     `narrow` is the sheets' BARE `.section-head`: left-aligned. It is a real
+     value and not a synonym for the default, because on those pages a plain
+     `<div class="section-head">` is left-aligned at 60ch, where this file's
+     default is centred at 760px — a difference no class-level sweep can see. */
+  .section-head.center,
+  .section-head.narrow {
+    display: grid;
+    gap: 18px;
+    max-width: 60ch;
+    margin: 0 0 56px;
+  }
+  .section-head.center {
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+  }
+  .section-head.narrow {
+    text-align: left;
   }
   .section-head .eyebrow {
     display: inline-flex;

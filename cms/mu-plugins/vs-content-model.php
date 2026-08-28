@@ -1649,6 +1649,41 @@ function register_field_groups(): void {
 								block_preamble( 'faq' ),
 								[
 									[
+										'key'           => 'field_vs_blk_faq_head_align',
+										'label'         => 'Section heading width',
+										'name'          => 'head_align',
+										'type'          => 'select',
+										/*
+										 * Wave B adds this, and it is not decoration. /new-patients/,
+										 * /our-office/ and /referral-program/ write
+										 * `<div class="section-head center">`, and their sheets style a bare
+										 * `.section-head` as a LEFT-aligned 60ch grid — only
+										 * `.section-head.center` centres it (new-patients.css:88-95,
+										 * our-office.css:124-127, referral-program.css:104-110).
+										 *
+										 * Dropped on backfill, the band falls back to the block's own
+										 * `.section-head` rule — still centred, but 760px instead of 60ch, so
+										 * a live heading column grows by about a third and re-wraps. MEASURED
+										 * in a browser against the built pages, not inferred: 760px against
+										 * 587.355px. Neither the word sweep nor the section-class sweep can
+										 * see it, which is why it needed a third sweep to find.
+										 *
+										 * "default" is every one of the fifteen saved rows, and emits exactly
+										 * today's class attribute.
+										 */
+										'choices'       => [
+											'default' => 'Full width — the section’s own heading column',
+											'center'  => 'Narrow and centred — matches the rest of this page',
+											'narrow'  => 'Narrow, left-aligned — matches the rest of this page',
+										],
+										'default_value' => 'default',
+										'return_format' => 'value',
+										'allow_null'    => 0,
+										'multiple'      => 0,
+										'ui'            => 0,
+										'instructions'  => 'Leave this alone unless the rest of the page uses the narrower centred heading.',
+									],
+									[
 										'key'          => 'field_vs_blk_faq_pull',
 										'label'        => 'Aside',
 										'name'         => 'pull',
@@ -2623,6 +2658,41 @@ function register_field_groups(): void {
 							'sub_fields' => array_merge(
 								block_preamble( 'steps' ),
 								[
+									[
+										'key'           => 'field_vs_blk_steps_head_align',
+										'label'         => 'Section heading width',
+										'name'          => 'head_align',
+										'type'          => 'select',
+										/*
+										 * Wave B adds this, and it is not decoration. /new-patients/,
+										 * /our-office/ and /referral-program/ write
+										 * `<div class="section-head center">`, and their sheets style a bare
+										 * `.section-head` as a LEFT-aligned 60ch grid — only
+										 * `.section-head.center` centres it (new-patients.css:88-95,
+										 * our-office.css:124-127, referral-program.css:104-110).
+										 *
+										 * Dropped on backfill, the band falls back to the block's own
+										 * `.section-head` rule — still centred, but 760px instead of 60ch, so
+										 * a live heading column grows by about a third and re-wraps. MEASURED
+										 * in a browser against the built pages, not inferred: 760px against
+										 * 587.355px. Neither the word sweep nor the section-class sweep can
+										 * see it, which is why it needed a third sweep to find.
+										 *
+										 * "default" is every one of the fifteen saved rows, and emits exactly
+										 * today's class attribute.
+										 */
+										'choices'       => [
+											'default' => 'Full width — the section’s own heading column',
+											'center'  => 'Narrow and centred — matches the rest of this page',
+											'narrow'  => 'Narrow, left-aligned — matches the rest of this page',
+										],
+										'default_value' => 'default',
+										'return_format' => 'value',
+										'allow_null'    => 0,
+										'multiple'      => 0,
+										'ui'            => 0,
+										'instructions'  => 'Leave this alone unless the rest of the page uses the narrower centred heading.',
+									],
 									[
 										// `layout` is this sub-field's NAME — the shape the
 										// steps are drawn in — not ACF's own `layout`
@@ -4092,6 +4162,41 @@ function register_field_groups(): void {
 							'sub_fields' => array_merge(
 								block_preamble( 'svc' ),
 								[
+									[
+										'key'           => 'field_vs_blk_svc_head_align',
+										'label'         => 'Section heading width',
+										'name'          => 'head_align',
+										'type'          => 'select',
+										/*
+										 * Wave B adds this, and it is not decoration. /new-patients/,
+										 * /our-office/ and /referral-program/ write
+										 * `<div class="section-head center">`, and their sheets style a bare
+										 * `.section-head` as a LEFT-aligned 60ch grid — only
+										 * `.section-head.center` centres it (new-patients.css:88-95,
+										 * our-office.css:124-127, referral-program.css:104-110).
+										 *
+										 * Dropped on backfill, the band falls back to the block's own
+										 * `.section-head` rule — still centred, but 760px instead of 60ch, so
+										 * a live heading column grows by about a third and re-wraps. MEASURED
+										 * in a browser against the built pages, not inferred: 760px against
+										 * 587.355px. Neither the word sweep nor the section-class sweep can
+										 * see it, which is why it needed a third sweep to find.
+										 *
+										 * "default" is every one of the fifteen saved rows, and emits exactly
+										 * today's class attribute.
+										 */
+										'choices'       => [
+											'default' => 'Full width — the section’s own heading column',
+											'center'  => 'Narrow and centred — matches the rest of this page',
+											'narrow'  => 'Narrow, left-aligned — matches the rest of this page',
+										],
+										'default_value' => 'default',
+										'return_format' => 'value',
+										'allow_null'    => 0,
+										'multiple'      => 0,
+										'ui'            => 0,
+										'instructions'  => 'Leave this alone unless the rest of the page uses the narrower centred heading.',
+									],
 									[
 										'key'           => 'field_vs_blk_svc_nested',
 										'label'         => 'Tuck this inside the section above',

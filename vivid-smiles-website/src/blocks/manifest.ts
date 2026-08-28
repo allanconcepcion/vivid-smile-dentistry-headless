@@ -198,7 +198,7 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    */
   PageFieldsBlocksFaqLayout: {
     typeName: "PageFieldsBlocksFaqLayout",
-    fields: `${BLOCK_PREAMBLE_FIELDS} pull items { question answer open } ctaLabel ctaHref ctaHover ctaPhoneFirst`,
+    fields: `${BLOCK_PREAMBLE_FIELDS} headAlign pull items { question answer open } ctaLabel ctaHref ctaHover ctaPhoneFirst`,
   },
 
   /**
@@ -470,7 +470,7 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    */
   PageFieldsBlocksProcessStepsLayout: {
     typeName: "PageFieldsBlocksProcessStepsLayout",
-    fields: `${BLOCK_PREAMBLE_FIELDS} layout columns preCards { heading body } steps { tag num tagline title body } subFoot ctaText`,
+    fields: `${BLOCK_PREAMBLE_FIELDS} headAlign layout columns preCards { heading body } steps { tag num tagline title body } subFoot ctaText`,
   },
 
   /**
@@ -918,7 +918,7 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    */
   PageFieldsBlocksServiceCardsLayout: {
     typeName: "PageFieldsBlocksServiceCardsLayout",
-    fields: `${BLOCK_PREAMBLE_FIELDS} nested cardStyle columns collapseAt svcCards { title body tag href imagePos imageAlt image { node { sourceUrl altText mediaDetails { width height } } } } subFoot ctaLabel ctaHref ctaHover ctaLabel2 ctaHref2 ctaHover2 ctaNote`,
+    fields: `${BLOCK_PREAMBLE_FIELDS} headAlign nested cardStyle columns collapseAt svcCards { title body tag href imagePos imageAlt image { node { sourceUrl altText mediaDetails { width height } } } } subFoot ctaLabel ctaHref ctaHover ctaLabel2 ctaHref2 ctaHover2 ctaNote`,
   },
 
   /**
