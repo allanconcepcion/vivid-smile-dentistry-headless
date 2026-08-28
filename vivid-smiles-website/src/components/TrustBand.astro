@@ -1,0 +1,396 @@
+---
+/**
+ * TrustBand — the sage-pale centred pull-quote band.
+ *
+ * Extracted from the `#trust` band of
+ * src/pages/general-dentistry/index.astro:342-357, not designed anew. Same
+ * elements, same order, same class names, same `aria-hidden` on the stars —
+ * the phase is verified by diffing built HTML (docs/PAGE-BLOCKS.md 3.3), so a
+ * dropped `<span>` or an added wrapper fails even when it looks identical.
+ *
+ * A PAGE COMPONENT, not a block. It lives in src/components/ and takes props;
+ * CodeSectionBlock renders it for a `code_section` row, which is why the prop
+ * names below are a contract and not an implementation detail. Renaming one
+ * silently blanks a band on a live page — a `code_section` row whose component
+ * ignores a prop renders the wrapper with nothing in it and logs nothing.
+ *
+ * It draws its own `<section>`, exactly as LocalTrust.astro:80 does, because
+ * CodeSectionBlock emits "the named component and NOTHING ELSE"
+ * (CodeSectionBlock.astro:22-28). A wrapper here would nest two sections.
+ *
+ * ── The band this replaces ────────────────────────────────────────────────
+ * general-dentistry has no `#results` section — the cosmetic and implant hubs
+ * tell a before/after story and this page tells a trust-and-consistency one
+ * (general-dentistry.css:667-670). So the band is one quiet centred moment:
+ * eyebrow, heading, an italic pull-quote, a plain second paragraph, and a
+ * rule-topped attribution line. Five fields, five elements, no grid.
+ *
+ * ── FIELD MAPPING, the part that is easy to get subtly wrong ──────────────
+ *
+ *   eyebrow   the `.eyebrow.light` span. Hardcoded "Why Parker trusts us" in
+ *             the template (index.astro:345) while the section row's own
+ *             `eyebrow` is empty (sections-payload.json:1760) — so this is a
+ *             field the migration ADDS, and leaving it out is a lost word.
+ *   heading   the <h2>. Carries `<em>` and is therefore set:html, same as the
+ *             template's <Fragment set:html> (index.astro:346).
+ *   body      the FIRST `.trust-body` — the italic display pull-quote.
+ *   body2     the SECOND `.trust-body` — plain body copy, smaller, wider.
+ *             Two paragraphs with the same class and deliberately different
+ *             type: `.trust-body + .trust-body` restyles the second one
+ *             (general-dentistry.css:712-721). Swapping them sets the long
+ *             prose at 26px italic and the quote at 15px — it reads almost
+ *             right, which is the kind of mistake that ships.
+ *   attr      the text of the attribution line's SECOND span. The five stars
+ *             are decoration this component draws, not content an editor
+ *             types: they are `aria-hidden` and they must not become a field
+ *             somebody can half-fill.
+ *
+ * There is no `band` prop. This band is sage-pale on general-dentistry and on
+ * every other sheet that defines it (measured below), and the layout has no
+ * second colourway to offer, so `class="section dark"` is written literally
+ * rather than computed — a modifier map with one entry is a place for a wrong
+ * value to come from.
+ *
+ * ── OPTIONAL EVERYTHING ───────────────────────────────────────────────────
+ * Every field is optional and every blank one draws nothing. All five blank
+ * draws NO SECTION AT ALL — not an empty sage band 110px tall with nothing in
+ * it, which is what a guard placed on `.trust-quote` instead of on `<section>`
+ * would leave behind. `id` alone does not count as content: a section that
+ * exists only to hold an anchor is the empty wrapper this rule forbids. The
+ * cost is real and worth naming — an "on this page" rail chip pointing at a
+ * band whose fields are all blank scrolls nowhere. That is visible to the
+ * editor who emptied it; an invisible 110px gap is not.
+ *
+ * ── WHITESPACE ────────────────────────────────────────────────────────────
+ * The `}{`-flush idiom is used in exactly ONE place here — the top-level
+ * expression, which sits flush against both ends of the template with no
+ * newline before `{` or after `}`. Anything else emits a text node into the
+ * page even when the band renders nothing.
+ *
+ * It is deliberately NOT used between the five children of `.trust-quote`.
+ * Flushing them would be the diff, not the fix: the shipped build emits a
+ * SINGLE SPACE between each of those elements —
+ *
+ *   …trusts us</span> <h2>…</h2> <p class="trust-body">…
+ *
+ * (dist/general-dentistry/index.html, `id="trust"`) — because Astro compresses
+ * each literal whitespace chunk to one space rather than dropping it. Keeping
+ * one newline between the expressions reproduces those spaces exactly; jamming
+ * them together would remove five text nodes the current build has. The rule
+ * is "preserve the template's whitespace", and here the template's whitespace
+ * is a space.
+ *
+ * ── HREFS ─────────────────────────────────────────────────────────────────
+ * This band draws no button, no tel: and no map link, so it imports neither
+ * src/data/contact.ts nor src/blocks/cta.ts. If a future row needs a CTA here,
+ * import the shared resolvers from cta.ts — never a hardcoded booking URL.
+ *
+ * NOTHING HERE THROWS. An editor triggers deploys and never sees the output
+ * (cms/mu-plugins/vs-deploy.php:142-158), so every field is read as if it
+ * might be missing, blank, or the wrong type.
+ *
+ * Spec: docs/PAGE-BLOCKS.md 1.3, 2.5, 3.3.
+ */
+
+interface Props {
+  /**
+   * The DOM id, already deduplicated by PageBlocks.astro. Absent when blank,
+   * and then no `id` attribute is written at all.
+   *
+   * NO DEFAULT, unlike LocalTrust.astro:44 which defaults to "local". That
+   * component draws one fixed band; this one is parameterised because the same
+   * centred pull-quote also appears as `#why-us` on emergency-dentistry
+   * (emergency-dentistry.css:747-748). A default of "trust" would put the
+   * wrong anchor on that page's band and break the rail chip that links it.
+   */
+  id?: string;
+  /** The `.eyebrow.light` span above the heading. */
+  eyebrow?: string | null;
+  /** The <h2>. May contain `<em>`, so it is rendered set:html. */
+  heading?: string | null;
+  /** The first `.trust-body` — the italic display pull-quote. Plain text. */
+  body?: string | null;
+  /**
+   * The second `.trust-body`. May contain inline HTML — `<em>` in the shipped
+   * copy (index.astro:349), and `<a class="vs-link">` is styled for this band
+   * in <style> below so an editor adding one gets the sage-deep link colour
+   * the page sheet gives it.
+   */
+  body2?: string | null;
+  /** The attribution line under the quote — "5.0 · 300+ Google reviews". */
+  attr?: string | null;
+}
+
+const { id, eyebrow, heading, body, body2, attr } = Astro.props;
+
+/** Trim once, here, so every guard below tests for real content rather than
+ *  for a field an editor left as a single space. */
+const text = (input: unknown): string =>
+  typeof input === "string" ? input.trim() : "";
+
+const eyebrowText = text(eyebrow);
+const headingHtml = text(heading);
+const bodyText = text(body);
+const body2Html = text(body2);
+const attrText = text(attr);
+
+// The whole band, not the inner div — see OPTIONAL EVERYTHING above. `id` is
+// excluded on purpose: an anchor is not content.
+const hasContent =
+  eyebrowText !== "" ||
+  headingHtml !== "" ||
+  bodyText !== "" ||
+  body2Html !== "" ||
+  attrText !== "";
+---
+{hasContent && (
+  <section class="section dark" id={id} data-vs-reveal-batch>
+    <div class="wrap">
+      <div class="trust-quote">
+        {eyebrowText && <span class="eyebrow light">{eyebrowText}</span>}
+        {headingHtml && <h2><Fragment set:html={headingHtml} /></h2>}
+        {bodyText && <p class="trust-body">{bodyText}</p>}
+        {body2Html && <p class="trust-body"><Fragment set:html={body2Html} /></p>}
+        {attrText && (
+          <p class="trust-attr">
+            <span class="stars" aria-hidden="true">★★★★★</span>
+            <span>{attrText}</span>
+          </p>
+        )}
+      </div>
+    </div>
+  </section>
+)}
+<style>
+  /* ── How these selectors are shaped ───────────────────────────────────────
+     Every rule below is rooted at `.section` — this component's own root — so
+     that Astro's attribute scoping puts it ABOVE the page sheet rather than
+     level with it. `.section .trust-body` compiles to
+     `.section[data-astro-cid-…] .trust-body[data-astro-cid-…]` at (0,4,0),
+     while `.gdent .trust-body` is (0,2,0). Writing the bare `.trust-body`
+     instead would compile to (0,2,0) and TIE, leaving bundle order to decide —
+     and the tie is not academic here: emergency-dentistry.css:783 sets the
+     same class to `max-width: 56ch` where general-dentistry.css:705 sets 36ch.
+     A component whose width depends on which sheet the bundler emitted last is
+     not a component.
+
+     Values are the RENDERED ones, not the last rule that mentions the class.
+     Where the page sheet's own cascade overrides itself, the winner is
+     collapsed here and the loser is named — see `.trust-body`'s colour, which
+     is the one that surprises.
+
+     Declarations are lifted from src/styles/pages/general-dentistry.css with
+     the `.gdent` prefix stripped and that sheet's local aliases resolved back
+     to the `--vs-*` tokens they alias one-for-one (general-dentistry.css:46-62:
+     `--f-display` → `--vs-font-display`, `--ink-soft` → `--vs-ink-soft`, …).
+     Rendered values are unchanged. Resolved rather than kept, because the
+     aliases are declared on `.gdent` — a band that reads them is a band that
+     only works on one page (R3). */
+
+  /* ── Band shell ─────────────────────────────────────────────────────────
+     general-dentistry.css:325-327 and :351-353.
+
+     These two are the only rules here that tie with the page sheet
+     (`.section` (0,2,0) vs `.gdent .section` (0,2,0); `.section.dark` (0,3,0)
+     vs `.gdent .section.dark` (0,3,0)) and they are safe because the values
+     are identical — checked, not assumed: every one of the twenty page sheets
+     that defines `.section.dark` sets `background: var(--vs-sage-pale)`, and
+     `.section` is `padding: 110px 0` on this page. A tie cannot be built on,
+     but a tie between two identical values cannot be observed either. There is
+     no descendant to root these at without inventing a wrapper element, and
+     inventing one would change the markup this file exists to preserve. */
+  .section {
+    padding: 110px 0;
+  }
+  .section.dark {
+    background: var(--vs-sage-pale);
+  }
+
+  /* No `scroll-margin-top` on `.section[id]`, unlike StatCalloutBlock:222.
+     That block carries one because clear-aligners.css gives its sections one.
+     general-dentistry.css gives it to `.hero` ONLY (:320-322) — `#trust` has
+     never had one — so adding it here would silently change where the rail
+     chip lands on a page this component is supposed to leave untouched. */
+
+  .section .wrap {
+    /* general-dentistry.css:66-70 */
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  /* ── The centred pull-quote ─────────────────────────────────────────────
+     general-dentistry.css:671-679. Flex column with a 22px gap, which is why
+     none of the children below carry vertical margins of their own. */
+  .section .trust-quote {
+    max-width: 780px;
+    margin: 0 auto;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 22px;
+  }
+
+  /* Eyebrow. Type from general-dentistry.css:72-79, the hairline rules from
+     :680-691.
+
+     COLOUR IS NOT `.eyebrow.light`. The template writes `class="eyebrow light"`
+     and `.gdent .eyebrow.light` (:80-82) sets `--vs-eyebrow-on-sage` — but
+     `.gdent .section.dark .eyebrow` (:360-362) is (0,4,0) against its (0,3,0)
+     and wins, so what actually renders on this band is `--vs-ink-soft`. The
+     `light` class is kept in the markup because the diff is against the
+     shipped HTML, not against what the class does. */
+  .section .trust-quote .eyebrow {
+    font-family: var(--vs-font-body);
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    font-weight: 500;
+    color: var(--vs-ink-soft);
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+  /* general-dentistry.css:685-691, with the hairline colour from :363-365
+     (which wins there too, at (0,4,1) over (0,3,1) — same value either way). */
+  .section .trust-quote .eyebrow::before,
+  .section .trust-quote .eyebrow::after {
+    content: '';
+    width: 28px;
+    height: 1px;
+    background: var(--vs-ink-soft);
+  }
+
+  /* Heading. Type from general-dentistry.css:84-94 and :105-109, box from
+     :692-695. Colour is ink, not the sage of the h1–h4 group rule: the sheet
+     flips h2 to ink twice over, in `.gdent .section.dark h2` (:354-359) and
+     again in its end-of-file override (:1369-1371). Collapsed to the value
+     that renders. */
+  .section .trust-quote h2 {
+    font-family: var(--vs-font-display);
+    font-size: clamp(32px, 4.2vw, 54px);
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: -0.022em;
+    color: var(--vs-ink);
+    margin: 0;
+    max-width: 22ch;
+  }
+  /* :global because the `<em>` arrives through set:html and carries no scope
+     attribute — the same reason StatCalloutBlock.astro:239 reaches for it. The
+     scope stays on `h2`, so this cannot leak off the band. Sage, not the
+     sage-soft of the base `.gdent em` (:125-129): `.gdent .section.dark em`
+     (:370-372) is (0,3,1) over its (0,1,1). */
+  .section .trust-quote h2 :global(em) {
+    font-style: italic;
+    font-weight: 300;
+    color: var(--vs-sage);
+  }
+
+  /* First paragraph — the italic display pull-quote.
+     general-dentistry.css:696-706.
+
+     COLOUR IS INK-SOFT, NOT INK, and this is the trap in this band. The rule
+     at :700 says `color: var(--vs-ink)`, but `.gdent .section.dark p`
+     (:367-369) is (0,3,1) against `.gdent .trust-body`'s (0,2,0) and wins, so
+     the shipped page renders #4a4a47 and not #2a2a28. Copying the declaration
+     that is easier to find rather than the one that renders would darken this
+     quote on a live page and look like a deliberate design change. Confirmed
+     against the built page, not reasoned about — see the verification note in
+     the batch report. */
+  .section .trust-quote .trust-body {
+    font-family: var(--vs-font-display);
+    font-weight: 300;
+    font-style: italic;
+    font-size: clamp(20px, 2.2vw, 26px);
+    line-height: 1.45;
+    color: var(--vs-ink-soft);
+    margin: 0;
+    letter-spacing: -0.005em;
+    max-width: 36ch;
+  }
+  /* general-dentistry.css:707-711, again with the colour that wins from
+     :370-372 — the same sage the local rule asks for. :global for the same
+     reason the heading's `<em>` needs it: `body2` arrives set:html. */
+  .section .trust-quote .trust-body :global(em) {
+    color: var(--vs-sage);
+    font-weight: 300;
+    font-style: italic;
+  }
+  /* Second paragraph — plain body copy, smaller and wider than the quote it
+     follows. general-dentistry.css:712-721.
+
+     Written as the adjacent-sibling rule the sheet uses rather than given its
+     own class, because the class it does not have is the reason `body2` can
+     never be styled as a quote by accident: with `body` blank there is no
+     first sibling, and the surviving paragraph correctly renders as the
+     italic pull-quote — which is the band a one-paragraph row should draw. */
+  .section .trust-quote .trust-body + .trust-body {
+    font-family: var(--vs-font-body);
+    font-weight: 400;
+    font-style: normal;
+    font-size: clamp(15px, 1.4vw, 17px);
+    line-height: 1.7;
+    letter-spacing: 0;
+    color: var(--vs-ink-soft);
+    max-width: 60ch;
+  }
+
+  /* Attribution line. general-dentistry.css:722-734, plus `margin: 0` from the
+     sheet's base `.gdent p` (:121-124) — the local rule never sets a margin,
+     so leaving it out here would let a UA default reopen a gap the flex `gap`
+     already accounts for. */
+  .section .trust-quote .trust-attr {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin: 0;
+    padding-top: 8px;
+    border-top: 1px solid rgba(0, 0, 0, 0.15);
+    font-family: var(--vs-font-body);
+    font-size: 12.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--vs-ink-soft);
+    font-weight: 500;
+  }
+  /* general-dentistry.css:735-739. Authored in this template, so it carries
+     the scope attribute and needs no :global — unlike the `<em>`s above. */
+  .section .trust-quote .trust-attr .stars {
+    color: var(--vs-sage);
+    letter-spacing: 0.1em;
+    font-size: 16px;
+  }
+
+  /* Inline links inside the sage-pale band — general-dentistry.css:374-384.
+     Carried even though the shipped copy has none: `body2` is an inline-HTML
+     field, an editor adding an `<a class="vs-link">` is the expected use, and
+     without this the link would fall back to the global `.vs-link` sage
+     (global.css:39-49), which is the band's own background family and reads as
+     unstyled text on it. :global for the same reason as the `<em>`s. */
+  .section .trust-quote :global(.vs-link) {
+    color: var(--vs-sage-deep);
+    text-decoration-color: var(--vs-sage);
+  }
+  .section .trust-quote :global(.vs-link:hover),
+  .section .trust-quote :global(.vs-link:focus-visible) {
+    color: var(--vs-ink);
+    text-decoration-color: var(--vs-ink);
+  }
+
+  /* ── Responsive ─────────────────────────────────────────────────────────
+     Re-united with the rules they modify rather than left in a trailing
+     "responsive" section 600 lines away (3.2, step 3). The band has no
+     breakpoint of its own — the two rules below are the page's shell
+     breakpoint (general-dentistry.css:1296-1298 and :1318-1320), and the
+     quote's own type is fluid via clamp() at every width. */
+  @media (max-width: 780px) {
+    .section {
+      padding: 70px 0;
+    }
+    .section .wrap {
+      padding: 0 22px;
+    }
+  }
+</style>

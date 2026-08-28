@@ -1,0 +1,434 @@
+---
+/**
+ * AreaBand — the local-SEO "serving the area" band that closes all three
+ * dentistry hubs: /implant-dentistry/ #area, /cosmetic-dentistry/ #area,
+ * /general-dentistry/ #area.
+ *
+ * A PAGE COMPONENT, NOT A BLOCK. It lives in src/components/ and takes props,
+ * not CMS fields: `CodeSectionBlock` will register it as a code-owned band in a
+ * later batch, exactly as it already registers <LocalTrust> three times, so the
+ * copy below stays developer-owned and only the band's POSITION becomes
+ * editable. That is why there is no manifest entry, no selection set and no
+ * ACF layout to keep in sync — and why the four prop names here are a contract:
+ * `CodeSectionBlock`'s BANDS table will spell them out verbatim, and a rename
+ * on this side is a band that resolves to nothing on a live page.
+ *
+ * ── One component, three pages, one markup ────────────────────────────────
+ * The three hubs ship this band character-for-character identically
+ * (implant-dentistry/index.astro:523-556, cosmetic-dentistry/index.astro:568-604,
+ * general-dentistry/index.astro:443-479). Only the eyebrow, the heading and the
+ * two paragraphs differ, and those are the props. /services/ has no #area band
+ * at all, so it is not in scope here and gets no code_section row for it.
+ *
+ * ── Why `{street}` / `{city}` are tokens and not sentences ────────────────
+ * The paragraphs are frozen copy, but two words inside them are not copy: the
+ * templates interpolate `{addressStreet}` and `{addressCity}` from
+ * src/data/contact.ts mid-sentence — "located at 17167 Cedar Gulch Pkwy Ste
+ * 102, in Parker, ...". Passing those paragraphs in as finished strings would
+ * bake today's address into three prop tables, and Practice Settings would stop
+ * being the one place the practice's address is edited. So the prop carries the
+ * TOKEN and this file substitutes at render: the sentence is frozen, the
+ * address stays live, and a move across town is still one field in wp-admin.
+ * The idea is the one src/blocks/cta.ts states for hrefs and the three
+ * LocalTrust entries in CodeSectionBlock.astro state for copy — site data never
+ * gets a second copy in a band's props.
+ *
+ * Tokens are deliberately limited to the two the corpus uses. `{state}` and
+ * `{zip}` appear in this band only inside the address line below, which is
+ * drawn from contact.ts directly and is not a field at all; and the HEADING
+ * gets no substitution, because its place names are marketing geography
+ * ("Serving Parker, Castle Rock & Douglas County") rather than the mailing
+ * address — a token there would silently tie the two together the first time
+ * the practice moved.
+ *
+ * ── What is a field and what is furniture ─────────────────────────────────
+ * Eyebrow, heading and paragraphs are content. The address line, the phone
+ * link, "Get Directions", "Contact Us" and the map embed are FURNITURE: they
+ * are the same on all three pages and they come from contact.ts. Per the href
+ * policy this component sits on the fixed-button side of the line — it reads
+ * contact.ts directly rather than importing src/blocks/cta.ts, the same way
+ * FinalBand.astro and LocalTrust.astro do. cta.ts exists for buttons an EDITOR
+ * fills in; there are none here.
+ *
+ * The two hover labels are reproduced, not normalised: cta.ts's shared table
+ * pairs the `map` destination with "Open Map", and all three of these pages
+ * ship "Open Maps". This file's job is to reproduce the templates, and a
+ * one-letter hover change is exactly the kind of diff that shows up in the
+ * harness and cannot be explained a year later. When map_visit (Wave B) turns
+ * this into an editable layout, that is the moment to reconcile them.
+ *
+ * ── Styles are co-located, and they OUTRANK the three hub sheets ──────────
+ * See the <style> block: every rule is lifted from a hub sheet with a citation,
+ * and every selector is deliberately deeper than the page-sheet selector it
+ * reproduces, so this band's appearance cannot be decided by bundle order.
+ *
+ * Spec: docs/PAGE-BLOCKS.md 1.3, 2.5, 7.
+ */
+import Button from "./Button.astro";
+import {
+  addressStreet,
+  addressCity,
+  addressState,
+  addressZip,
+  addressLine,
+  directionsHref,
+  phoneHref,
+  phoneLabel,
+} from "../data/contact";
+
+interface Props {
+  /**
+   * The DOM id. Defaults to "area", which is what all three hubs have always
+   * rendered and what their "on this page" rails link to. CodeSectionBlock
+   * overrides it with the row's deduplicated anchor — that override is the
+   * point of its `anchorProp`, so a rail entry and a band cannot disagree.
+   */
+  id?: string;
+  /** Section eyebrow. Blank draws no <span>. */
+  eyebrow?: string | null;
+  /** Section h2. May carry inline markup (`<em>`); blank draws no <h2>. */
+  heading?: string | null;
+  /**
+   * The copy paragraphs, in order, each rendered as its own <p>. May carry
+   * inline markup and the `{street}` / `{city}` tokens. An empty list draws no
+   * paragraphs at all — not an empty one.
+   */
+  paragraphs?: (string | null | undefined)[] | null;
+}
+
+const { id = "area", eyebrow, heading, paragraphs } = Astro.props;
+
+/**
+ * Null-safe trim. ACF hands back `null` for any field an editor has never
+ * saved, and `null.trim()` is a build failure on a live route rather than a
+ * blank band, so every string crossing into this file goes through here.
+ */
+const text = (v: string | null | undefined): string =>
+  typeof v === "string" ? v.trim() : "";
+
+const eyebrowText = text(eyebrow);
+const headingHtml = text(heading);
+
+/** The only two substitutions. Kept as a table so the regex and the values
+ *  cannot drift apart — a token spelled in one and missing from the other
+ *  prints the literal braces at a patient. */
+const PLACES: Record<string, string> = {
+  street: addressStreet,
+  city: addressCity,
+};
+
+/** Unknown tokens are left alone rather than blanked: `{street}` surviving into
+ *  the page is visible in one glance, where a silently emptied sentence reads
+ *  as finished copy that happens to be missing two words. */
+const fillPlaces = (s: string): string =>
+  s.replace(/\{(street|city)\}/g, (whole, key: string) => PLACES[key] ?? whole);
+
+/** Blank entries are dropped BEFORE the map, so an editor who cleared the
+ *  middle of three paragraphs gets two paragraphs and not a `<p></p>` holding
+ *  open 14px of margin. */
+const paras = (Array.isArray(paragraphs) ? paragraphs : [])
+  .map((p) => text(p))
+  .filter((p) => p !== "")
+  .map(fillPlaces);
+
+/**
+ * THE WHOLE BAND IS GATED ON HAVING COPY — and that is a real tradeoff, so it
+ * is written down rather than discovered.
+ *
+ * Drawn with no eyebrow, no heading and no paragraphs, this band is a map and
+ * two buttons under a heading-shaped hole: 460px of embed with no sentence
+ * saying which practice it points at. That is never a state anyone authored, so
+ * it is either a row an editor emptied or a wiring mistake upstream, and both
+ * are better served by no band than by a bare map.
+ *
+ * The failure mode that buys is the one CodeSectionBlock names for an
+ * unregistered key: a band that quietly disappears from a live page. So it gets
+ * the same mitigation — warn in the build log, where a missing band is actually
+ * caught, and never throw. Losing this band must cost one section, not a deploy.
+ */
+const hasCopy = eyebrowText !== "" || headingHtml !== "" || paras.length > 0;
+
+if (!hasCopy) {
+  console.warn(
+    `[AreaBand] rendered with no eyebrow, heading or paragraphs on ${Astro.url.pathname}${id ? ` at #${id}` : ""} — drawing nothing. The band's copy is code-owned; check the props in src/blocks/CodeSectionBlock.astro.`,
+  );
+}
+
+// No API key needed — `output=embed` returns Google's free embeddable map.
+// Same construction as LocalTrust.astro so the two cannot drift.
+const mapEmbedSrc = `https://maps.google.com/maps?q=${encodeURIComponent(addressLine)}&output=embed`;
+---
+
+{
+  hasCopy && (
+    <section class="section" id={id} data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="area">
+          <div class="area-copy">
+            {eyebrowText !== "" && <span class="eyebrow">{eyebrowText}</span>}{/* Flushed
+                `}{` against the eyebrow, and the same at the two braces below.
+                An expression on its own line carries a newline-and-indent TEXT
+                NODE either side, and those survive into the HTML. Today they are
+                invisible here for one reason only: `.area-copy` is a flex
+                column, and a whitespace-only run between flex items never
+                becomes an anonymous flex item. That is a rule about the CSS,
+                not about the markup — flip `.area-copy` to `display: block` for
+                any reason and three invisible text nodes appear at once,
+                between the eyebrow and the heading, the heading and the first
+                paragraph, and the last paragraph and the address. Flush costs
+                nothing and does not depend on a declaration twelve lines below
+                staying what it is. The comments live INSIDE the expressions
+                because a comment node on its own line would reintroduce exactly
+                what it documents. */
+              headingHtml !== "" && (
+                <h2><Fragment set:html={headingHtml} /></h2>
+              )
+            }{/* `}{` with nothing between. The <Fragment> above stays on ONE
+                line inside the <h2> for the same reason: the three templates
+                write `<h2><Fragment set:html={…} /></h2>` unbroken, and a
+                newline inside a heading is a leading space in front of the
+                first word. */
+              paras.map((p) => <p set:html={p} />)
+            }
+            <p class="area-address-line">
+              <b>{addressStreet}</b><br />
+              {addressCity}, {addressState} {addressZip} · <a class="vs-link" href={phoneHref}>{phoneLabel}</a>
+            </p>
+            <div class="area-actions">
+              <Button variant="sage" href={directionsHref} hoverLabel="Open Maps">Get Directions</Button>
+              <Button variant="ghost" href="/contact/" hoverLabel="Reach Us">Contact Us</Button>
+            </div>
+          </div>
+          <div class="area-map" aria-label="Map showing Vivid Smiles Dentistry">
+            <iframe
+              src={mapEmbedSrc}
+              loading="lazy"
+              referrerpolicy="no-referrer-when-downgrade"
+              title={`Map showing Vivid Smiles Dentistry at ${addressLine}`}
+            ></iframe>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  /* Every rule below is lifted from implant-dentistry.css and verified
+     declaration-for-declaration against the other two hub sheets, which carry
+     the same block under their own namespace and say so in their own comments
+     ("lifted verbatim from cosmetic-dentistry.css / implant-dentistry.css",
+     general-dentistry.css:1022-1023). Page-namespaced `var(--ink)` etc. are
+     resolved back to the `--vs-*` tokens they alias (implant-dentistry.css:28-44)
+     so this band does not need a page wrapper to have colours.
+
+     SELECTOR DEPTH IS DELIBERATE, NOT DECORATION. Astro 6.1.9 compiles
+     ATTRIBUTE scoping, so `.area-map` here becomes `.area-map[data-astro-cid-…]`
+     at (0,2,0) — an exact TIE with `.impd .area-map`, decided by bundle order.
+     Nesting each rule one level deeper puts it at (0,4,0) and the tie is gone.
+     The cost of winning is that the page sheets' own @media overrides
+     (implant-dentistry.css:1423-1432 and its two siblings, at (0,2,0)) can no
+     longer reach this band either — specificity beats a media query — so the
+     1100px block is carried here too. Own the appearance or don't; half is the
+     defect. */
+
+  /* ---------- band shell ----------
+     `.section` owns its padding and has no margin, so this band cannot collapse
+     into whichever band an editor drags above or below it — same rule as
+     FinalBand.astro and MediaSplitBlock.astro. Element-qualified so it lands at
+     (0,2,1) and outranks `.impd .section` (implant-dentistry.css:307-309)
+     instead of tying with it.
+
+     padding — implant-dentistry.css:307-309 (= general:325-327, cosmetic:199).
+     background — the hub `#area` sections carry no band modifier and inherit
+     the paper `body` (global.css:18-26). Stated outright rather than left
+     transparent: all three sheets call this band "service-area paper" in their
+     own section comments, and a band that only looks right over a paper page is
+     a band that breaks the day it is dragged onto a cream one. */
+  section.section {
+    margin: 0;
+    padding: 110px 0;
+    background: var(--vs-paper);
+  }
+
+  /* implant-dentistry.css:48-52 (= general:66-70, cosmetic:58). */
+  .section .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  /* implant-dentistry.css:1154-1160 (= general:1024-1030, cosmetic:794-798). */
+  .wrap .area {
+    display: grid;
+    grid-template-columns: 1fr 1.05fr;
+    gap: 56px;
+    align-items: stretch;
+    padding-top: 8px;
+  }
+
+  /* implant-dentistry.css:1161-1165 (= general:1031-1035, cosmetic:799-801).
+     The flex column the whitespace note in the markup above depends on. */
+  .area .area-copy {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  /* Two page rules merged into one, because they only ever apply together and
+     splitting them here would leave the base half at a specificity that loses:
+     the base eyebrow is `.impd .eyebrow` at (0,2,0) (implant-dentistry.css:54-61,
+     = general:72-79, cosmetic:60-64) and the leading hairline is
+     `.impd .area-copy .eyebrow` at (0,3,0) (implant-dentistry.css:1166-1176,
+     = general:1036-1046, cosmetic:802-807). `.eyebrow.light` is NOT carried:
+     this band has no dark variant to need it. */
+  .area .area-copy .eyebrow {
+    font-family: var(--vs-font-body);
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .area .area-copy .eyebrow::before {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+
+  /* The heading's colour is the one declaration none of the three sheets states
+     where the heading is defined: `.impd h1..h4` sets `color: var(--sage)`
+     (implant-dentistry.css:66-76) and a trailing block 1400 lines later flips it
+     to ink (implant-dentistry.css:1547-1549, = general:1369-1371,
+     cosmetic:1024) — an override that works because of its file position.
+     Stated once here as the outcome, which is what a self-owned band should
+     ship. The rest: type from implant-dentistry.css:66-76 + 87-91
+     (= general:84-94 + 105-109, cosmetic:67-70 + 73), box from
+     implant-dentistry.css:1177-1180 (= general:1047-1050, cosmetic:808). */
+  .area .area-copy h2 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    color: var(--vs-ink);
+    line-height: 1.1;
+    letter-spacing: -0.022em;
+    font-size: clamp(32px, 4.2vw, 54px);
+    margin: 18px 0 22px;
+    max-width: 22ch;
+  }
+  /* `:global()` because the `<em>` arrives through `set:html` and carries no
+     scope attribute — a plain `h2 em` compiles to `em[data-astro-cid]`, misses
+     it, and drops the accent colour from the heading on all three hubs, whose
+     CMS rows all ship one ("Serving Parker, <em>Castle Rock & Douglas
+     County.</em>"). Values from implant-dentistry.css:107-111 (= general:125-129,
+     cosmetic:77). */
+  .area .area-copy h2 :global(em) {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+
+  /* implant-dentistry.css:1181-1187 (= general:1051-1057, cosmetic:809-812).
+     Supersedes the page-wide `.impd p` (implant-dentistry.css:103-106), which
+     this band never reaches on its own terms. */
+  .area .area-copy p {
+    font-size: 16px;
+    line-height: 1.75;
+    color: var(--vs-ink-soft);
+    margin: 0 0 14px;
+    max-width: 60ch;
+  }
+
+  /* READ THE SPECIFICITY BEFORE EDITING THIS RULE. The address line is a <p>
+     inside `.area-copy`, so the rule above matches it too — and on the live
+     pages it matches it HARDER: `.impd .area-copy p` is (0,2,1) and
+     `.impd .area-address-line` is (0,2,0). Two of the five declarations below
+     therefore lose today and have always lost: the address renders at 16px with
+     `margin: 0 0 14px`, not at 14.5px with `margin: 18px 0 22px`. The relative
+     depth is preserved here on purpose — `.area .area-copy p` (0,5,1) still
+     outranks `.area .area-address-line` (0,4,0) — so the band renders exactly
+     as it does today. Flattening this file's selectors to "clean it up" would
+     hand the address line its own font-size back and shrink a line of live copy
+     on three pages. Source: implant-dentistry.css:1188-1198
+     (= general:1058-1068, cosmetic:813-817). */
+  .area .area-address-line {
+    font-family: var(--vs-font-body);
+    font-size: 14.5px;
+    line-height: 1.75;
+    color: var(--vs-ink-soft);
+    margin: 18px 0 22px;
+  }
+  .area .area-address-line b {
+    color: var(--vs-ink);
+    font-weight: 500;
+  }
+
+  /* implant-dentistry.css:1199-1203 (= general:1069-1073, cosmetic:818-820). */
+  .area .area-actions {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  /* implant-dentistry.css:1204-1218 (= general:1074-1088, cosmetic:821-832).
+     `background: var(--vs-ink)` is the frame behind the embed while it loads —
+     the iframe is lazy, so on a slow connection this ink rectangle is what a
+     visitor sees, and dropping it would flash white through the 4:5 slot. */
+  .area .area-map {
+    border-radius: var(--vs-r-xl);
+    overflow: hidden;
+    box-shadow: var(--vs-shadow-lg);
+    background: var(--vs-ink);
+    aspect-ratio: 4 / 5;
+    width: 100%;
+    min-height: 460px;
+  }
+  .area .area-map iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
+
+  /* implant-dentistry.css:1423-1432 (= general:1283-1292, cosmetic:936-937).
+     Carried rather than left to the page sheets: the rules above outrank them,
+     so without this block the band would keep its two columns and its 460px
+     portrait map straight through the phone breakpoint. `min-height: 0` is what
+     lets `aspect-ratio: 4 / 3` actually take effect — the 460px floor would
+     otherwise win on a narrow viewport and letterbox the embed. */
+  /* THE 780 BLOCK IS NOT OPTIONAL, and its absence was a live mobile
+     regression on all three hubs. This component deliberately raises its shell
+     rules above the page sheets — section.section is (0,2,1), .section .wrap is
+     (0,4,0) — and a media query adds NO specificity, so the hubs' own
+     `@media (max-width: 780px)` overrides at (0,2,0) can no longer reach this
+     band at any width. Carrying only the 1100px block left #area on desktop
+     padding and desktop gutters below 780px.
+     Sources: implant-dentistry.css:1435-1437/1458-1460,
+     general-dentistry.css:1296-1298/1318-1320,
+     cosmetic-dentistry.css:951/958 — all three agree at 70px / 22px.
+     Same block TrustBand.astro ships, for the same reason. */
+  @media (max-width: 780px) {
+    section.section {
+      padding: 70px 0;
+    }
+    .section .wrap {
+      padding: 0 22px;
+    }
+  }
+
+  @media (max-width: 1100px) {
+    .wrap .area {
+      grid-template-columns: 1fr;
+      gap: 36px;
+    }
+    .area .area-map {
+      aspect-ratio: 4 / 3;
+      min-height: 0;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+  }
+</style>

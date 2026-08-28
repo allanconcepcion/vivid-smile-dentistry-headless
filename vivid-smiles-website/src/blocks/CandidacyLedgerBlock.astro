@@ -1,0 +1,880 @@
+---
+/**
+ * CandidacyLedgerBlock — the `candidacy_ledger` layout: the "am I a candidate?"
+ * band. Two prose columns on the left, a numbered ledger card on the right.
+ *
+ * EXTRACTED, NOT DESIGNED. Two live bands, and they are the same band:
+ *
+ *   src/pages/implant-dentistry/index.astro:475-522   #candidacy
+ *   src/pages/cosmetic-dentistry/index.astro:510-565  #candidacy
+ *
+ * Element for element the two are identical — `.section.dark` > `.wrap` >
+ * `.section-head`, then `.cand-grid` holding `.cand-copy` (h3 / p / h3 / p /
+ * `.cand-actions`) beside `<aside class="ledger">` (a `.ledger-head` and a run
+ * of `.ledger-row`s, each a `.ledger-num`, an unclassed copy cell and a
+ * `.ledger-tag`). The class names are the pages' own on purpose, for the reason
+ * CardGridBlock.astro:6-12 records: the page sheets still style them until the
+ * stylesheet pass removes their copies.
+ *
+ * ── THE NUMERALS ARE NOT A FIELD ─────────────────────────────────────────
+ * `.ledger-num` is the row's POSITION, computed here. A number an editor can
+ * type is a number that goes out of sequence the first time a row is dragged,
+ * and this band's whole claim is that the list is a list.
+ *
+ * They are NOT zero-padded. The eight live rows spell them "1".."4"
+ * (implant-dentistry/index.astro:195-198, cosmetic-dentistry/index.astro:132-160)
+ * — unlike the process/tech grids, which spell theirs "01".."06" and which
+ * ProcessStepsBlock and TechGridBlock therefore `padStart`. Checked in the
+ * templates rather than assumed from the sibling blocks, because the two
+ * conventions live four files apart and read identically in a summary.
+ *
+ * ── THE TWO SHEETS DISAGREE ABOUT THE LEDGER'S SKIN ──────────────────────
+ * Unlike TechGridBlock's two cards — where the skins differ because the GROUNDS
+ * differ, charcoal vs sage-pale, and the difference can ride the band value —
+ * both candidacy bands sit on `--vs-sage-pale` and still ship different chrome:
+ *
+ *   cosmetic-dentistry.css:734-786  translucent white card (50% over the pale
+ *                                   green), 70%-white border, a full
+ *                                   `--vs-sage` numeral, a sage-outlined tag.
+ *   implant-dentistry.css:1072-1151 the same geometry in neutral black-alpha:
+ *                                   4%-black card, 12%-black border, a
+ *                                   10%-black numeral with ink text, a
+ *                                   grey-on-grey tag.
+ *
+ * Same ground, same markup, two skins: that is drift, not a design, and one
+ * component cannot carry both — there is no field, and inventing a "skin"
+ * select would be a second control for a decision the band already makes.
+ * THIS BLOCK SHIPS THE COSMETIC SKIN, because the white-glass-on-sage-pale
+ * treatment is the family's answer for this ground everywhere else it appears:
+ * TechGridBlock.astro:318-321 documents the same 50%-white/70%-border card as
+ * what the sage-pale band takes, and general-dentistry.css:856-858 says its
+ * `.pay-card` borrowed "glass-on-sage card chrome ... from candidacy .ledger
+ * style". implant-dentistry.css's black-alpha copy is the outlier.
+ *
+ * NAMED CONSEQUENCE, so nobody discovers it in a screenshot: when the implant
+ * hub is wired to this block, its ledger card changes colour — white glass and
+ * sage numerals instead of grey. No words move; the word-level diff that grades
+ * this phase stays empty. If the practice wants the grey back, the fix is a
+ * skin field on the layout, not a second copy of this file and not a page-sheet
+ * rule (a page sheet cannot reach anything this block draws — see
+ * docs/PAGE-BLOCKS.md and the `.section`-qualified selectors below).
+ *
+ * The breakpoint at which a row stacks is the same disagreement in miniature:
+ * cosmetic-dentistry.css:940 collapses `.ledger-row` to two columns at 991px,
+ * implant-dentistry.css:1435 waits until 780px. 991px is taken, because
+ * cosmetic's tags are the long ones ("Whitening · Veneers") and the earlier
+ * collapse is the value that cannot overflow on either page's content.
+ *
+ * ── `aria-label` ON THE ASIDE ────────────────────────────────────────────
+ * Both templates name the ledger for screen readers, and neither label is the
+ * visible eyebrow: "Signs you're a candidate for dental implants" against an
+ * eyebrow of "Signs you're a candidate", "Common signs cosmetic dentistry is
+ * for you" against "Signs this is for you". So it is not derivable, and it is
+ * accepted as `ledgerLabel` — a prop the PHP does not have yet. Blank, it falls
+ * back to the visible eyebrow, which names the region correctly if less fully;
+ * blank as well and the attribute is omitted rather than emitted empty, because
+ * `aria-label=""` is worse than no label at all. THE WIRING BATCH SHOULD ADD A
+ * `ledger_label` FIELD — this is the one string on the band an editor cannot
+ * otherwise reach, and the two live values are recorded above.
+ *
+ * ── NO `.vs-link` RULE LIVES HERE ────────────────────────────────────────
+ * Both copy bodies carry inline `<a class="vs-link">` (the implant band links
+ * bone grafting and sinus lift mid-sentence; the cosmetic band links the
+ * membership plan), which is why they render `set:html`. The link's colour is
+ * left to global.css:39-51 and to each hub sheet's own sage-pale tint
+ * (cosmetic-dentistry.css:227-237, implant-dentistry.css:356-366), for the
+ * reason ComparisonCardsBlock.astro:922 and TechGridBlock.astro:34-41 record: a
+ * rule authored here would be a compound that outranks both and would take the
+ * site's own link treatment away from a band that already had it right. The
+ * default `.vs-link` — ink with a sage underline — is legible on sage-pale, so
+ * unlike MediaSplitBlock's charcoal case there is nothing to rescue.
+ *
+ * ── OPTIONAL EVERYTHING ──────────────────────────────────────────────────
+ * Every field is optional and a blank one draws nothing, never an empty
+ * wrapper: no head without head copy, no `.cand-copy` without copy, no
+ * `.ledger` without ledger content, no `.cand-grid` when neither column has
+ * anything, and no band chrome at all when the whole row is blank — a
+ * never-opened row renders a bare `<section>`. The one wrapper that is NOT
+ * conditional is the unclassed `<div>` inside a `.ledger-row`; it is column two
+ * of `auto 1fr auto`, so dropping it would move the tag into the copy's cell.
+ * That is structure, not a wrapper around a field.
+ *
+ * HREF POLICY: `ctaHref`/`ctaHref2` store an anchor (#consult), a site path
+ * (/dental-membership-plan/), or one of the tokens "book" | "phone" | "map"
+ * resolved from src/data/contact.ts through ./cta.ts. Never a pasted
+ * booking/tel/maps URL — those live in one place in the site precisely so they
+ * cannot go stale in a CMS field. This layout has no `cta_note`: neither
+ * template draws a line under the buttons, and a field with no markup behind it
+ * reads as supported.
+ *
+ * Spec: docs/PAGE-BLOCKS.md Phase 4, Wave A.
+ */
+import Button from "../components/Button.astro";
+import { resolveCta } from "./cta";
+
+/**
+ * One row of the layout's `ledger` repeater. Every sub-field is optional at the
+ * schema level because ACF returns null for anything an editor never filled in;
+ * typing them as plain strings would lie to the filter below.
+ */
+export interface CandidacyLedgerRow {
+  /** The `<h5>` — "Healthy adults of any age". */
+  title?: string | null;
+  /** The `<p>` under it. Plain prose on all eight live rows. */
+  body?: string | null;
+  /** The pill at the row's end — "CBCT", "Aligners", "Systemic OK". */
+  tag?: string | null;
+}
+
+interface Props {
+  /** DOM id, already deduplicated by PageBlocks.astro. Absent when blank. */
+  id?: string;
+  /** The same value as `id`. Accepted so the spread in PageBlocks is lossless. */
+  anchor?: string | null;
+  /** Rail label. Read by the page that builds the rail, not by this band. */
+  navLabel?: string | null;
+  band?: string | null;
+  eyebrow?: string | null;
+  /** May contain `<em>`, and nothing else (docs/PAGE-BLOCKS.md, Fact 3). */
+  heading?: string | null;
+  body?: string | null;
+
+  /** Left column, first pair. The body may carry `<a class="vs-link">`. */
+  copyHeading?: string | null;
+  copyBody?: string | null;
+  /** Left column, second pair. Both live bands fill it; both may still be blank. */
+  copyHeading2?: string | null;
+  copyBody2?: string | null;
+
+  /** The ledger card's own small label — not the section head's. */
+  ledgerEyebrow?: string | null;
+  /** The `<h4>` under it. Plain text on both live bands. */
+  ledgerHeading?: string | null;
+  /**
+   * The screen-reader name for the ledger region. See the header: no PHP field
+   * supplies it yet, and it falls back to `ledgerEyebrow`.
+   */
+  ledgerLabel?: string | null;
+  ledger?: (CandidacyLedgerRow | null)[] | null;
+  /**
+   * Which ledger skin this band wears: "sage" (the default) or "ink".
+   *
+   * A FIELD BECAUSE NOTHING DERIVABLE SEPARATES THE TWO LIVE BANDS. Both
+   * /cosmetic-dentistry/ #candidacy and /implant-dentistry/ #candidacy are
+   * `section.section.dark`, so the band value cannot tell them apart, yet the
+   * sheets skin them differently: cosmetic-dentistry.css:734-740/762-770/780-786
+   * is a translucent-white card with a sage numeral bubble, while
+   * implant-dentistry.css:1072-1078/1114-1122 is a black-tinted card with an
+   * ink numeral. Shipping one skin for both would silently repaint a live band,
+   * and a word-level diff — the test this migration is graded on — would not
+   * catch it. Blank = "sage".
+   */
+  ledgerSkin?: string | null;
+
+  /** The six CTA fields. This layout has no note — see the header. */
+  ctaLabel?: string | null;
+  ctaHref?: string | null;
+  /** Hover override. Blank falls back to the destination table in ./cta.ts. */
+  ctaHover?: string | null;
+  ctaLabel2?: string | null;
+  ctaHref2?: string | null;
+  ctaHover2?: string | null;
+}
+
+/**
+ * band value -> the modifier class the page's markup already uses.
+ *
+ * Read this map, not an ancestor class. `.section.alt` is charcoal green on
+ * both hub sheets but cream on teeth-whitening.css:237 (Fact 4), so a block
+ * that inherited its band would be wrong on some page the moment a section is
+ * dragged. `paper` maps to nothing because a paper band is a bare
+ * `class="section"` in every template.
+ */
+const BAND_CLASS: Record<string, string | undefined> = {
+  paper: undefined,
+  cream: "cream",
+  "sage-pale": "dark",
+  sage: "sage",
+  charcoal: "alt",
+};
+
+const {
+  id,
+  /* `paper` and not `sage-pale`: it is what the PHP field stores as its own
+     default_value (vs-content-model.php, block_preamble()), so a row an editor
+     has never opened renders the band wp-admin is showing them. Unreachable for
+     any saved row — ACF returns the stored choice — which is exactly why it
+     must not invent a different one. */
+  band = "paper",
+  eyebrow,
+  heading,
+  body,
+  copyHeading,
+  copyBody,
+  copyHeading2,
+  copyBody2,
+  ledgerEyebrow,
+  ledgerHeading,
+  ledgerLabel,
+  ledger,
+  ledgerSkin,
+  ctaLabel,
+  ctaHref,
+  ctaHover,
+  ctaLabel2,
+  ctaHref2,
+  ctaHover2,
+} = Astro.props;
+
+const bandKey = typeof band === "string" && band !== "" ? band : "paper";
+const bandClass = BAND_CLASS[bandKey];
+
+const text = (input: unknown): string =>
+  typeof input === "string" ? input.trim() : "";
+
+/**
+ * The eyebrow carries `light` on the two bands the templates spell
+ * `.section.dark` / `.section.sage` — which is where both live candidacy bands
+ * sit, so the class is in their HTML and has to be in ours. It is INERT under
+ * the current cascade (`.section.dark .eyebrow` at (0,3,0) already beats
+ * `.eyebrow.light` at (0,2,0)); it is reproduced because this phase is verified
+ * by an HTML diff, not by a rendering. Same rule and wording as
+ * ProcessStepsBlock.astro:143-152 and TechGridBlock.astro:146-154.
+ */
+const eyebrowLight = bandKey === "sage-pale" || bandKey === "sage";
+
+const eyebrowText = text(eyebrow);
+const headingHtml = text(heading);
+const bodyText = text(body);
+const hasHead = eyebrowText !== "" || headingHtml !== "" || bodyText !== "";
+
+const copyHeadingText = text(copyHeading);
+const copyBodyHtml = text(copyBody);
+const copyHeading2Text = text(copyHeading2);
+const copyBody2Html = text(copyBody2);
+
+/* The token map, hover table and resolvers live in ./cta.ts — ONE copy for
+   every block that draws a CTA row. The tables only work because the blocks
+   agree about what "book" resolves to and what hovering it promises. */
+const cta1 = resolveCta(ctaHref, ctaHover);
+const cta2 = resolveCta(ctaHref2, ctaHover2);
+
+/**
+ * The row draws for EITHER button, not just the first — a band that fills only
+ * the second pair must not silently lose it. The LABEL is the switch, matching
+ * every sibling block and the PHP field's own promise that leaving both labels
+ * blank draws no button row at all.
+ */
+const ctaLabelText = text(ctaLabel);
+const ctaLabel2Text = text(ctaLabel2);
+const hasCtaRow = ctaLabelText !== "" || ctaLabel2Text !== "";
+
+/**
+ * Button variants, and the one place this block departs from the family map.
+ *
+ * Every sibling writes `isDarkBand = charcoal || sage` and pairs sage/ghost
+ * elsewhere — which treats sage-pale as a light ground. Both live candidacy
+ * bands ARE sage-pale and both ship `light` + `outline-light`
+ * (implant-dentistry/index.astro:497-500, cosmetic-dentistry/index.astro:535-543),
+ * so the family map would change the live HTML on the two pages this block
+ * exists to draw. The pairing is therefore keyed off the two grounds where a
+ * white pill would disappear — paper and cream — and everything else takes the
+ * light pair, which is what both templates ship.
+ *
+ * `outline-light` and not the family's `ghost-light` for the same reason: it is
+ * the variant in the live markup, and the two render differently.
+ */
+const lightGround = bandKey === "paper" || bandKey === "cream";
+const primaryVariant = lightGround ? "sage" : "light";
+const secondaryVariant = lightGround ? "ghost" : "outline-light";
+
+const hasCopy =
+  copyHeadingText !== "" ||
+  copyBodyHtml !== "" ||
+  copyHeading2Text !== "" ||
+  copyBody2Html !== "" ||
+  hasCtaRow;
+
+const ledgerEyebrowText = text(ledgerEyebrow);
+const ledgerHeadingText = text(ledgerHeading);
+const hasLedgerHead = ledgerEyebrowText !== "" || ledgerHeadingText !== "";
+
+/**
+ * Rows with nothing in them are dropped rather than drawn.
+ *
+ * ACF returns a repeater row an editor opened and abandoned as a row of empty
+ * strings, and an empty `.ledger-row` is a visible 44px band of padding between
+ * two hairlines. Filtering here is also what keeps the numerals honest: the
+ * position below is the position in THIS list, so a blank row between 2 and 3
+ * does not print 1, 2, 4.
+ *
+ * A repeater of nothing but blank rows leaves the `.ledger` unemitted unless it
+ * has head copy of its own, and an empty repeater draws no `.cand-grid` column
+ * at all — never an empty card.
+ */
+const rows = (Array.isArray(ledger) ? ledger : []).filter(
+  (row) =>
+    text(row?.title) !== "" || text(row?.body) !== "" || text(row?.tag) !== "",
+);
+
+const hasLedger = hasLedgerHead || rows.length > 0;
+
+/** Blank rather than empty: `aria-label=""` names the region nothing. */
+const ledgerLabelText = text(ledgerLabel) || ledgerEyebrowText;
+
+/* Blank = the sage skin, which is what cosmetic-dentistry ships and what four
+   of the five other blocks' translucent-card chrome matches. See the prop. */
+const skinClass = String(ledgerSkin ?? "").trim() === "ink" ? "skin-ink" : "skin-sage";
+
+const hasGrid = hasCopy || hasLedger;
+
+/**
+ * A blank anchor is NO attribute, not an empty one. PageBlocks.astro always
+ * hands over a deduplicated id or nothing, so this is unreachable through the
+ * CMS — but `id=""` is what Astro emits for an empty string, and a bare `id`
+ * in the markup is a difference an HTML diff would report and an editor could
+ * never explain.
+ */
+const sectionId = text(id) || undefined;
+---
+
+{/* `data-vs-reveal-batch` on the section, exactly as both templates carry it.
+    animations.js animates the section's DIRECT children, which is the one
+    `.wrap` — a single fade of the whole band, not a per-row stagger. Moving it
+    to `.cand-grid` or the `.ledger` would be a different animation. */}
+<section class:list={["section", bandClass]} id={sectionId} data-vs-reveal-batch>
+  <div class="wrap">
+    {
+      hasHead && (
+        <div class="section-head">
+          {eyebrowText && (
+            <span class:list={["eyebrow", eyebrowLight && "light"]}>{eyebrowText}</span>
+          )}
+          {headingHtml && (
+            <h2>
+              <Fragment set:html={headingHtml} />
+            </h2>
+          )}
+          {bodyText && <p>{bodyText}</p>}
+        </div>
+      )
+    }
+
+    {
+      hasGrid && (
+        <div class="cand-grid">
+          {hasCopy && (
+            <div class="cand-copy">
+              {copyHeadingText && <h3>{copyHeadingText}</h3>}
+              {copyBodyHtml && <p set:html={copyBodyHtml} />}{
+                /* Flush against the previous conditional, no newline between
+                   them. Astro preserves whitespace between expressions, so a
+                   conditional on its own line adds a permanent whitespace-only
+                   text node for every band that fills only the first pair.
+                   Same idiom as CardGridBlock's `body2`. */
+                copyHeading2Text && <h3>{copyHeading2Text}</h3>
+              }{
+                copyBody2Html && <p set:html={copyBody2Html} />
+              }{
+                /* Same flush, same reason: a copy column with no buttons must
+                   not leave a text node where the actions row would be. */
+                hasCtaRow && (
+                  <div class="cand-actions">
+                    {ctaLabelText && (
+                      <Button
+                        variant={primaryVariant}
+                        href={cta1.href}
+                        hoverLabel={cta1.hover}
+                      >
+                        {ctaLabelText}
+                      </Button>
+                    )}{
+                      /* Flushed so a band with only the first button adds no
+                         whitespace node inside the inline-flex row. */
+                      ctaLabel2Text && (
+                        <Button
+                          variant={secondaryVariant}
+                          href={cta2.href}
+                          hoverLabel={cta2.hover}
+                        >
+                          {ctaLabel2Text}
+                        </Button>
+                      )
+                    }
+                  </div>
+                )
+              }
+            </div>
+          )}{
+            /* Flushed against the copy column: a ledger-only band must not open
+               with a whitespace text node in the two-column grid. */
+            hasLedger && (
+              <aside class:list={["ledger", skinClass]} aria-label={ledgerLabelText || undefined}>
+                {
+                  /* The label and the `<h4>` stay on ONE line each and the
+                     second is flushed against the first: broken across lines,
+                     the eyebrow's own text would pick up the indentation, and
+                     this eyebrow is an `inline-block` — unlike the section
+                     head's inline-flex one — whose leading space is not
+                     reliably collapsed away. The comment is OUTSIDE the
+                     `<header>` for the same reason. */
+                  hasLedgerHead && (
+                    <header class="ledger-head">
+                      {ledgerEyebrowText && <span class:list={["eyebrow", eyebrowLight && "light"]}>{ledgerEyebrowText}</span>}{
+                        ledgerHeadingText && <h4>{ledgerHeadingText}</h4>
+                      }
+                    </header>
+                  )
+                }{
+                  /* Flushed against the head: a ledger with rows and no head
+                     copy starts flush at its first row, as an unheaded card
+                     would be drawn by hand. */
+                  /* The numeral is the row's POSITION and is NOT padded — the
+                     eight live rows spell it "1".."4". This comment sits
+                     OUTSIDE the row for the reason TechGridBlock records:
+                     inside it, Astro emits the surrounding newlines as a
+                     whitespace text node the two templates do not have. */
+                  rows.map((row, i) => (
+                    <div class="ledger-row">
+                      <span class="ledger-num">{String(i + 1)}</span>
+                      <div>
+                        {text(row?.title) && <h5>{row?.title}</h5>}{
+                          text(row?.body) && <p>{row?.body}</p>
+                        }
+                      </div>{
+                        text(row?.tag) && <span class="ledger-tag">{row?.tag}</span>
+                      }
+                    </div>
+                  ))
+                }
+              </aside>
+            )
+          }
+        </div>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  /* ══ WHERE THESE RULES COME FROM ═══════════════════════════════════════════
+     Two source sheets, because this block draws two live bands — and both of
+     them are the SAGE-PALE band, which is why nothing below rides the band
+     value the way TechGridBlock's card skin does:
+
+       src/styles/pages/implant-dentistry.css   `.impd`
+       src/styles/pages/cosmetic-dentistry.css  `.cdent`
+
+     Each page's local `--sage` / `--ink` / `--line` / `--r-xl` / `--f-display`
+     aliases are resolved back to the `--vs-*` tokens they alias one-for-one
+     (implant-dentistry.css:24-45, cosmetic-dentistry.css:34-55). Rendered
+     values are unchanged.
+
+     Where the two sheets disagree — the ledger's skin, and the breakpoint at
+     which a row stacks — the cosmetic sheet is the source and the header of
+     this file says why, at length. Every such rule is marked `(cosmetic only)`
+     with the implant lines it replaces, so the choice is auditable from here.
+
+     ── WHY EVERY BAND RULE IS QUALIFIED WITH `.section` ────────────────────
+     Astro's attribute scoping compiles `.ledger` to `.ledger[cid]` —
+     specificity (0,2,0), which TIES with the page sheets' own `.impd .ledger`
+     and `.cdent .ledger`, and a tie is decided by bundle order. The house rule
+     is never to build on that tie, so every rule below is written
+     `.section .ledger` → `.section[cid] .ledger[cid]` at (0,4,0), which clears
+     both page rules outright. Nothing here depends on which stylesheet a
+     bundler happens to emit first.
+
+     The shell primitives (`.wrap`, `.eyebrow`, `h2`, `p`, `.section-head`) are
+     left unqualified, as in every sibling block: those DO tie with the page
+     sheets, and it is harmless because both sides declare the same values —
+     `.impd .wrap` and `.cdent .wrap` are 1240px/40px and so is this. A rule
+     whose two candidates differ is never left on a tie. */
+
+  /* ---------- band shell ----------
+     `.section` owns its padding and has no margin at all, so this band cannot
+     collapse into whichever band an editor drags above or below it. Same rule
+     as FinalBand.astro and every sibling block.
+     padding: implant-dentistry.css:307-309 = cosmetic-dentistry.css:199.
+     `cream` and `sage` are in neither hub sheet — neither page places those
+     bands — so their values come from tokens.css via the block family's shell
+     (FaqBlock.astro), which is the contract the band select promises. */
+  .section {
+    margin: 0;
+    padding: 110px 0;
+    background: var(--vs-paper);
+  }
+  .section.cream {
+    background: var(--vs-cream);
+  }
+  /* cosmetic-dentistry.css:216 / implant-dentistry.css:333-335 */
+  .section.dark {
+    background: var(--vs-sage-pale);
+  }
+  .section.sage {
+    background: var(--vs-sage);
+  }
+  /* cosmetic-dentistry.css:200 / implant-dentistry.css:310-312 */
+  .section.alt {
+    background: var(--vs-charcoal-green);
+  }
+
+  /* Keep the heading clear of the stacked global Nav + sticky TOC when a rail
+     chip is clicked. implant-dentistry.css:300-303 (written there as
+     `section[id]`); cosmetic-dentistry.css:195. Both custom properties are set
+     on the page wrapper and inherit down; the fallbacks are the desktop
+     measurements those sheets declare (implant-dentistry.css:25-26). */
+  .section[id] {
+    scroll-margin-top: calc(var(--nav-h, 77px) + var(--toc-h, 68px) + 12px);
+  }
+
+  /* implant-dentistry.css:48-52 = cosmetic-dentistry.css:58 */
+  .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  /* implant-dentistry.css:54-61 = cosmetic-dentistry.css:60-64 */
+  .eyebrow {
+    font-family: var(--vs-font-body);
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+  }
+  /* implant-dentistry.css:62-64 = cosmetic-dentistry.css:65 */
+  .eyebrow.light {
+    color: var(--vs-eyebrow-on-sage);
+  }
+
+  /* h2 resolves to ink. Both page sheets reach that colour only through a
+     trailing override whose own comment says it works because of its file
+     position (cosmetic-dentistry.css:1024); a block that owns its cascade
+     states the outcome once.
+     Sizing: implant-dentistry.css:87-91 = cosmetic-dentistry.css:73. */
+  h2 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    color: var(--vs-ink);
+    margin: 0;
+    line-height: 1.1;
+    letter-spacing: -0.022em;
+    font-size: clamp(32px, 4.2vw, 54px);
+  }
+  /* `:global()` because the `<em>` arrives through `set:html` and carries no
+     scope attribute — a plain `h2 em` compiles to `em[cid]`, misses it, and
+     drops the accent colour. Value: implant-dentistry.css:84-86 /
+     cosmetic-dentistry.css:77. */
+  h2 :global(em) {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+
+  /* implant-dentistry.css / cosmetic-dentistry.css:78 (`p` base) */
+  p {
+    margin: 0;
+    color: var(--vs-ink-soft);
+  }
+
+  /* implant-dentistry.css:368-400 = cosmetic-dentistry.css:238-260 */
+  .section-head {
+    max-width: 760px;
+    margin: 0 auto 64px;
+    text-align: center;
+  }
+  .section-head .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .section-head .eyebrow::before,
+  .section-head .eyebrow::after {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+  .section-head h2 {
+    margin: 22px 0 22px;
+  }
+  .section-head p {
+    font-size: 17px;
+    line-height: 1.7;
+    max-width: 60ch;
+    margin: 0 auto;
+  }
+
+  /* ---------- band inversions ----------
+     Scoped to `.section-head`, not written band-wide. The ledger is a surface
+     of its own with colours of its own, so a band-wide
+     `.section.alt p { color: rgba(255,255,255,.85) }` — which is what the page
+     sheets do — would paint pale copy onto the white glass card the first time
+     an editor drags this band onto charcoal. The page sheets get away with it
+     only because neither page currently pairs the two.
+     Values: implant-dentistry.css:314-331 (alt) and :336-353 (dark);
+     cosmetic-dentistry.css:201-207 (alt) and :216-223 (dark), plus each sheet's
+     trailing source-order repeat of the same declarations
+     (cosmetic-dentistry.css:1010-1018). */
+  .section.alt .section-head h2,
+  .section.sage .section-head h2 {
+    color: #fff;
+  }
+  .section.alt .section-head h2 :global(em),
+  .section.sage .section-head h2 :global(em) {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .section.alt .section-head p,
+  .section.sage .section-head p {
+    color: rgba(255, 255, 255, 0.85);
+  }
+  .section.alt .section-head .eyebrow,
+  .section.sage .section-head .eyebrow {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .section.alt .section-head .eyebrow::before,
+  .section.alt .section-head .eyebrow::after,
+  .section.sage .section-head .eyebrow::before,
+  .section.sage .section-head .eyebrow::after {
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  .section.dark .section-head h2 {
+    color: var(--vs-ink);
+  }
+  .section.dark .section-head h2 :global(em) {
+    color: var(--vs-sage);
+  }
+  .section.dark .section-head p,
+  .section.dark .section-head .eyebrow {
+    color: var(--vs-ink-soft);
+  }
+  .section.dark .section-head .eyebrow::before,
+  .section.dark .section-head .eyebrow::after {
+    background: var(--vs-ink-soft);
+  }
+
+  /* ---------- the two columns ----------
+     cosmetic-dentistry.css:715-719 = implant-dentistry.css:1043-1049. The two
+     sheets agree here declaration for declaration, so this is one set of rules
+     and not a compromise between two. */
+  .section .cand-grid {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 64px;
+    align-items: center;
+    margin-top: 24px;
+  }
+
+  /* cosmetic-dentistry.css:720-725 = implant-dentistry.css:1050-1057. The 22px
+     TOP margin is on every h3 including the first: it is the gap the live bands
+     open with under a centred head, and trimming it with `:first-child` would
+     move copy on both pages. */
+  .section .cand-copy h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    font-size: clamp(22px, 2vw, 26px);
+    color: var(--vs-ink);
+    margin: 22px 0 12px;
+    letter-spacing: -0.005em;
+  }
+  /* cosmetic-dentistry.css:726-729 = implant-dentistry.css:1058-1064. Both
+     sheets ALSO restate these two colours in a trailing source-order block
+     (cosmetic-dentistry.css:1017-1018) to win a tie inside their own file; the
+     resolved values are these, and a block that owns its cascade states the
+     outcome once rather than reproducing the fight. */
+  .section .cand-copy p {
+    font-size: 16px;
+    line-height: 1.75;
+    color: var(--vs-ink-soft);
+    margin: 0 0 16px;
+    max-width: 56ch;
+  }
+  /* cosmetic-dentistry.css:730-732 = implant-dentistry.css:1065-1070 */
+  .section .cand-actions {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 18px;
+  }
+
+  /* ---------- the ledger card ----------
+     THE SKIN IS THE COSMETIC SHEET'S, cosmetic-dentistry.css:734-786. The
+     implant sheet ships the same geometry in neutral black-alpha at
+     implant-dentistry.css:1072-1151; the header of this file records why the
+     glass card wins and what visibly changes on the implant hub when it is
+     wired. Geometry — padding, radius, track sizes, the 28px circle, every
+     font-size and margin — is identical in both sheets; only the four colour
+     surfaces below differ, and each is marked. */
+  .section .ledger {
+    /* (cosmetic only) — implant-dentistry.css:1073-1074 is
+       rgba(0,0,0,.04) / rgba(0,0,0,.12). */
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: var(--vs-r-xl);
+    padding: 40px;
+    display: grid;
+    gap: 0;
+  }
+  /* cosmetic-dentistry.css:741-745. (cosmetic only) — the rule's border is
+     `--vs-ink-soft`; implant-dentistry.css:1082 draws rgba(0,0,0,.12). */
+  .section .ledger-head {
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--vs-ink-soft);
+    margin-bottom: 4px;
+  }
+  /* cosmetic-dentistry.css:746-749 = implant-dentistry.css:1085-1089.
+     `inline-block`, NOT the `.section-head` eyebrow's inline-flex — this one
+     carries no rules on either side of it, and the shell's `::before`/`::after`
+     are scoped to `.section-head` so they cannot reach it. */
+  .section .ledger-head .eyebrow {
+    color: var(--vs-ink-soft);
+    display: inline-block;
+    margin-bottom: 10px;
+  }
+  /* cosmetic-dentistry.css:750-754 = implant-dentistry.css:1090-1098 */
+  .section .ledger-head h4 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    font-size: 22px;
+    color: var(--vs-ink);
+    margin: 0;
+    letter-spacing: -0.005em;
+    line-height: 1.25;
+  }
+  /* cosmetic-dentistry.css:755-760. (cosmetic only) — the hairline is
+     rgba(40,40,30,.12) here and rgba(0,0,0,.1) at implant-dentistry.css:1105. */
+  .section .ledger-row {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 18px;
+    align-items: start;
+    padding: 22px 0;
+    border-bottom: 1px solid rgba(40, 40, 30, 0.12);
+  }
+  /* cosmetic-dentistry.css:761 = implant-dentistry.css:1107-1109 */
+  .section .ledger-row:last-child {
+    border-bottom: 0;
+  }
+  /* cosmetic-dentistry.css:762-770. (cosmetic only) — a filled sage disc with
+     white type; implant-dentistry.css:1114-1115 draws a 10%-black disc with ink
+     type. `flex-shrink` is a no-op on a grid item and is copied as it stands
+     rather than silently tidied: an unexplained deletion reads as a change. */
+  .section .ledger-num {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--vs-sage);
+    color: #fff;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  /* cosmetic-dentistry.css:771-775 = implant-dentistry.css:1124-1131 */
+  .section .ledger-row h5 {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: 16px;
+    color: var(--vs-ink);
+    margin: 0 0 4px;
+    letter-spacing: -0.005em;
+  }
+  /* cosmetic-dentistry.css:776-779 = implant-dentistry.css:1132-1137 */
+  .section .ledger-row p {
+    font-size: 14px;
+    line-height: 1.65;
+    color: var(--vs-ink-soft);
+    margin: 0;
+  }
+  /* cosmetic-dentistry.css:780-786. (cosmetic only) — sage type inside a
+     sage-outlined white pill; implant-dentistry.css:1138-1151 draws ink-soft
+     type in a grey pill. */
+  .section .ledger-tag {
+    font-family: var(--vs-font-body);
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+    padding: 5px 10px 6px;
+    background: rgba(255, 255, 255, 0.6);
+    border: 1px solid var(--vs-sage);
+    border-radius: 999px;
+    flex-shrink: 0;
+    align-self: start;
+  }
+
+  /* ---------- responsive ----------
+     Re-united with the rules they modify rather than left in a trailing block
+     hundreds of lines away, and given to this block outright: a media query
+     adds no specificity, so a page sheet's own breakpoint loses to a scoped
+     rule and cannot be relied on to reshape anything drawn here. */
+
+  /* cosmetic-dentistry.css:919/934 = implant-dentistry.css:1351/1419-1422 —
+     the two sheets agree. */
+  @media (max-width: 1100px) {
+    .section .cand-grid {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+  }
+
+  /* cosmetic-dentistry.css:940/945-947. THE ONE BREAKPOINT THE TWO SHEETS
+     DISAGREE ON: implant-dentistry.css ships these same three rules verbatim
+     but at 780px (:1435/1477-1484). 991px is taken because the cosmetic hub's
+     tags are the long ones — "Whitening · Veneers" — and the earlier collapse
+     is the value that cannot overflow on either page's content. The implant
+     rows simply stack their tag a little sooner, which is a layout the sheet
+     already draws, only at a narrower width. */
+  @media (max-width: 991px) {
+    .section .ledger {
+      padding: 32px 24px;
+    }
+    .section .ledger-row {
+      grid-template-columns: auto 1fr;
+    }
+    .section .ledger-row .ledger-tag {
+      grid-column: 2;
+      margin-top: 4px;
+      justify-self: start;
+    }
+  }
+
+  /* implant-dentistry.css:1435/1436-1462 = cosmetic-dentistry.css:950/951+959 */
+  @media (max-width: 780px) {
+    .section {
+      padding: 70px 0;
+    }
+    .wrap {
+      padding: 0 22px;
+    }
+    .section-head {
+      margin-bottom: 44px;
+    }
+  }
+
+  /* No `prefers-reduced-motion` block: nothing in this band transitions or
+     transforms. The section's reveal is handled in src/scripts/animations.js
+     via gsap.matchMedia, which is why it is not touched here either. */
+
+  /* THE INK SKIN — implant-dentistry.css:1072-1078, :1081-1084, :1114-1122.
+     Selected by the `ledgerSkin` field, because both live bands are
+     `section.dark` and nothing else can tell them apart. Written as overrides
+     after the sage defaults so a band that never sets the field is untouched. */
+  .ledger.skin-ink {
+    background: rgba(0, 0, 0, 0.04);
+    border: 1px solid rgba(0, 0, 0, 0.12);
+  }
+  .ledger.skin-ink .ledger-head {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  }
+  .ledger.skin-ink .ledger-num {
+    background: rgba(0, 0, 0, 0.1);
+    color: var(--vs-ink);
+  }
+</style>

@@ -1,0 +1,496 @@
+---
+/**
+ * PaymentBand — general-dentistry's `#payment` band: the charcoal `.section.alt`
+ * ground with insurance-and-financing prose on the left and a boxed, light-green
+ * aside on the right listing what the in-house plan covers.
+ *
+ * Reproduced element for element from src/pages/general-dentistry/index.astro
+ * lines 402-441. Class names, wrapper nesting, the `data-vs-reveal-batch` hook
+ * and the aside's `aria-label` are copied rather than renamed: this band is
+ * graded by a word-level diff of the built route against the template baseline,
+ * so a dropped `<span>` or an added wrapper is a failure even when it looks the
+ * same in a browser.
+ *
+ * ── Where it is rendered ──────────────────────────────────────────────────
+ * A page component in the LocalTrust mould, not a block: CodeSectionBlock emits
+ * the named component and NOTHING ELSE (no <section>, no wrapper div), so this
+ * file owns its own `<section>`, its band background and its padding. The
+ * anchor arrives as `id`, which is the prop name CodeSectionBlock defaults to.
+ *
+ * NOT WIRED UP IN THIS COMMIT, on purpose. Two earlier attempts at this wave
+ * left the tree build-broken because the contract pointed at components that
+ * did not exist yet. Nothing imports this file, so it cannot break a build; the
+ * registration in CodeSectionBlock's BANDS map is a later commit.
+ *
+ * ── Why the fixed buttons are fixed ───────────────────────────────────────
+ * The three CTAs here are code-owned, so this component reads src/data/contact.ts
+ * directly the way FinalBand and LocalTrust do, rather than importing
+ * src/blocks/cta.ts (which exists for EDITOR-filled destinations). The booking
+ * and tel: hrefs are never spelled out here — a per-band copy of the phone
+ * number is a per-band chance to publish a stale one. `/dental-membership-plan/`
+ * is a site path, which the href policy allows and which cta.ts names as the
+ * shape a stored destination may take.
+ */
+import Button from "./Button.astro";
+import { bookNowHref, phoneHref, phoneLabel } from "../data/contact";
+
+interface Props {
+  /**
+   * The section anchor, passed down by CodeSectionBlock from the (already
+   * deduplicated) row anchor. Defaults to the id the template has always
+   * shipped so the page's "on this page" rail keeps resolving if a row is ever
+   * saved with a blank anchor — same default-to-the-template-id pattern as
+   * LocalTrust's `id = "local"`.
+   */
+  id?: string;
+  /** The small sage rule-and-caps line above the h2. Blank renders no span. */
+  eyebrow?: string | null;
+  /**
+   * The band's `<h2>`. Rendered as HTML because the template's heading carries
+   * an `<em>` phrase; the sheet styles that `em`, so stripping the markup would
+   * flatten the band's typography.
+   */
+  heading?: string | null;
+  /** The first paragraph under the h2. Plain text, as the template renders it. */
+  body?: string | null;
+  /**
+   * The SECOND paragraph — the financing sentence, which is a separate `<p>` in
+   * the template. A field of its own rather than more text appended to `body`,
+   * for the reason the house already applies to media_split's body_2: `body`
+   * renders as a single `<p>`, so folding two paragraphs into it runs them
+   * together inside one `<p>` — the same words in the wrong markup.
+   */
+  body2?: string | null;
+  /** The aside's own caps line. Blank renders no span. */
+  asideEyebrow?: string | null;
+  /** The aside's `<h3>`. HTML, for the same `<em>` reason as `heading`. */
+  asideHeading?: string | null;
+  /**
+   * The aside's bullet list. Each entry is inline HTML because the live list
+   * leads each line with a `<b>` phrase that the sheet colours separately
+   * (`.pay-list li b`) — passing these as plain text would drop the bold lead
+   * from three lines and change what the band says.
+   *
+   * Nullable ENTRIES as well as a nullable array: ACF returns null for a
+   * repeater row an editor added and never filled, and a null entry must cost
+   * one missing `<li>`, not a `<li>undefined</li>` on a live page.
+   */
+  asideItems?: (string | null | undefined)[] | null;
+  /**
+   * The visible label on the aside's single button. Blank renders no button AND
+   * no `.pay-card-actions` wrapper — an empty flex row still contributes its
+   * `margin-top`, which would open a gap under the list that the baseline does
+   * not have.
+   */
+  asideCtaLabel?: string | null;
+}
+
+const {
+  id = "payment",
+  eyebrow,
+  heading,
+  body,
+  body2,
+  asideEyebrow,
+  asideHeading,
+  asideItems,
+  asideCtaLabel,
+} = Astro.props;
+
+/** Trim once, here, so every guard below tests for real content rather than for
+ *  a field an editor left as a single space. */
+const text = (input: unknown): string =>
+  typeof input === "string" ? input.trim() : "";
+
+const eyebrowText = text(eyebrow);
+const headingHtml = text(heading);
+const bodyText = text(body);
+const body2Text = text(body2);
+
+const asideEyebrowText = text(asideEyebrow);
+const asideHeadingHtml = text(asideHeading);
+const asideCtaLabelText = text(asideCtaLabel);
+
+/** Blank rows are dropped, not rendered empty: an editor's unfilled repeater
+ *  row must cost one `<li>`, and a repeater of nothing but blanks must leave
+ *  the `<ul>` unrendered rather than shipping an empty list. */
+const items = (asideItems ?? []).map(text).filter((item) => item !== "");
+
+/**
+ * The two halves are independently optional, and the band itself is optional.
+ * A column with nothing in it draws no column — not an empty `.pay-copy` div,
+ * which would still claim its grid track and push the aside off centre — and a
+ * band with neither column draws no `<section>`, no `.wrap` and no `.pay-grid`.
+ *
+ * `.pay-actions` is deliberately NOT part of `hasCopy`: it is fixed code-owned
+ * chrome, so it cannot keep an otherwise-empty column alive.
+ */
+const hasCopy =
+  eyebrowText !== "" || headingHtml !== "" || bodyText !== "" || body2Text !== "";
+const hasAside =
+  asideEyebrowText !== "" ||
+  asideHeadingHtml !== "" ||
+  items.length > 0 ||
+  asideCtaLabelText !== "";
+const hasBand = hasCopy || hasAside;
+
+/** The in-house plan page. A site path, not an off-site URL — see the href note
+ *  in the header comment. */
+const MEMBERSHIP_HREF = "/dental-membership-plan/";
+---
+
+{
+  hasBand && (
+    <section class="section alt" id={id} data-vs-reveal-batch>
+      <div class="wrap">
+        <div class="pay-grid">
+          {hasCopy && (
+            <div class="pay-copy">
+              {eyebrowText !== "" && <span class="eyebrow">{eyebrowText}</span>}{
+                /* FLUSH `}{`, no newline between the two expressions. Astro
+                   preserves whitespace between expressions, so a conditional on
+                   its own line leaves a permanent whitespace-only text node
+                   behind whenever the field is blank. Same idiom, same reason,
+                   as CardGridBlock's `.insurance-card` chain. */
+                headingHtml !== "" && (
+                  <h2>
+                    <Fragment set:html={headingHtml} />
+                  </h2>
+                )
+              }{
+                /* Flush #2 — `body` after the heading. */
+                bodyText !== "" && <p>{bodyText}</p>
+              }{
+                /* Flush #3 — `body2` after `body`. This is the one the idiom
+                   exists for: a row with one paragraph must render exactly the
+                   markup a one-paragraph column has always rendered. */
+                body2Text !== "" && <p>{body2Text}</p>
+              }
+              <div class="pay-actions">
+                <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">
+                  Book Online
+                </Button>
+                <Button variant="ghost-light" href={phoneHref} hoverLabel="Tap to Dial">
+                  Call {phoneLabel}
+                </Button>
+              </div>
+            </div>
+          )}{
+            /* Flush #4 — the whole aside after the whole copy column, so a band
+               that is aside-only opens `.pay-grid` with no leading text node. */
+            hasAside && (
+              <aside class="pay-card" aria-label="Vivid Smiles in-house dental membership plan">
+                {asideEyebrowText !== "" && (
+                  <span class="pay-card-eyebrow">{asideEyebrowText}</span>
+                )}{
+                  /* Flush #5 — aside heading after aside eyebrow. */
+                  asideHeadingHtml !== "" && (
+                    <h3>
+                      <Fragment set:html={asideHeadingHtml} />
+                    </h3>
+                  )
+                }{
+                  /* Flush #6 — the repeater. An empty repeater draws no `<ul>`
+                     at all, so the card's 18px flex gap does not open a second
+                     time where the list would have been. */
+                  items.length > 0 && (
+                    <ul class="pay-list">
+                      {items.map((item) => (
+                        <li set:html={item} />
+                      ))}
+                    </ul>
+                  )
+                }{
+                  /* Flush #7 — the button row, which exists only when there is
+                     a label to put on it. */
+                  asideCtaLabelText !== "" && (
+                    <div class="pay-card-actions">
+                      <Button variant="ghost" href={MEMBERSHIP_HREF} hoverLabel="See Plan">
+                        {asideCtaLabelText}
+                      </Button>
+                    </div>
+                  )
+                }
+              </aside>
+            )
+          }
+        </div>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  /*
+   * Copied out of src/styles/pages/general-dentistry.css — every rule cited by
+   * line. The page sheet is NOT edited; these are duplicates that outrank it,
+   * so this component keeps drawing the band correctly even on a page whose
+   * sheet never carried `.pay-*` rules.
+   *
+   * WHY EVERY SELECTOR STARTS WITH `.section`
+   * Astro 6.1.9 compiles ATTRIBUTE scoping here: `.pay-grid` becomes
+   * `.pay-grid[data-astro-cid-…]`, which is (0,2,0) — a dead TIE with the
+   * sheet's `.gdent .pay-grid`, decided by bundle order. Ties are the thing
+   * this project has been bitten by twice. Prefixing with the scoped root
+   * (`.section .pay-grid` -> `.section[cid] .pay-grid[cid]`) makes every rule
+   * below (0,4,0) or higher, which wins outright against the page sheet and
+   * against Button.astro's charcoal-band override.
+   *
+   * WHAT IS DELIBERATELY *NOT* COPIED
+   * `.section`, `.section.alt`, `.wrap` and the base `.eyebrow` typography stay
+   * page-owned (css:66-79, 325-349). They are shared band chrome that every
+   * section on the page draws from, and CodeSectionBlock's contract is that the
+   * page-scoped sheet still cascades into a code band exactly as it did from
+   * the template. Copying them here would give this one band a private copy of
+   * the page's band system.
+   *
+   * And one declaration is dropped rather than copied, because copying it at
+   * higher specificity would CHANGE the band instead of preserving it:
+   * `.gdent .pay-copy p { color: var(--ink-soft) }` (css:889) is already dead on
+   * this page — `.gdent .section.alt p` (css:345-347) is (0,3,0) against its
+   * (0,2,0) and paints the paragraphs rgba(255,255,255,.85) on the charcoal
+   * ground. Re-asserting ink-soft at (0,5,0) would turn two paragraphs
+   * near-invisible. The rule below therefore carries `.pay-copy p`'s metrics
+   * and no colour, leaving the colour where the cascade already decides it.
+   *
+   * (The neighbouring `::before` case goes the OTHER way and is copied in full:
+   * `.gdent .pay-copy .eyebrow::before` (css:876-881) ties with
+   * `.gdent .section.alt .eyebrow::before` (css:341-344) at (0,3,0), and being
+   * later in the same file it wins — the dash renders sage, so sage is what is
+   * reproduced.)
+   */
+
+  /* css:860-865 */
+  .section .pay-grid {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 60px;
+    align-items: stretch;
+  }
+
+  /* css:866-870 */
+  .section .pay-copy {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
+
+  /* css:871-875 */
+  .section .pay-copy .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+
+  /* css:876-881 — see the note above on why `background` survives here. */
+  /* BAND-CONDITIONAL, because this band is charcoal and the dash is not sage
+     there. The earlier rationale here miscounted the competing selector:
+     `.gdent .section.alt .eyebrow::before` (general-dentistry.css:341-344) is
+     FOUR classes = (0,4,1), not (0,3,0), so it beats
+     `.gdent .pay-copy .eyebrow::before` outright and file order never enters
+     it — white-60% is what renders today. This component's scoped form wins
+     over both, so it has to carry BOTH states itself rather than inherit one.
+     Same pattern CopyPlusStatsBlock uses for its own eyebrow. */
+  .section .pay-copy .eyebrow::before {
+    content: '';
+    width: 28px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+  .section.alt .pay-copy .eyebrow::before,
+  .section.sage .pay-copy .eyebrow::before {
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  /* css:882-885 */
+  .section .pay-copy h2 {
+    margin: 18px 0 22px;
+    max-width: 18ch;
+  }
+
+  /* css:886-892, minus the dead `color` — see the note above. */
+  .section .pay-copy p {
+    font-size: 16.5px;
+    line-height: 1.75;
+    margin: 0 0 16px;
+    max-width: 60ch;
+  }
+
+  /* css:893-898 */
+  .section .pay-actions {
+    margin-top: 14px;
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  /* css:899-910 — the light-green card on the charcoal ground. */
+  .section .pay-card {
+    background: var(--vs-sage-pale);
+    color: var(--vs-ink);
+    border-radius: var(--vs-r-xl);
+    padding: 40px 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    box-shadow: 0 30px 60px -25px rgba(40, 50, 30, 0.35);
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* css:911-921 — the top-right sheen. */
+  .section .pay-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      ellipse 380px 220px at 88% 12%,
+      rgba(255, 255, 255, 0.35),
+      transparent 60%
+    );
+    pointer-events: none;
+  }
+
+  /* css:922-925 — lift the card's real children above that sheen. */
+  .section .pay-card > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* css:926-936 */
+  .section .pay-card-eyebrow {
+    font-family: var(--vs-font-body);
+    font-size: 11px;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--vs-ink-soft);
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  /* css:937-942 */
+  .section .pay-card-eyebrow::before {
+    content: '';
+    width: 22px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+
+  /* css:946-956. The sheet needs TWO selectors for this (`.gdent .pay-card h3`
+     plus a `.gdent .section.alt .pay-card h3` bump) because the band's
+     `h1..h4 { color: #fff }` rule at css:332-336 would otherwise whiten a
+     heading sitting on light green. One scoped rule at (0,5,0) covers both. */
+  .section .pay-card h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    font-size: clamp(24px, 2.4vw, 30px);
+    line-height: 1.18;
+    letter-spacing: -0.01em;
+    color: var(--vs-ink);
+    margin: 4px 0 6px;
+    max-width: 18ch;
+  }
+
+  /* css:957-962 — same doubled-selector story, against `.section.alt em`
+     (css:348-350). */
+  .section .pay-card h3 em {
+    font-style: italic;
+    color: var(--vs-sage);
+    font-weight: 300;
+  }
+
+  /* css:963-970 */
+  .section .pay-list {
+    list-style: none;
+    padding: 0;
+    margin: 4px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  /* css:971-979 — again a doubled selector in the sheet, one rule here. */
+  .section .pay-card .pay-list li {
+    position: relative;
+    padding-left: 22px;
+    font-family: var(--vs-font-body);
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: var(--vs-ink-soft);
+  }
+
+  /* css:980-983 — the bold lead each bullet opens with. */
+  .section .pay-list li b {
+    color: var(--vs-ink);
+    font-weight: 500;
+  }
+
+  /* css:984-992 — the short sage dash standing in for a bullet. */
+  .section .pay-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.72em;
+    width: 12px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+
+  /*
+   * css:998-1002. Button.astro flips `.vs-btn-ghost` to white inside any
+   * charcoal band (Button.astro:344-390, a long `:is(…) .vs-btn-ghost` list
+   * that includes `.gdent .section.alt`). The card is light green, so the ghost
+   * button has to stay ink-on-transparent.
+   *
+   * Worth noting what this fixes as well as copies: that `:is()` rule is
+   * (0,4,0), and the sheet's own override is ALSO (0,4,0) — the correct
+   * rendering on the live page rests on bundle order. The scoped version here
+   * is (0,5,0) and wins outright, so the same appearance no longer depends on
+   * which stylesheet the bundler happens to emit second.
+   *
+   * `:global()` because the button element is Button.astro's markup, not this
+   * component's, so it carries no scope attribute of its own.
+   */
+  .section .pay-card :global(.vs-btn-ghost) {
+    --btn-fg: var(--vs-ink);
+    --btn-border: var(--vs-ink);
+    --btn-ripple: rgba(42, 42, 40, 0.18);
+  }
+
+  /* css:1003-1014 — on hover the standard ghost arrow inverts to white-on-ink,
+     which on light green reads as the arrow flashing white. Keep the glyph ink
+     and tint the fill instead. */
+  .section .pay-card :global(.vs-btn-ghost .vs-arrow) {
+    --vs-arrow-bg: transparent;
+    --vs-arrow-fg: var(--vs-ink);
+    --vs-arrow-border: var(--vs-ink);
+    --vs-arrow-hover-bg: rgba(42, 42, 40, 0.08);
+    --vs-arrow-hover-fg: var(--vs-ink);
+    --vs-arrow-hover-border: var(--vs-ink);
+  }
+
+  /* css:1015-1020 */
+  .section .pay-card-actions {
+    margin-top: 6px;
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  /* css:1279-1282 (inside the sheet's `@media (max-width: 1100px)` at css:1231) */
+  @media (max-width: 1100px) {
+    .section .pay-grid {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+  }
+
+  /* css:1333-1335 (inside the sheet's `@media (max-width: 780px)` at css:1295) */
+  @media (max-width: 780px) {
+    .section .pay-card {
+      padding: 32px 26px;
+    }
+  }
+</style>
