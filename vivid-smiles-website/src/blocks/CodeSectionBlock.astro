@@ -59,6 +59,38 @@
 import type { AstroComponentFactory } from "astro/runtime/server/index.js";
 
 import LocalTrust from "../components/LocalTrust.astro";
+// Wave A (Phase 4, hub pages). These three are NEW components, created by the
+// build agents in the same wave as this registration — the imports fail the
+// build loudly until they exist, which is the correct failure mode: the quiet
+// alternative (registering the keys later) is a select choice in wp-admin that
+// saves fine and renders a blank band. Their contract:
+//   AreaBand    — the hubs' `#area` band: `.area` grid of `.area-copy` (eyebrow,
+//                 <h2> via set:html, the paragraphs below, then the
+//                 `.area-address-line`, and the sage "Get Directions" (hover
+//                 "Open Maps", href directionsHref) + ghost "Contact Us" (hover
+//                 "Reach Us", href /contact/) pair) beside the `.area-map`
+//                 Google iframe. Address line, phone link, buttons and iframe
+//                 all come from src/data/contact.ts INSIDE the component; the
+//                 literal tokens {street} and {city} in a paragraph prop are
+//                 replaced with addressStreet/addressCity so the copy keeps
+//                 tracking Practice Settings exactly as the template
+//                 interpolation it replaces — bake the address in and the next
+//                 address change strands three pages.
+//   TrustBand   — general-dentistry's `#trust`: the centred `.trust-quote` on
+//                 the sage-pale band (eyebrow light, <h2> set:html, two
+//                 `.trust-body` paragraphs — the second html-bearing — and the
+//                 `.trust-attr` line of aria-hidden stars + text).
+//   PaymentBand — general-dentistry's `#payment` on the charcoal band:
+//                 `.pay-grid` of `.pay-copy` (eyebrow, <h2> set:html, two
+//                 paragraphs, light "Book Online" (hover "Let's Talk", href
+//                 bookNowHref) + ghost-light "Call {phoneLabel}" (hover "Tap to
+//                 Dial", href phoneHref)) beside the `.pay-card` aside
+//                 (`.pay-card-eyebrow`, <h3> set:html, `.pay-list` of
+//                 html-bearing lines, ghost "See Membership Plan" →
+//                 /dental-membership-plan/, hover "See Plan").
+import AreaBand from "../components/AreaBand.astro";
+import TrustBand from "../components/TrustBand.astro";
+import PaymentBand from "../components/PaymentBand.astro";
 
 /** One registered bespoke band. */
 interface CodeBand {
@@ -165,6 +197,109 @@ const BANDS: Record<string, CodeBand> = {
       intro:
         "Dr. Richardson is a Parker resident who built Vivid Smiles Dentistry to bring high-level cosmetic care to patients locally and from across the country.",
       body: "Located on Cedar Gulch Parkway, the practice welcomes patients locally and from out of state — many travel in for their veneer treatment. With 300+ five-star reviews, it has a reputation for consistent results and genuine attention to every patient.",
+    },
+  },
+
+  /**
+   * ── Phase 4 Wave A — the hub pages' bespoke bands ─────────────────────────
+   *
+   * Five keys, three components, same `<page>_<anchor>` rule as above. THE
+   * EYEBROW/HEADING/BODY STRINGS BELOW ARE FROZEN FROM THE LIVE `sections`
+   * REPEATER — copied out of the GraphQL endpoint on 2026-08-28, not from the
+   * templates, because on the hubs those values are already CMS-backed and the
+   * template merely echoes them. Freezing them here is the code_section trade
+   * the three LocalTrust entries already made: the row becomes movable and
+   * removable but not editable, the sections rows stay in WordPress but stop
+   * feeding the render, and a wording change is a developer edit HERE. The
+   * wave's block-map records that as a known gap on each of these bands.
+   *
+   * The one thing deliberately NOT frozen is the practice address: paragraphs
+   * carry {street}/{city} tokens where the templates interpolate
+   * addressStreet/addressCity, and AreaBand substitutes them from
+   * src/data/contact.ts at render — those values come from Practice Settings
+   * at build time, so baking today's street into a prop would strand three
+   * pages on the old address after the next move. Cosmetic's paragraph says
+   * literal "Parker" because its template does; matching the template beats
+   * consistency between entries.
+   */
+  implant_dentistry_area: {
+    component: AreaBand,
+    props: {
+      eyebrow: "Service area",
+      heading: "Serving Parker, <em>Castle Rock & Douglas County.</em>",
+      paragraphs: [
+        "Vivid Smiles Dentistry is located at {street}, in {city}, with consultation, surgical placement, and final restoration all happening under one roof with one provider.",
+        "Dr. Richardson is a Parker resident serving patients from Parker, Castle Rock, Highlands Ranch, Lone Tree, and across Douglas County. The full implant workflow — CBCT planning, robotic placement, digital scanning, and in-house milling — runs entirely from this office.",
+      ],
+    },
+  },
+
+  cosmetic_dentistry_area: {
+    component: AreaBand,
+    props: {
+      eyebrow: "Service area",
+      heading: "Serving Parker, Stonegate, <em>The Pinery & Douglas County.</em>",
+      paragraphs: [
+        "Vivid Smiles Dentistry is located at {street}, in Parker, and serves patients throughout Douglas County and the Denver metro.",
+        "Cosmetic patients visit us from Stonegate, The Pinery, Lone Tree, Castle Rock, and Highlands Ranch, and from across Colorado to receive specialized care that most general practices don't offer. Dr. Richardson is a Parker resident, which means the community he serves is the one he lives in.",
+      ],
+    },
+  },
+
+  general_dentistry_area: {
+    component: AreaBand,
+    props: {
+      eyebrow: "Service area",
+      heading: "Serving Parker & <em>Douglas County.</em>",
+      paragraphs: [
+        "Vivid Smiles Dentistry is located at {street}, in {city}. Our practice is accepting new patients for cleanings, exams, and same-day emergency appointments.",
+        "We see clients locally and from out of state who travel in for specialized care that most general practices don't offer. Dr. Richardson is a Parker resident — the community he serves is the one he lives in.",
+      ],
+    },
+  },
+
+  /**
+   * The `#trust` pull-quote band between `#gateway` and `#doctors` on
+   * general-dentistry — the eyebrow is the template's own literal (the CMS
+   * row stores none), the heading and first paragraph are the frozen CMS
+   * values, `body2` is the template's html-bearing second paragraph, and
+   * `attr` is the review line beside the component-drawn stars.
+   */
+  general_dentistry_trust: {
+    component: TrustBand,
+    props: {
+      eyebrow: "Why Parker trusts us",
+      heading: "Why Parker residents <em>trust Vivid Smiles Dentistry.</em>",
+      body: "Vivid Smiles has earned over 300 five-star Google reviews built on consistent themes: welcoming environment, advanced technology, clear explanations, and care that feels personal. Dr. Richardson is a Parker resident who is invested in the community long-term.",
+      body2:
+        "Patients describe treatment as <em>comfortable, unhurried, and honest</em> — straightforward care recommendations from a practice that treats neighbors, not just patients.",
+      attr: "5.0 · 300+ Google reviews",
+    },
+  },
+
+  /**
+   * The `#payment` band on general-dentistry: copy column (eyebrow, heading
+   * and first paragraph frozen from the CMS row; `body2` is the template
+   * literal) beside the membership-plan card, whose eyebrow, heading and
+   * three html-bearing lines are the template's own. The three buttons and
+   * the phone label are site data drawn inside PaymentBand from contact.ts.
+   */
+  general_dentistry_payment: {
+    component: PaymentBand,
+    props: {
+      eyebrow: "Payment & plans",
+      heading: "Flexible payment options <em>and dental membership plan.</em>",
+      body: "Vivid Smiles works with most major dental insurance plans to help patients make the most of their benefits. Patients without insurance can take advantage of our in-house dental membership plan, which covers preventive care and discounts on additional treatment for an annual fee.",
+      body2:
+        "Financing is also available for larger restorative or cosmetic cases. Our team will clarify every option before treatment begins.",
+      asideEyebrow: "Membership plan",
+      asideHeading: "No insurance? Use our <em>in-house plan.</em>",
+      asideItems: [
+        "<b>Preventive care covered</b> — cleanings, exams, and routine X-rays for the year.",
+        "<b>Discounted treatment</b> on restorative, cosmetic, and emergency work.",
+        "<b>Single annual fee</b> — no claims, no waiting periods, no exclusions.",
+      ],
+      asideCtaLabel: "See Membership Plan",
     },
   },
 };

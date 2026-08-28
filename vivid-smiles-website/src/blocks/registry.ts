@@ -18,15 +18,20 @@
 
 import type { AstroComponentFactory } from "astro/runtime/server/index.js";
 
+import CandidacyLedgerBlock from "./CandidacyLedgerBlock.astro";
 import CardGridBlock from "./CardGridBlock.astro";
 import CodeSectionBlock from "./CodeSectionBlock.astro";
 import ComparisonCardsBlock from "./ComparisonCardsBlock.astro";
+import CopyPlusStatsBlock from "./CopyPlusStatsBlock.astro";
+import DoctorProfilesBlock from "./DoctorProfilesBlock.astro";
 import FaqBlock from "./FaqBlock.astro";
 import GalleryMarqueeBlock from "./GalleryMarqueeBlock.astro";
 import MediaSplitBlock from "./MediaSplitBlock.astro";
 import PricingTiersBlock from "./PricingTiersBlock.astro";
 import ProcessStepsBlock from "./ProcessStepsBlock.astro";
+import ServiceCardsBlock from "./ServiceCardsBlock.astro";
 import StatCalloutBlock from "./StatCalloutBlock.astro";
+import TechGridBlock from "./TechGridBlock.astro";
 
 import { BLOCK_MANIFEST, isRegisteredLayout, type BlockManifestEntry } from "./manifest";
 
@@ -41,6 +46,16 @@ const COMPONENTS: Record<string, AstroComponentFactory> = {
   PageFieldsBlocksGalleryMarqueeLayout: GalleryMarqueeBlock,
   PageFieldsBlocksStatCalloutLayout: StatCalloutBlock,
   PageFieldsBlocksPricingTiersLayout: PricingTiersBlock,
+
+  // Phase 4 Wave A — the four hub pages. Same rule as every entry above: the
+  // manifest entry and this binding land together, because a manifest entry
+  // with no component renders UnknownBlock and a component with no manifest
+  // entry is never asked for.
+  PageFieldsBlocksCopyPlusStatsLayout: CopyPlusStatsBlock,
+  PageFieldsBlocksTechGridLayout: TechGridBlock,
+  PageFieldsBlocksServiceCardsLayout: ServiceCardsBlock,
+  PageFieldsBlocksDoctorProfilesLayout: DoctorProfilesBlock,
+  PageFieldsBlocksCandidacyLedgerLayout: CandidacyLedgerBlock,
 
   // The escape hatch. Unlike every entry above, this component draws no band of
   // its own — it looks its row's `band_key` up in its own BANDS map and renders

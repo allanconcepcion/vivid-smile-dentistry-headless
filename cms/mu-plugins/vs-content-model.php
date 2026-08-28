@@ -236,6 +236,24 @@ const BLOCK_CODE_BANDS = [
 	'local_trust'             => 'Why patients choose us — map, reviews and address (Clear Aligners)',
 	'teeth_whitening_local'   => 'Why patients choose us — map, reviews and address (Teeth Whitening)',
 	'porcelain_veneers_local' => 'Why patients choose us — map, reviews and address (Porcelain Veneers)',
+	/*
+	 * Phase 4 Wave A — the hub pages' bespoke bands. The three `_area` keys are
+	 * one component (AreaBand.astro) with per-page copy held in
+	 * CodeSectionBlock's BANDS map, exactly as the three LocalTrust keys above
+	 * are one component with three prop sets. Keyed per PAGE because the
+	 * heading and paragraphs are page copy: one shared key would put "Castle
+	 * Rock" under the cosmetic hub's heading. The trust and payment bands are
+	 * general-dentistry one-offs — pure copy, but each a markup shape no layout
+	 * draws and no second page shares, so a layout for either would be a
+	 * single-use schema. All five freeze copy that today reads from the
+	 * `sections` repeater; the map for this wave records that as a known gap
+	 * (the rows stay in WordPress but stop feeding the render).
+	 */
+	'implant_dentistry_area'   => 'Service area — Parker map, address and directions (Implant Dentistry)',
+	'cosmetic_dentistry_area'  => 'Service area — Parker map, address and directions (Cosmetic Dentistry)',
+	'general_dentistry_area'   => 'Service area — Parker map, address and directions (General Dentistry)',
+	'general_dentistry_trust'  => 'Why Parker trusts us — centred quote and review line (General Dentistry)',
+	'general_dentistry_payment' => 'Payment options and membership plan card (General Dentistry)',
 ];
 
 /**
@@ -1657,6 +1675,26 @@ function register_field_groups(): void {
 										'name'  => 'cta_href',
 										'type'  => 'text',
 									],
+									/**
+									 * Wave A (hub pages). FaqBlock's hover falls back to
+									 * the shared table in src/blocks/cta.ts, and this
+									 * layout had no override — the same gap that cost
+									 * teeth-whitening "View Levels" on media_split. The
+									 * /services/ hub is the live case: its button stores
+									 * "#virtualConsult" (the id VirtualConsult mounts when
+									 * given none), the table has no such key, and without
+									 * this field the hover word "Get a Video" is a census
+									 * loss. Blank falls back to the table, so every saved
+									 * FAQ band renders exactly as it does now.
+									 */
+									[
+										'key'          => 'field_vs_blk_faq_cta_hover',
+										'label'        => 'Button hover label',
+										'name'         => 'cta_hover',
+										'type'         => 'text',
+										'instructions' => 'Optional. The word-swap shown while the pointer is over the button. '
+											. 'Leave it blank for the usual label for that destination.',
+									],
 								]
 							),
 						],
@@ -2618,6 +2656,25 @@ function register_field_groups(): void {
 												// verbatim and some are written "01".
 												'instructions' => 'The figure shown on the step, exactly as it should read.',
 											],
+											/**
+											 * Wave A. The "Divided list" shape (the /services/
+											 * hub's bordered three-up, drawn by the shared
+											 * ProcessStep component) prints a short italic line
+											 * between the figure and the title — "Listen
+											 * first." — that the other two shapes never had a
+											 * slot for. A text sub-field on an existing
+											 * repeater mints no GraphQL type, so nothing can
+											 * collide; every saved step has it blank, and blank
+											 * draws no element at all in any shape.
+											 */
+											[
+												'key'          => 'field_vs_blk_steps_step_tagline',
+												'label'        => 'Tagline',
+												'name'         => 'tagline',
+												'type'         => 'text',
+												'instructions' => 'Optional. The short italic line between the figure and the title — '
+													. 'only the "Divided list" shape draws it.',
+											],
 											[
 												'key'   => 'field_vs_blk_steps_step_title',
 												'label' => 'Title',
@@ -2632,6 +2689,26 @@ function register_field_groups(): void {
 												'rows'  => 3,
 											],
 										],
+									],
+									/**
+									 * Wave A. The plain closing paragraph under the steps —
+									 * cosmetic-dentistry's `.process-outro` ("Sedation
+									 * options are available…"). NOT `cta_text`: that field
+									 * is a sentence WITH the booking and phone buttons
+									 * beside it, and drawing buttons under a band that has
+									 * never had them is exactly the stray element this
+									 * phase is diffed for. Same name and contract as
+									 * media_split's `sub_foot`: a closing paragraph, blank
+									 * draws nothing, so every saved band is untouched.
+									 */
+									[
+										'key'          => 'field_vs_blk_steps_sub_foot',
+										'label'        => 'Closing paragraph',
+										'name'         => 'sub_foot',
+										'type'         => 'textarea',
+										'rows'         => 2,
+										'instructions' => 'Optional. A plain paragraph under the steps — no buttons. '
+											. 'For the sentence-plus-buttons plate, use "Closing line" below instead.',
 									],
 									/**
 									 * The sentence that closes the band — the `.ic-text`
@@ -2693,6 +2770,51 @@ function register_field_groups(): void {
 							'display'    => 'block',
 							'sub_fields' => array_merge(
 								block_preamble( 'gallery' ),
+								[
+									/**
+									 * Wave A (hub pages). The cosmetic-dentistry hub's
+									 * `#results` band opens this strip with a two-column
+									 * head — `.results-copy` (the preamble trio plus a
+									 * second paragraph and the two buttons) beside a
+									 * `.results-aside` review card (stars, a pull quote,
+									 * an attribution line) — where every other page draws
+									 * the centred `.section-head`. Three fields, and the
+									 * QUOTE is the switch: GalleryMarqueeBlock draws the
+									 * two-column head only when `quote` is non-empty, so
+									 * every band already saved against this layout (all
+									 * quote-less) renders byte-for-byte as it does now.
+									 * Splitting the second paragraph into `body_2` rather
+									 * than folding it into `body` is the house rule: two
+									 * paragraphs in one textarea come back as one <p>.
+									 */
+									[
+										'key'          => 'field_vs_blk_gallery_body_2',
+										'label'        => 'Second paragraph',
+										'name'         => 'body_2',
+										'type'         => 'textarea',
+										'rows'         => 4,
+										'instructions' => 'Optional. The second paragraph of the head copy. '
+											. 'Only drawn when a review quote makes this a two-column head.',
+									],
+									[
+										'key'          => 'field_vs_blk_gallery_quote',
+										'label'        => 'Review quote',
+										'name'         => 'quote',
+										'type'         => 'textarea',
+										'rows'         => 3,
+										'instructions' => 'Optional. Fill it in and the head becomes two columns, with this '
+											. 'quote in a review card beside the copy — include the quotation marks '
+											. 'exactly as they should read. Leave it blank for the usual centred head.',
+									],
+									[
+										'key'          => 'field_vs_blk_gallery_quote_attrib',
+										'label'        => 'Quote attribution',
+										'name'         => 'quote_attrib',
+										'type'         => 'text',
+										'instructions' => 'The line under the quote, including its leading dash — may contain '
+											. '<b>…</b> for the bold half.',
+									],
+								],
 								block_cta_fields( 'gallery' )
 							),
 						],
@@ -3046,6 +3168,31 @@ function register_field_groups(): void {
 										],
 									],
 								],
+								[
+									/**
+									 * Wave A (hub pages). The fallback documented below
+									 * means blank-labels can never mean "no row" — and the
+									 * implant hub's `#compare` band has NO closing row at
+									 * all, so without this switch migrating it would ADD
+									 * two buttons and a note to a live page. A true_false
+									 * rather than a magic label value because an editor
+									 * cannot type their way into it by accident. Absent or
+									 * false — which is what every saved row returns — keeps
+									 * the fallback exactly as it is, so the eleven
+									 * back-filled comparison bands are untouched.
+									 */
+									[
+										'key'           => 'field_vs_blk_compare_cta_hide',
+										'label'         => 'Hide the closing buttons',
+										'name'          => 'cta_hide',
+										'type'          => 'true_false',
+										'ui'            => 1,
+										'default_value' => 0,
+										'instructions'  => 'Turn this on and no button row is drawn under the cards at all — '
+											. 'not even the usual "Free Virtual Consult / Read FAQ" pair that appears '
+											. 'when the button fields below are left blank.',
+									],
+								],
 								/**
 								 * The closing `.cta-row`, now field-driven — WITH A FALLBACK THAT
 								 * IS THE WHOLE CONTRACT. ComparisonCardsBlock has always drawn one
@@ -3059,6 +3206,7 @@ function register_field_groups(): void {
 								 * page copy the client must be able to reword, and because the
 								 * next page whose row differs from the literal would otherwise
 								 * lose it exactly as the census pages lost theirs.
+								 * `cta_hide` above is the one way to withhold the row entirely.
 								 */
 								block_cta_fields( 'compare' )
 							),
@@ -3525,6 +3673,682 @@ function register_field_groups(): void {
 								]
 							),
 						],
+						/**
+						 * ── Phase 4 Wave A — the hub-page layouts ─────────────────
+						 *
+						 * Five layouts for the shapes the four hub pages
+						 * (/implant-dentistry/, /cosmetic-dentistry/,
+						 * /general-dentistry/, /services/) draw that the nine
+						 * Wave-A/B layouts above do not. Each is EXTRACTED from live
+						 * hub markup, not designed; the component that renders each
+						 * one lands in src/blocks/ in this same wave, and its entry
+						 * in src/blocks/manifest.ts + registry.ts is the other half
+						 * of this change. Every repeater name below is new under
+						 * `blocks` — stats, tech_cards, svc_cards, bios, ledger —
+						 * because a repeater's GraphQL type is minted from the FIELD
+						 * name alone (see walk_graphql_containers) and a reused name
+						 * silently merges two types. Checked against the full set:
+						 * items, cards, checklist, callout_points, creds, sub_cards,
+						 * pre_cards, steps, tiers, bullets, plans, features, points,
+						 * alt_cards, glossary.
+						 */
+
+						/**
+						 * Copy beside a column of stat cards — the `why` band on all
+						 * three parent hubs: `.why-grid` holding `.why-copy` (the
+						 * preamble trio, an optional mid-column <h3> + paragraph,
+						 * one ghost button) and `.why-stats` (big-figure cards).
+						 *
+						 * NOT card_grid, although both emit a `.why-grid`: the hub
+						 * family is a two-column copy/stats split, the detail family
+						 * is a uniform card grid, and one layout drawing both would
+						 * need a mode switch that changes every element — two
+						 * layouts is the honest shape. The mid-column pair reuses
+						 * media_split's names (`body_2_heading` / `body_2`) so the
+						 * Astro side reads one convention: cosmetic has the
+						 * paragraph with no <h3>, so each half draws only when
+						 * non-empty.
+						 *
+						 * The stat figure is TWO fields, value + unit, exactly as
+						 * stat_callout splits its figure: the corpus reads
+						 * "600" + "+", "1" + "st", and "0" with no unit at all —
+						 * folded into one field the <em> around the suffix is gone,
+						 * which is the same words in the wrong markup.
+						 *
+						 * ONE button, three hand-declared cta fields — NOT
+						 * block_cta_fields(). The band has never drawn a second
+						 * button or a note, and a registered field nothing renders
+						 * reads as supported (the fault this wave's brief names
+						 * three times). Names match the factory's so the component
+						 * reads them identically.
+						 */
+						[
+							'key'        => 'layout_vs_blk_copy_plus_stats',
+							'name'       => 'copy_plus_stats',
+							'label'      => 'Copy + stat cards',
+							'display'    => 'block',
+							'sub_fields' => array_merge(
+								block_preamble( 'cstats' ),
+								[
+									[
+										'key'          => 'field_vs_blk_cstats_body_2_heading',
+										'label'        => 'Second heading',
+										'name'         => 'body_2_heading',
+										'type'         => 'text',
+										'instructions' => 'Optional. The small heading between the intro paragraph and the '
+											. 'second paragraph. Leave it blank and the paragraphs run together, as on '
+											. 'the cosmetic hub.',
+									],
+									[
+										'key'          => 'field_vs_blk_cstats_body_2',
+										'label'        => 'Second paragraph',
+										'name'         => 'body_2',
+										'type'         => 'textarea',
+										'rows'         => 4,
+										'instructions' => 'Optional. The paragraph under that heading.',
+									],
+									[
+										'key'          => 'field_vs_blk_cstats_stats',
+										'label'        => 'Stat cards',
+										'name'         => 'stats',
+										'type'         => 'repeater',
+										'layout'       => 'row',
+										'button_label' => 'Add a stat',
+										'sub_fields'   => [
+											[
+												'key'          => 'field_vs_blk_cstats_stat_value',
+												'label'        => 'Figure',
+												'name'         => 'value',
+												'type'         => 'text',
+												'instructions' => 'The big figure — "600", "300", "1", "0". Text, because the site '
+													. 'prints it verbatim.',
+											],
+											[
+												'key'          => 'field_vs_blk_cstats_stat_unit',
+												'label'        => 'Suffix',
+												'name'         => 'unit',
+												'type'         => 'text',
+												'instructions' => 'Optional. The small italic tail on the figure — "+", "st". '
+													. 'Leave it blank for a bare figure.',
+											],
+											[
+												'key'   => 'field_vs_blk_cstats_stat_label',
+												'label' => 'Label',
+												'name'  => 'label',
+												'type'  => 'text',
+											],
+											[
+												'key'   => 'field_vs_blk_cstats_stat_detail',
+												'label' => 'Detail',
+												'name'  => 'detail',
+												'type'  => 'textarea',
+												'rows'  => 3,
+											],
+											[
+												// Same contract as media_split's creds.stars: on,
+												// the component prints the aria-hidden ★★★★★ span
+												// (plus the non-breaking space the template has
+												// always carried) ahead of the detail text. A
+												// boolean, never pasted stars, so the screen-reader
+												// treatment cannot be lost in a retype.
+												'key'           => 'field_vs_blk_cstats_stat_stars',
+												'label'         => 'Show stars',
+												'name'          => 'stars',
+												'type'          => 'true_false',
+												'ui'            => 1,
+												'default_value' => 0,
+											],
+										],
+									],
+									[
+										'key'          => 'field_vs_blk_cstats_cta_label',
+										'label'        => 'Button label',
+										'name'         => 'cta_label',
+										'type'         => 'text',
+										'instructions' => 'Optional. The single ghost button under the copy — '
+											. '"Meet Dr. Bryce Richardson". Leave it blank and no button is drawn.',
+									],
+									[
+										'key'          => 'field_vs_blk_cstats_cta_href',
+										'label'        => 'Button link',
+										'name'         => 'cta_href',
+										'type'         => 'text',
+										'instructions' => 'An anchor on this page like #doctors, a path on this site like '
+											. '/about-us/, or one of "book", "phone", "map". Never paste the booking, '
+											. 'phone or map address itself.',
+									],
+									[
+										'key'          => 'field_vs_blk_cstats_cta_hover',
+										'label'        => 'Button hover label',
+										'name'         => 'cta_hover',
+										'type'         => 'text',
+										'instructions' => 'Optional. The word-swap shown on hover — "See Bio", "See Bios". '
+											. 'Leave it blank for the usual label for that destination.',
+									],
+								]
+							),
+						],
+
+						/**
+						 * The numbered technology cards — `.tech-grid` of
+						 * `.tech-card` on both the implant and cosmetic hubs, with
+						 * the cosmetic hub closing the same band with the `.dsd`
+						 * panel (Digital Smile Design copy beside a tagged photo).
+						 *
+						 * NOT card_grid: a tech card is <h4> + html-bearing <p> +
+						 * a `.tech-foot` label, none of which the `.why-card`
+						 * family draws, and its `01`–`06` numeral is the row's
+						 * POSITION — derived from the index by the component, never
+						 * stored, for the reason block_list_field() spells out: a
+						 * stored number is renumbered by hand after every reorder,
+						 * and the first miss counts 01, 02, 02.
+						 *
+						 * The `.dsd` panel reuses the callout trio names the other
+						 * layouts carry, plus this layout's image pair and the tag
+						 * that sits on the photo. `callout_heading` is the switch:
+						 * blank — which is what the implant hub and every future
+						 * grid-only band stores — draws no panel at all, not an
+						 * empty one.
+						 */
+						[
+							'key'        => 'layout_vs_blk_tech_grid',
+							'name'       => 'tech_grid',
+							'label'      => 'Technology cards',
+							'display'    => 'block',
+							'sub_fields' => array_merge(
+								block_preamble( 'tech' ),
+								[
+									[
+										'key'          => 'field_vs_blk_tech_cards',
+										'label'        => 'Cards',
+										'name'         => 'tech_cards',
+										'type'         => 'repeater',
+										'layout'       => 'row',
+										'button_label' => 'Add a card',
+										'instructions' => 'The numerals are drawn from the order of the rows — drag to '
+											. 'renumber.',
+										'sub_fields'   => [
+											[
+												'key'   => 'field_vs_blk_tech_card_title',
+												'label' => 'Title',
+												'name'  => 'title',
+												'type'  => 'text',
+											],
+											[
+												'key'          => 'field_vs_blk_tech_card_body',
+												'label'        => 'Body',
+												'name'         => 'body',
+												'type'         => 'textarea',
+												'rows'         => 3,
+												'instructions' => 'May contain an inline <a class="vs-link"> — the cosmetic '
+													. 'hub\'s robotic-placement card links to the implant hub mid-sentence.',
+											],
+											[
+												'key'          => 'field_vs_blk_tech_card_foot',
+												'label'        => 'Foot label',
+												'name'         => 'foot',
+												'type'         => 'text',
+												'instructions' => 'The small label at the card\'s foot — "Imaging", "Scanning".',
+											],
+										],
+									],
+									[
+										'key'          => 'field_vs_blk_tech_callout_eyebrow',
+										'label'        => 'Panel eyebrow',
+										'name'         => 'callout_eyebrow',
+										'type'         => 'text',
+										'instructions' => 'The closing panel under the cards — fill in the panel heading '
+											. 'below and it appears; leave that blank and none of these four draw.',
+									],
+									[
+										'key'          => 'field_vs_blk_tech_callout_heading',
+										'label'        => 'Panel heading',
+										'name'         => 'callout_heading',
+										'type'         => 'textarea',
+										'rows'         => 2,
+										'instructions' => 'May contain <em>…</em> for the accent styling.',
+									],
+									[
+										'key'   => 'field_vs_blk_tech_callout_body',
+										'label' => 'Panel body',
+										'name'  => 'callout_body',
+										'type'  => 'textarea',
+										'rows'  => 5,
+									],
+									block_image_field( 'field_vs_blk_tech_image', 'Panel image' ),
+									[
+										'key'          => 'field_vs_blk_tech_image_alt',
+										'label'        => 'Panel image alt text',
+										'name'         => 'image_alt',
+										'type'         => 'text',
+										'instructions' => 'What the photo shows, for screen readers and search.',
+									],
+									[
+										'key'          => 'field_vs_blk_tech_image_tag',
+										'label'        => 'Photo tag',
+										'name'         => 'image_tag',
+										'type'         => 'text',
+										'instructions' => 'The small plate on the photo — "Approve before we begin".',
+									],
+								]
+							),
+						],
+
+						/**
+						 * The linked service-tile grid — `.svc-grid` of
+						 * `.svc-card.compact` on the implant and cosmetic hubs and
+						 * all three /services/ bands, plus general-dentistry's
+						 * unlinked `.svc-feat` feature cards as the second style.
+						 *
+						 * `nested` mirrors pricing_tiers' flag, and exists for one
+						 * band: the implant hub's `#solutions` draws its price table
+						 * and then this grid inside ONE section, so the grid rows
+						 * tuck into the pricing band above through that block's
+						 * <slot/> rather than opening a second ~220px of section
+						 * padding mid-band.
+						 *
+						 * `columns` is a stored choice, not derived from the row
+						 * count, matching card_grid and process_steps. "5" is the
+						 * hubs' centred 3+2 shape (a six-track grid, each card
+						 * spanning two, the fourth placed at track 2 — implant hub
+						 * and /services/ `#implants` both draw it).
+						 *
+						 * `image_pos` holds a raw object-position override because
+						 * three live tiles crop their photo off-centre ("center
+						 * 25%"); blank — every other tile — draws no style
+						 * attribute at all.
+						 */
+						[
+							'key'        => 'layout_vs_blk_service_cards',
+							'name'       => 'service_cards',
+							'label'      => 'Service tiles',
+							'display'    => 'block',
+							'sub_fields' => array_merge(
+								block_preamble( 'svc' ),
+								[
+									[
+										'key'           => 'field_vs_blk_svc_nested',
+										'label'         => 'Tuck this inside the section above',
+										'name'          => 'nested',
+										'type'          => 'true_false',
+										'ui'            => 1,
+										'default_value' => 0,
+										'instructions'  => 'Leave this off for the usual thing: the tiles are their own section. '
+											. 'Turn it on and the tiles are drawn INSIDE the section directly above instead — '
+											. 'the way the implant hub keeps its five service tiles under its price table in '
+											. 'one section. Tucked in, the tiles take the background of the section above, '
+											. 'and Background, Anchor and Rail label stop doing anything. It can only tuck '
+											. 'under a “Pricing plans” or “Stat callout” section — under anything else, or as '
+											. 'the first section on a page, it is drawn as an ordinary section instead.',
+									],
+									[
+										'key'           => 'field_vs_blk_svc_card_style',
+										'label'         => 'Card style',
+										'name'          => 'card_style',
+										'type'          => 'select',
+										'choices'       => [
+											'tiles'    => 'Linked tiles — photo, short line, arrow',
+											'features' => 'Feature cards — photo over always-visible description, no link',
+										],
+										'default_value' => 'tiles',
+										'return_format' => 'value',
+										'allow_null'    => 0,
+										'multiple'      => 0,
+										'ui'            => 0,
+									],
+									[
+										'key'           => 'field_vs_blk_svc_columns',
+										'label'         => 'Columns',
+										'name'          => 'columns',
+										'type'          => 'select',
+										// "5" is a shape, not just a count: the centred 3+2
+										// grid both five-tile bands draw. The choice exists
+										// before any row uses it for the reason
+										// process_steps' "5" documents: a select stores the
+										// posted string unchecked, and a value with no choice
+										// renders as an empty control that silently rewrites
+										// the band on the next save.
+										'choices'       => [
+											'2' => '2',
+											'3' => '3',
+											'4' => '4',
+											'5' => '5 — centred 3+2',
+										],
+										'default_value' => '3',
+										'return_format' => 'value',
+										'allow_null'    => 0,
+										'multiple'      => 0,
+										'ui'            => 0,
+									],
+									[
+										'key'          => 'field_vs_blk_svc_cards',
+										'label'        => 'Tiles',
+										'name'         => 'svc_cards',
+										'type'         => 'repeater',
+										'layout'       => 'row',
+										'button_label' => 'Add a tile',
+										'sub_fields'   => [
+											[
+												'key'   => 'field_vs_blk_svc_card_title',
+												'label' => 'Title',
+												'name'  => 'title',
+												'type'  => 'text',
+											],
+											[
+												'key'          => 'field_vs_blk_svc_card_body',
+												'label'        => 'Description',
+												'name'         => 'body',
+												'type'         => 'textarea',
+												'rows'         => 3,
+												'instructions' => 'May contain an inline <a class="vs-link"> — the emergency '
+													. 'feature card links out mid-sentence.',
+											],
+											[
+												'key'          => 'field_vs_blk_svc_card_tag',
+												'label'        => 'Corner tag',
+												'name'         => 'tag',
+												'type'         => 'text',
+												'instructions' => 'Optional. The small pill on the photo — "Same-Day". '
+													. 'Linked tiles only.',
+											],
+											[
+												'key'          => 'field_vs_blk_svc_card_href',
+												'label'        => 'Link',
+												'name'         => 'href',
+												'type'         => 'text',
+												'instructions' => 'A path on this site, like /implant-dentistry/sinus-lift/. '
+													. 'Leave it blank on feature cards — they are not links. Never paste '
+													. 'a full address from the browser bar.',
+											],
+											block_image_field( 'field_vs_blk_svc_card_image', 'Photo' ),
+											[
+												'key'   => 'field_vs_blk_svc_card_image_alt',
+												'label' => 'Photo alt text',
+												'name'  => 'image_alt',
+												'type'  => 'text',
+											],
+											[
+												'key'          => 'field_vs_blk_svc_card_image_pos',
+												'label'        => 'Photo focus',
+												'name'         => 'image_pos',
+												'type'         => 'text',
+												'instructions' => 'Leave blank. Set by the site team when a photo needs an '
+													. 'off-centre crop focus — e.g. "center 25%".',
+											],
+										],
+									],
+									[
+										'key'          => 'field_vs_blk_svc_sub_foot',
+										'label'        => 'Closing paragraph',
+										'name'         => 'sub_foot',
+										'type'         => 'textarea',
+										'rows'         => 3,
+										'instructions' => 'Optional. The paragraph under the tiles — may contain an inline '
+											. '<a class="vs-link">. Blank draws nothing.',
+									],
+								],
+								/**
+								 * The head buttons — /services/ closes two of its
+								 * section heads with a `.cta-row.in-head` pair
+								 * ("View All Cosmetic Services" / "Smile Gallery").
+								 * Drawn inside `.section-head`, only when a label is
+								 * non-empty, never in nested mode.
+								 */
+								block_cta_fields( 'svc' )
+							),
+						],
+
+						/**
+						 * The doctor feature — `.doctor--feature` on all three
+						 * parent hubs: one portrait with a pill label beside a
+						 * column of bios separated by `.doctor-rule` hairlines.
+						 *
+						 * `bios` is a repeater because the three hubs draw one, two
+						 * and two of them; the ROW decides its own markup. A row
+						 * with a thumbnail image draws the `.doctor-bio--secondary`
+						 * aside (thumb + eyebrow head, paragraph, no heading — the
+						 * cosmetic hub's Dr. Annie card); a row without one draws
+						 * the plain `.doctor-bio` (eyebrow, <h3>, paragraphs), and
+						 * `lead` adds the `--lead` scale-up the implant and
+						 * cosmetic hubs give their first bio. `body_2` is the
+						 * second paragraph on the same house rule as every other
+						 * `_2` field: two paragraphs in one textarea come back as
+						 * one <p>.
+						 */
+						[
+							'key'        => 'layout_vs_blk_doctor_profiles',
+							'name'       => 'doctor_profiles',
+							'label'      => 'Doctor profiles',
+							'display'    => 'block',
+							'sub_fields' => array_merge(
+								block_preamble( 'docs' ),
+								[
+									block_image_field( 'field_vs_blk_docs_image', 'Portrait' ),
+									[
+										'key'   => 'field_vs_blk_docs_image_alt',
+										'label' => 'Portrait alt text',
+										'name'  => 'image_alt',
+										'type'  => 'text',
+									],
+									[
+										'key'          => 'field_vs_blk_docs_pill',
+										'label'        => 'Portrait pill',
+										'name'         => 'pill',
+										'type'         => 'text',
+										'instructions' => 'The small plate on the portrait — "Founder · Surgical & Restorative".',
+									],
+									[
+										'key'          => 'field_vs_blk_docs_bios',
+										'label'        => 'Bios',
+										'name'         => 'bios',
+										'type'         => 'repeater',
+										'layout'       => 'row',
+										'button_label' => 'Add a bio',
+										'instructions' => 'A hairline rule is drawn between bios automatically.',
+										'sub_fields'   => [
+											[
+												'key'          => 'field_vs_blk_docs_bio_eyebrow',
+												'label'        => 'Eyebrow',
+												'name'         => 'eyebrow',
+												'type'         => 'text',
+												'instructions' => '"Dr. Bryce Richardson, DDS" — or "Also at the practice" on a '
+													. 'thumbnail card.',
+											],
+											[
+												'key'          => 'field_vs_blk_docs_bio_heading',
+												'label'        => 'Heading',
+												'name'         => 'heading',
+												'type'         => 'textarea',
+												'rows'         => 2,
+												'instructions' => 'May contain <em>…</em>. Not drawn on a thumbnail card.',
+											],
+											[
+												'key'   => 'field_vs_blk_docs_bio_body',
+												'label' => 'Body',
+												'name'  => 'body',
+												'type'  => 'textarea',
+												'rows'  => 5,
+											],
+											[
+												'key'          => 'field_vs_blk_docs_bio_body_2',
+												'label'        => 'Second paragraph',
+												'name'         => 'body_2',
+												'type'         => 'textarea',
+												'rows'         => 4,
+												'instructions' => 'Optional. Blank draws nothing.',
+											],
+											[
+												'key'           => 'field_vs_blk_docs_bio_lead',
+												'label'         => 'Feature this bio larger',
+												'name'          => 'lead',
+												'type'          => 'true_false',
+												'ui'            => 1,
+												'default_value' => 0,
+											],
+											block_image_field( 'field_vs_blk_docs_bio_image', 'Thumbnail' ),
+											[
+												'key'   => 'field_vs_blk_docs_bio_image_alt',
+												'label' => 'Thumbnail alt text',
+												'name'  => 'image_alt',
+												'type'  => 'text',
+											],
+										],
+									],
+								]
+							),
+						],
+
+						/**
+						 * Split copy beside a numbered ledger — the `#candidacy`
+						 * band the implant and cosmetic hubs share verbatim in
+						 * shape: `.cand-grid` holding `.cand-copy` (two <h3> +
+						 * paragraph pairs, two buttons) and the `.ledger` aside
+						 * (its own head, numbered rows with a tag).
+						 *
+						 * The copy pairs are four FLAT fields, not a repeater:
+						 * both live bands have exactly two pairs, flat text fields
+						 * mint no GraphQL type, and a repeater would be one more
+						 * name to keep out of the shared namespace for a shape
+						 * with no third instance anywhere in the corpus.
+						 *
+						 * The ledger rows' `1 2 3 4` numerals are the row's
+						 * position, derived by the component — same rule as
+						 * tech_cards and block_list_field()'s marker.
+						 *
+						 * Six hand-declared cta fields, factory names, NO
+						 * cta_note: the band draws two buttons and has never drawn
+						 * a note, and a field nothing renders reads as supported.
+						 */
+						[
+							'key'        => 'layout_vs_blk_candidacy_ledger',
+							'name'       => 'candidacy_ledger',
+							'label'      => 'Candidacy + ledger',
+							'display'    => 'block',
+							'sub_fields' => array_merge(
+								block_preamble( 'cand' ),
+								[
+									[
+										'key'   => 'field_vs_blk_cand_copy_heading',
+										'label' => 'First sub-heading',
+										'name'  => 'copy_heading',
+										'type'  => 'text',
+									],
+									[
+										'key'          => 'field_vs_blk_cand_copy_body',
+										'label'        => 'First paragraph',
+										'name'         => 'copy_body',
+										'type'         => 'textarea',
+										'rows'         => 4,
+										'instructions' => 'May contain inline <a class="vs-link"> anchors.',
+									],
+									[
+										'key'   => 'field_vs_blk_cand_copy_heading_2',
+										'label' => 'Second sub-heading',
+										'name'  => 'copy_heading_2',
+										'type'  => 'text',
+									],
+									[
+										'key'          => 'field_vs_blk_cand_copy_body_2',
+										'label'        => 'Second paragraph',
+										'name'         => 'copy_body_2',
+										'type'         => 'textarea',
+										'rows'         => 4,
+										'instructions' => 'May contain inline <a class="vs-link"> anchors.',
+									],
+									[
+										'key'          => 'field_vs_blk_cand_ledger_eyebrow',
+										'label'        => 'Ledger eyebrow',
+										'name'         => 'ledger_eyebrow',
+										'type'         => 'text',
+										'instructions' => 'The small label the side panel opens with — "Signs you\'re a candidate".',
+									],
+									[
+										'key'          => 'field_vs_blk_cand_ledger_heading',
+										'label'        => 'Ledger heading',
+										'name'         => 'ledger_heading',
+										'type'         => 'textarea',
+										'rows'         => 2,
+									],
+									[
+										'key'          => 'field_vs_blk_cand_ledger',
+										'label'        => 'Ledger rows',
+										'name'         => 'ledger',
+										'type'         => 'repeater',
+										'layout'       => 'row',
+										'button_label' => 'Add a row',
+										'instructions' => 'The numerals are drawn from the order of the rows — drag to renumber.',
+										'sub_fields'   => [
+											[
+												'key'   => 'field_vs_blk_cand_ledger_title',
+												'label' => 'Title',
+												'name'  => 'title',
+												'type'  => 'text',
+											],
+											[
+												'key'   => 'field_vs_blk_cand_ledger_body',
+												'label' => 'Body',
+												'name'  => 'body',
+												'type'  => 'textarea',
+												'rows'  => 2,
+											],
+											[
+												'key'          => 'field_vs_blk_cand_ledger_tag',
+												'label'        => 'Tag',
+												'name'         => 'tag',
+												'type'         => 'text',
+												'instructions' => 'The small label on the row\'s right — "CBCT", "Veneers".',
+											],
+										],
+									],
+									[
+										'key'          => 'field_vs_blk_cand_cta_label',
+										'label'        => 'Button label',
+										'name'         => 'cta_label',
+										'type'         => 'text',
+										'instructions' => 'Optional. The first button under the copy. Leave both labels blank '
+											. 'and no buttons are drawn.',
+									],
+									[
+										'key'          => 'field_vs_blk_cand_cta_href',
+										'label'        => 'Button link',
+										'name'         => 'cta_href',
+										'type'         => 'text',
+										'instructions' => 'An anchor on this page, a path on this site, or one of "book", '
+											. '"phone", "map". Never paste the booking, phone or map address itself.',
+									],
+									[
+										'key'          => 'field_vs_blk_cand_cta_hover',
+										'label'        => 'Button hover label',
+										'name'         => 'cta_hover',
+										'type'         => 'text',
+										'instructions' => 'Optional. Blank uses the usual label for that destination.',
+									],
+									[
+										'key'          => 'field_vs_blk_cand_cta_label_2',
+										'label'        => 'Second button label',
+										'name'         => 'cta_label_2',
+										'type'         => 'text',
+										'instructions' => 'Optional. Leave it blank for a single button.',
+									],
+									[
+										'key'          => 'field_vs_blk_cand_cta_href_2',
+										'label'        => 'Second button link',
+										'name'         => 'cta_href_2',
+										'type'         => 'text',
+										'instructions' => 'An anchor on this page, a path on this site, or one of "book", '
+											. '"phone", "map". Never paste the booking, phone or map address itself.',
+									],
+									[
+										'key'          => 'field_vs_blk_cand_cta_hover_2',
+										'label'        => 'Second button hover label',
+										'name'         => 'cta_hover_2',
+										'type'         => 'text',
+										'instructions' => 'Optional. Blank uses the usual label for that destination.',
+									],
+								]
+							),
+						],
+
 						/**
 						 * A section the site builds itself.
 						 *

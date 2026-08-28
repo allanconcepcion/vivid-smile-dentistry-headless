@@ -161,11 +161,24 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    *
    * `pull` is a second paragraph, not the preamble's `body`: on the pages that
    * have both, `body` sits under the heading and `pull` in the column beside
-   * the questions. The backfill maps `sections.faq.body` → `pull`.
+   * the questions. The backfill maps `sections.faq.body` → `pull` — ON THE
+   * DETAIL PAGES. The four hub pages draw that paragraph inside the centred
+   * head instead (no `.pull` column exists in their markup), so their maps
+   * put `sections.faq.body` → `body` and leave `pull` empty. Same field, two
+   * destinations, decided by where the page has always drawn the words.
+   *
+   * `ctaHover` (PHP `cta_hover`, Wave A) is the per-row override for the
+   * button's word-swap, same contract as media_split's: blank — every saved
+   * row — falls back to the CTA_HOVER table exactly as today. It exists
+   * because /services/ stores "#virtualConsult" (VirtualConsult's default id
+   * when the page passes none), the table has no such key, and a table-only
+   * hover would replace "Get a Video" with the visible label — a one-word
+   * census loss of exactly the class teeth-whitening's "View Levels" was.
+   * FaqBlock must read it in the same batch that lands this line.
    */
   PageFieldsBlocksFaqLayout: {
     typeName: "PageFieldsBlocksFaqLayout",
-    fields: `${BLOCK_PREAMBLE_FIELDS} pull items { question answer open } ctaLabel ctaHref`,
+    fields: `${BLOCK_PREAMBLE_FIELDS} pull items { question answer open } ctaLabel ctaHref ctaHover`,
   },
 
   /**
@@ -404,9 +417,29 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    * validation and to `scripts/check-block-schema.mjs`. Additive to live rows —
    * none of them stores "5".
    */
+  /**
+   * WAVE A WIDENS THIS TWICE, AND BOTH NAMES MUST REACH ProcessStepsBlock IN
+   * THE SAME BATCH — the component today draws only the `grid` shape and
+   * warns on the other two, so the hub batch is also the batch that makes
+   * `card` (the hubs' `.pgrid-card` shell: implant 4-across, cosmetic
+   * 3-across over six steps) and `divided` (the /services/ bordered three-up,
+   * rendered through the shared ProcessStepGrid/ProcessStep components) real.
+   *
+   * `steps[].tagline` — the short italic line between the figure and the
+   * title that only the divided shape prints ("Listen first."). A text
+   * sub-field on an existing repeater: no type minted, blank on every saved
+   * row, and blank draws no element in any shape.
+   *
+   * `subFoot` (PHP `sub_foot`) — cosmetic-dentistry's `.process-outro`
+   * closing paragraph. Same name and contract as media_split's: a plain
+   * paragraph, NOT the `ctaText` plate (that one carries buttons, and
+   * buttons under a band that never had them is a stray element). Selected
+   * before `ctaText` because that is their DOM order on a band that had
+   * both.
+   */
   PageFieldsBlocksProcessStepsLayout: {
     typeName: "PageFieldsBlocksProcessStepsLayout",
-    fields: `${BLOCK_PREAMBLE_FIELDS} layout columns preCards { heading body } steps { tag num title body } ctaText`,
+    fields: `${BLOCK_PREAMBLE_FIELDS} layout columns preCards { heading body } steps { tag num tagline title body } subFoot ctaText`,
   },
 
   /**
@@ -426,9 +459,22 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    * anchor, a site path ("/smile-gallery/"), or "book" | "phone" | "map" —
    * never a pasted URL.
    */
+  /**
+   * WAVE A ADDS THE TWO-COLUMN HEAD, and `quote` is the switch. The cosmetic
+   * hub's `#results` opens this strip with `.results-grid` — `.results-copy`
+   * (preamble trio, a second paragraph, the two cta buttons) beside a
+   * `.results-aside` review card (a hardcoded ★★★★★ row, the quote, an
+   * attribution) — where every other page draws the centred `.section-head`.
+   * GalleryMarqueeBlock draws the two-column head only when `quote` is
+   * non-empty; every band already saved against this layout is quote-less
+   * and renders byte-for-byte as it does now. `quoteAttrib` carries its
+   * leading em dash and its inline <b> in the value (drawn with set:html),
+   * the same contract as media_split's field of the same name; `body2` is
+   * the second paragraph on the standing house rule.
+   */
   PageFieldsBlocksGalleryMarqueeLayout: {
     typeName: "PageFieldsBlocksGalleryMarqueeLayout",
-    fields: `${BLOCK_PREAMBLE_FIELDS} ctaLabel ctaHref ctaHover ctaLabel2 ctaHref2 ctaHover2 ctaNote`,
+    fields: `${BLOCK_PREAMBLE_FIELDS} body2 quote quoteAttrib ctaLabel ctaHref ctaHover ctaLabel2 ctaHref2 ctaHover2 ctaNote`,
   },
 
   /**
@@ -513,9 +559,17 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    * Additive: no saved row holds an `altCards` row, so the list is empty and
    * ComparisonCardsBlock must draw no `.alternatives-grid` wrapper for it.
    */
+  /**
+   * `ctaHide` (PHP `cta_hide`, Wave A) is the one way to draw NO closing row.
+   * The fallback contract above means blank labels can never mean "no row" —
+   * and the implant hub's `#compare` has no row at all, so migrating it
+   * without this switch would ADD two buttons and a note to a live page.
+   * Absent-or-false — every saved row — keeps the fallback exactly as today;
+   * read it for truthiness, never `=== false`, like every true_false here.
+   */
   PageFieldsBlocksComparisonCardsLayout: {
     typeName: "PageFieldsBlocksComparisonCardsLayout",
-    fields: `${BLOCK_PREAMBLE_FIELDS} tiers { tag title body bullets { lead item } body2 ribbon featured } calloutEyebrow calloutHeading calloutBody altColumns altCards { tag title body } glossaryEyebrow glossaryHeading glossaryBody glossary { tag title body } ctaLabel ctaHref ctaHover ctaLabel2 ctaHref2 ctaHover2 ctaNote`,
+    fields: `${BLOCK_PREAMBLE_FIELDS} tiers { tag title body bullets { lead item } body2 ribbon featured } calloutEyebrow calloutHeading calloutBody altColumns altCards { tag title body } glossaryEyebrow glossaryHeading glossaryBody glossary { tag title body } ctaHide ctaLabel ctaHref ctaHover ctaLabel2 ctaHref2 ctaHover2 ctaNote`,
   },
 
   /**
@@ -659,7 +713,164 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    */
   PageFieldsBlocksPricingTiersLayout: {
     typeName: "PageFieldsBlocksPricingTiersLayout",
+    /**
+     * WAVE A MAKES THIS LAYOUT A HOST — implant-dentistry's `#solutions` is
+     * one section holding the price table AND the five-tile service grid, so
+     * the grid rides in as a `service_cards` row flagged `nested`, drawn
+     * through a `<slot />` PricingTiersBlock gains after the financing note
+     * (band mode only; a nested table has no slot of its own). `hosts: true`
+     * is NOT set here yet, and that is the deploy-safe direction on purpose:
+     * with the flag and no slot, PageBlocks hands the guest to a component
+     * that never renders it — silent content loss, the exact failure the
+     * flag exists to prevent — while without the flag the guest is demoted
+     * to its own band with a console warning. So the build agent who lands
+     * the `<slot />` in PricingTiersBlock.astro flips this entry to
+     * `hosts: true` IN THAT SAME COMMIT, exactly as the `hosts` doc above
+     * ("Add this flag in the SAME commit as the <slot />, never before it").
+     */
     fields: `${BLOCK_PREAMBLE_FIELDS} nested plans { name price meta priceNote priceSuffix ribbon highlighted features { item } } note ctaLabel ctaHref ctaHover ctaLabel2 ctaHref2 ctaHover2 ctaNote`,
+  },
+
+  /**
+   * ── Phase 4 Wave A — the hub-page layouts ────────────────────────────────
+   *
+   * Five layouts extracted from the four hub pages. Every field named below
+   * exists on its layout in vs-content-model.php (landed in the same change),
+   * and every one of them must reach its component in the same wave — the
+   * components are new files (CopyPlusStatsBlock, TechGridBlock,
+   * ServiceCardsBlock, DoctorProfilesBlock, CandidacyLedgerBlock), created by
+   * the build agents alongside their registry.ts bindings, so on these five
+   * there is no "additive to saved rows" question: no rows exist yet, and the
+   * first backfill is the first render.
+   *
+   * Repeater names minted here — `stats`, `techCards`, `svcCards`, `bios`,
+   * `ledger` — are each claimed by no other container under `blocks` (or
+   * anywhere in vs-content-model.php), checked by enumeration of every
+   * repeater/group name in the PHP, not assumed: items, cards,
+   * callout_points, checklist, creds, sub_cards, pre_cards, steps, tiers,
+   * bullets, alt_cards, glossary, points, plans, features — and the page-level
+   * sections/images/cards/faqs/toc_links/process_steps/hero/ctas, which mint
+   * under the PageFields prefix rather than PageFieldsBlocks but are kept
+   * clear of anyway.
+   */
+
+  /**
+   * Copy beside a column of stat cards — the hubs' `why` band (`.why-grid` >
+   * `.why-copy` + `.why-stats`). Not card_grid, though both emit `.why-grid`:
+   * the hub family is a two-column copy/stats split, not a uniform card grid.
+   *
+   * `body2Heading`/`body2` are the optional mid-column <h3> + paragraph
+   * (implant and general have both, cosmetic only the paragraph) — media
+   * _split's names, so the convention stays one convention. The stat figure
+   * is `value` + `unit` ("600" + "+", "1" + "st", "0" + nothing), split so
+   * the <em> around the suffix survives; `stars` is a boolean that prefixes
+   * the detail with the aria-hidden ★★★★★ span plus the template's
+   * non-breaking space — same contract as media_split's `creds.stars`.
+   *
+   * THREE cta fields, not the seven-pack: the band draws exactly one ghost
+   * button on all three hubs, and a selected field nothing renders reads as
+   * supported. Hrefs follow the HREF policy (anchor, site path, or
+   * book|phone|map via src/blocks/cta.ts — the component imports it, never
+   * copies it).
+   */
+  PageFieldsBlocksCopyPlusStatsLayout: {
+    typeName: "PageFieldsBlocksCopyPlusStatsLayout",
+    fields: `${BLOCK_PREAMBLE_FIELDS} body2Heading body2 stats { value unit label detail stars } ctaLabel ctaHref ctaHover`,
+  },
+
+  /**
+   * The numbered technology cards — `.tech-grid` of `.tech-card` on the
+   * implant and cosmetic hubs, with cosmetic's `.dsd` (Digital Smile Design)
+   * panel closing the same band.
+   *
+   * The card numerals `01`–`06` are POSITION, derived from the row index by
+   * the component (padStart(2, "0")) and never stored — block_list_field()'s
+   * marker rule: a stored number is a number an editor renumbers by hand
+   * after every reorder. `techCards[].body` is html-bearing (cosmetic's
+   * robotic-placement card carries an inline vs-link), so the component
+   * renders it with set:html.
+   *
+   * The panel is the callout trio the other layouts carry, plus this
+   * layout's image pair and the `imageTag` plate on the photo.
+   * `calloutHeading` is the switch: blank (the implant hub) draws no panel
+   * at all — not an empty one.
+   */
+  PageFieldsBlocksTechGridLayout: {
+    typeName: "PageFieldsBlocksTechGridLayout",
+    fields: `${BLOCK_PREAMBLE_FIELDS} techCards { title body foot } calloutEyebrow calloutHeading calloutBody ${BLOCK_IMAGE_FIELDS} imageAlt imageTag`,
+  },
+
+  /**
+   * The service-tile grid — `.svc-grid` of linked `.svc-card.compact` tiles
+   * (implant + cosmetic hubs, all three /services/ bands) and, as
+   * `cardStyle: "features"`, general-dentistry's unlinked `.svc-feat`
+   * feature cards.
+   *
+   * `nested` is pricing_tiers' flag on a second layout, for one band: the
+   * implant hub's `#solutions` holds the price table AND this grid in one
+   * section, so the grid tucks into the pricing block's new <slot /> instead
+   * of opening ~220px of section padding mid-band. Selected first for the
+   * same reason pricing's is: it changes what `anchor`, `navLabel` and
+   * `band` mean on the row.
+   *
+   * `columns` arrives "2" | "3" | "4" | "5", where "5" is the centred 3+2
+   * shape (a six-track grid, cards spanning two, the fourth placed at track
+   * two) both five-tile bands draw. `svcCards[].body` is html-bearing (the
+   * emergency feature card links out mid-sentence); `svcCards[].imagePos`
+   * is the raw object-position override three live tiles carry ("center
+   * 25%") — blank draws no style attribute. `subFoot` is the `.svc-outro`
+   * closing paragraph, html-bearing for the same inline-link reason.
+   *
+   * The seven-pack draws as the `.cta-row.in-head` pair inside the section
+   * head (/services/ `#cosmetic` and `#implants`), only when a label is
+   * non-empty, never in nested mode.
+   */
+  PageFieldsBlocksServiceCardsLayout: {
+    typeName: "PageFieldsBlocksServiceCardsLayout",
+    fields: `${BLOCK_PREAMBLE_FIELDS} nested cardStyle columns svcCards { title body tag href imagePos imageAlt image { node { sourceUrl altText mediaDetails { width height } } } } subFoot ctaLabel ctaHref ctaHover ctaLabel2 ctaHref2 ctaHover2 ctaNote`,
+  },
+
+  /**
+   * The doctor feature — `.doctor--feature`: one pilled portrait beside a
+   * column of bios separated by `.doctor-rule` hairlines, on all three
+   * parent hubs.
+   *
+   * A bio ROW decides its own markup: a row with a thumbnail `image` draws
+   * the `.doctor-bio--secondary` aside (thumb + eyebrow head, paragraph, no
+   * heading — cosmetic's Dr. Annie card, aria-labelled from its eyebrow); a
+   * row without one draws the plain `.doctor-bio` (eyebrow, <h3> with
+   * set:html for the <em>, one or two paragraphs), with `lead` adding the
+   * `--lead` scale-up implant and cosmetic give their first bio and general
+   * gives neither. The hairline is drawn BETWEEN rows by the component —
+   * one row (implant) draws none.
+   *
+   * The bios repeater carries an image, so its selection nests the same
+   * node/mediaDetails shape BLOCK_IMAGE_FIELDS asks for — <Image> refuses a
+   * remote source without intrinsic dimensions, inside a repeater no less
+   * than at the top level.
+   */
+  PageFieldsBlocksDoctorProfilesLayout: {
+    typeName: "PageFieldsBlocksDoctorProfilesLayout",
+    fields: `${BLOCK_PREAMBLE_FIELDS} ${BLOCK_IMAGE_FIELDS} imageAlt pill bios { eyebrow heading body body2 lead imageAlt image { node { sourceUrl altText mediaDetails { width height } } } }`,
+  },
+
+  /**
+   * Split copy beside a numbered ledger — the `#candidacy` band implant and
+   * cosmetic share in shape: `.cand-grid` > `.cand-copy` (two <h3> +
+   * paragraph pairs, both paragraphs html-bearing for their inline
+   * vs-links, then two buttons) + the `.ledger` aside (its own eyebrow +
+   * <h4> head, rows of title/body/tag with the `1 2 3 4` numeral derived
+   * from the row index — never stored).
+   *
+   * The copy pairs are four flat fields, not a repeater: both live bands
+   * have exactly two, flat fields mint no type, and each half draws only
+   * when non-empty. SIX cta fields — the factory names minus `ctaNote`,
+   * which this band has never drawn; the component fixes the variants to
+   * the template's light + outline-light pair.
+   */
+  PageFieldsBlocksCandidacyLedgerLayout: {
+    typeName: "PageFieldsBlocksCandidacyLedgerLayout",
+    fields: `${BLOCK_PREAMBLE_FIELDS} copyHeading copyBody copyHeading2 copyBody2 ledgerEyebrow ledgerHeading ledger { title body tag } ctaLabel ctaHref ctaHover ctaLabel2 ctaHref2 ctaHover2`,
   },
 
   /**
