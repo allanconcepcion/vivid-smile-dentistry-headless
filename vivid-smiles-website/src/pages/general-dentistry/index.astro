@@ -65,11 +65,59 @@ import '../../styles/pages/general-dentistry.css';
 
 // Service-tile images — one distinct subject per tile, and none of them the
 // hero's photo.
-import { getPageContent } from '../../lib/page-content';
+import { getPageContent, type TocLink } from '../../lib/page-content';
+import PageBlocks from '../../blocks/PageBlocks.astro';
 // tocLinks, faqs are edited in WordPress (Pages -> General Dentistry in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+const { blocks, hasBlocks, tocLinks, faqs, section, image, seo } =
+  await getPageContent(Astro.url.pathname);
+
+/**
+ * THE MIGRATION SWITCH (docs/PAGE-BLOCKS.md 2.3), documented HERE and nowhere
+ * in the markup below — deliberately.
+ *
+ * `hasBlocks` means "this build can draw this page from its blocks", not
+ * "WordPress sent rows" (src/lib/page-content.ts). When it is true, PageBlocks
+ * draws the nine bands in the order an editor arranged them, at the position
+ * `#why` used to start; when it is false — every build until this route is
+ * back-filled, and again the moment an editor empties the field — every band
+ * renders exactly as it always has.
+ *
+ * WHY NO `{/* … *\/}` COMMENTS ON THE GUARDS. This template contains not one
+ * Astro comment expression today, and adding one is not free: Astro preserves
+ * whitespace between expressions, so a comment expression on its own line
+ * leaves newline-and-indent TEXT NODES either side of itself that survive into
+ * the built HTML on BOTH branches. That exact mistake put 14 bytes into a live
+ * page earlier in this project, and the else-branch of this file is verified
+ * byte-for-byte against the pre-migration build. So the rationale lives in this
+ * comment, and every guard below is written flush where its `<section>` sat:
+ * `hasBlocks ? … : <section` on the opening line, `</section>}` on the closing
+ * one, no line of its own for either.
+ *
+ * WHICH BANDS ARE GUARDED, and why the rest are not. Nine bands are blocks and
+ * each has exactly one row in cms/import/routes/general-dentistry.json:
+ * #why, #services, #first-visit, #gateway, #trust, #doctors, #payment, #area,
+ * #faq. Everything else stays unguarded, in two different senses:
+ *
+ *   `.crumbs`, `.hero`, the `.toc` rail, <VirtualConsult> and <FinalBand> are
+ *   CHROME — never blocks (spec 7: "Not a block, even though it is a band").
+ *   Only the rail's CONTENTS move, which is the one ternary on the rail below.
+ *
+ *   `.closing` is page copy that no registered layout can express and that no
+ *   `code_section` band key holds a place for. Guarding it with no row would
+ *   delete it from a live page, so it stays unguarded — and that is ORDER-SAFE
+ *   today only because it is the LAST content band: it follows #faq, the last
+ *   block, so the block run ending there leaves it exactly where it was. Add a
+ *   block after it and this becomes the LocalTrust fault
+ *   (CodeSectionBlock.astro's `local_trust` entry exists because that band was
+ *   left out of the list and came out at the bottom of the page). Recorded as a
+ *   known gap on this route in cms/import/block-map.json.
+ *
+ * A band guarded with no row VANISHES on backfill; a band with a row and no
+ * guard renders TWICE and lands at the bottom carrying a duplicate id. Both
+ * have happened on this project. There is no third outcome.
+ */
 
 
 
@@ -130,6 +178,69 @@ const offerCatalog = services.map((s) => {
   if (s.href) procedure.url = new URL(s.href, Astro.site).href;
   return { '@type': 'Offer', itemOffered: procedure };
 });
+
+/**
+ * The "On this page" rail, derived from the blocks themselves (docs/PAGE-BLOCKS.md 1.2).
+ *
+ * Used only when this page renders from `blocks`. The `toc_links` repeater is
+ * nine rows that restate the order of the nine bands below it, so a reorder
+ * in wp-admin moves a band and leaves its rail entry pointing at the old
+ * neighbour — the single largest way a reorder breaks a link. Reading the
+ * anchors off the blocks makes that unrepresentable: there is one ordering and
+ * the rail is a projection of it.
+ *
+ * Three rules, in the order they bite:
+ *
+ * 1. A blank anchor is skipped. Not tidiness — src/scripts/toc-spy.ts:24 feeds
+ *    each rendered href straight to document.querySelector(), and
+ *    querySelector("") throws a SyntaxError that kills the whole spy, not just
+ *    the one entry. PageBlocks.astro emits no id at all for a blank anchor
+ *    (`id={anchor || undefined}`), so there is nothing to link to either.
+ * 2. An anchor that is not a valid id selector is skipped for the same reason —
+ *    "#3-reasons" is legal HTML and an illegal CSS selector. Dropping one rail
+ *    entry costs one link; letting it through costs every link on the page,
+ *    plus the mobile pill auto-centering.
+ * 3. Duplicate anchors follow PageBlocks.astro's dedup exactly, second
+ *    occurrence onward suffixed `-2`, `-3`. The counter has to advance on every
+ *    non-blank anchor, including blocks with no nav_label, or the rail's idea
+ *    of "the second #faq" drifts from the id the renderer actually emitted.
+ *
+ * A blank nav_label means "leave this block out of the rail" (1.2), which is
+ * how a band that should not be navigable opts out.
+ */
+const ANCHOR_IS_ID_SELECTOR = /^[A-Za-z_][A-Za-z0-9_-]*$/;
+
+const anchorsSeen = new Map<string, number>();
+// Typed as TocLink[] rather than an equivalent inline shape so the ternary in
+// the rail below collapses to one type instead of a union of two array types,
+// which TypeScript will not let you call .map() on.
+const derivedTocLinks: TocLink[] = [];
+
+for (const block of blocks) {
+  // A nested block is drawn INSIDE the band above it, not as a band of its own,
+  // so it has no id to link to. Without this the rail emits an entry pointing at
+  // an anchor nothing renders — a dead link in the "On this page" list.
+  if (block?.nested) continue;
+
+  const anchor = typeof block.anchor === 'string' ? block.anchor.trim() : '';
+  if (anchor === '') continue;
+
+  const nth = (anchorsSeen.get(anchor) ?? 0) + 1;
+  anchorsSeen.set(anchor, nth);
+
+  const label = typeof block.navLabel === 'string' ? block.navLabel.trim() : '';
+  if (label === '') continue;
+
+  if (!ANCHOR_IS_ID_SELECTOR.test(anchor)) {
+    console.warn(
+      `[blocks] anchor "${anchor}" on ${Astro.url.pathname} cannot be used as a selector — ` +
+        `omitting "${label}" from the On this page rail so toc-spy keeps working`,
+    );
+    continue;
+  }
+
+  derivedTocLinks.push({ href: `#${nth > 1 ? `${anchor}-${nth}` : anchor}`, label });
+}
 
 ---
 
@@ -193,13 +304,13 @@ const offerCatalog = services.map((s) => {
           <span class="toc-label">On this page</span>
           <div class="toc-scroll">
             <div class="toc-list">
-              {tocLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+              {(hasBlocks ? derivedTocLinks : tocLinks).map((l) => <a href={l.href}>{l.label}</a>)}
             </div>
           </div>
         </div>
       </nav>
 
-      <section class="section alt" id="why" data-vs-reveal-batch>
+      {hasBlocks ? <PageBlocks blocks={blocks} /> : <section class="section alt" id="why" data-vs-reveal-batch>
         <div class="why-grid">
           <div class="why-copy">
             <span class="eyebrow">{section("why").eyebrow}</span>
@@ -246,9 +357,9 @@ const offerCatalog = services.map((s) => {
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
-      <section class="section" id="services" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section" id="services" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("services").eyebrow}</span>
@@ -277,9 +388,9 @@ const offerCatalog = services.map((s) => {
             }
           </div>
         </div>
-      </section>
+      </section>}
 
-      <section class="section alt" id="first-visit" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section alt" id="first-visit" data-vs-reveal-batch>
         <div class="wrap">
           <div class="what-grid">
             <div class="what-img" data-vs-parallax data-parallax="-25">
@@ -303,9 +414,9 @@ const offerCatalog = services.map((s) => {
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
-      <section class="section" id="gateway" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section" id="gateway" data-vs-reveal-batch>
         <div class="wrap">
           <div class="what-grid what-grid--flip">
             <div class="what-text">
@@ -337,9 +448,9 @@ const offerCatalog = services.map((s) => {
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
-      <section class="section dark" id="trust" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section dark" id="trust" data-vs-reveal-batch>
         <div class="wrap">
           <div class="trust-quote">
             <span class="eyebrow light">Why Parker trusts us</span>
@@ -355,9 +466,9 @@ const offerCatalog = services.map((s) => {
             </p>
           </div>
         </div>
-      </section>
+      </section>}
 
-      <section class="section" id="doctors" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section" id="doctors" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("doctors").eyebrow}</span>
@@ -397,9 +508,9 @@ const offerCatalog = services.map((s) => {
             </div>
           </article>
         </div>
-      </section>
+      </section>}
 
-      <section class="section alt" id="payment" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section alt" id="payment" data-vs-reveal-batch>
         <div class="wrap">
           <div class="pay-grid">
             <div class="pay-copy">
@@ -438,9 +549,9 @@ const offerCatalog = services.map((s) => {
             </aside>
           </div>
         </div>
-      </section>
+      </section>}
 
-      <section class="section" id="area" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section" id="area" data-vs-reveal-batch>
         <div class="wrap">
           <div class="area">
             <div class="area-copy">
@@ -476,9 +587,9 @@ const offerCatalog = services.map((s) => {
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
-      <section class="section alt" id="faq" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section alt" id="faq" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("faq").eyebrow}</span>
@@ -515,7 +626,7 @@ const offerCatalog = services.map((s) => {
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       <section class="closing" data-vs-reveal>
         <div class="wrap">

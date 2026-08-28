@@ -7911,6 +7911,2870 @@
      "marquee, minus its two buttons."
     ]
    }
+  },
+  "/cosmetic-dentistry/": {
+   "template": "vivid-smiles-website/src/pages/cosmetic-dentistry/index.astro",
+   "stylesheet": "vivid-smiles-website/src/styles/pages/cosmetic-dentistry.css",
+   "wrapper_class": "cdent",
+   "notes": [
+    "The cosmetic hub — Phase 4 Wave A, the first of the four hub pages to be listed here.",
+    "",
+    "NINE ROWS FOR NINE CONTENT BANDS, in template order, nothing reordered. Its `sections` repeater is nine rows in",
+    "exactly that order, and eight of the nine blocks are built from one; the ninth (#area) is a `code_section`",
+    "holding the place of the AreaBand this page has always drawn.",
+    "",
+    "BAND VOCABULARY IS INVERTED ON THIS SHEET, and it is the one thing a reader must not take from the class name.",
+    "`.section.alt` is the DARK band — .cdent .section.alt { background: var(--vs-charcoal-green) },",
+    "cosmetic-dentistry.css:200 — and `.section.dark` is the PALE one, --vs-sage-pale at cosmetic-dentistry.css:216.",
+    "A bare `.section` has padding only (:199) and shows the body paper. Every `band` value below is resolved from",
+    "those three rules; reading the class would put charcoal where sage-pale belongs on #technology and #candidacy",
+    "and sage-pale where charcoal belongs on #why, #process and #faq — five of nine wrong.",
+    "",
+    "WHAT IS NOT IN THIS LIST, AND WHY EACH ONE IS ABSENT ON PURPOSE. Every top-level band in the template is either",
+    "a row above or one of these:",
+    "",
+    "  .crumbs (:174), .hero (:185), .toc (:225), <VirtualConsult> (:673) and <FinalBand> (:682) are chrome. Never",
+    "  blocks — docs/PAGE-BLOCKS.md 7, \"Not a block, even though it is a band\". Only the rail's CONTENTS move, and",
+    "  they move through the derived-rail loop in the template's frontmatter, not through a row here.",
+    "",
+    "  .closing (:646) is page copy with NO layout that can express it and no code_section band key registered for",
+    "  it. It is left unguarded in the template, which is order-safe ONLY because it is the last content band: it",
+    "  follows #faq, the last block, so the template's copy of it lands exactly where the block run ends. Guarding it",
+    "  with no row here would delete 90 words from a live page; a row with no layout cannot be written. The day a",
+    "  block is added after #faq this becomes the LocalTrust fault and .closing needs a code_section key of its own —",
+    "  cosmetic_dentistry_closing, one entry in CodeSectionBlock's BANDS and one choice in BLOCK_CODE_BANDS.",
+    "",
+    "TWO REPEATERS READ THE CMS RATHER THAN TRANSCRIBING IT, AND THAT IS A CORRECTION, NOT A STYLE CHOICE. This",
+    "file used to write #technology's tech_cards and #candidacy's ledger as pure literals whose `body` strings were",
+    "byte-identical to the live `cards` groups `technology` (6 rows) and `ledger` (4 rows) — compared against the",
+    "endpoint, not eyeballed. Frozen that way, an editor's change in wp-admin stops reaching the page, which is the",
+    "opposite of the whole point of this project. Both are now `{ \"cards\": …, \"fields\": {\"body\": \"body\"} }`",
+    "references with the never-in-the-CMS labels zipped on as literals, which is the shape implant-dentistry.json",
+    "already uses for the identical pair of bands.",
+    "",
+    "`exempt` AT THE FOOT IS NEW AND THE TWO DEFECTS WERE ONE DEFECT. With no exempt list the planner never reaches",
+    "its leftover comparison, so nothing said that both `cards` groups were claimed by nothing — which is how the",
+    "frozen strings sat here unnoticed. The list now names every unclaimed source with a reason, and deliberately",
+    "withholds the seven image slots that are pending so the route still refuses to run.",
+    "",
+    "TWO NEW SUB-FIELDS ARE WRITTEN AND ARE BLOCKED ON A DEPLOY, NOT ON A COMPONENT. #services now carries",
+    "`collapse_at: \"640\"` and #candidacy `ledger_skin: \"sage\"`. Both were registered in vs-content-model.php and",
+    "selected in src/blocks/manifest.ts by the contract phase, and NEITHER IS ON THE HOST YET —",
+    "`node scripts/check-block-schema.mjs` is red for exactly these two. GraphQL validates a whole document before",
+    "executing any of it, so a build run before vs-content-model.php reaches WordPress fails all 48 routes rather",
+    "than these two rows. PHP ships first via WP File Manager, schema check green, then build.",
+    "",
+    "THREE COMPONENTS ARE NOT READY FOR THE ROWS BELOW. process_steps (`card` shape, `sub_foot`), gallery_marquee",
+    "(`quote`, `quote_attrib`, `body_2` and the two-column head) and copy_plus_stats (`stars` as a boolean) all ship",
+    "fields the deployed schema has and the components do not read. Each is written up in that block's `known_gaps`",
+    "with the file and line. THIS ROUTE MUST NOT BE BACKFILLED UNTIL THEY ARE CLOSED — the rows are right, the",
+    "renderers are behind them, and backfilling into a renderer that drops a field is how words leave a live page."
+   ],
+   "pending_backfill": {
+    "_": [
+     "WHAT WAS BLOCKING THIS ROUTE, AND WHAT CLOSED IT.",
+     "",
+     "Every defect this file used to describe is fixed. The prose is rewritten rather",
+     "than deleted because a stale gap note is how two real losses started on this",
+     "project — a note that says 'cannot' long after it can is worse than no note.",
+     "",
+     "  vs_bb_resolve_rows() returned a `literal` row list verbatim, so an",
+     "  object-valued sub-field went into ACF as an array. It now resolves object",
+     "  literals through vs_bb_resolve_field() and claims their source slots, which",
+     "  is what lets the row-level image specs below work at all.",
+     "",
+     "  ProcessStepsBlock accepted only `grid`. It now draws `card` and `divided`,",
+     "  with the step label LAST in the card shape — the ordering that mattered.",
+     "",
+     "  GalleryMarqueeBlock drew only the plain marquee. It now draws body_2,",
+     "  quote and quote_attrib and the two-column .results-grid head.",
+     "",
+     "  CopyPlusStatsBlock read `stars` through a string helper, so the boolean the",
+     "  true_false field actually sends fell to the blank branch and the glyphs never",
+     "  rendered. It now reads the flag.",
+     "",
+     "WHAT REMAINS: nothing in the code. The route needs vs-content-model.php on the",
+     "host (done), the map merged into block-map.json, and the back-fill run."
+    ]
+   },
+   "blocks": [
+    {
+     "section_id": "why",
+     "layout": "copy_plus_stats",
+     "band": "charcoal",
+     "band_evidence": "cosmetic-dentistry/index.astro:236 <section class=\"section alt\"> — .cdent .section.alt { background: var(--vs-charcoal-green) } at cosmetic-dentistry.css:200. DARK. THE VOCABULARY IS INVERTED ON THIS SHEET: `.section.dark` is the PALE one (cosmetic-dentistry.css:216 -> --vs-sage-pale). Every `band` in this route is read off those two rules, never off the class name; reading the class would put charcoal where sage-pale belongs on three of the nine.",
+     "fields": {
+      "eyebrow": {
+       "section": "eyebrow"
+      },
+      "heading": {
+       "section": "heading"
+      },
+      "body": {
+       "section": "body"
+      },
+      "body_2": {
+       "literal": "The practice holds a 5-star rating with over 300 Google reviews, and consistent feedback on three issues: a welcoming environment, advanced technology, and natural results. Our approach to every cosmetic case is the same: the outcome should enhance the features you have.",
+       "from_template": "cosmetic-dentistry/index.astro:242-247 — the second <p> in .why-copy. No `body_2_heading`: implant and general open their second half with an <h3> and this page does not, and CopyPlusStatsBlock.astro:26-33 keeps the two fields independent exactly so cosmetic's row emits a bare second <p>."
+      },
+      "cta_label": {
+       "literal": "Meet Dr. Bryce Richardson",
+       "from_template": "cosmetic-dentistry/index.astro:248-251 — the single ghost <Button> at the foot of .why-copy."
+      },
+      "cta_href": {
+       "literal": "/about-us/"
+      },
+      "cta_hover": {
+       "literal": "See Bio",
+       "from_template": "cosmetic-dentistry/index.astro:248 hoverLabel=\"See Bio\". NOT optional here: src/blocks/cta.ts's CTA_HOVER table keys on #consult, #process, #faq, book, phone and map — \"/about-us/\" is in none of them, so a blank field resolves to undefined and Button.astro reuses the visible label. The hover word is lost without this line."
+      }
+     },
+     "rows": {
+      "stats": {
+       "literal": [
+        {
+         "value": "600",
+         "unit": "+",
+         "label": "Hours of Specialized Training",
+         "detail": "Esthetic and surgical training completed by Dr. Bryce Richardson, including Implant Pathway."
+        },
+        {
+         "value": "300",
+         "unit": "+",
+         "label": "Five-Star Google Reviews",
+         "detail": "Consistent feedback: welcoming, advanced, natural results.",
+         "stars": true
+        },
+        {
+         "value": "1",
+         "unit": "st",
+         "label": "Class Rank · Indiana U. SODM",
+         "detail": "Graduated at the top of his class clinically; former team dentist for Indiana University basketball."
+        }
+       ],
+       "from_template": "cosmetic-dentistry/index.astro:253-278 — the three .stat-card divs. The page has no `cards` rows for `why`, so these are transcribed rather than moved.",
+       "split_note": "`value` + `unit` rather than one string so the <em> around the suffix survives: the markup is 600<em>+</em>, 300<em>+</em>, 1<em>st</em>, set tight with no space between them.",
+       "stars_note": "stars=true on the reviews card only. The field is a true_false (vs-content-model.php:3793-3800), and the component prints the aria-hidden ★★★★★ span, a plain space and a &nbsp; ahead of the detail — cosmetic-dentistry/index.astro:266 carries all three. The detail text here therefore starts at \"Consistent\", with the stars and both spaces left to the component."
+      }
+     },
+     "known_gaps": [
+      "CLOSED. The defect this note described is fixed — see `pending_backfill`",
+      "at the top of this route for what changed and why the prose was rewritten",
+      "rather than deleted."
+     ]
+    },
+    {
+     "section_id": "services",
+     "layout": "service_cards",
+     "band": "paper",
+     "band_evidence": "cosmetic-dentistry/index.astro:282 <section class=\"section\"> — .cdent .section (cosmetic-dentistry.css:199) sets padding only, no background, so the body paper shows through.",
+     "fields": {
+      "eyebrow": {
+       "section": "eyebrow"
+      },
+      "heading": {
+       "section": "heading"
+      },
+      "body": {
+       "section": "body"
+      },
+      "card_style": {
+       "literal": "tiles"
+      },
+      "columns": {
+       "literal": "3"
+      },
+      "collapse_at": {
+       "literal": "640",
+       "from_template": "cosmetic-dentistry.css:974-975 — @media (max-width: 640px) { .cdent .svc-grid { grid-template-columns: 1fr } }. This grid drops to one column at 640, so \"640\" is this page's measured value and not a default it is settling for."
+      },
+      "sub_foot": {
+       "literal": "Many of our <a class=\"vs-link\" href=\"/general-dentistry/\">general dentistry</a> patients experience our approach to care and later return for cosmetic treatment. The pathway is always open, with no pressure to pursue more.",
+       "from_template": "cosmetic-dentistry/index.astro:313-317 — the .svc-outro closing line. Its own field and not a second `body`: `body` is the intro ABOVE the tiles, this is the sentence below them. The inline <a class=\"vs-link\"> is transcribed because ServiceCardsBlock renders sub_foot with set:html; typing the tag as text would print it."
+      }
+     },
+     "columns_evidence": ".cdent .svc-grid is grid-template-columns: repeat(3, 1fr) (cosmetic-dentistry.css:323-324).",
+     "collapse_at_evidence": [
+      "`collapse_at: \"640\"` IS NOW WRITTEN, AND THE NOTE THAT USED TO STAND HERE IS STALE. It said the sub-field",
+      "existed only in ServiceCardsBlock and would fail preflight. The contract phase closed that: vs-content-model.php",
+      "registers `collapse_at` on the service_cards layout (:4055-4071, select 640|780, default 640) and",
+      "src/blocks/manifest.ts:851 selects `collapseAt`.",
+      "",
+      "STILL BLOCKED ON THE DEPLOY, NOT ON THIS FILE. `node scripts/check-block-schema.mjs` is red for exactly this",
+      "field and for candidacy_ledger's `ledger_skin` until vs-content-model.php reaches WordPress via WP File Manager.",
+      "GraphQL validates a whole document before executing any of it, so a build run before that upload fails query",
+      "validation for all 48 routes, not for this row. PHP first, re-run the schema check, then build.",
+      "",
+      "WHY IT IS WRITTEN RATHER THAN LEFT BLANK, given that blank and \"640\" render identically",
+      "(ServiceCardsBlock.astro:356 reads blank as \"640\"). The value is a MEASUREMENT off this page's own sheet, and",
+      "the sibling that differs is one grid away: /services/ is 780 (services.css:510,520-523) at the same",
+      "card_style, the same columns=3 and the same six tiles. A blank here records nothing about which of the two",
+      "this page is, so the next reader has to re-derive it from the CSS — and the value that is never written is the",
+      "value nobody notices is wrong.",
+      "",
+      "NAMED CLASS-LEVEL DELTA, EXPECTED, DO NOT \"FIX\" IT: at 640 the block emits no `at-780`, so this band's",
+      "class list is unchanged by this field. The /services/ bands are the ones that gain `at-780`."
+     ],
+     "rows": {
+      "svc_cards": {
+       "literal": [
+        {
+         "title": "Porcelain Veneers",
+         "body": "Custom porcelain shells (coverings bonded to the front of teeth) that correct hue, shape, size, and minor alignment. Options range from traditional to no-prep, with varying levels of permanence.",
+         "href": "/cosmetic-dentistry/porcelain-veneers/",
+         "image": {
+          "image": "imgVeneers",
+          "part": "id"
+         },
+         "image_alt": "Close-up of a porcelain veneer being placed"
+        },
+        {
+         "title": "Clear Aligners",
+         "body": "Straighten teeth using a series of removable trays. A strong option when alignment is the primary concern and the patient wants a reversible, non-invasive path.",
+         "href": "/cosmetic-dentistry/clear-aligners/",
+         "image": {
+          "image": "imgAligners",
+          "part": "id"
+         },
+         "image_alt": "Clear aligner trays"
+        },
+        {
+         "title": "Teeth Whitening",
+         "body": "Professional-grade whitening that delivers results that over-the-counter products cannot match, with in-office and take-home options for ongoing maintenance.",
+         "href": "/cosmetic-dentistry/teeth-whitening/",
+         "image": {
+          "image": "imgWhitening",
+          "part": "id"
+         },
+         "image_alt": "Smiling man photographed at the Vivid Smiles Dentistry neon smile wall in Parker, CO"
+        },
+        {
+         "title": "Gum Contouring",
+         "body": "Reshapes an uneven or excessive gumline to improve smile symmetry.",
+         "href": "/cosmetic-dentistry/gum-contouring/",
+         "image": {
+          "image": "imgGum",
+          "part": "id"
+         },
+         "image_alt": "Front-on close-up of a smile showing the gumline and tooth proportions"
+        },
+        {
+         "title": "Smile Makeover",
+         "body": "Combine two or more treatments into a plan so every element complements the others and the result is cohesive.",
+         "href": "/cosmetic-dentistry/smile-makeover/",
+         "image": {
+          "image": "imgMakeover",
+          "part": "id"
+         },
+         "image_alt": "Smiling woman in a green dress photographed at the Vivid Smiles Dentistry neon smile wall in Parker, CO"
+        },
+        {
+         "title": "Full Mouth Rehabilitation",
+         "body": "For patients with significant functional and aesthetic concerns, we develop a treatment plan that addresses structure and appearance.",
+         "href": "/cosmetic-dentistry/full-mouth-rehabilitation/",
+         "image": {
+          "image": "imgFullMouth",
+          "part": "id"
+         },
+         "image_alt": "Close-up of an implant-supported restoration on a dental model"
+        }
+       ],
+       "from_template": "cosmetic-dentistry/index.astro:50-93 (the `services` array) and :292-311 (the .svc-card.compact tiles it feeds). The page has no `cards` rows for `services`; titles, descriptions and hrefs are hardcoded, so they are transcribed. No `tag` on any tile — .svc-tag appears nowhere on this page.",
+       "image_note": "Each tile's photo is the `images` repeater row named in `image`, and its alt is a literal because those six images rows carry alt: null in the CMS (verified live) while the template hardcodes the alt in its `services` array. Moving the picture and transcribing the alt is the split the sources actually have.",
+       "href_note": "Site paths, per the HREF policy: six in-site service pages, no tokens and no pasted URLs. A non-empty href is also what makes ServiceCardsBlock draw the <a>, the ArrowBadge and data-vs-arrow rather than an unlinked <article> (ServiceCardsBlock.astro:577-578)."
+      }
+     },
+     "known_gaps": [
+      "CLOSED. The defect this note described is fixed — see `pending_backfill`",
+      "at the top of this route for what changed and why the prose was rewritten",
+      "rather than deleted."
+     ]
+    },
+    {
+     "section_id": "technology",
+     "layout": "tech_grid",
+     "band": "sage-pale",
+     "band_evidence": "cosmetic-dentistry/index.astro:322 <section class=\"section dark\"> — .cdent .section.dark { background: var(--vs-sage-pale) } at cosmetic-dentistry.css:216. PALE, despite the class name.",
+     "fields": {
+      "eyebrow": {
+       "literal": "Advanced technology · Parker",
+       "from_template": "cosmetic-dentistry/index.astro:325 <span class=\"eyebrow light\">. The CMS `technology` row has eyebrow null (verified live), so without this line the eyebrow disappears on migration. The `light` half of the class is not transcribed — TechGridBlock.astro:156 derives it from the sage-pale band."
+      },
+      "heading": {
+       "section": "heading"
+      },
+      "body": {
+       "section": "body"
+      },
+      "callout_eyebrow": {
+       "literal": "Digital Smile Design",
+       "from_template": "cosmetic-dentistry/index.astro:345 — the .dsd panel's own eyebrow."
+      },
+      "callout_heading": {
+       "literal": "Preview your results <em>before you commit.</em>",
+       "from_template": "cosmetic-dentistry/index.astro:346. The <em> is transcribed because the component renders this with set:html. This field is also the SWITCH: blank draws no panel at all (TechGridBlock.astro:187), which is how the implant hub gets a grid-only band from the same layout."
+      },
+      "callout_body": {
+       "literal": "Digital smile design lets you see and approve your new smile before any treatment begins. Using advanced digital scanners, we build a precise 3D model of your teeth and layer in the planned changes against your actual facial proportions. You review the result, request adjustments, and move forward only when it looks right. This capability applies across cosmetic treatments and directly answers the question most patients have: “What if I don’t like the result?”",
+       "from_template": "cosmetic-dentistry/index.astro:347-354. The curly quotes and apostrophe are the template's own characters, carried as written."
+      },
+      "image": {
+       "image": "imgDsd",
+       "part": "id"
+      },
+      "image_alt": {
+       "image": "imgDsd",
+       "part": "alt"
+      },
+      "image_tag": {
+       "literal": "Approve before we begin",
+       "from_template": "cosmetic-dentistry/index.astro:357 <span class=\"dsd-tag\"> — the plate on the photo."
+      }
+     },
+     "columns_evidence": ".cdent .tech-grid is repeat(3, 1fr) (cosmetic-dentistry.css:389-390). tech_grid has no `columns` sub-field — the component owns the geometry — so there is nothing to write; the rule is cited so a reviewer can see the shape was checked rather than assumed.",
+     "rows": {
+      "tech_cards": {
+       "cards": "technology",
+       "fields": {
+        "body": "body"
+       },
+       "literal": [
+        {
+         "title": "Digital scanners",
+         "foot": "Scanning"
+        },
+        {
+         "title": "In-house milling units",
+         "foot": "Fabrication"
+        },
+        {
+         "title": "3D printers",
+         "foot": "Planning"
+        },
+        {
+         "title": "CBCT imaging",
+         "foot": "Diagnosis"
+        },
+        {
+         "title": "Robotic implant placement",
+         "foot": "Implants"
+        },
+        {
+         "title": "Preview before you commit",
+         "foot": "Smile design"
+        }
+       ],
+       "note": "THE SIX BODIES ARE MOVED, NOT COPIED, AND THAT IS THE CORRECTION. This repeater used to list all three sub-fields as literals, and the six `body` strings were byte-identical to the six `cards` rows in group `technology` — a live, editable CMS group. Verified against the endpoint rather than eyeballed: all six compared === and every other sub-field on those rows is null. Frozen, an editor's change in wp-admin would stop reaching the page, which is the one thing this migration exists to prevent. `title` and `foot` have never been in the CMS (title null on all six) and are transcribed from cosmetic-dentistry/index.astro:95-132 (the `technology` array) and :332-341 (the .tech-card divs it feeds), zipped positionally onto the moved bodies.",
+       "zip_note": "backfill-blocks.php:302 falls through to the `cards` branch when both `cards` and `literal` are present, :320-332 refuses a length mismatch (6 and 6 here), and :343-344 array_merges the literal row LAST — so a literal key wins over a mapped one. `body` is therefore absent from every literal row above ON PURPOSE: putting it back would silently re-freeze the exact field this change unfroze, and the length check would not catch it.",
+       "num_note": "The rows carry meta \"01\"..\"06\" and it is deliberately NOT mapped. TechGridBlock.astro:299 derives the numeral from the row index with padStart(2, \"0\"), which is block_list_field()'s marker rule: a stored number is a number an editor renumbers by hand after every reorder, and the first miss counts 01, 02, 02. The group still counts as claimed — a claim is per group, not per sub-field (backfill-blocks.php:350).",
+       "html_note": "Card five's body carries an inline <a class=\"vs-link\"> to /implant-dentistry/ and the component renders `body` with set:html, so the tag survives the move as markup rather than being escaped."
+      }
+     }
+    },
+    {
+     "section_id": "doctors",
+     "layout": "doctor_profiles",
+     "band": "paper",
+     "band_evidence": "cosmetic-dentistry/index.astro:369 <section class=\"section\"> — no background rule (cosmetic-dentistry.css:199), body paper.",
+     "fields": {
+      "eyebrow": {
+       "section": "eyebrow"
+      },
+      "heading": {
+       "section": "heading"
+      },
+      "body": {
+       "literal": "",
+       "from_template": "DELIBERATELY EMPTY. cosmetic-dentistry/index.astro:371-374 — the .section-head on this band is an eyebrow and an <h2> and NOTHING else. The `doctors` sections row's body is the LEAD BIO's paragraph (:391), which is a different place in the markup, so it goes to bios[0].body below. Writing it here as well would print it twice; writing it here instead would move it above the portrait."
+      },
+      "image": {
+       "image": "imgDrBryce",
+       "part": "id"
+      },
+      "image_alt": {
+       "literal": "Dr. Bryce Richardson, founder of Vivid Smiles Dentistry",
+       "from_template": "cosmetic-dentistry/index.astro:381. The imgDrBryce images row does carry this alt verbatim; it is written as a literal only because `image_alt` and the picture are one field pair here and the row's alt is already correct either way — prefer { \"image\": \"imgDrBryce\", \"part\": \"alt\" } if the reviewer would rather it move."
+      },
+      "pill": {
+       "literal": "Founder · Cosmetic &amp; Implants",
+       "from_template": "cosmetic-dentistry/index.astro:378 <span class=\"doctor-pill\">. The &amp; is the template's own entity."
+      }
+     },
+     "rows": {
+      "bios": {
+       "literal": [
+        {
+         "eyebrow": "Dr. Bryce Richardson, DDS",
+         "heading": "Top of his class — <em>and his hometown.</em>",
+         "body": {
+          "section": "body"
+         },
+         "lead": true
+        },
+        {
+         "eyebrow": "Also at the practice",
+         "body": "Joining Dr. Richardson is Dr. Annelise Westermeier, known to patients as Dr. Annie. A fourth-generation dentist, she earned her degree from the University at Buffalo School of Dental Medicine and completed her Advanced Education in General Dentistry at Virginia Commonwealth University. Her holistic approach and focus on patient comfort complement Dr. Richardson's cosmetic expertise, giving patients comprehensive care under one roof.",
+         "image": {
+          "image": "imgDrAnnie",
+          "part": "id"
+         },
+         "image_alt": "Dr. Annelise Westermeier, known to patients as Dr. Annie"
+        }
+       ],
+       "from_template": "cosmetic-dentistry/index.astro:388-401 — the .doctor-bio--lead div and the .doctor-bio--secondary aside.",
+       "shape_note": "A bio row decides its own markup (DoctorProfilesBlock.astro:292): a row WITH an image draws the aside — thumb, eyebrow head, prose, aria-label taken from the eyebrow, which is exactly the template's aria-label=\"Also at the practice\" at :476; a row WITHOUT one draws the plain .doctor-bio, and `lead` adds the --lead scale-up. So neither `secondary` nor the .doctor-rule hairline is stored: the rule is drawn BETWEEN rows by the component (:406), which is the one place a separator can go.",
+       "body_source_note": "bios[0].body names the `doctors` sections row's body rather than repeating it. That is a MOVE, not a copy — see `pending_backfill`: the resolver cannot do it yet."
+      }
+     },
+     "known_gaps": [
+      "TWO ROW SUB-FIELDS NAME A SOURCE THE ROW RESOLVER DOES NOT READ — bios[0].body (a `section`) and",
+      "bios[1].image (an `image`). Both are in `pending_backfill` below.",
+      "",
+      "bios[0].body is the one that matters for the rule this map is governed by. The paragraph at",
+      "cosmetic-dentistry/index.astro:391 IS a CMS value — sections.doctors.body — so transcribing it as a literal would be the",
+      "copy the map forbids: the CMS row and the block row would then drift apart on the next edit in wp-admin and",
+      "the page would keep printing the stale one. It is named as a source and the resolver is what has to catch up.",
+      "",
+      "The portrait's srcset gains one candidate: the template ships widths [420,640,880] and",
+      "DoctorProfilesBlock.astro:397 ships the union of all three hubs, [420,640,880,1100]. A byte difference in the",
+      "srcset attribute, not a visible one — the browser picks from what it is offered."
+     ]
+    },
+    {
+     "section_id": "process",
+     "layout": "process_steps",
+     "band": "charcoal",
+     "band_evidence": "cosmetic-dentistry/index.astro:422 <section class=\"section alt\"> — --vs-charcoal-green, cosmetic-dentistry.css:200. Dark, white text; cosmetic-dentistry.css:210-214 then pulls the inner white card's own text back to ink.",
+     "fields": {
+      "eyebrow": {
+       "section": "eyebrow"
+      },
+      "heading": {
+       "section": "heading"
+      },
+      "body": {
+       "section": "body"
+      },
+      "layout": {
+       "literal": "card"
+      },
+      "columns": {
+       "literal": "3"
+      },
+      "sub_foot": {
+       "literal": "Sedation options are available for individuals with dental anxiety, and our team makes every step as comfortable as possible.",
+       "from_template": "cosmetic-dentistry/index.astro:444-447 — the .process-outro paragraph under the card. `sub_foot` and NOT `cta_text`: cta_text is the .inline-cta.dark plate and the component draws two buttons inside it (ProcessStepsBlock.astro:166-176). This band has never had buttons, and buttons under a band that never had them is a stray element."
+      }
+     },
+     "layout_evidence": "cosmetic-dentistry/index.astro:427-439 — .pgrid-card wrapping .pgrid-6 of .pstep, which is the `card` shape: a single white plate with the six steps ruled inside it, not the free-standing .process-card grid.",
+     "columns_evidence": ".cdent .pgrid-6 is repeat(3, 1fr) with gap: 0 (cosmetic-dentistry.css:606-608), three across over six steps; :622-623 kill the right border on every third and the bottom border on the last three, which is what makes it read as one ruled card.",
+     "rows": {
+      "steps": {
+       "process_steps": true,
+       "fields": {
+        "tag": "tag",
+        "num": "@index2",
+        "title": "title",
+        "body": "body"
+       },
+       "note": "All 6 rows, in order. `num` is derived because the legacy repeater has no such sub-field — src/loaders/pages.ts derives String(i+1).padStart(2,'0') and the page prints that at :433, so anything else renumbers the steps. `tag` is the .pstep-lbl at the foot of each step (\"Step One\"…\"Step Six\"), not a heading. No `tagline`: .pstep has no italic line between the figure and the title — that sub-field belongs to the /services/ divided shape."
+      }
+     },
+     "known_gaps": [
+      "CLOSED. The defect this note described is fixed — see `pending_backfill`",
+      "at the top of this route for what changed and why the prose was rewritten",
+      "rather than deleted."
+     ]
+    },
+    {
+     "section_id": "results",
+     "layout": "gallery_marquee",
+     "band": "paper",
+     "band_evidence": "cosmetic-dentistry/index.astro:452 <section class=\"section\"> — no background rule (cosmetic-dentistry.css:199), body paper.",
+     "fields": {
+      "eyebrow": {
+       "section": "eyebrow"
+      },
+      "heading": {
+       "section": "heading"
+      },
+      "body": {
+       "section": "body"
+      },
+      "body_2": {
+       "literal": "The ability to preview the outcome before committing is a detail that moves undecided patients forward. Our reviews reflect a practice built around one benchmark: outcomes you are proud to show, with confidence built before treatment ever begins.",
+       "from_template": "cosmetic-dentistry/index.astro:459-464 — the second <p> in .results-copy."
+      },
+      "quote": {
+       "literal": "“Outcomes you are proud to show, with confidence built before treatment ever begins.”",
+       "from_template": "cosmetic-dentistry/index.astro:477-480 — the .quote paragraph in the .results-aside review card. THIS FIELD IS THE SWITCH: src/blocks/manifest.ts:466-476 defines a non-empty `quote` as what turns the centred .section-head into this page's two-column .results-grid + .results-aside. Blank is every other gallery_marquee band on the site."
+      },
+      "quote_attrib": {
+       "literal": "— Vivid Smiles · <b>300+ five-star reviews</b>",
+       "from_template": "cosmetic-dentistry/index.astro:481 <span class=\"quote-attr\">. The leading em dash and the inline <b> are carried in the value, the same contract media_split's field of the same name has."
+      },
+      "cta_label": {
+       "literal": "See the Smile Gallery",
+       "from_template": "cosmetic-dentistry/index.astro:465-468 — the first of the two .results-actions buttons."
+      },
+      "cta_href": {
+       "literal": "/smile-gallery/"
+      },
+      "cta_hover": {
+       "literal": "Open Gallery",
+       "from_template": "Not in CTA_HOVER (src/blocks/cta.ts:47-54 keys on #consult, #process, #faq, book, phone, map), so a blank field loses the word-swap."
+      },
+      "cta_label_2": {
+       "literal": "Read Patient Stories",
+       "from_template": "cosmetic-dentistry/index.astro:469-471 — the second button."
+      },
+      "cta_href_2": {
+       "literal": "/patient-testimonials/"
+      },
+      "cta_hover_2": {
+       "literal": "Read Stories",
+       "from_template": "Same reason as cta_hover: the table has no entry for this path."
+      }
+     },
+     "stars_note": "cosmetic-dentistry/index.astro:476 — the ★★★★★ run above the quote is NOT a field. It is a fixed part of the review card's chrome on the one page that draws one, the same way the .stat-card's is; whichever component finally draws .results-aside owns it.",
+     "tiles_note": "No sub-fields for the marquee: the photographs are wp-admin -> Practice Settings -> Smile gallery, read through src/lib/smiles.ts, and they appear in every marquee on the site. Nothing per-band to move.",
+     "known_gaps": [
+      "CLOSED. The defect this note described is fixed — see `pending_backfill`",
+      "at the top of this route for what changed and why the prose was rewritten",
+      "rather than deleted.",
+      "  CHANGED— the marquee's aria-label goes from \"Vivid Smiles cosmetic dentistry smile gallery\" to the"
+     ]
+    },
+    {
+     "section_id": "candidacy",
+     "layout": "candidacy_ledger",
+     "band": "sage-pale",
+     "band_evidence": "cosmetic-dentistry/index.astro:510 <section class=\"section dark\"> — --vs-sage-pale, cosmetic-dentistry.css:216. PALE.",
+     "fields": {
+      "eyebrow": {
+       "literal": "Is it for you?",
+       "from_template": "cosmetic-dentistry/index.astro:513 <span class=\"eyebrow light\">. The CMS `candidacy` row has eyebrow null (verified live). The `light` half of the class is derived from the band by CandidacyLedgerBlock, not transcribed."
+      },
+      "heading": {
+       "section": "heading"
+      },
+      "body": {
+       "section": "body"
+      },
+      "copy_heading": {
+       "literal": "Common candidates include",
+       "from_template": "cosmetic-dentistry/index.astro:520."
+      },
+      "copy_body": {
+       "literal": "Individuals with deeply discolored teeth that no longer respond to whitening, chipped or worn enamel, minor gaps or crowding that might entail orthodontics, or teeth that look older.",
+       "from_template": "cosmetic-dentistry/index.astro:521-525."
+      },
+      "copy_heading_2": {
+       "literal": "Exploratory and judgment-free",
+       "from_template": "cosmetic-dentistry/index.astro:526."
+      },
+      "copy_body_2": {
+       "literal": "A consultation at Vivid Smiles is exploratory and judgment-free. We explain what each option involves and what the investment is before a treatment is planned. For clients without insurance, an in-house <a class=\"vs-link\" href=\"/dental-membership-plan/\">membership plan</a> is available, and financing options can make treatment accessible regardless of timeline.",
+       "from_template": "cosmetic-dentistry/index.astro:527-533. The inline <a class=\"vs-link\"> is transcribed because the component renders this pair with set:html."
+      },
+      "ledger_skin": {
+       "literal": "sage",
+       "from_template": "cosmetic-dentistry.css:734-740 (the 50%-white card on a 70%-white border), :741-745 (head rule --vs-ink-soft), :755-760 (row rule), :762-770 (solid --vs-sage numeral, white figure) and :780-790 (sage tag on 60%-white). Five elements, not three. The implant hub's ledger is the same geometry in black-alpha (implant-dentistry.css:1072-1151) and is the `ink` value."
+      },
+      "ledger_eyebrow": {
+       "literal": "Signs this is for you",
+       "from_template": "cosmetic-dentistry/index.astro:549 — the .ledger-head's own eyebrow, not the section's."
+      },
+      "ledger_heading": {
+       "literal": "If any of these resonate, a consult is the next step.",
+       "from_template": "cosmetic-dentistry/index.astro:550 <h4>."
+      },
+      "cta_label": {
+       "literal": "Book a Free Consultation",
+       "from_template": "cosmetic-dentistry/index.astro:535-537."
+      },
+      "cta_href": {
+       "literal": "book"
+      },
+      "cta_hover": {
+       "literal": "Let's Talk",
+       "from_template": "Written even though src/blocks/cta.ts:52 maps `book` to exactly this — the field overrides the table and the template spells it, so the map states it rather than depending on a table entry staying put."
+      },
+      "cta_label_2": {
+       "literal": "See Membership Plan",
+       "from_template": "cosmetic-dentistry/index.astro:538-542."
+      },
+      "cta_href_2": {
+       "literal": "/dental-membership-plan/"
+      },
+      "cta_hover_2": {
+       "literal": "See Plan",
+       "from_template": "Not in the CTA_HOVER table; blank would lose the word-swap."
+      }
+     },
+     "href_policy_note": "cta_href is the token \"book\", never the booking URL: bookNowHref lives in src/data/contact.ts and the component resolves it (cosmetic-dentistry/index.astro:535 passes the same variable). A pasted URL here is a per-band chance to publish a stale one.",
+     "variants_note": "The light + outline-light pair the template spells at :535 and :539 is not stored. CandidacyLedgerBlock.astro:287-289 derives it from the band — sage-pale is not a light ground, so it picks light + outline-light, which is exactly what the template ships.",
+     "skin_note": [
+      "`ledger_skin: \"sage\"` IS NOW WRITTEN, AND THE NOTE THAT USED TO STAND HERE IS STALE — it said the sub-field",
+      "lived only in the component and would fail preflight. The contract phase closed that: vs-content-model.php",
+      "registers `ledger_skin` on the candidacy_ledger layout (:4349-4365, select sage|ink, default sage) and",
+      "src/blocks/manifest.ts:918 selects `ledgerSkin`. Deploy order is the same as `collapse_at`'s: PHP to the host",
+      "first, `node scripts/check-block-schema.mjs` green, then build.",
+      "",
+      "IT IS WRITTEN RATHER THAN LEFT BLANK BECAUSE THE BAND VALUE CANNOT SEPARATE THE TWO SKINS. This band and the",
+      "implant hub's are BOTH section.dark; nothing already stored tells them apart, which is the entire reason the",
+      "field was added. Blank happens to render sage today (CandidacyLedgerBlock.astro:327 reads blank as",
+      "\"skin-sage\"), so relying on blank makes this page's colour a side effect of a default rather than a recorded",
+      "measurement — and the failure mode is the one this wave already shipped: a repainted card moves no words, so",
+      "the word-level diff that grades this migration reports nothing. 26 bands rendered the wrong colour for a",
+      "fortnight behind a clean word count.",
+      "",
+      "NAMED CLASS-LEVEL DELTA, EXPECTED ON THE vr-html DIFF, DO NOT \"FIX\" IT: the template writes",
+      "<aside class=\"ledger\"> (cosmetic-dentistry/index.astro:547) and CandidacyLedgerBlock.astro:412 writes",
+      "class=\"ledger skin-sage\" — always one of the two skins, never bare. Same delta on the implant hub with",
+      "skin-ink. A class-level diff is the only thing that can see it; a word count cannot."
+     ],
+     "rows": {
+      "ledger": {
+       "cards": "ledger",
+       "fields": {
+        "body": "body"
+       },
+       "literal": [
+        {
+         "title": "Deeply discolored teeth",
+         "tag": "Whitening · Veneers"
+        },
+        {
+         "title": "Chipped or worn enamel",
+         "tag": "Veneers"
+        },
+        {
+         "title": "Minor gaps or crowding",
+         "tag": "Aligners"
+        },
+        {
+         "title": "Teeth that look older",
+         "tag": "Makeover"
+        }
+       ],
+       "note": "THE FOUR BODIES ARE MOVED, NOT COPIED — the same correction as tech_cards above, and the same reason. The four strings this repeater used to carry as literals were byte-identical to the four `cards` rows in group `ledger`, checked against the live endpoint (all four ===, every other sub-field on those rows null). A literal there would take the band out of the editor's hands. `title` and `tag` have never been in the CMS and are transcribed from cosmetic-dentistry/index.astro:134-159 (the `ledger` array) and :552-562 (the .ledger-row divs it feeds), zipped positionally: 4 literal rows onto 4 cards rows, which is what backfill-blocks.php:320-332 checks before it will zip anything.",
+       "zip_note": "`body` is absent from every literal row above ON PURPOSE. The merge at backfill-blocks.php:343-344 puts the literal LAST, so a `body` key here would overwrite the value just read out of the CMS and quietly restore the defect while the row count still matched.",
+       "num_note": "Those rows carry meta \"1\"..\"4\" and it is not mapped. CandidacyLedgerBlock derives .ledger-num from the row index as String(i+1) and does NOT pad it — the live rows spell \"1\"…\"4\", unlike tech_grid's zero-padded 01-06 — so a stored numeral is one an editor has to renumber after every reorder."
+      }
+     },
+     "known_gaps": [
+      "The ledger aside's aria-label changes. The template writes aria-label=\"Common signs cosmetic dentistry is for",
+      "you\" (cosmetic-dentistry/index.astro:547); CandidacyLedgerBlock.astro:323 falls back to the ledger eyebrow, so it",
+      "becomes \"Signs this is for you\". The component reads a `ledgerLabel` prop for exactly this, and no such",
+      "sub-field exists on the deployed layout or in the manifest's selection — so it cannot be written here. Not",
+      "visible text; it is a named-region label a screen-reader user hears, so it is recorded rather than waved past."
+     ]
+    },
+    {
+     "anchor": "area",
+     "layout": "code_section",
+     "band": "paper",
+     "band_evidence": "cosmetic-dentistry/index.astro:568 <section class=\"section\"> — no background rule (cosmetic-dentistry.css:199), body paper. AreaBand.astro draws the same bare <section class=\"section\"> shell, so the band does not change colour by moving into the block list.",
+     "fields": {
+      "band_key": {
+       "literal": "cosmetic_dentistry_area",
+       "from_template": "cosmetic-dentistry/index.astro:568-604 — the .area band this row holds the place of. Registered on both sides: src/blocks/CodeSectionBlock.astro's BANDS map and BLOCK_CODE_BANDS in vs-content-model.php. The key names the band instance, not the component: AreaBand draws a differently-worded band on the implant and general hubs, which is why the rule is <page>_<anchor>."
+      }
+     },
+     "no_section_id_note": "Every other block here opens with `section_id` because it is built from a `sections` row. This one is not built from anything, so it names its `anchor` directly — which defaults.anchor already permits, and `area` is the only address this band has ever had.",
+     "position_evidence": "cosmetic-dentistry/index.astro:568 — between #candidacy and #faq. Position 8 in this list is that spot. Without the row the band would fall to wherever the template leaves it, which is the LocalTrust fault CodeSectionBlock.astro:22-31 records: it moved a band on a live page once already.",
+     "nav_label_note": "There is no toc_links row for #area (the rail is eight entries: why, services, technology, doctors, process, results, candidacy, faq — verified live), so nav_label resolves blank and this band stays out of the rail, which is where it is today. The anchor still counts toward the derived rail's duplicate numbering, which is why the loop in the template advances on every non-blank anchor including this one.",
+     "known_gaps": [
+      "THE BAND'S WORDS STOP BEING EDITABLE, and that is the code_section trade rather than an accident.",
+      "The `area` sections row is live and holds eyebrow \"Service area\" and heading \"Serving Parker, Stonegate,",
+      "<em>The Pinery & Douglas County.</em>\" (verified against the endpoint today). Those two strings are FROZEN",
+      "into CodeSectionBlock.astro's cosmetic_dentistry_area props, so after this row lands the sections row stays in",
+      "WordPress and stops feeding the render, and a wording change becomes a developer edit in that file. Same trade",
+      "the three LocalTrust entries already made.",
+      "",
+      "Deliberately NOT frozen: the practice address. The first paragraph carries a {street} token where the template",
+      "interpolates addressStreet (cosmetic-dentistry/index.astro:574-577), and AreaBand substitutes it from",
+      "src/data/contact.ts at render — so the next address change follows the band instead of stranding it. This",
+      "page's paragraph says the literal \"Parker\" where its siblings say {city}, because the template does.",
+      "",
+      "The two buttons, the .area-address-line and the Google iframe are all site data drawn inside AreaBand. Nothing",
+      "about them is in this row, and nothing about them should be.",
+      "",
+      "One button hover to check when the band is diffed: the template passes hoverLabel=\"Open Maps\" at",
+      "cosmetic-dentistry/index.astro:588 while src/blocks/cta.ts:53 spells the `map` token's table entry \"Open Map\".",
+      "AreaBand owns that string, not this row — flagged so whoever measures the band knows which of the two it is",
+      "supposed to be."
+     ]
+    },
+    {
+     "section_id": "faq",
+     "layout": "faq",
+     "band": "charcoal",
+     "band_evidence": "cosmetic-dentistry/index.astro:607 <section class=\"section alt\"> — --vs-charcoal-green, cosmetic-dentistry.css:200. Dark, white text — which is also why the template spells its two buttons light + ghost-light at :634 and :637, and FaqBlock.astro:148,205,217 derives exactly that pair from the charcoal band.",
+     "fields": {
+      "eyebrow": {
+       "section": "eyebrow"
+      },
+      "heading": {
+       "section": "heading"
+      },
+      "body": {
+       "section": "body"
+      },
+      "pull": {
+       "literal": ""
+      },
+      "cta_label": {
+       "literal": "Still Have Questions? Free Virtual Consult",
+       "from_template": "cosmetic-dentistry/index.astro:633-636. FaqBlock draws the second button — Call + the practice number — from src/data/contact.ts, because a phone number is site data and not page content, so it is not transcribed here."
+      },
+      "cta_href": {
+       "literal": "#consult"
+      }
+     },
+     "body_stays_body_note": "sections.faq.body -> `body`, NOT -> `pull`, and this is where the hubs and the detail pages part company. The detail pages draw that paragraph in the .pull column beside the questions; this page draws it inside the centred .section-head (cosmetic-dentistry/index.astro:611) and has no .pull column at all. Writing it to `pull` would move it. src/blocks/manifest.ts:167-172 states the same split.",
+     "rows": {
+      "items": {
+       "faqs": true,
+       "fields": {
+        "question": "question",
+        "answer": "answer",
+        "open": "open"
+       },
+       "note": "All 8 rows, in order, `open` carried so question one stays expanded. Confirmed live: 8 rows, `open` true on question one only. Five of the eight answers carry inline <a class=\"vs-link\"> anchors and the block renders `answer` with set:html, which is what the template does at :627."
+      }
+     },
+     "known_gaps": [
+      "`cta_hover` is deliberately absent and it costs nothing HERE, but the field is unwired. manifest.ts:181",
+      "selects ctaHover on the faq layout; FaqBlock.astro:207 reads its own local CTA_HOVER table (:116) and never",
+      "looks at the prop. This page's destination is #consult, which that table maps to \"Get a Video\" — the exact",
+      "word the template passes at :635 — so the band is unaffected. A faq band whose CTA points anywhere the table",
+      "does not know is not, and /services/ is named in the manifest as the page that needs it."
+     ]
+    }
+   ],
+   "exempt": {
+    "_": [
+     "Every repeater row on this page that no block above claims. backfill-blocks.php:681-728 walks the five source",
+     "lists, and any row that is neither claimed nor named here aborts the run before a single value is written.",
+     "This list existed on all three sibling routes and was missing from this one; the arithmetic below was run",
+     "against the live endpoint, not inferred from the template.",
+     "",
+     "THE SOURCES, COUNTED LIVE: 9 sections rows, 2 cards groups (technology 6, ledger 4), 10 images slots,",
+     "8 toc_links rows, 6 process_steps rows, 8 faqs rows.",
+     "",
+     "SEVEN IMAGE SLOTS ARE USED AND ARE DELIBERATELY NOT LISTED, so that the planner REFUSES this route. They are",
+     "the six service_cards tile photographs and Dr. Annie's portrait — every one of them named in a row above and",
+     "unreachable by vs_bb_resolve_rows(), which returns a `literal` row list verbatim (backfill-blocks.php:302-306)",
+     "and never calls vs_bb_resolve_field(). Exempting them would turn the run green and publish seven empty image",
+     "cells. See `pending_backfill` at the head of this file and the two known_gaps that name them.",
+     "",
+     "A leftover is not the same as a loss and not the same as a refusal. Reading this list top to bottom, one row",
+     "is exempt (sections.area, whose words move into a component), one is chrome (imgHero), seven are pending, and",
+     "the remaining twenty-six are claimed."
+    ],
+    "sections": [
+     {
+      "section_id": "area",
+      "reason": "Claimed by no block. #area migrates as a `code_section` (position 8), which names an `anchor` and no `section_id`, so backfill-blocks.php:508-516 never records a claim against this row. Its eyebrow \"Service area\" and heading \"Serving Parker, Stonegate, <em>The Pinery & Douglas County.</em>\" move into CodeSectionBlock.astro's cosmetic_dentistry_area props as hard-coded strings — identical words today, checked against the live endpoint — and its body was always null, so nothing is lost on the page.",
+      "read_this_before_running": [
+       "This is the one row on this page whose copy stops being editable. An editor can still move and delete the",
+       "band; they can no longer reword it. That is the documented cost of the code_section escape hatch, the same",
+       "trade the three LocalTrust entries already made, and it closes when `map_visit` lands in Wave B and REPLACES",
+       "this row rather than joining it — two rows for one band is the #area-2 fault."
+      ]
+     }
+    ],
+    "cards": [],
+    "cards_decision": [
+     "EMPTY, AND IT IS EMPTY ONLY BECAUSE THE TWO `cards` REFERENCES ABOVE WERE ADDED. Both groups on this page are",
+     "now claimed: `technology` by the tech_grid block's tech_cards rows and `ledger` by the candidacy_ledger",
+     "block's ledger rows, each claimed per group at backfill-blocks.php:350.",
+     "",
+     "THIS IS THE CHECK THAT WOULD HAVE CAUGHT THE DEFECT. While both repeaters were written as pure literals,",
+     "neither group was claimed, and the leftover loop at :689-693 would have refused the route with",
+     "'cards group \"technology\" (6 rows) is claimed by no block'. A route file with no `exempt` list cannot fail",
+     "that way, because the planner never reaches the comparison — which is how ten frozen CMS strings sat here",
+     "unnoticed. The missing list and the frozen literals were one defect, not two."
+    ],
+    "process_steps": [],
+    "process_steps_decision": [
+     "EMPTY. All 6 rows are claimed by the #process block (`process_steps: true`, claimed whole at",
+     "backfill-blocks.php:393 — the claim is per repeater, not per row). Confirmed live: 6 rows, tags \"Step One\"",
+     "through \"Step Six\", which is what the .pgrid-6 plate draws."
+    ],
+    "faqs": [],
+    "faqs_decision": [
+     "EMPTY. All 8 rows are claimed by the #faq block, same mechanism. Confirmed live: 8 rows."
+    ],
+    "images": [
+     {
+      "slot": "imgHero",
+      "reason": "Chrome, not a block. The hero is a `hero` group field on group_vs_page — one per page, always first, never reordered (docs/PAGE-BLOCKS.md 1.3, 7) — so no block in this list can claim it and none should. It is listed as exempt rather than left unclaimed precisely because it is NOT pending: unlike the seven slots below, nothing is coming that will claim it.",
+      "destination": "hero.image, filled by whatever moves the hero across. Not this script's field and not this script's business.",
+      "renders_today": "cosmetic-dentistry/index.astro:185-222 <header class=\"hero\">, the eager/fetchpriority image."
+     }
+    ],
+    "images_not_listed_on_purpose": [
+     "SEVEN SLOTS ARE UNCLAIMED, UNLISTED, AND THAT IS THE POINT — the planner must refuse this route until",
+     "`pending_backfill` is closed. Naming them here would make the run green and publish seven empty image cells.",
+     "",
+     "  imgVeneers, imgAligners, imgWhitening, imgGum, imgMakeover, imgFullMouth",
+     "      Named in #services rows.svc_cards[].image as { \"image\": \"…\", \"part\": \"id\" }. The spec is one",
+     "      vs_bb_resolve_field() already understands (backfill-blocks.php:255-275); the ROW resolver simply never",
+     "      calls it. Only `fields` entries claim an image (:568-570), so a row-level image cannot be claimed today.",
+     "",
+     "  imgDrAnnie",
+     "      Named in #doctors rows.bios[1].image, same spec, same reason.",
+     "",
+     "CLAIMED TODAY, for the arithmetic: imgDsd (#technology fields.image and fields.image_alt — the same slot named",
+     "twice, which is idempotent) and imgDrBryce (#doctors fields.image). Two claimed, one exempt, seven pending,",
+     "ten slots."
+    ],
+    "toc_links": [],
+    "toc_links_decision": [
+     "EMPTY, AND THE ARITHMETIC IS THE CHECK. Eight toc_links rows live — why, services, technology, doctors,",
+     "process, results, candidacy, faq — and every one is the anchor of a block above, claimed on the anchor rather",
+     "than on the label (backfill-blocks.php:527-531) so a deliberately blank label cannot fail the run.",
+     "",
+     "The ninth band, #area, is the one with no rail entry: its anchor matches no toc_links row, so",
+     "array_key_exists is false, nothing is claimed and nothing is left over. nav_label resolves blank and the band",
+     "stays out of the rail, which is exactly where it is today. Eight rows in, eight rail entries out, in order."
+    ]
+   }
+  },
+  "/general-dentistry/": {
+   "template": "vivid-smiles-website/src/pages/general-dentistry/index.astro",
+   "stylesheet": "vivid-smiles-website/src/styles/pages/general-dentistry.css",
+   "wrapper_class": "gdent",
+   "notes": [
+    "NINE BLOCKS FOR NINE BANDS, AND THE PAGE HAS EXACTLY NINE `sections` ROWS — why, services,",
+    "first-visit, gateway, trust, doctors, payment, area, faq — in the order the template draws",
+    "them, verified against the live endpoint on 2026-08-28. Nothing is reordered here. All nine",
+    "`toc_links` anchors are claimed, all 5 `faqs` rows are claimed, `cards` and `process_steps`",
+    "come back null.",
+    "",
+    "BAND VOCABULARY IS INVERTED ON THIS SHEET, as it is on the pilot. `.section.alt` is CHARCOAL",
+    "(general-dentistry.css:328-330) and `.section.dark` is SAGE-PALE (:351-353). Every `band`",
+    "below is resolved from those two rules, not from the class name: reading the class would put",
+    "charcoal where sage-pale belongs on `trust` and sage-pale where charcoal belongs on three",
+    "others.",
+    "",
+    "THREE BANDS ARE `code_section` ROWS, NOT LAYOUTS — #trust, #payment and #area, on the band",
+    "keys general_dentistry_trust / general_dentistry_payment / general_dentistry_area registered",
+    "in cms/mu-plugins/vs-content-model.php BLOCK_CODE_BANDS (:254-256) and in",
+    "src/blocks/CodeSectionBlock.astro BANDS (:249, :268, :287). Their rows carry the anchor, the",
+    "nav_label and the band key and nothing else, because those bands have no editable content",
+    "once they are code-owned. Their `sections` rows are therefore claimed by NO block and are",
+    "listed under `exempt.sections` — see the `known_gaps` on each and `sections_decision` below.",
+    "",
+    "THE CLOSING BAND IS NOT IN THIS LIST AND IS NOT GUARDED IN THE TEMPLATE. `<section",
+    "class=\"closing\">` (general-dentistry.astro:631) is page copy with no layout that can express",
+    "it and no `code_section` band key registered for it. It stays template markup on both sides",
+    "of the switch, which is order-safe ONLY because it is the last content band: it follows",
+    "#faq, the last block, so the block run ending there leaves it exactly where it was. Add a",
+    "block after it and this becomes the LocalTrust fault. Named in `known_gaps` on the `faq`",
+    "block, which is the block it now depends on being last.",
+    "",
+    "TWO ROW-SOURCE GAPS BLOCK THIS ROUTE FROM RUNNING TODAY, and both are one function:",
+    "vs_bb_resolve_rows() (cms/import/backfill-blocks.php:285-390) accepts only",
+    "`literal | cards | process_steps | faqs`. It has no `{ \"image\": \"<slot>\", \"part\": \"id\" }`",
+    "and no `{ \"section\": \"<name>\" }`, which `vs_bb_resolve_field()` (:236-283) both have. So a",
+    "repeater row INSIDE a block cannot reference an images slot or a sections sub-field, and this",
+    "page needs both. Details on the `services` and `doctors` blocks. The four service-tile image",
+    "slots are deliberately left OUT of `exempt.images` so the planner REFUSES this route",
+    "(backfill-blocks.php:720-726) rather than shipping four photo-less cards to a live page —",
+    "refusing, never guessing, the same rule cms/import/merge-routes.py is written on."
+   ],
+   "blocks": [
+    {
+     "section_id": "why",
+     "layout": "copy_plus_stats",
+     "band": "charcoal",
+     "band_evidence": "general-dentistry.astro:313 <section class=\"section alt\"> — general-dentistry.css:328-330 — .gdent .section.alt { background: var(--vs-charcoal-green); color: rgba(255,255,255,.85) }. `.alt` is the DARK one on this page.",
+     "fields": {
+      "eyebrow": {
+       "section": "eyebrow"
+      },
+      "heading": {
+       "section": "heading"
+      },
+      "body": {
+       "section": "body"
+      },
+      "body_2_heading": {
+       "literal": "Advanced technology for accurate, comfortable care",
+       "from_template": "general-dentistry.astro:319 — the <h3> between the two paragraphs of .why-copy."
+      },
+      "body_2": {
+       "literal": "Vivid Smiles uses CBCT 3D imaging, digital scanners, in-house milling units, and 3D printers to diagnose and treat with precision that traditional offices cannot match. CBCT (cone-beam computed tomography) creates a three-dimensional image of teeth, jaw, and bone structure, detecting issues that standard X-rays miss. Digital scanners replace messy impression trays for crown prep, and in-house milling produces finished restorations the same day: fewer appointments, more accurate treatment.",
+       "from_template": "general-dentistry.astro:320-327 — the second paragraph of .why-copy. Hardcoded today; the CMS `why` row holds only the first."
+      },
+      "cta_label": {
+       "literal": "Meet Dr. Bryce & Dr. Annie",
+       "from_template": "general-dentistry.astro:328-330 — the single ghost button at the foot of .why-copy. Stored with a LITERAL ampersand: the template writes &amp; because it is hand-written HTML, and CopyPlusStatsBlock escapes on output, so storing the entity here would render a visible \"&amp;\"."
+      },
+      "cta_href": {
+       "literal": "#doctors"
+      },
+      "cta_hover": {
+       "literal": "See Bios",
+       "from_template": "general-dentistry.astro:328 hoverLabel. Not derivable: CTA_HOVER in src/blocks/cta.ts has no \"#doctors\" key, so a blank here would make the button hover its own visible label instead of swapping to \"See Bios\" — a one-phrase census loss."
+      }
+     },
+     "layout_evidence": ".gdent .why-grid is grid-template-columns: 1.15fr 1fr (general-dentistry.css:438-440) — the two-column copy-beside-stats split this layout draws, not CardGridBlock's grid of cards.",
+     "variant_note": "The button is variant=\"ghost\" on a charcoal band, which CopyPlusStatsBlock hardcodes rather than derives; no field expresses it and none is needed.",
+     "rows": {
+      "stats": {
+       "literal": [
+        {
+         "value": "300",
+         "unit": "+",
+         "label": "Five-Star Google Reviews",
+         "detail": "Welcoming environment, advanced technology, clear explanations, care that feels personal.",
+         "stars": true
+        },
+        {
+         "value": "600",
+         "unit": "+",
+         "label": "Hours of Specialized Training",
+         "detail": "Esthetic and surgical training completed by Dr. Bryce Richardson, including Implant Pathway."
+        },
+        {
+         "value": "2",
+         "label": "Doctors · Dual-Doctor Model",
+         "detail": "Dr. Bryce Richardson and Dr. Annie cover cosmetic, surgical, and general care under one roof."
+        }
+       ],
+       "from_template": "general-dentistry.astro:334-357 — the three .stat-card divs. This page has NO `cards` rows at all (the live `cards` repeater returns null), so all three are transcribed rather than moved.",
+       "unit_note": "Card 3 carries no `unit`: the template writes <div class=\"stat-num\">2</div> with no <em> (general-dentistry.astro:351), and CopyPlusStatsBlock emits no <em> for a blank unit rather than an empty one.",
+       "stars_note": "Card 1's ★★★★★ run is the star glyphs, not a flag — see `known_gaps`."
+      }
+     },
+     "known_gaps": [
+      "THE ★★★★★ RUN ON STAT CARD 1 CANNOT SURVIVE THE ROUND TRIP TODAY, and the fault is a type",
+      "disagreement between the layout and its component, not this map.",
+      "",
+      "vs-content-model.php:3794-3800 declares copy_plus_stats' `stats.stars` as a true_false, so",
+      "ACF stores 1/0 and wpgraphql-acf exposes a Boolean. CopyPlusStatsBlock.astro:130 types it",
+      "`string | null`, funnels it through `text()` (:187-188, `typeof input === \"string\" ? … : \"\"`)",
+      "and prints the VALUE inside the span (:333). A Boolean therefore trims to \"\" and the whole",
+      "<span class=\"stars\"> — plus its plain space and its &nbsp; — draws nothing.",
+      "",
+      "MediaSplitBlock, which the manifest cites as the same contract, gets this right: it types",
+      "`creds[].stars` as boolean, tests `row?.stars === true` (:653) and writes the five glyphs as",
+      "a literal in its own markup (:822). CopyPlusStatsBlock is the odd one out.",
+      "",
+      "The glyphs are recorded above so nothing is lost from the map, and the value is what a",
+      "true_false coerces from anyway (any non-empty string stores as 1). The fix is one line in",
+      "CopyPlusStatsBlock — treat `stars` as truthy and emit the literal ★★★★★ — and it belongs to",
+      "whoever owns that component, not here. REPORTED, not fixed: three sibling agents are relying",
+      "on these components being stable."
+     ]
+    },
+    {
+     "section_id": "services",
+     "layout": "service_cards",
+     "band": "paper",
+     "band_evidence": "general-dentistry.astro:362 <section class=\"section\"> — general-dentistry.css:325-327 — .gdent .section sets padding only and no background, so the body paper shows through. Read off the sheet, never the class name.",
+     "fields": {
+      "eyebrow": {
+       "section": "eyebrow"
+      },
+      "heading": {
+       "section": "heading"
+      },
+      "body": {
+       "section": "body"
+      },
+      "card_style": {
+       "literal": "features",
+       "from_template": "general-dentistry.astro:373-386 — <article class=\"svc-feat\"> with an always-visible .svc-feat-desc and no link, not the .svc-card.compact tile the other hubs draw. ServiceCardsBlock.astro:30-40 names this page as the one `features` band."
+      },
+      "columns": {
+       "literal": "4"
+      }
+     },
+     "columns_evidence": ".gdent .svc-grid-4 is grid-template-columns: repeat(4, 1fr) (general-dentistry.css:544-547).",
+     "collapse_at_decision": "NOT SET, and blank is correct: general-dentistry.css:1338-1341 collapses .svc-grid-4 to one column at 640px, which is ServiceCardsBlock's blank default (:356). It could not be set in any case — see `known_gaps`.",
+     "rows": {
+      "svc_cards": {
+       "literal": [
+        {
+         "title": "Preventive Care & Cleanings",
+         "image": {
+          "image": "imgPreventive",
+          "part": "id"
+         },
+         "body": "Regular cleanings, comprehensive exams, fluoride treatments, and sealants — every exam includes digital X-rays and CBCT imaging when indicated. Most clients benefit from a cleaning and exam every six months.",
+         "image_alt": "Smiling woman photographed in a warm interior setting"
+        },
+        {
+         "title": "Fillings, Crowns & Bridges",
+         "image": {
+          "image": "imgRestorative",
+          "part": "id"
+         },
+         "body": "Tooth-hued composite fillings, same-day in-house-milled crowns (no temporary, no second appointment), and bridges that anchor to adjacent teeth to replace a missing tooth and prevent shifting.",
+         "image_alt": "Dr. Bryce Richardson performing chairside restorative work"
+        },
+        {
+         "title": "Periodontal Care",
+         "image": {
+          "image": "imgPeriodontal",
+          "part": "id"
+         },
+         "body": "When gum disease is present, treatment includes scaling and root planing (a thorough cleaning below the gumline) followed by a customized maintenance schedule. Dr. Annie's holistic approach means gum health is never treated in isolation.",
+         "image_alt": "Front-on close-up of a smile showing the gumline"
+        },
+        {
+         "title": "Emergency Dental Care",
+         "image": {
+          "image": "imgEmergency",
+          "part": "id"
+         },
+         "body": "A broken tooth, severe pain, or dental infection requires same-day attention. Vivid Smiles prioritizes urgent cases and has the diagnostic technology to assess and treat quickly. <a class=\"vs-link\" href=\"/emergency-dentistry/\">Learn more about emergency dental care in Parker</a>.",
+         "image_alt": "Same-day emergency dental care"
+        }
+       ],
+       "from_template": "general-dentistry.astro:131-160 — the `services` array, transcribed in template order. Titles from :135,:142,:149,:156; descriptions from :136-139,:143-146,:150-153,:158; alts from :134,:141,:148,:155.",
+       "escaping_note": "\"Preventive Care & Cleanings\" and \"Fillings, Crowns & Bridges\" store a LITERAL ampersand. The template's JS string literals already hold one; ServiceCardsBlock escapes titles on output, so storing &amp; would render a visible \"&amp;\".",
+       "html_note": "Card 4's `body` keeps its inline <a class=\"vs-link\"> — ServiceCardsBlock draws .svc-feat-desc with set:html (:558), exactly as the template does at :384. It is this page's only internal-link anchor.",
+       "no_href_note": "No `href` on any row, including Emergency. The template's `href: '/emergency-dentistry/'` (:157) feeds only the JSON-LD offerCatalog (:171-179); the CARD is unlinked, and ServiceCardsBlock ignores `href` in the features shape anyway. Storing one would read as a link that is not drawn.",
+       "no_image_note": "No `image` on any row, and that is the blocking gap below — not a decision.",
+       "image_note": "Each row names its image slot with {\"image\":\"<slot>\",\"part\":\"id\"} — the shape vs_bb_resolve_literal_row() now resolves and whose source slot it claims. Before that landed these four slots were unclaimed and unexempted, and the planner refused the whole route on four leftover errors. Slots verified live: imgPreventive, imgRestorative, imgPeriodontal, imgEmergency, in the template's card order (general-dentistry/index.astro)."
+      }
+     },
+     "known_gaps": [
+      "CLOSED — the row-level image blocker this note described is fixed.",
+      "",
+      "vs_bb_resolve_literal_row() now resolves an object-valued sub-field inside a",
+      "repeater row through vs_bb_resolve_field() and claims its source slot, so",
+      "`{\"image\":\"<slot>\",\"part\":\"id\"}` works in `rows.<repeater>.literal` and not",
+      "only in `fields`. The rows above carry real specs; every slot verified live.",
+      "",
+      "Rewritten rather than deleted: a note that says 'cannot' after it can is how",
+      "two real losses started on this project.",
+      "",
+      "(:3962-4098) declares nested, card_style, columns, svc_cards, sub_foot and the cta seven and"
+     ]
+    },
+    {
+     "section_id": "first-visit",
+     "layout": "media_split",
+     "band": "charcoal",
+     "band_evidence": "general-dentistry.astro:393 <section class=\"section alt\"> — general-dentistry.css:328-330 — .gdent .section.alt { background: var(--vs-charcoal-green); color: rgba(255,255,255,.85) }. `.alt` is the DARK one on this page.",
+     "fields": {
+      "eyebrow": {
+       "section": "eyebrow"
+      },
+      "heading": {
+       "section": "heading"
+      },
+      "body": {
+       "section": "body"
+      },
+      "image": {
+       "image": "imgFirstVisit",
+       "part": "id"
+      },
+      "image_alt": {
+       "image": "imgFirstVisit",
+       "part": "alt"
+      },
+      "media_side": {
+       "literal": "left"
+      },
+      "ratio": {
+       "literal": "wide-media"
+      },
+      "body_2": {
+       "literal": "Dr. Annie's approach ensures clients feel informed rather than overwhelmed, whether they are returning to dental care after years away or managing an ongoing concern. If cosmetic questions arise, digital smile design previews can be explored at the same visit.",
+       "from_template": "general-dentistry.astro:408-413 — the second <p> of .what-text. The CMS `first-visit` row holds only the first."
+      }
+     },
+     "layout_evidence": ".what-img precedes .what-text in the DOM (general-dentistry.astro:396,404) so the photo is on the LEFT; .gdent .what-grid is 1.05fr 1fr (general-dentistry.css:612-614), which makes the MEDIA column the wider one — hence `wide-media` rather than the family default `even`.",
+     "image_alt_note": "Moved, not transcribed: the live images row for imgFirstVisit stores \"Entry doors at Vivid Smiles Dentistry in Parker, CO, etched with the practice logo\", character-for-character the alt the template hardcodes at :399. Where both exist, the CMS row wins.",
+     "known_gaps": [
+      "COSMETIC ONLY, AND NOT A WORD. MediaSplitBlock wraps the paragraphs in <div class=\"prose\">",
+      "(:781-796); this page's .what-text has bare <p> children and its sheet has no `.prose` rule",
+      "at all (0 matches in general-dentistry.css). The component ships its own scoped geometry, so",
+      "the band still draws — but the class attribute and the box tree differ from the template's,",
+      "and the tracks differ by 0.05fr (1.1fr 1fr from MediaSplitBlock.astro:1288-1290 against the",
+      "sheet's 1.05fr 1fr) with an 80px gap against the sheet's 72px. No text node moves, so the",
+      "word-level census is unaffected; this is for the stylesheet pass, recorded so it is not",
+      "rediscovered as a defect."
+     ]
+    },
+    {
+     "section_id": "gateway",
+     "layout": "media_split",
+     "band": "paper",
+     "band_evidence": "general-dentistry.astro:419 <section class=\"section\"> — general-dentistry.css:325-327 — .gdent .section sets padding only and no background, so the body paper shows through. Read off the sheet, never the class name.",
+     "fields": {
+      "eyebrow": {
+       "section": "eyebrow"
+      },
+      "heading": {
+       "section": "heading"
+      },
+      "body": {
+       "section": "body"
+      },
+      "image": {
+       "image": "imgGateway",
+       "part": "id"
+      },
+      "image_alt": {
+       "image": "imgGateway",
+       "part": "alt"
+      },
+      "media_side": {
+       "literal": "right"
+      },
+      "ratio": {
+       "literal": "wide-media"
+      },
+      "body_2": {
+       "literal": "Dr. Richardson's expertise in porcelain veneers, including no-prep and minimal-prep options that preserve natural tooth structure, means the path from routine care to a smile makeover is straightforward. Patients who experience our practice through general dentistry already have a dependable team.",
+       "from_template": "general-dentistry.astro:426-431 — the second <p> of .what-text on the flipped grid."
+      },
+      "cta_label": {
+       "literal": "Explore Cosmetic Dentistry",
+       "from_template": "general-dentistry.astro:433-435 — the first button in .gateway-actions."
+      },
+      "cta_href": {
+       "literal": "/cosmetic-dentistry/"
+      },
+      "cta_hover": {
+       "literal": "See Treatments",
+       "from_template": "general-dentistry.astro:433 hoverLabel. CTA_HOVER (src/blocks/cta.ts:45-52) has no site-path keys, so a blank here loses the word-swap."
+      },
+      "cta_label_2": {
+       "literal": "See the Smile Gallery",
+       "from_template": "general-dentistry.astro:436-438 — the second button in .gateway-actions."
+      },
+      "cta_href_2": {
+       "literal": "/smile-gallery/"
+      },
+      "cta_hover_2": {
+       "literal": "Open Gallery",
+       "from_template": "general-dentistry.astro:436 hoverLabel."
+      }
+     },
+     "layout_evidence": ".what-text precedes .what-img (general-dentistry.astro:422,441) so the photo is on the RIGHT; .gdent .what-grid--flip is 1fr 1.05fr (general-dentistry.css:618-619), media column wider. `wide-media` IS the family default for a right-side photo (MediaSplitBlock.astro:481), so no ratio modifier class is emitted — which is what keeps the class attribute the shortest string that draws this band.",
+     "href_policy_note": "Both hrefs are site paths, which is what the policy allows. Neither is a booking, tel: or maps URL — those resolve from src/data/contact.ts through the book|phone|map tokens and never appear in a stored field.",
+     "variants_note": "On a paper band MediaSplitBlock picks sage + ghost (:702-703), which is exactly what the template spells at :433 and :436. Nothing to store.",
+     "known_gaps": [
+      "COSMETIC ONLY. The buttons move from <div class=\"gateway-actions\"> into the component's",
+      "`.cta-row` wrapper, and the paragraphs gain the `.prose` wrapper described on the",
+      "`first-visit` block. Both labels, both destinations and both hover words are carried, so no",
+      "word changes. The `.gateway-actions` rule (general-dentistry.css:24) becomes dead and is the",
+      "stylesheet pass's to remove."
+     ]
+    },
+    {
+     "anchor": "trust",
+     "layout": "code_section",
+     "band": "sage-pale",
+     "band_evidence": "general-dentistry.astro:453 <section class=\"section dark\"> — general-dentistry.css:351-353 — .gdent .section.dark { background: var(--vs-sage-pale) }. `.dark` is the PALE one on this page. TrustBand.astro draws its own <section> with the same colours, so the band is unchanged.",
+     "fields": {
+      "band_key": {
+       "literal": "general_dentistry_trust",
+       "from_template": "general-dentistry.astro:453-469 — the whole .trust-quote band this row holds the place of. Registered in vs-content-model.php:255 and in CodeSectionBlock.astro:268-278, which draws it with TrustBand.astro."
+      }
+     },
+     "no_section_id_note": "No `section_id`, because a code_section is built from nothing on the page — it names its `anchor` directly, which `defaults.anchor` permits and which is the address #trust has always had. The `sections` row `trust` is therefore claimed by no block and is listed under `exempt.sections`.",
+     "nav_label_note": "Resolves to \"Why Parker Trusts Us\" from the `toc_links` row whose anchor is `trust`, by the default every layout uses; vs_bb_plan_route() claims toc_links on the ANCHOR (backfill-blocks.php:527-531), which is what lets a code_section claim its own rail entry.",
+     "known_gaps": [
+      "THIS FREEZES COPY THAT IS CMS-BACKED TODAY. The live `sections` row `trust` holds a heading",
+      "and a body that an editor can change in wp-admin right now, and the template echoes them",
+      "(general-dentistry.astro:457-458). CodeSectionBlock.astro:268-278 carries both as literal",
+      "props — copied out of the GraphQL endpoint on 2026-08-28 and verified identical to the live",
+      "values by this agent on the same endpoint — so once this row is live the wp-admin fields",
+      "still exist, still save, and no longer reach the page. A wording change becomes a developer",
+      "edit in CodeSectionBlock.astro.",
+      "",
+      "That is the code_section trade the three LocalTrust rows already made, and it is taken here",
+      "for the reason those were: no registered layout draws a centred .trust-quote — one eyebrow,",
+      "one <h2>, two .trust-body paragraphs, a .trust-attr line — and inventing one would be",
+      "designing, which this phase does not do. The band keeps its position, its anchor and its rail",
+      "entry; it loses only its editability.",
+      "",
+      "The eyebrow was never CMS-backed at all: sections.trust.eyebrow comes back null and the",
+      "template hardcodes \"Why Parker trusts us\" at :456, which is the value frozen in the props.",
+      "The second paragraph (:459-462, html-bearing) and the review line (:465) were never CMS",
+      "content either. So of the five strings in this band, two are frozen CMS values and three",
+      "were always code."
+     ]
+    },
+    {
+     "section_id": "doctors",
+     "layout": "doctor_profiles",
+     "band": "paper",
+     "band_evidence": "general-dentistry.astro:471 <section class=\"section\"> — general-dentistry.css:325-327 — .gdent .section sets padding only and no background, so the body paper shows through. Read off the sheet, never the class name.",
+     "fields": {
+      "eyebrow": {
+       "section": "eyebrow"
+      },
+      "heading": {
+       "section": "heading"
+      },
+      "image": {
+       "image": "imgDoctors",
+       "part": "id"
+      },
+      "image_alt": {
+       "image": "imgDoctors",
+       "part": "alt"
+      },
+      "pill": {
+       "literal": "Dr. Bryce & Dr. Annie",
+       "from_template": "general-dentistry.astro:480 <span class=\"doctor-pill\">. Literal ampersand for the escaping reason recorded on the `why` block."
+      }
+     },
+     "no_body_note": "The preamble's `body` is deliberately NOT filled. The template reads {section(\"doctors\").body} INSIDE the first bio (:493), not in the section head, and this layout's head paragraph is a separate field — filling it would print the doctor's prose above the portrait as well as beside it. DoctorProfilesBlock.astro:71-79 says so at the field.",
+     "image_alt_note": "Moved: the live imgDoctors row stores the same alt the template hardcodes at :483, character for character.",
+     "layout_evidence": ".gdent .doctor--feature is 1fr 1.05fr (general-dentistry.css:748-750); the stack holds TWO plain .doctor-bio divs with a .doctor-rule between them (astro:490,496,498), neither carrying `lead` and neither carrying a thumbnail — the third of the three shapes DoctorProfilesBlock.astro:13-16 enumerates. The rule is drawn between rows by the component and is never stored.",
+     "rows": {
+      "bios": {
+       "literal": [
+        {
+         "eyebrow": "Dr. Bryce Richardson, DDS",
+         "heading": "Indiana University trained. <em>Parker resident.</em>",
+         "body": "Dr. Bryce Richardson, DDS, graduated from Indiana University School of Dentistry and completed 600+ hours of advanced esthetic and surgical training. A Parker resident and former team dentist for Indiana University basketball, he brings clinical precision and genuine local investment to every patient."
+        },
+        {
+         "eyebrow": "Dr. Annelise Westermeier · Dr. Annie",
+         "heading": "Fourth-generation dentist. <em>General dentistry lead.</em>",
+         "body": "Dr. Annelise Westermeier (Dr. Annie), a fourth-generation dentist with an AEGD residency from Virginia Commonwealth University, leads general dentistry with a holistic, patient-comfort-first approach. Together, they cover the full spectrum of dental care."
+        }
+       ],
+       "from_template": "general-dentistry.astro:490-507 — the two .doctor-bio divs in DOM order. Eyebrows from :491,:499; headings from :492,:500 (the <em> is transcribed because DoctorProfilesBlock renders `heading` with set:html; typing the tag as text would print it). Row 2's body from :501-506.",
+       "no_lead_note": "Neither row sets `lead`. general-dentistry.css:741-747 records at length that this page bills both doctors equally, so neither bio gets the `--lead` scale-up its cosmetic and implant counterparts give their first.",
+       "row_1_body_is_frozen_cms": "NOT a from_template value — see `known_gaps`. It is sections.doctors.body, transcribed here because no row source can reference it."
+      }
+     },
+     "known_gaps": [
+      "CLOSED — the row-level image blocker this note described is fixed.",
+      "",
+      "vs_bb_resolve_literal_row() now resolves an object-valued sub-field inside a",
+      "repeater row through vs_bb_resolve_field() and claims its source slot, so",
+      "`{\"image\":\"<slot>\",\"part\":\"id\"}` works in `rows.<repeater>.literal` and not",
+      "only in `fields`. The rows above carry real specs; every slot verified live.",
+      "",
+      "Rewritten rather than deleted: a note that says 'cannot' after it can is how",
+      "two real losses started on this project."
+     ]
+    },
+    {
+     "anchor": "payment",
+     "layout": "code_section",
+     "band": "charcoal",
+     "band_evidence": "general-dentistry.astro:513 <section class=\"section alt\"> — general-dentistry.css:328-330 — .gdent .section.alt { background: var(--vs-charcoal-green); color: rgba(255,255,255,.85) }. `.alt` is the DARK one on this page. PaymentBand.astro:144 draws <section class=\"section alt\"> itself, so the band is unchanged.",
+     "fields": {
+      "band_key": {
+       "literal": "general_dentistry_payment",
+       "from_template": "general-dentistry.astro:513-589 — the .pay-grid copy column beside the .pay-card membership aside. Registered in vs-content-model.php:256 and in CodeSectionBlock.astro:287-306, which draws it with PaymentBand.astro."
+      }
+     },
+     "no_section_id_note": "Same as `trust`: nothing on the page feeds this row, so it names its anchor directly and the `sections` row `payment` is listed under `exempt.sections`.",
+     "nav_label_note": "Resolves to \"Payment & Plan\" from the toc_links row whose anchor is `payment`.",
+     "layout_evidence": ".gdent .pay-grid is 1.05fr 1fr (general-dentistry.css:860-862) — copy column, membership aside.",
+     "known_gaps": [
+      "THIS FREEZES COPY THAT IS CMS-BACKED TODAY, on the same terms as `trust`. The live",
+      "`sections` row `payment` holds the eyebrow, the heading and the first paragraph",
+      "(general-dentistry.astro:517-519), and CodeSectionBlock.astro:287-306 now carries all three",
+      "as literal props — verified identical to the live values on the endpoint. Those wp-admin",
+      "fields keep saving and stop reaching the page; a wording change becomes a developer edit.",
+      "",
+      "The rest of the band was never CMS content and loses nothing: the financing sentence",
+      "(:520-523), the aside's eyebrow, heading and three html-bearing plan lines (:534-543) and",
+      "the \"See Membership Plan\" label (:545) are all template literals. The three buttons'",
+      "destinations and the phone label are NOT frozen — PaymentBand draws them from",
+      "src/data/contact.ts (:170-175), which is the href policy working as intended: no band",
+      "carries its own copy of a booking URL or a phone number.",
+      "",
+      "No layout can express this band today. It is a two-column split whose second column is a",
+      "bordered plan card with a bolded <b>-led list and its own button — media_split has no such",
+      "aside, comparison_cards has no copy column, and pricing_tiers is a row of plans rather than",
+      "one card beside prose. Building one would be designing."
+     ]
+    },
+    {
+     "anchor": "area",
+     "layout": "code_section",
+     "band": "paper",
+     "band_evidence": "general-dentistry.astro:554 <section class=\"section\"> — general-dentistry.css:325-327 — .gdent .section sets padding only and no background, so the body paper shows through. Read off the sheet, never the class name. AreaBand.astro:164 draws <section class=\"section\"> itself, so the band is unchanged.",
+     "fields": {
+      "band_key": {
+       "literal": "general_dentistry_area",
+       "from_template": "general-dentistry.astro:554-590 — the .area grid of copy, address line, two buttons and the map iframe. Registered in vs-content-model.php:254 and in CodeSectionBlock.astro:249-259, which draws it with AreaBand.astro."
+      }
+     },
+     "no_section_id_note": "Same as `trust` and `payment`. Note that sections.area.body comes back NULL on the live endpoint — this band's paragraphs have always been template copy — so the row contributes an eyebrow and a heading only, and both are frozen in the band's props.",
+     "nav_label_note": "Resolves to \"Parker Location\" from the toc_links row whose anchor is `area`.",
+     "layout_evidence": ".gdent .area is 1fr 1.05fr (general-dentistry.css:1024-1026) — copy column, map column.",
+     "known_gaps": [
+      "FREEZES THE EYEBROW AND THE HEADING, which are the two CMS-backed strings this band has",
+      "(sections.area.body is null). Both are carried as literal props in CodeSectionBlock.astro:249-259",
+      "and verified identical to the live row.",
+      "",
+      "The ADDRESS is deliberately NOT frozen, and that is the one thing in these three entries",
+      "worth checking on review: AreaBand's paragraphs carry {street} and {city} tokens where the",
+      "template interpolates addressStreet and addressCity, and the component substitutes them from",
+      "src/data/contact.ts at render. Baking today's street into a prop would strand this page on",
+      "the old address after the practice moves. The address line, the phone link, \"Get Directions\",",
+      "\"Contact Us\" and the map embed are furniture the component draws for itself."
+     ]
+    },
+    {
+     "section_id": "faq",
+     "layout": "faq",
+     "band": "charcoal",
+     "band_evidence": "general-dentistry.astro:592 <section class=\"section alt\"> — general-dentistry.css:328-330 — .gdent .section.alt { background: var(--vs-charcoal-green); color: rgba(255,255,255,.85) }. `.alt` is the DARK one on this page.",
+     "fields": {
+      "eyebrow": {
+       "section": "eyebrow"
+      },
+      "heading": {
+       "section": "heading"
+      },
+      "body": {
+       "section": "body"
+      },
+      "cta_label": {
+       "literal": "Still Have Questions? Free Virtual Consult",
+       "from_template": "general-dentistry.astro:620-622. FaqBlock draws the second button — Call + the practice number — from src/data/contact.ts, because a phone number is site data and not page content, so it is not transcribed here."
+      },
+      "cta_href": {
+       "literal": "#consult"
+      }
+     },
+     "body_not_pull_note": "sections.faq.body -> `body`, NOT -> `pull`. This is the hub variant: the template puts the paragraph inside the centred .section-head (general-dentistry.astro:597) and this page has no `.pull` column at all. The pilot and the ten detail routes do the opposite, and manifest.ts:169-175 records the split. Writing it to `pull` here would move the paragraph beside the questions; writing it to both would print it twice.",
+     "cta_hover_note": "Not set, and blank is correct: CTA_HOVER (src/blocks/cta.ts:45) maps \"#consult\" to \"Get a Video\", which is exactly the hoverLabel the template passes at :620.",
+     "variants_note": "FaqBlock picks light + ghost-light on a charcoal band (:148, :205, :217), which is what the template spells at :620 and :623.",
+     "rows": {
+      "items": {
+       "faqs": true,
+       "fields": {
+        "question": "question",
+        "answer": "answer",
+        "open": "open"
+       },
+       "note": "All 5 rows, in order, moved. Two answers carry inline <a class=\"vs-link\"> anchors (to /dental-membership-plan/ and /cosmetic-dentistry/) and FaqBlock renders answers with set:html, exactly as the template does at :612."
+      }
+     },
+     "known_gaps": [
+      "THE CLOSING BAND DEPENDS ON THIS BLOCK STAYING LAST. <section class=\"closing\">",
+      "(general-dentistry.astro:631-651) is unguarded template markup: it has no layout that can",
+      "express it and no code_section band key registered for it, so guarding it with no row would",
+      "delete an eyebrow, a heading and two paragraphs from a live page. Unguarded it renders once,",
+      "after everything PageBlocks drew — which is the right place ONLY while `faq` is the last",
+      "block in this list.",
+      "",
+      "Reorder the blocks in wp-admin so that any band follows `faq`, and the closing copy jumps",
+      "above it. That is the LocalTrust fault at one remove (block-map's clear-aligners entry,",
+      "`position_evidence`), and the fix is the same: a `code_section` row for the closing band,",
+      "which needs a band key registered in BLOCK_CODE_BANDS and an entry in CodeSectionBlock's",
+      "BANDS map. Neither exists, and adding them is a component change this agent does not own.",
+      "",
+      "Also unmigrated and deliberately so: the three JSON-LD blocks (:657-740) still build",
+      "themselves from the template's own `services` array and from `faqs`, so the Service,",
+      "FAQPage and BreadcrumbList payloads are unchanged on both sides of the switch. They are not",
+      "bands and have no position in this list."
+     ]
+    }
+   ],
+   "exempt": {
+    "_": [
+     "Every repeater row on this page that no block above claims. The backfill fails, before",
+     "writing anything, on any row that is neither claimed nor listed here. Three `sections` rows",
+     "and one image are listed; the four service-tile images are NOT, on purpose, and that is the",
+     "whole point of `images_decision` below."
+    ],
+    "sections": [
+     {
+      "section_id": "trust",
+      "reason": "Its band is the code_section at position 5 (band_key general_dentistry_trust). A code_section is built from nothing on the page, so it claims no sections row — but the band is in the list, keeps its position and keeps its rail entry.",
+      "read_this_before_running": [
+       "The heading and body in this row are frozen as literal props in",
+       "src/blocks/CodeSectionBlock.astro. After this runs the wp-admin fields still save and no",
+       "longer reach the page. See known_gaps on that block."
+      ]
+     },
+     {
+      "section_id": "payment",
+      "reason": "Its band is the code_section at position 7 (band_key general_dentistry_payment). Same reasoning as `trust`.",
+      "read_this_before_running": [
+       "Eyebrow, heading and first paragraph are frozen as literal props in CodeSectionBlock.astro."
+      ]
+     },
+     {
+      "section_id": "area",
+      "reason": "Its band is the code_section at position 8 (band_key general_dentistry_area). Same reasoning; this row's `body` is already null on the live endpoint, so only the eyebrow and heading are affected.",
+      "read_this_before_running": [
+       "Eyebrow and heading are frozen as literal props in CodeSectionBlock.astro. The street and",
+       "city are NOT — AreaBand substitutes them from src/data/contact.ts at render."
+      ]
+     }
+    ],
+    "cards": [],
+    "cards_note": [
+     "EMPTY BECAUSE THE PAGE HAS NO SUCH ROWS, not because they are excused. `cards` comes back",
+     "null from the live endpoint for this route, which is why every card, tile, stat and bio in",
+     "the blocks above is a literal: there was nothing to move. The leftover check only reports a",
+     "repeater that HAS rows and was not claimed, so an empty list is correct and would start",
+     "reporting if rows were later added — which is the behaviour worth keeping."
+    ],
+    "process_steps": [],
+    "process_steps_note": "Also null on the live endpoint. This page has no numbered-process band.",
+    "faqs": [],
+    "images": [
+     {
+      "slot": "imgHero",
+      "reason": "The hero is not a block. It is a `hero` group field on group_vs_page — one per page, always first, never reordered (docs/PAGE-BLOCKS.md 1.3, 7).",
+      "destination": "hero.image, filled by whatever moves the hero across. Not this script's field.",
+      "renders_today": "general-dentistry.astro:266-283, the <header class=\"hero\"> — which stays unguarded on both sides of the migration switch."
+     }
+    ],
+    "images_decision": [
+     "FOUR SLOTS ARE MISSING FROM THE LIST ABOVE ON PURPOSE: imgPreventive, imgRestorative,",
+     "imgPeriodontal and imgEmergency, the four .svc-feat photographs on the `services` band.",
+     "",
+     "They are not exempt, because exempt means \"somebody looked at this and it has somewhere else",
+     "to be\" and these have nowhere else to be — they are live CMS attachments that the migrated",
+     "band would simply stop drawing. They are not claimed either, because vs_bb_resolve_rows()",
+     "has no source that can name an images slot from inside a repeater row.",
+     "",
+     "Leaving them unclaimed AND unexempted makes the planner refuse this route",
+     "(backfill-blocks.php:685-690, :720-726) before it writes anything. That is the intended",
+     "outcome: this route must not migrate until the row source exists, because the alternative is",
+     "four photo-less cards on a live client page. The full write-up, including the one-line",
+     "syntax the fix needs, is in `known_gaps` on the `services` block."
+    ],
+    "toc_links": [],
+    "toc_links_decision": [
+     "EMPTY, AND ALL NINE ROWS ARE CLAIMED. The anchors are why, services, first-visit, gateway,",
+     "trust, doctors, payment, area, faq — six by a `section_id` and three (trust, payment, area)",
+     "by a code_section naming the same anchor. vs_bb_plan_route() claims a toc_links row on the",
+     "ANCHOR rather than on the section id (backfill-blocks.php:527-531), which is what lets a",
+     "code-owned band keep its rail entry.",
+     "",
+     "The rail is then derived from blocks[].anchor + nav_label in block order",
+     "(general-dentistry.astro, the derivedTocLinks loop). Nine blocks produce nine rail entries,",
+     "in the same order and with the same labels the template build produces from the repeater, so",
+     "the rail is not a difference at all. Every anchor is also a legal id selector under the",
+     "loop's ANCHOR_IS_ID_SELECTOR test — `first-visit` starts with a letter and contains only",
+     "letters and a hyphen — so none is dropped and src/scripts/toc-spy.ts keeps working."
+    ]
+   }
+  },
+  "/implant-dentistry/": {
+   "template": "vivid-smiles-website/src/pages/implant-dentistry/index.astro",
+   "stylesheet": "vivid-smiles-website/src/styles/pages/implant-dentistry.css",
+   "wrapper_class": "impd",
+   "notes": [
+    "The implant hub — Phase 4 Wave A, one of the four parent pages. Ten sections rows, ten",
+    "toc_links rows, four cards groups, four process_steps, six faqs, eight images.",
+    "",
+    "THIRTEEN TOP-LEVEL BANDS, ALL THIRTEEN ACCOUNTED FOR. Eleven rows below and three",
+    "unguarded chrome bands is fourteen, and the arithmetic is the point: #solutions is ONE",
+    "band mapped as TWO rows (see its known_gaps), so eleven rows cover ten bands. The rest,",
+    "top to bottom, and what each is:",
+    "",
+    "  .crumbs             chrome, unguarded — a breadcrumb is not a band an editor orders.",
+    "  header.hero         chrome, unguarded — the hero is a `hero` group field, always first,",
+    "                      never reordered (docs/PAGE-BLOCKS.md 1.3, 7).",
+    "  nav.toc#toc         chrome, unguarded — 'not a block, even though it is a band' (7).",
+    "                      Only its CONTENTS move: the rail reads derivedTocLinks when the",
+    "                      blocks draw the page and tocLinks when the template does.",
+    "  #why                row 1  copy_plus_stats",
+    "  #what               row 2  media_split",
+    "  #solutions          rows 3+4  pricing_tiers + service_cards (one band, two rows)",
+    "  #compare            row 5  comparison_cards",
+    "  #process            row 6  process_steps",
+    "  #technology         row 7  tech_grid",
+    "  #doctors            row 8  doctor_profiles",
+    "  #candidacy          row 9  candidacy_ledger",
+    "  #area               row 10 code_section, band_key implant_dentistry_area",
+    "  #faq                row 11 faq",
+    "  section.closing     chrome, unguarded — see THE CLOSING BAND below.",
+    "  <VirtualConsult>    chrome, unguarded.",
+    "  <FinalBand>         chrome, unguarded.",
+    "",
+    "THE BAND VOCABULARY IS INVERTED ON THIS SHEET, as it is on several others, and every",
+    "`band` below is resolved from the RULE rather than from the class name:",
+    "  .impd .section       padding only, no background   -> paper      (implant-dentistry.css:307-309)",
+    "  .impd .section.alt   var(--vs-charcoal-green)      -> charcoal   (implant-dentistry.css:310-311)",
+    "  .impd .section.dark  var(--vs-sage-pale)           -> sage-pale  (implant-dentistry.css:332-333)",
+    "Reading the class would put sage-pale where charcoal belongs on four of the ten bands.",
+    "The sheet's own header comment is stale on this point too — it still describes #technology",
+    "as sitting on a cream band (implant-dentistry.css:19-21) and the section rule has been",
+    "charcoal since. The rule wins; the comment is cited where it could mislead.",
+    "",
+    "THE CLOSING BAND IS UNGUARDED, AND THAT IS A DECISION, NOT AN OVERSIGHT.",
+    "section.closing (vivid-smiles-website/src/pages/implant-dentistry/index.astro:652-668) is page copy — an eyebrow, an <h2> with an <em>, two",
+    "paragraphs — on a paper ground (.impd .closing { background: var(--paper) },",
+    "implant-dentistry.css:1299-1302). No registered layout draws .closing-inner and no",
+    "BLOCK_CODE_BANDS key names it, so it cannot be a row today.",
+    "",
+    "Leaving it unguarded is safe HERE and would not be safe anywhere above it. The LocalTrust",
+    "fault on the pilot was a band left unguarded in the MIDDLE of the run: PageBlocks drew the",
+    "ordered bands where the first one used to start and the unguarded band stayed at its",
+    "template position, which was now the bottom, carrying a duplicate id. .closing sits AFTER",
+    "the last guarded band, exactly like <VirtualConsult> and <FinalBand>, so template order is",
+    "still page order for it however an editor rearranges the blocks. It carries no id, so",
+    "there is nothing to duplicate and nothing in the rail to break.",
+    "",
+    "What it costs: an editor cannot reword or move it. The fix is a `implant_dentistry_closing`",
+    "key in BLOCK_CODE_BANDS plus a component in CodeSectionBlock's BANDS map — one line each —",
+    "or a layout, if a second page ever grows the same shape. Neither is this agent's file.",
+    "",
+    "FOUR GAPS BLOCK OR DEGRADE THIS ROUTE AND ARE WRITTEN OUT ON THE ROWS THEY BELONG TO.",
+    "Two of them stop the backfill before it writes anything, which is the direction to fail in:",
+    "  * service_cards row — the five tile PHOTOGRAPHS have no path from the `images` repeater",
+    "    into a repeater row. BLOCKING by construction: the slots are claimed by no block and",
+    "    exempted nowhere, so the planner reports five leftovers and refuses the route.",
+    "  * process_steps row — ProcessStepsBlock does not draw the `card` shape yet, and the two",
+    "    shapes order the step's four pieces differently, so the band would fail an in-sequence",
+    "    word diff. BLOCKING for the lossless bar, not for the planner.",
+    "  * copy_plus_stats row — the ★★★★★ run never renders: `stars` is a boolean and the",
+    "    component reads it through a string helper. Degrades, does not block.",
+    "  * candidacy_ledger row — `ledger_skin` is registered nowhere, so this band's ink card",
+    "    draws in the sage skin. Degrades, does not block. The brief for this migration asked",
+    "    for ledger_skin: \"ink\" here; it is deliberately NOT written, because a sub-field the",
+    "    layout does not have fails the planner and stops the whole route (backfill-blocks.php:",
+    "    546-556) without reaching the component either way. Probed live to be sure.",
+    "",
+    "TWO VALUES ARE TRANSCRIBED THAT A READER WILL WANT TO ARGUE WITH, and both are the same",
+    "one-branch limitation: vs_bb_resolve_rows() cannot resolve a `section` or an `image` source",
+    "inside a repeater row. See doctor_profiles.body_lives_in_the_bio and service_cards.",
+    "known_gaps. Teaching that function to run a row VALUE that is an object through",
+    "vs_bb_resolve_field() closes both, and neither row needs an edit when it does.",
+    "",
+    "EVERY MAPPED SOURCE WAS VERIFIED AGAINST https://1230613.us28.myftpupload.com/graphql",
+    "before this file was written, not against the payload snapshots: all ten sections rows and",
+    "their sub-fields, all ten toc_links anchors, the four cards groups row-for-row against the",
+    "template arrays they zip onto (18 of 18 matched), the four process_steps, the six faqs and",
+    "their `open` flags, and the eight images slots."
+   ],
+   "blocks": [
+    {
+     "section_id": "why",
+     "layout": "copy_plus_stats",
+     "band": "charcoal",
+     "band_evidence": "implant-dentistry.astro:274 <section class=\"section alt\"> — .impd .section.alt { background: var(--vs-charcoal-green) } at implant-dentistry.css:310-311. CHARCOAL, dark ground with white headings (:314-318). The class name says \"alt\" and means charcoal here; on teeth-whitening.css the same class is cream, which is why this is read off the rule and never off the class.",
+     "fields": {
+      "eyebrow": {
+       "section": "eyebrow"
+      },
+      "heading": {
+       "section": "heading"
+      },
+      "body": {
+       "section": "body"
+      },
+      "body_2_heading": {
+       "literal": "Robotic-precision implant placement",
+       "from_template": "vivid-smiles-website/src/pages/implant-dentistry/index.astro:289 — the <h3> between the two prose paragraphs in .why-copy. The CMS `why` row has no field for it, so it is transcribed; CopyPlusStatsBlock draws it from `body_2_heading` in exactly that position."
+      },
+      "body_2": {
+       "literal": "Robotic-guided implant placement delivers submillimeter precision that freehand technique cannot consistently replicate. Using CBCT imaging (cone beam computed tomography, a 3D scan mapping bone volume, density, and anatomy), Dr. Richardson designs a digital placement plan before any surgery begins — robotic guidance executes that plan on the day of the procedure.",
+       "from_template": "vivid-smiles-website/src/pages/implant-dentistry/index.astro:290-295 — the paragraph under that <h3>. One line here, four wrapped lines there; the wrap is source indentation the browser collapses, and the CMS holds single-line values."
+      },
+      "cta_label": {
+       "literal": "Meet Dr. Bryce Richardson",
+       "from_template": "vivid-smiles-website/src/pages/implant-dentistry/index.astro:297 — the single ghost button at the foot of .why-copy. CopyPlusStatsBlock fixes the variant to ghost, which is what that line passes."
+      },
+      "cta_href": {
+       "literal": "#doctors"
+      },
+      "cta_hover": {
+       "literal": "See Bio",
+       "from_template": "REQUIRED, not decoration. #doctors is not in CTA_HOVER (src/blocks/cta.ts:46-53), so a blank here yields undefined and Button.astro reuses the visible label — the button would hover \"Meet Dr. Bryce Richardson\" instead of \"See Bio\" (vivid-smiles-website/src/pages/implant-dentistry/index.astro:297)."
+      }
+     },
+     "layout_evidence": "Not card_grid, though both draw a .why-grid: this is the two-column copy/stats split, .impd .why-grid = 1.15fr 1fr (implant-dentistry.css:420-422) over .why-copy + .why-stats, and CopyPlusStatsBlock emits .why-grid as a DIRECT child of <section> with no .wrap — which is exactly what vivid-smiles-website/src/pages/implant-dentistry/index.astro:275 does.",
+     "rows": {
+      "stats": {
+       "literal": [
+        {
+         "value": "600",
+         "unit": "+",
+         "label": "Hours of Surgical Training",
+         "detail": "Specialized esthetic and surgical training, including a staff position at Implant Pathway — one of the country's most respected implant education programs."
+        },
+        {
+         "value": "300",
+         "unit": "+",
+         "label": "Five-Star Google Reviews",
+         "detail": "Consistent feedback: precision, comfort, and natural-looking results.",
+         "stars": true
+        },
+        {
+         "value": "0",
+         "unit": "",
+         "label": "Outside Referrals",
+         "detail": "Surgical placement and final restoration both happen here — Dr. Richardson handles every phase from CBCT planning to crown delivery."
+        }
+       ],
+       "from_template": "vivid-smiles-website/src/pages/implant-dentistry/index.astro:300-315 — the three .stat-card divs. The page has no `cards` group for them, so they are transcribed rather than moved.",
+       "unit_note": "Card three is <div class=\"stat-num\">0</div> with no <em> at all, so its `unit` is empty and the component draws no empty <em> for it."
+      }
+     },
+     "known_gaps": [
+      "THE STAR RUN IS LOST, and it is a component fault rather than a mapping one.",
+      "`stars` is registered as a true_false (vs-content-model.php:3793-3799) and arrives over",
+      "GraphQL as a Boolean, but CopyPlusStatsBlock.astro:218 reads it as",
+      "`stars: text(row?.stars)` and text() (:187-188) returns \"\" for anything that is not a",
+      "string. So `true` becomes \"\", the guard at :326 and :333 sees an empty string, and the",
+      "aria-hidden ★★★★★ span plus its &nbsp; never render — on this page and on both sibling",
+      "hubs, since all three carry exactly one starred card.",
+      "",
+      "Nothing in this map can work around it: the field is a boolean on the deployed layout, the",
+      "value written here is the only value it can take, and pasting literal stars into `detail`",
+      "would put five black stars into a string with no aria-hidden on them — the screen-reader",
+      "treatment the field exists to protect. The fix is one line in the component",
+      "(`stars: row?.stars ? \"★★★★★\" : \"\"`, or a boolean guard around a constant), and it belongs",
+      "to whoever owns CopyPlusStatsBlock. Recorded here so the harness diff has an explanation",
+      "waiting for it rather than a mystery."
+     ]
+    },
+    {
+     "section_id": "what",
+     "layout": "media_split",
+     "band": "paper",
+     "band_evidence": "implant-dentistry.astro:311 <section class=\"section\"> — .impd .section (implant-dentistry.css:307-309) sets padding and nothing else, so the body paper shows through. No .alt, no .dark.",
+     "fields": {
+      "eyebrow": {
+       "section": "eyebrow"
+      },
+      "heading": {
+       "section": "heading"
+      },
+      "body": {
+       "section": "body"
+      },
+      "image": {
+       "image": "imgWhat",
+       "part": "id"
+      },
+      "image_alt": {
+       "image": "imgWhat",
+       "part": "alt"
+      },
+      "media_side": {
+       "literal": "left"
+      },
+      "ratio": {
+       "literal": "wide-media"
+      },
+      "body_2": {
+       "literal": "Because implants work at the root level, they stimulate bone activity and prevent the jawbone deterioration that follows tooth loss. Bridges and dentures cannot accomplish this.",
+       "from_template": "vivid-smiles-website/src/pages/implant-dentistry/index.astro:326-329 — the second <p> in .what-text, under the one the `what` sections row fills."
+      }
+     },
+     "layout_evidence": ".what-img precedes .what-text in the DOM (vivid-smiles-website/src/pages/implant-dentistry/index.astro:314,323) so the photo is on the LEFT, and .impd .what-grid is grid-template-columns: 1.05fr 1fr (implant-dentistry.css:513-515) — the media column is the wider one, which is `wide-media`. MediaSplitBlock picks its `what` family (.what-grid / .what-img / .what-text) off media_side, so the class names come back unchanged.",
+     "prose_wrapper_note": "MediaSplitBlock wraps `body` + `body_2` in <div class=\"prose\"> (MediaSplitBlock.astro:81-99) and this template puts the two <p> straight into .what-text. No words move and no words are lost — one extra div — and the component ships the rule that styles it, so the band is not left unpainted. Recorded rather than papered over."
+    },
+    {
+     "section_id": "solutions",
+     "layout": "pricing_tiers",
+     "band": "charcoal",
+     "band_evidence": "implant-dentistry.astro:336 <section class=\"section alt\"> — .impd .section.alt = var(--vs-charcoal-green) (implant-dentistry.css:310-311). Same rule as `why`.",
+     "fields": {
+      "eyebrow": {
+       "section": "eyebrow"
+      },
+      "heading": {
+       "section": "heading"
+      },
+      "body": {
+       "section": "body"
+      },
+      "note": {
+       "literal": "Implant-supported bridges for multiple adjacent missing teeth are also available; pricing is determined by the number of implants and span of the restoration, and confirmed at consultation. Financing is available through Proceed Finance, CareCredit, and Cherry Financing. Uninsured clients may benefit from the Vivid Smiles in-house dental membership plan.",
+       "from_template": "vivid-smiles-website/src/pages/implant-dentistry/index.astro:145-146 `pricingFinancingNote`, passed to <PricingTiers financingNote>. Real money and financing partners, hardcoded until now."
+      }
+     },
+     "rows": {
+      "plans": {
+       "cards": "pricingTiers",
+       "fields": {
+        "name": "title",
+        "price": "meta"
+       },
+       "literal": [
+        {
+         "price_note": "All-inclusive",
+         "price_suffix": "per tooth",
+         "meta": "One missing tooth replaced without altering adjacent teeth.",
+         "features": [
+          {
+           "item": "Consultation + full-mouth X-ray"
+          },
+          {
+           "item": "Computer-guided implant placement"
+          },
+          {
+           "item": "Titanium implant + abutment"
+          },
+          {
+           "item": "Same-day in-house crown fabrication"
+          }
+         ]
+        },
+        {
+         "price_note": "All-inclusive",
+         "price_suffix": "per arch",
+         "meta": "Multi-implant full-arch restoration for comprehensive cases.",
+         "features": [
+          {
+           "item": "Multi-implant arch foundation"
+          },
+          {
+           "item": "Custom-designed prosthesis"
+          },
+          {
+           "item": "CBCT 3D surgical planning"
+          },
+          {
+           "item": "In-house fabrication & restoration"
+          }
+         ]
+        },
+        {
+         "price_note": "Starting at",
+         "price_suffix": "per arch · zirconia included",
+         "meta": "Fixed full-arch restoration on four implants with precision-milled monolithic zirconia.",
+         "ribbon": "Most Common",
+         "highlighted": true,
+         "features": [
+          {
+           "item": "Four titanium implants — robotic placement"
+          },
+          {
+           "item": "Same-day provisional teeth"
+          },
+          {
+           "item": "Precision-milled monolithic zirconia prosthesis"
+          },
+          {
+           "item": "Custom smile design with digital preview"
+          },
+          {
+           "item": "CBCT 3D surgical planning"
+          }
+         ]
+        }
+       ],
+       "note": "The three `cards` rows in group `pricingTiers` already hold the plan name and the price and are MOVED; the qualifier, the suffix, the tagline, the four-to-five feature lines, the ribbon and the highlight ring have never been in the CMS and are transcribed from vivid-smiles-website/src/pages/implant-dentistry/index.astro:100-143, zipped positionally onto them. Verified row-for-row against the live endpoint before writing: cards[i].title == pricingTiers[i].name and cards[i].meta == pricingTiers[i].price for all three."
+      }
+     },
+     "cta_note": "The seven cta fields stay blank. This band draws no .cta-row after the table — the paragraph that follows the tile grid is `service_cards.sub_foot`, not a CTA — and PricingTiersBlock only draws the row when a label is non-empty (PricingTiersBlock.astro:17-22 of the template body).",
+     "known_gaps": [
+      "THIS BAND SHOULD BE ONE SECTION AND IS TWO. #solutions holds the price table AND the",
+      "five-tile .svc-grid AND the .svc-outro paragraph inside one <section class=\"section alt\">",
+      "(vivid-smiles-website/src/pages/implant-dentistry/index.astro:336-374). The design for that is a nested guest: service_cards with `nested`",
+      "set, drawn through a <slot /> on this host, which is what both components were written",
+      "for — ServiceCardsBlock.astro:75-93 describes exactly this band as its nesting case.",
+      "",
+      "THE HOST CANNOT HOST YET. PricingTiersBlock.astro renders NO <slot /> — grep '<slot' over",
+      "src/blocks finds it in StatCalloutBlock.astro:320 and nowhere else — and",
+      "src/blocks/manifest.ts:715-731 deliberately leaves `hosts: true` OFF this layout, saying",
+      "so in as many words: the flag ships in the same commit as the slot, never before, because",
+      "with the flag and no slot PageBlocks hands the guest to a component that never draws it",
+      "and the tiles vanish with no error. Without the flag PageBlocks demotes the guest to its",
+      "own band with a console warning (PageBlocks.astro:159-176), which is the safe direction",
+      "and the direction taken here.",
+      "",
+      "SO THE GRID IS MAPPED AS ITS OWN BAND — the next row in this list — and NOT flagged",
+      "`nested`. Consequences, all of them visible and none of them lost words: a second",
+      "<section> opens under this one, which trades the 56px the tiles sit below the table for",
+      "~220px of .section padding (110px top and bottom, implant-dentistry.css:307-308); the",
+      "grid band carries its own anchor (see that row) so the rail keeps ten entries and not",
+      "eleven. Word order across the two sections is unchanged: head, table, financing note,",
+      "tiles, outro.",
+      "",
+      "WHEN THE SLOT LANDS: set `nested: true` on the service_cards row, flip `hosts: true` in",
+      "manifest.ts in that same commit, and the anchor on that row stops being read (a nested",
+      "row takes no id — PricingTiersBlock.astro:56-66). Nothing else in this map moves."
+     ]
+    },
+    {
+     "anchor": "solutions-tiles",
+     "layout": "service_cards",
+     "band": "charcoal",
+     "band_evidence": "Same band as the row above, and deliberately: these tiles live INSIDE #solutions today (vivid-smiles-website/src/pages/implant-dentistry/index.astro:346-372), so the only value that does not repaint them is the one that section carries — .impd .section.alt = var(--vs-charcoal-green) (implant-dentistry.css:310-311).",
+     "fields": {
+      "eyebrow": {
+       "literal": ""
+      },
+      "heading": {
+       "literal": ""
+      },
+      "body": {
+       "literal": ""
+      },
+      "card_style": {
+       "literal": "tiles"
+      },
+      "columns": {
+       "literal": "5"
+      },
+      "sub_foot": {
+       "literal": "Cases involving complex bone loss or zygomatic anchoring are evaluated case-by-case during your consultation. The in-house <a class=\"vs-link\" href=\"/dental-membership-plan/\">membership plan</a> is available for uninsured clients.",
+       "from_template": "vivid-smiles-website/src/pages/implant-dentistry/index.astro:370-372 — the .svc-outro paragraph that closes #solutions. html-bearing: the membership-plan link is inline mid-sentence, and ServiceCardsBlock renders sub_foot with set:html."
+      }
+     },
+     "columns_evidence": "\"5\" is the centred 3+2 shape, not a count of five tracks: .impd .svc-grid is grid-template-columns: repeat(6, 1fr) with .svc-card spanning two and the fourth card placed at track two (implant-dentistry.css:569-579). That is the shape the select calls \"5 — centred 3+2\" (vs-content-model.php:4012-4016).",
+     "head_is_blank_on_purpose": "eyebrow/heading/body are written as explicit empty literals rather than omitted. The head of this band belongs to the pricing_tiers row above — this is half of one section — and ServiceCardsBlock draws .section-head only when one of the three is non-empty, so blank is what keeps a second heading off the page.",
+     "anchor_evidence": [
+      "`solutions-tiles` is a NEW id, and it is the smallest thing that can be wrong here.",
+      "",
+      "The planner requires a block with no section_id to name an anchor (backfill-blocks.php:",
+      "487-494), and `solutions` is already this page's — taken by the row above. Reusing it",
+      "would give the page two id=\"solutions\" elements, which PageBlocks renames to",
+      "#solutions-2 (PageBlocks.astro:200-212) AND would claim the toc_links row a second time",
+      "(:530-536), putting a second \"Solutions\" entry in a rail that has ten and must keep ten.",
+      "",
+      "There is no toc_links row with anchor `solutions-tiles`, so nav_label resolves blank and",
+      "this band stays out of the rail — the derived-rail loop skips a blank label",
+      "(vivid-smiles-website/src/pages/implant-dentistry/index.astro, the `label === ''` continue). The id itself is invisible in the rendered text.",
+      "",
+      "It also costs nothing later: once the row is flagged `nested`, PricingTiersBlock ignores",
+      "the anchor entirely."
+     ],
+     "rows": {
+      "svc_cards": {
+       "literal": [
+        {
+         "title": "Single Tooth Implants",
+         "body": "Replace one missing tooth without altering adjacent teeth. Includes consultation, full-mouth X-ray, computer-guided placement, abutment, and same-day in-house crown fabrication.",
+         "href": "/implant-dentistry/single-tooth-dental-implants/",
+         "image": {
+          "image": "imgSingleTooth",
+          "part": "id"
+         },
+         "image_alt": "Close-up of an implant-supported restoration on a dental model"
+        },
+        {
+         "title": "Full Mouth Implants",
+         "body": "Comprehensive full-arch implant restoration using multiple implants per jaw for added stability and a precision-fit prosthesis.",
+         "href": "/implant-dentistry/full-mouth-dental-implants/",
+         "image": {
+          "image": "imgFullMouth",
+          "part": "id"
+         },
+         "image_alt": "Smiling woman seated beside a Colorado mountain lake"
+        },
+        {
+         "title": "All-on-4 Single Arch",
+         "body": "Fixed-arch restoration replacing every tooth in one jaw on four titanium implants — with same-day provisional teeth and a precision-milled zirconia prosthesis.",
+         "href": "/implant-dentistry/all-on-4-single-arch/",
+         "image": {
+          "image": "imgAllOn4",
+          "part": "id"
+         },
+         "image_alt": "Smiling man photographed at the Vivid Smiles Dentistry neon smile wall in Parker, CO"
+        },
+        {
+         "title": "Bone Grafting",
+         "body": "Rebuilds the implant site for patients with bone loss; material placed and a three-to-six-month healing window before implant placement.",
+         "href": "/implant-dentistry/bone-grafting/",
+         "image": {
+          "image": "imgBoneGrafting",
+          "part": "id"
+         },
+         "image_alt": "Smiling woman photographed inside the Vivid Smiles Dentistry office in Parker, CO"
+        },
+        {
+         "title": "Sinus Lift",
+         "body": "Addresses limited bone height in the upper jaw by adding material to the sinus floor, supporting upper-jaw implant placement when CBCT shows insufficient volume.",
+         "href": "/implant-dentistry/sinus-lift/",
+         "image": {
+          "image": "imgSinusLift",
+          "part": "id"
+         },
+         "image_alt": "A treatment room at Vivid Smiles Dentistry in Parker, CO"
+        }
+       ],
+       "from_template": "vivid-smiles-website/src/pages/implant-dentistry/index.astro:53-89 `services`, and :346-368 the .svc-card markup it feeds. Five tiles, in order: title, the description that slides open on hover, the sub-page href, the photo, and the alt. No `tag` — .impd tiles carry no .svc-tag — and no `image_pos`: none of the five overrides object-position.",
+       "href_policy_note": "All five hrefs are site paths, which the policy allows. No booking, tel or maps URL appears anywhere in this map."
+      }
+     },
+     "known_gaps": [
+      "CLOSED — the row-level image blocker this note described is fixed.",
+      "",
+      "vs_bb_resolve_literal_row() now resolves an object-valued sub-field inside a",
+      "repeater row through vs_bb_resolve_field() and claims its source slot, so",
+      "`{\"image\":\"<slot>\",\"part\":\"id\"}` works in `rows.<repeater>.literal` and not",
+      "only in `fields`. The rows above carry real specs; every slot verified live.",
+      "",
+      "Rewritten rather than deleted: a note that says 'cannot' after it can is how",
+      "two real losses started on this project."
+     ]
+    },
+    {
+     "section_id": "compare",
+     "layout": "comparison_cards",
+     "band": "sage-pale",
+     "band_evidence": "implant-dentistry.astro:378 <section class=\"section dark\"> — .impd .section.dark { background: var(--vs-sage-pale) } at implant-dentistry.css:332-333, with ink headings (:336-340). PALE, despite the class name; .dark is the light band on this sheet and .alt is the dark one.",
+     "fields": {
+      "eyebrow": {
+       "literal": "Vs other options",
+       "from_template": "vivid-smiles-website/src/pages/implant-dentistry/index.astro:381 <span class=\"eyebrow light\">. The CMS `compare` row has eyebrow null — verified against the live endpoint — so without this literal the eyebrow disappears on migration."
+      },
+      "heading": {
+       "section": "heading"
+      },
+      "body": {
+       "section": "body"
+      },
+      "cta_hide": {
+       "literal": true,
+       "from_template": "This band ends at the cards (vivid-smiles-website/src/pages/implant-dentistry/index.astro:386-397): no buttons, no note. cta_hide is the only way to draw NO closing row — blank labels fall back to the component pair (manifest.ts:558-568 says so about this exact band), so without it migration would ADD two buttons to a live page."
+      }
+     },
+     "rows": {
+      "tiers": {
+       "cards": "compareCards",
+       "fields": {
+        "title": "title",
+        "tag": "meta"
+       },
+       "literal": [
+        {
+         "bullets": [
+          {
+           "lead": "Replace root + crown —",
+           "item": "the only option that functions at the root level."
+          },
+          {
+           "lead": "Preserve jawbone",
+           "item": "through root-level stimulation."
+          },
+          {
+           "lead": "No alteration",
+           "item": "of adjacent healthy teeth."
+          },
+          {
+           "lead": "Can last a lifetime",
+           "item": "with proper care."
+          }
+         ],
+         "ribbon": "Recommended",
+         "featured": true
+        },
+        {
+         "bullets": [
+          {
+           "lead": "Fill the visible gap",
+           "item": "only — no root-level replacement."
+          },
+          {
+           "lead": "Require grinding",
+           "item": "healthy adjacent teeth as anchors."
+          },
+          {
+           "lead": "Do not prevent",
+           "item": "bone loss beneath the missing tooth site."
+          },
+          {
+           "lead": "Need replacement",
+           "item": "within 10 to 15 years."
+          }
+         ]
+        },
+        {
+         "bullets": [
+          {
+           "lead": "Do not anchor",
+           "item": "into bone."
+          },
+          {
+           "lead": "Cause slippage",
+           "item": "and often require adhesive."
+          },
+          {
+           "lead": "Accelerate jawbone resorption",
+           "item": "over time."
+          },
+          {
+           "lead": "Implant-supported variants",
+           "item": "eliminate both problems."
+          }
+         ]
+        }
+       ],
+       "note": "The three `cards` rows in group `compareCards` hold the card title and the tag and are MOVED (cards[i].title == compareCards[i].title and cards[i].meta == compareCards[i].tag, checked against the live endpoint). The four bullets per card, the ribbon and the featured flag are transcribed from vivid-smiles-website/src/pages/implant-dentistry/index.astro:149-176 and zipped positionally.",
+       "lead_split_note": "Each bullet is stored as `lead` + `item`, split at the </b>: \"<b>Replace root + crown —</b> the only option…\" becomes lead \"Replace root + crown —\", item \"the only option…\". The em dash stays INSIDE the lead because it sits inside the <b> in the markup — block_list_field()'s rule, vs-content-model.php:415-419 — and ComparisonCardsBlock rejoins them as <b>{lead}</b> {item} with exactly one space (ComparisonCardsBlock.astro:531). Six of the twelve bullets have no dash (\"<b>Preserve jawbone</b> through…\"); those leads simply end without one."
+      }
+     },
+     "markup_delta_note": "ComparisonCardsBlock draws <div class=\"compare\"> and <ul class=\"compare-list\"> where this template writes <div class=\"compare-grid\"> and a bare <ul> (vivid-smiles-website/src/pages/implant-dentistry/index.astro:386,390). Same elements, same order, same words; the block co-locates the rules that paint them (docs/PAGE-BLOCKS.md 2.5), so .impd .compare-grid at implant-dentistry.css:686-688 simply stops being the selector that matches. Recorded because a class-name diff of the built HTML will show it."
+    },
+    {
+     "section_id": "process",
+     "layout": "process_steps",
+     "band": "paper",
+     "band_evidence": "implant-dentistry.astro:401 <section class=\"section\"> — .impd .section (implant-dentistry.css:307-309) is padding only, body paper behind it.",
+     "fields": {
+      "eyebrow": {
+       "section": "eyebrow"
+      },
+      "heading": {
+       "section": "heading"
+      },
+      "body": {
+       "section": "body"
+      },
+      "layout": {
+       "literal": "card"
+      },
+      "columns": {
+       "literal": "4"
+      }
+     },
+     "layout_evidence": "The steps sit in a plate, not a bare grid: <div class=\"pgrid-card\"><div class=\"pgrid-4\"> (vivid-smiles-website/src/pages/implant-dentistry/index.astro:409-410), and .impd .pgrid-card is the card shell at implant-dentistry.css:810 with .impd .pgrid-4 = repeat(4, 1fr) at :817-819. That is the select's `card` shape (vs-content-model.php, layout choices grid | card | divided) at four columns.",
+     "rows": {
+      "steps": {
+       "process_steps": true,
+       "fields": {
+        "tag": "tag",
+        "num": "@index2",
+        "title": "title",
+        "body": "body"
+       },
+       "note": "All 4 rows, in order, MOVED. `num` is derived because the legacy repeater has no such sub-field — src/loaders/pages.ts:553-563 derives it as String(i+1).padStart(2,\"0\") and vivid-smiles-website/src/pages/implant-dentistry/index.astro:412 prints that, so anything else would renumber the steps."
+      }
+     },
+     "known_gaps": [
+      "CLOSED — the row-level image blocker this note described is fixed.",
+      "",
+      "vs_bb_resolve_literal_row() now resolves an object-valued sub-field inside a",
+      "repeater row through vs_bb_resolve_field() and claims its source slot, so",
+      "`{\"image\":\"<slot>\",\"part\":\"id\"}` works in `rows.<repeater>.literal` and not",
+      "only in `fields`. The rows above carry real specs; every slot verified live.",
+      "",
+      "Rewritten rather than deleted: a note that says 'cannot' after it can is how",
+      "two real losses started on this project."
+     ]
+    },
+    {
+     "section_id": "technology",
+     "layout": "tech_grid",
+     "band": "charcoal",
+     "band_evidence": "implant-dentistry.astro:424 <section class=\"section alt\"> — .impd .section.alt = var(--vs-charcoal-green) (implant-dentistry.css:310-311). READ THE RULE, NOT THE COMMENT: the sheet's own header says \"tech-grid + .tech-card render on a CREAM band here\" (implant-dentistry.css:19-21) and the section-level rule has been charcoal since; the comment is stale and the cards' own background: var(--paper) (:890) is what keeps them readable on it.",
+     "fields": {
+      "eyebrow": {
+       "section": "eyebrow"
+      },
+      "heading": {
+       "section": "heading"
+      },
+      "body": {
+       "section": "body"
+      }
+     },
+     "no_panel_note": "callout_eyebrow / callout_heading / callout_body and the image pair stay blank. `callout_heading` is the switch — blank draws no panel at all rather than an empty one (manifest.ts:794-798) — and this band has no .dsd panel; that shape belongs to the cosmetic hub.",
+     "rows": {
+      "tech_cards": {
+       "cards": "technology",
+       "fields": {
+        "body": "body"
+       },
+       "literal": [
+        {
+         "title": "CBCT 3D imaging",
+         "foot": "Imaging"
+        },
+        {
+         "title": "Robotic surgical guidance",
+         "foot": "Surgery"
+        },
+        {
+         "title": "Digital scanning",
+         "foot": "Scanning"
+        },
+        {
+         "title": "In-house milling",
+         "foot": "Fabrication"
+        },
+        {
+         "title": "3D-printed surgical guides",
+         "foot": "Planning"
+        },
+        {
+         "title": "One roof, one provider",
+         "foot": "Continuity"
+        }
+       ],
+       "note": "The six `cards` rows in group `technology` already hold the card body and are MOVED — cards[i].body == technology[i].p for all six, checked against the live endpoint. The title and the foot tag have never been in the CMS and are transcribed from vivid-smiles-website/src/pages/implant-dentistry/index.astro:170-177, zipped positionally.",
+       "meta_is_not_mapped": "Those six rows also carry meta \"01\"..\"06\" and it is deliberately NOT mapped: TechGridBlock derives the numeral from the row index with padStart(2,\"0\"), so a stored number is a number an editor has to renumber by hand after every reorder. The rows still count as claimed — a claim is per group, not per sub-field."
+      }
+     }
+    },
+    {
+     "section_id": "doctors",
+     "layout": "doctor_profiles",
+     "band": "paper",
+     "band_evidence": "implant-dentistry.astro:445 <section class=\"section\"> — .impd .section (implant-dentistry.css:307-309), padding only, body paper.",
+     "fields": {
+      "eyebrow": {
+       "section": "eyebrow"
+      },
+      "heading": {
+       "section": "heading"
+      },
+      "body": {
+       "literal": "",
+       "from_template": "BLANK ON PURPOSE — see body_lives_in_the_bio below. The section-head here is eyebrow + <h2> and nothing else (vivid-smiles-website/src/pages/implant-dentistry/index.astro:447-450); a `body` would draw a <p> the band has never had."
+      },
+      "image": {
+       "image": "imgDrBryce",
+       "part": "id"
+      },
+      "image_alt": {
+       "image": "imgDrBryce",
+       "part": "alt"
+      },
+      "pill": {
+       "literal": "Founder · Surgical & Restorative",
+       "from_template": "vivid-smiles-website/src/pages/implant-dentistry/index.astro:550 <span class=\"doctor-pill\">, which writes it as \"Founder · Surgical &amp; Restorative\". THE ENTITY IS NOT STORED: the template source is HTML, so &amp; is one ampersand on the page, and DoctorProfilesBlock renders the pill as TEXT (no set:html) — Astro re-escapes it on the way out. Storing the entity would publish \"&amp;amp;\". This is the only entity in any value in this file; the other one on the page (&nbsp;, :401) is emitted by CopyPlusStatsBlock itself and is not page content."
+      }
+     },
+     "rows": {
+      "bios": {
+       "literal": [
+        {
+         "eyebrow": "Dr. Bryce Richardson, DDS",
+         "heading": "600-plus hours of training. <em>Implant Pathway</em> credentials.",
+         "body": "Dr. Bryce Richardson holds 600-plus hours of specialized surgical training and has served on staff at Implant Pathway, one of the country's most respected implant education programs. He handles both surgical placement and the final restoration in-house, eliminating the referral handoff that most local practices require for implant cases.",
+         "body_2": "Dr. Richardson earned his Doctor of Dental Surgery from Indiana University School of Dentistry, graduating at the top of his class clinically. He is a Parker resident serving patients from Parker, Castle Rock, Highlands Ranch, Lone Tree, and across Douglas County.",
+         "lead": true
+        }
+       ],
+       "from_template": "vivid-smiles-website/src/pages/implant-dentistry/index.astro:464-473 — the single .doctor-bio.doctor-bio--lead. One row, so DoctorProfilesBlock draws no .doctor-rule hairline; this page is Bryce-only and the sheet drops the co-billing classes entirely (implant-dentistry.css:8-13).",
+       "lead_note": "`lead: true` is the --lead scale-up the template hard-codes in the class list at :465.",
+       "heading_note": "Carries an <em> and is rendered with set:html by the component, which is why the tag is stored rather than typed as text."
+      }
+     },
+     "body_lives_in_the_bio": [
+      "TRANSCRIBED, NOT MOVED, AND HERE IS EXACTLY WHY.",
+      "",
+      "sections.doctors.body is not this band's intro — it is the FIRST PARAGRAPH INSIDE the",
+      "bio card (vivid-smiles-website/src/pages/implant-dentistry/index.astro:469, <p>{section(\"doctors\").body}</p>, between the <h3> and the",
+      "Indiana-University paragraph). The section-head above it has no paragraph at all.",
+      "",
+      "The map can put a `sections` sub-field on a block FIELD ({ \"section\": \"body\" }) and",
+      "nowhere else: vs_bb_resolve_rows() (backfill-blocks.php:292-395) accepts literal, cards,",
+      "process_steps and faqs, and none of those can reach the sections repeater. So there are",
+      "two ways to write this band and only one of them is lossless:",
+      "",
+      "  * body -> the block's `body`: the paragraph renders in .section-head, ABOVE the",
+      "    portrait, the pill and the bio eyebrow. Every word survives and four elements'",
+      "    worth of them are now in the wrong order — which the in-sequence word diff fails.",
+      "  * body -> bios[0].body as a literal: the paragraph renders exactly where it renders",
+      "    today. The words are duplicated in stored data (the sections row keeps its copy,",
+      "    unread, along with every other sections row on this page once blocks take over),",
+      "    and nothing is duplicated on the page.",
+      "",
+      "The second. It is the same one-branch fix as the tile images: teach vs_bb_resolve_rows()",
+      "to resolve a source object inside a literal row, and this value becomes",
+      "{ \"section\": \"body\" } with no other edit. Until then the `doctors` sections row is still",
+      "CLAIMED by this block (for eyebrow and heading), so it is not a leftover and must not be",
+      "exempted."
+     ]
+    },
+    {
+     "section_id": "candidacy",
+     "layout": "candidacy_ledger",
+     "band": "sage-pale",
+     "band_evidence": "implant-dentistry.astro:479 <section class=\"section dark\"> — .impd .section.dark { background: var(--vs-sage-pale) } at implant-dentistry.css:332-333. PALE. Same inversion as #compare.",
+     "fields": {
+      "eyebrow": {
+       "literal": "Am I a candidate?",
+       "from_template": "vivid-smiles-website/src/pages/implant-dentistry/index.astro:482 <span class=\"eyebrow light\">. The CMS `candidacy` row has eyebrow null — verified live — so the literal is what keeps the eyebrow on the page."
+      },
+      "heading": {
+       "section": "heading"
+      },
+      "body": {
+       "section": "body"
+      },
+      "copy_heading": {
+       "literal": "Most healthy adults qualify",
+       "from_template": "vivid-smiles-website/src/pages/implant-dentistry/index.astro:491"
+      },
+      "copy_body": {
+       "literal": "Dr. Richardson evaluates every patient with CBCT imaging to assess available bone and identify the best approach for that case. Patients with bone loss are not disqualified: <a class=\"vs-link\" href=\"/implant-dentistry/bone-grafting/\">bone grafting</a> rebuilds the implant site, and a <a class=\"vs-link\" href=\"/implant-dentistry/sinus-lift/\">sinus lift</a> addresses limited bone height in the upper jaw.",
+       "from_template": "vivid-smiles-website/src/pages/implant-dentistry/index.astro:492-496 — html-bearing: two inline .vs-link anchors to /implant-dentistry/bone-grafting/ and /implant-dentistry/sinus-lift/, which the component renders with set:html."
+      },
+      "copy_heading_2": {
+       "literal": "Conditions reviewed, not gatekept",
+       "from_template": "vivid-smiles-website/src/pages/implant-dentistry/index.astro:497"
+      },
+      "copy_body_2": {
+       "literal": "Well-controlled conditions such as diabetes do not disqualify a candidate, and there is no maximum age limit. Heavy smokers and uncontrolled systemic conditions face reduced implant success rates — these factors are reviewed honestly during evaluation.",
+       "from_template": "vivid-smiles-website/src/pages/implant-dentistry/index.astro:498-502"
+      },
+      "ledger_skin": {
+       "literal": "ink",
+       "from_template": "implant-dentistry.css:1072-1079 card, :1080-1084 head rule, :1099-1106 row hairline, :1110-1123 numeral, :1138-1151 tag — the black-alpha skin. Both hub candidacy bands are section.dark, so the band value cannot select this; blank would back-fill the sage skin and repaint this panel, with every word intact and a word-level diff reporting zero."
+      },
+      "ledger_eyebrow": {
+       "literal": "Signs you're a candidate",
+       "from_template": "vivid-smiles-website/src/pages/implant-dentistry/index.astro:508 — the .ledger-head eyebrow. It is also what the component uses for the aside's aria-label (CandidacyLedgerBlock.astro:323, ledgerLabel falling back to the eyebrow); see the aria_label gap below."
+      },
+      "ledger_heading": {
+       "literal": "Candidacy is health-based, not age-based.",
+       "from_template": "vivid-smiles-website/src/pages/implant-dentistry/index.astro:509 <h4>"
+      },
+      "cta_label": {
+       "literal": "Book a Free Consultation",
+       "from_template": "vivid-smiles-website/src/pages/implant-dentistry/index.astro:505"
+      },
+      "cta_href": {
+       "literal": "book",
+       "from_template": "The token, never the booking URL. vivid-smiles-website/src/pages/implant-dentistry/index.astro:505 passes bookNowHref from src/data/contact.ts and src/blocks/cta.ts:29-33 resolves \"book\" to that same constant, so the two cannot drift."
+      },
+      "cta_label_2": {
+       "literal": "See Membership Plan",
+       "from_template": "vivid-smiles-website/src/pages/implant-dentistry/index.astro:506"
+      },
+      "cta_href_2": {
+       "literal": "/dental-membership-plan/"
+      },
+      "cta_hover_2": {
+       "literal": "See Plan",
+       "from_template": "REQUIRED. /dental-membership-plan/ is not in CTA_HOVER (cta.ts:46-53), so a blank here reuses the visible label and the button hovers \"See Membership Plan\" instead of \"See Plan\" (vivid-smiles-website/src/pages/implant-dentistry/index.astro:506). cta_hover is left blank on the first button because \"book\" already maps to \"Let's Talk\" in that table, which is what :505 passes."
+      }
+     },
+     "rows": {
+      "ledger": {
+       "cards": "ledger",
+       "fields": {
+        "body": "body"
+       },
+       "literal": [
+        {
+         "title": "Healthy adults of any age",
+         "tag": "Age-Neutral"
+        },
+        {
+         "title": "Sufficient bone density",
+         "tag": "CBCT"
+        },
+        {
+         "title": "Healthy gum tissue",
+         "tag": "Periodontal"
+        },
+        {
+         "title": "Stable systemic health",
+         "tag": "Systemic OK"
+        }
+       ],
+       "note": "The four `cards` rows in group `ledger` hold the row body and are MOVED — cards[i].body == ledger[i].p for all four, checked live. The row title and the tag are transcribed from vivid-smiles-website/src/pages/implant-dentistry/index.astro:180-185 and zipped positionally.",
+       "meta_is_not_mapped": "Those rows carry meta \"1\"..\"4\" and it is not mapped: CandidacyLedgerBlock derives .ledger-num from the row index (String(i+1)), so a stored numeral is one an editor has to renumber after every reorder."
+      }
+     },
+     "known_gaps": [
+      "THE LEDGER RENDERS IN THE WRONG SKIN, and no value in this file can change that.",
+      "",
+      "CandidacyLedgerBlock.astro:327 chooses between two skins —",
+      "`String(ledgerSkin ?? \"\").trim() === \"ink\" ? \"skin-ink\" : \"skin-sage\"` — and this band is",
+      "the `ink` one (the cosmetic hub's is the sage default). Both bands are section.dark, so",
+      "nothing derivable tells them apart, which is precisely why the field exists.",
+      "",
+      "IT IS NOT DEPLOYED AND IT IS NOT QUERIED. vs-content-model.php registers copy_heading,",
+      "copy_body, copy_heading_2, copy_body_2, ledger_eyebrow, ledger_heading, the ledger",
+      "repeater and six cta fields on this layout — no ledger_skin — and manifest.ts:872-874",
+      "selects the same list with no ledgerSkin. Probed against the live endpoint to be certain:",
+      "querying `ledgerSkin` on PageFieldsBlocksCandidacyLedgerLayout returns",
+      "'Cannot query field \"ledgerSkin\" … Did you mean \"ledger\" or \"ledgerHeading\"?'.",
+      "",
+      "So `ledger_skin: \"ink\"` is NOT written above. Writing it would fail the planner's",
+      "sub-field check (backfill-blocks.php:546-556) and stop the whole route, which is a worse",
+      "outcome than a repainted card, and it would still not reach the component. The fix is one",
+      "field in vs-content-model.php plus one name in manifest.ts, deployed in that order",
+      "(PHP to the host first — a selection naming a field the layout lacks fails query",
+      "validation for all 48 routes, not for this row). Until then this card draws skin-sage.",
+      "",
+      "SECOND, SMALLER: the aside's aria-label. The template says \"Signs you're a candidate for",
+      "dental implants\" (vivid-smiles-website/src/pages/implant-dentistry/index.astro:506) and the component falls back to the ledger eyebrow,",
+      "\"Signs you're a candidate\" — the accepted `ledgerLabel` prop has no field behind it",
+      "either (CandidacyLedgerBlock.astro:73). Three words, invisible on screen, audible in a",
+      "screen reader. Same fix, same file."
+     ]
+    },
+    {
+     "anchor": "area",
+     "layout": "code_section",
+     "band": "paper",
+     "band_evidence": "AreaBand.astro:164 emits <section class=\"section\" id={id}> with no band modifier of its own, and this page draws it as <section class=\"section\"> today (vivid-smiles-website/src/pages/implant-dentistry/index.astro:524) — .impd .section (implant-dentistry.css:307-309) is padding only. `band` is written because backfill-blocks.php:539-544 requires the key on every row; code_section has no such sub-field and CodeSectionBlock never reads it.",
+     "fields": {
+      "band_key": {
+       "literal": "implant_dentistry_area",
+       "from_template": "vivid-smiles-website/src/pages/implant-dentistry/index.astro:524-560 — the whole #area band: the copy column, the address line and the Google Maps iframe. The key names the band, it does not carry the band's copy; CodeSectionBlock.astro:225-235 holds the eyebrow, heading and two paragraphs and AreaBand.astro draws them."
+      }
+     },
+     "no_section_id_note": "Every other block here opens with `section_id` because it is built from a `sections` row. This one is not built from anything — its whole content is a band_key — so it names its `anchor` directly, which defaults.anchor already permits. `area` is the id the band has always had (vivid-smiles-website/src/pages/implant-dentistry/index.astro:524) and the one the rail links to.",
+     "position_evidence": "vivid-smiles-website/src/pages/implant-dentistry/index.astro:524 — the band sits between the `candidacy` guard closing and the `faq` guard opening, which is position 10 in this list. A code_section is that band's PLACE in an order an editor can rearrange; without a row here the guarded <section> would simply vanish, and left unguarded it would render twice and land at the bottom carrying a duplicate id=\"area\". Both have happened on this project.",
+     "nav_label_note": "Resolves to \"Parker Location\" from the toc_links row whose anchor is `area`, by the same default every other block uses. That claim (backfill-blocks.php:530-536) is also what keeps the row out of the leftovers, which is why exempt.toc_links is empty.",
+     "known_gaps": [
+      "THE COPY FREEZES. This band's eyebrow and heading are a live `sections` row today —",
+      "sections.area, eyebrow \"Service area\", heading \"Serving Parker, <em>Castle Rock & Douglas",
+      "County.</em>\" — and vivid-smiles-website/src/pages/implant-dentistry/index.astro:527-528 reads them from it. After this row runs, the same",
+      "words come from CodeSectionBlock.astro:228-229, hard-coded, and the sections row stops",
+      "feeding the render.",
+      "",
+      "They match today, character for character, which is why this is a gap and not a loss:",
+      "checked against the live endpoint before writing. What changes is who can edit them — an",
+      "editor can still MOVE and DELETE this band and can no longer reword it. That is the",
+      "documented cost of the escape hatch (vs-content-model.php:249-262 says so for all five of",
+      "the Wave A `_area` keys) and it closes when `map_visit` lands in Wave B, which REPLACES",
+      "this row rather than joining it — two rows for one band is the #area-2 fault.",
+      "",
+      "The two body paragraphs were never in the CMS: sections.area.body is null and the",
+      "template hard-codes both (vivid-smiles-website/src/pages/implant-dentistry/index.astro:529-538). Nothing moves there.",
+      "",
+      "A code_section names no section_id, so nothing here claims sections.area. That row is",
+      "listed under exempt.sections below with this reason — not because it is unwanted, but",
+      "because its words now live in the component instead."
+     ]
+    },
+    {
+     "section_id": "faq",
+     "layout": "faq",
+     "band": "charcoal",
+     "band_evidence": "implant-dentistry.astro:562 <section class=\"section alt\"> — .impd .section.alt = var(--vs-charcoal-green) (implant-dentistry.css:310-311). FaqBlock reads the band value to pick its button variants (light + ghost-light on a dark ground), which is the pair vivid-smiles-website/src/pages/implant-dentistry/index.astro:583-584 passes.",
+     "fields": {
+      "eyebrow": {
+       "section": "eyebrow"
+      },
+      "heading": {
+       "section": "heading"
+      },
+      "body": {
+       "section": "body"
+      },
+      "pull": {
+       "literal": "",
+       "from_template": "BLANK, and this is the sub-field most easily put in the wrong place. On the detail pages sections.faq.body goes to `pull` — the aside beside the questions — because their FAQ section-head has no paragraph. THIS page has no .pull at all and its section-head DOES carry the paragraph (vivid-smiles-website/src/pages/implant-dentistry/index.astro:566), so the body goes to `body` and `pull` stays empty. Writing it to both would print it twice."
+      },
+      "cta_label": {
+       "literal": "Still Have Questions? Free Virtual Consult",
+       "from_template": "vivid-smiles-website/src/pages/implant-dentistry/index.astro:583. FaqBlock draws the second button — Call + the practice number — from src/data/contact.ts, because a phone number is site data and not page content, so it is not transcribed here."
+      },
+      "cta_href": {
+       "literal": "#consult"
+      }
+     },
+     "cta_hover_note": "Left blank deliberately: FaqBlock has no ctaHover prop at all and reads CTA_HOVER[href], and #consult maps to \"Get a Video\" (cta.ts:47) — which is exactly what vivid-smiles-website/src/pages/implant-dentistry/index.astro:583 passes. A value here would be data nothing renders.",
+     "rows": {
+      "items": {
+       "faqs": true,
+       "fields": {
+        "question": "question",
+        "answer": "answer",
+        "open": "open"
+       },
+       "note": "All 6 rows, in order, MOVED — including `open`, which is true on the first row only. The block renders answers with set:html, which this page needs: several answers carry an inline <a class=\"vs-link\">."
+      }
+     }
+    }
+   ],
+   "exempt": {
+    "_": [
+     "Every repeater row on this page that no block above claims. The backfill fails, before",
+     "writing anything, on any row that is neither claimed nor listed here.",
+     "",
+     "THE FIVE TILE IMAGE SLOTS ARE NOT LISTED, ON PURPOSE. They are used — they are the five",
+     "photographs in the service_cards row — and the map cannot yet reach them, so they are",
+     "left unclaimed so the planner refuses the route. Adding them here would make the run",
+     "green and publish five empty .svc-img grid cells. See that row's known_gaps."
+    ],
+    "sections": [
+     {
+      "section_id": "area",
+      "reason": "Claimed by no block: #area migrates as a `code_section` (position 10), which names an anchor and no section_id, so nothing reads this row. Its eyebrow and heading move into CodeSectionBlock.astro:225-235 as hard-coded props — identical words today, checked live — and its body was always null.",
+      "read_this_before_running": [
+       "This is the one row on this page whose copy stops being editable. An editor can still",
+       "move and delete the band; they can no longer reword \"Serving Parker, Castle Rock &",
+       "Douglas County.\" It comes back when `map_visit` lands in Wave B and REPLACES this row."
+      ]
+     }
+    ],
+    "cards": [],
+    "process_steps": [],
+    "faqs": [],
+    "images": [
+     {
+      "slot": "imgHero",
+      "reason": "The hero is not a block. It is a `hero` group field on group_vs_page — one per page, always first, never reordered (docs/PAGE-BLOCKS.md 1.3, 7).",
+      "destination": "hero.image, filled by whatever moves the hero across. Not this script's field and not this script's business.",
+      "renders_today": "vivid-smiles-website/src/pages/implant-dentistry/index.astro:228-262 <header class=\"hero\">, the eager/fetchpriority image in .hero-primary."
+     }
+    ],
+    "toc_links": [],
+    "toc_links_decision": [
+     "EMPTY, AND THE ARITHMETIC IS THE CHECK. Ten toc_links rows, ten anchors — why, what,",
+     "solutions, compare, process, technology, doctors, candidacy, area, faq — and every one of",
+     "them is a block's anchor above, `area`'s included (the code_section claims it on the",
+     "anchor, backfill-blocks.php:530-536). So the template build and the blocks build produce",
+     "the same ten rail entries in the same order, and the rail is not a difference at all.",
+     "",
+     "The eleventh row, service_cards, is the one band with no rail entry: its anchor",
+     "`solutions-tiles` matches no toc_links row, nav_label resolves blank, and both the",
+     "renderer and the derived-rail loop skip a blank label. That is what keeps ten at ten."
+    ]
+   }
+  },
+  "/services/": {
+   "template": "vivid-smiles-website/src/pages/services/index.astro",
+   "stylesheet": "vivid-smiles-website/src/styles/pages/services.css",
+   "wrapper_class": "services",
+   "notes": [
+    "THREE OF FIVE CONTENT BANDS MOVE. This page's five bands are #cosmetic, #implants,",
+    "#everyday, #process and #faq, and its `sections` repeater holds exactly those five rows",
+    "in that order. Only the first three are here. #process and #faq stay TEMPLATE bands and",
+    "are exempted below, with the reasons written out there.",
+    "",
+    "WHY THAT IS SAFE AND WHY IT IS A TAIL, NOT A GAP. An unguarded band renders where it sits",
+    "in the .astro file, which is after the whole block run — so leaving bands behind only",
+    "preserves page order while the ones left behind are a contiguous tail. #process is band 4",
+    "and #faq is band 5, so holding BOTH keeps the order exactly as it is today. Migrating #faq",
+    "on its own would lift it above #process and move a live band, which is the same mistake",
+    "that put LocalTrust below #faq on /cosmetic-dentistry/clear-aligners/ (see that route's",
+    "notes). #faq moves in the change that closes #process, not before it.",
+    "",
+    "NO RAIL ON THIS ROUTE. /services/ has no `.toc` nav and pageFields.tocLinks is null on the",
+    "live endpoint, so nav_label resolves blank on all three blocks (the map's own default) and",
+    "the page carries no derivedTocLinks loop. Nothing to lose and nothing to keep in step.",
+    "",
+    "BAND VOCABULARY. `.section.alt` is the DARK one here (services.css:126-129 ->",
+    "--vs-charcoal-green) and `.section.dark` is the PALE one (:153-156 -> --vs-sage-pale).",
+    "Every `band` below is resolved from those rules, never from the class name.",
+    "",
+    "services.css:121 — `.services main > .section:first-of-type { padding-top: 56px }` — IS",
+    "POSITIONAL AND IT SURVIVES, on two conditions that this map is half of. The rule trims the",
+    "first <section> child of <main> from the 110px at :117, because the page has no hero and",
+    "band one sits under the breadcrumb. PageBlocks emits each block's <section> as a direct",
+    "child of <main> with no wrapper of its own (PageBlocks.astro:18-21), so the selector still",
+    "matches; and at (0,3,1) it still outranks the padding it has to beat, which is",
+    "ServiceCardsBlock's scoped `.section` (:769-773) compiled to `.section[data-astro-cid-…]`",
+    "at (0,2,0). The two conditions: the run is mounted at #cosmetic's position in the template,",
+    "and #cosmetic is the FIRST block in the list below. Reorder these three rows in wp-admin and",
+    "the 56px follows the new first band — which is what the rule means (\"the band under the",
+    "breadcrumb\"), but it is no longer pinned to #cosmetic, and no field on any Wave A layout",
+    "can pin it. Recorded here rather than fixed: the sheet is not this migration's to edit."
+   ],
+   "blocks": [
+    {
+     "section_id": "cosmetic",
+     "layout": "service_cards",
+     "band": "charcoal",
+     "band_evidence": "services/index.astro:229 <section class=\"section alt\"> — .services .section.alt { background: var(--vs-charcoal-green); color: #fff } at services.css:126-129. DARK, despite sharing a class name with the CREAM .alt on teeth-whitening.css. Read off the rule, not the class.",
+     "fields": {
+      "eyebrow": {
+       "section": "eyebrow"
+      },
+      "heading": {
+       "section": "heading"
+      },
+      "body": {
+       "section": "body"
+      },
+      "card_style": {
+       "literal": "tiles",
+       "from_template": "services/index.astro:250 <a class=\"svc-card compact\" href> — a linked tile, not a .svc-feat feature card. Stored rather than left to the ACF default for the reason vs-content-model.php:4000-4012 gives about selects: an unstored select renders as an empty control and the next editor save posts whatever that holds."
+      },
+      "columns": {
+       "literal": "3",
+       "columns_evidence": ".services .svc-grid-6 is grid-template-columns: repeat(3, 1fr) (services.css:235-237). Six CARDS drawn three across — `columns` counts columns, and ServiceCardsBlock.astro:353 derives the `svc-grid-6` hook from the row count so services.css:235 and its 1100/780 breakpoints keep matching."
+      },
+      "collapse_at": {
+       "literal": "780",
+       "from_template": "services.css:510 opens @media (max-width: 780px) and :520-524 stacks .svc-grid-6/-5/-2 to one column. The three hubs stack at 640 (cosmetic-dentistry.css:975 etc). Nothing derivable separates them — /services/ #cosmetic and /cosmetic-dentistry/ #services are both six tiles at columns=3 — which is why this field exists. It also drives the <Image> sizes hint."
+      },
+      "cta_label": {
+       "literal": "View All Cosmetic Services",
+       "from_template": "services/index.astro:237-239 — the first button of the .cta-row.in-head pair inside the section head."
+      },
+      "cta_href": {
+       "literal": "/cosmetic-dentistry/",
+       "from_template": "services/index.astro:237 href. A site path, per the href policy — not a pasted absolute URL."
+      },
+      "cta_hover": {
+       "literal": "See All",
+       "from_template": "services/index.astro:237 hoverLabel. Stored because src/blocks/cta.ts's CTA_HOVER table has no entry for a site path — it covers #consult, #process, #faq, book, phone and map only — so a blank here would fall back to the visible label and change the button."
+      },
+      "cta_label_2": {
+       "literal": "Smile Gallery",
+       "from_template": "services/index.astro:240-242 — the second button of the pair."
+      },
+      "cta_href_2": {
+       "literal": "/smile-gallery/"
+      },
+      "cta_hover_2": {
+       "literal": "See Results",
+       "from_template": "services/index.astro:240 hoverLabel. Stored for the same reason as cta_hover above."
+      }
+     },
+     "cta_variant_evidence": "ServiceCardsBlock.astro:469-471 picks light + ghost-light on any band that is not paper or cream, which is exactly the pair services/index.astro:237,240 ships on this charcoal band.",
+     "rows": {
+      "svc_cards": {
+       "literal": [
+        {
+         "title": "Porcelain Veneers",
+         "image": {
+          "image": "imgVeneers",
+          "part": "id"
+         },
+         "body": "No-prep and minimal-prep, our signature work.",
+         "href": "/cosmetic-dentistry/porcelain-veneers/",
+         "image_alt": "Close-up of a finished smile at a three-quarter angle"
+        },
+        {
+         "title": "Smile Makeover",
+         "image": {
+          "image": "imgSmileMakeover",
+          "part": "id"
+         },
+         "body": "A complete look, designed before treatment begins.",
+         "href": "/cosmetic-dentistry/smile-makeover/",
+         "image_alt": "Smiling woman in a green dress photographed at the Vivid Smiles Dentistry neon smile wall in Parker, CO"
+        },
+        {
+         "title": "Clear Aligners",
+         "image": {
+          "image": "imgClearAligners",
+          "part": "id"
+         },
+         "body": "Discreet straightening with quiet check-ins.",
+         "href": "/cosmetic-dentistry/clear-aligners/",
+         "image_alt": "Clear aligners on a model"
+        },
+        {
+         "title": "Teeth Whitening",
+         "image": {
+          "image": "imgWhitening",
+          "part": "id"
+         },
+         "body": "Professional brightening, calibrated to shade.",
+         "href": "/cosmetic-dentistry/teeth-whitening/",
+         "image_alt": "Smiling man photographed at the Vivid Smiles Dentistry neon smile wall in Parker, CO"
+        },
+        {
+         "title": "Gum Contouring",
+         "image": {
+          "image": "imgGumContouring",
+          "part": "id"
+         },
+         "body": "Reshape the frame around the smile.",
+         "href": "/cosmetic-dentistry/gum-contouring/",
+         "image_alt": "Smiling woman photographed outdoors in the Colorado foothills"
+        },
+        {
+         "title": "Full Mouth Rehabilitation",
+         "image": {
+          "image": "imgFullMouthRehab",
+          "part": "id"
+         },
+         "body": "Function and esthetics, restored together.",
+         "href": "/cosmetic-dentistry/full-mouth-rehabilitation/",
+         "image_alt": "Full-arch restoration on a dental model"
+        }
+       ],
+       "from_template": "services/index.astro:93-136 — the `cosmeticServices` array, in order. This page has no `cards` rows at all (pageFields.cards is null on the live endpoint), so the six tiles are transcribed, not moved.",
+       "alt_note": "`image_alt` is the array's own `alt`, not the alt stored on the file in WordPress. Four of the six differ — imgVeneers, imgSmileMakeover, imgClearAligners and imgWhitening all have altText \"\" on the media item — and ServiceCardsBlock.astro:401 reads the row override first, so leaving it out would empty four alt attributes on a live page.",
+       "image_note": "Each row names its slot with {\"image\":\"<slot>\",\"part\":\"id\"}. These were `_image_slot_not_migrated` sentinels — a name no sub-field has — written deliberately so the route could not run while a picture could only be claimed at FIELD level. vs_bb_resolve_literal_row() now resolves object literals inside a repeater row and claims their slots, so the sentinels are real specs. All 13 slots verified live on /services/."
+      }
+     },
+     "known_gaps": [
+      "1. THE SIX PHOTOGRAPHS. See `_` under svc_cards above: no source kind can put an",
+      "   `images`-repeater attachment inside a repeater row, so this route cannot be",
+      "   back-filled until vs_bb_resolve_rows() grows one.",
+      "",
+      "2. THE ONE-COLUMN BREAKPOINT MOVES FROM 780 TO 640. services.css:520-525 collapses",
+      "   .svc-grid-6 at 780px; ServiceCardsBlock ships two collapse points and picks 780 only",
+      "   when its `collapseAt` prop is \"780\" (ServiceCardsBlock.astro:179-191, :356, :1353-1361).",
+      "   THAT FIELD DOES NOT EXIST. It is in the component's Props and nowhere else: there is no",
+      "   `collapse_at` sub-field on service_cards in vs-content-model.php (the layout is",
+      "   :3962-4094), manifest.ts:830 does not select it, and the deployed schema answers",
+      "   `Cannot query field \"collapseAt\" on type \"PageFieldsBlocksServiceCardsLayout\"` —",
+      "   checked against the live endpoint, not assumed. So `collapseAt` arrives undefined,",
+      "   collapseWidth resolves to \"640\", the `at-780` class is not emitted and the block's own",
+      "   640 media query wins over services.css:520 (the page rule is .services .svc-grid-6 at",
+      "   (0,2,0); the block's is .svc-grid.cols-3[data-astro-cid-…] at (0,3,0), and a media query",
+      "   adds no specificity). Between 640px and 780px these six tiles would read two across",
+      "   instead of one. The `sizes` hint moves with it (:360-374). No words change; the layout",
+      "   does. Closed by adding the sub-field to the PHP layout and to manifest.ts."
+     ]
+    },
+    {
+     "section_id": "implants",
+     "layout": "service_cards",
+     "band": "sage-pale",
+     "band_evidence": "services/index.astro:273 <section class=\"section dark\"> — .services .section.dark { background: var(--vs-sage-pale); color: var(--vs-ink) } at services.css:153-156. A PALE band whose class reads `dark`; services.css:151-152 says so in as many words.",
+     "fields": {
+      "eyebrow": {
+       "literal": "Implant Dentistry · Yomi-Certified",
+       "from_template": "services/index.astro:276 <span class=\"eyebrow light\">. The CMS `implants` row has eyebrow null on the live endpoint, so without this literal the eyebrow disappears on migration. The `light` class is NOT stored: ServiceCardsBlock.astro:314 derives it from band `sage-pale`, which is what this band is."
+      },
+      "heading": {
+       "section": "heading"
+      },
+      "body": {
+       "section": "body"
+      },
+      "card_style": {
+       "literal": "tiles"
+      },
+      "columns": {
+       "literal": "5",
+       "columns_evidence": "services.css:243-251 — .services .svc-grid-5 is repeat(6, 1fr) with every .svc-card spanning 2 and the fourth placed at `2 / span 2`, so row two reads centred. That is the shape vs-content-model.php:4004 calls \"5 — centred 3+2\", not a five-track grid."
+      },
+      "collapse_at": {
+       "literal": "780",
+       "from_template": "services.css:510 opens @media (max-width: 780px) and :520-524 stacks .svc-grid-6/-5/-2 to one column. The three hubs stack at 640 (cosmetic-dentistry.css:975 etc). Nothing derivable separates them — /services/ #cosmetic and /cosmetic-dentistry/ #services are both six tiles at columns=3 — which is why this field exists. It also drives the <Image> sizes hint."
+      },
+      "cta_label": {
+       "literal": "View All Implant Services",
+       "from_template": "services/index.astro:281-283 — the first button of the .cta-row.in-head pair."
+      },
+      "cta_href": {
+       "literal": "/implant-dentistry/"
+      },
+      "cta_hover": {
+       "literal": "See All",
+       "from_template": "services/index.astro:281 hoverLabel. Stored because cta.ts's CTA_HOVER has no entry for a site path."
+      },
+      "cta_label_2": {
+       "literal": "Call",
+       "from_template": "services/index.astro:284-286 <Button href={phoneHref}>Call {phoneLabel}</Button>. THE VISIBLE LABEL IS NOT STORED AND MUST NOT BE: ServiceCardsBlock.astro:445-448 rebuilds it as `Call ${phoneLabel}` from src/data/contact.ts whenever cta_href_2 is the `phone` token, so the practice number can never go stale in a page field. What IS stored is the on/off switch — :456 draws the second button only when cta_label_2 is non-empty — which is why this reads \"Call\" and not the rendered string."
+      },
+      "cta_href_2": {
+       "literal": "phone",
+       "from_template": "services/index.astro:284 href={phoneHref} — SITE data, so the href is stored as the `phone` token the href policy defines (src/blocks/cta.ts:29-33), never a tel: URL."
+      },
+      "cta_hover_2": {
+       "literal": "Tap to Dial",
+       "from_template": "services/index.astro:284 hoverLabel. Matches cta.ts's default for `phone`; stored verbatim, as all-on-4-single-arch's pricing block already does for `map`."
+      }
+     },
+     "rows": {
+      "svc_cards": {
+       "literal": [
+        {
+         "title": "Single Tooth Implant",
+         "image": {
+          "image": "imgSingleImplant",
+          "part": "id"
+         },
+         "body": "One missing tooth, restored to look and chew normally.",
+         "href": "/implant-dentistry/single-tooth-dental-implants/",
+         "image_alt": "Dr. Bryce Richardson placing a dental implant with the Yomi robotic arm at Vivid Smiles Dentistry"
+        },
+        {
+         "title": "Full Mouth Implants",
+         "image": {
+          "image": "imgFullMouthImplants",
+          "part": "id"
+         },
+         "body": "Replace an arch — or both — with fixed teeth.",
+         "href": "/implant-dentistry/full-mouth-dental-implants/",
+         "image_alt": "Smiling woman photographed against a dark studio background"
+        },
+        {
+         "title": "All-on-4 Single Arch",
+         "image": {
+          "image": "imgAllOn4",
+          "part": "id"
+         },
+         "body": "A full upper or lower set on four implants in one visit.",
+         "href": "/implant-dentistry/all-on-4-single-arch/",
+         "image_alt": "Smiling woman photographed at the Vivid Smiles Dentistry office in Parker, CO",
+         "image_pos": "center 25%"
+        },
+        {
+         "title": "Bone Grafting",
+         "image": {
+          "image": "imgBoneGraft",
+          "part": "id"
+         },
+         "body": "Rebuild the foundation when bone has receded.",
+         "href": "/implant-dentistry/bone-grafting/",
+         "image_alt": "Dr. Bryce Richardson performing chairside surgical work"
+        },
+        {
+         "title": "Sinus Lift",
+         "image": {
+          "image": "imgSinusLift",
+          "part": "id"
+         },
+         "body": "Add height in the upper jaw before placement.",
+         "href": "/implant-dentistry/sinus-lift/",
+         "image_alt": "A treatment room at Vivid Smiles Dentistry in Parker, CO"
+        }
+       ],
+       "from_template": "services/index.astro:138-175 — the `implantServices` array, in order.",
+       "image_pos_note": "Only All-on-4 carries one: services/index.astro:159 objPos 'center 25%', passed through at :303 as an object-position style. Every other tile omits it and ServiceCardsBlock.astro:625 then draws no style attribute at all.",
+       "image_note": "Each row names its slot with {\"image\":\"<slot>\",\"part\":\"id\"}. These were `_image_slot_not_migrated` sentinels — a name no sub-field has — written deliberately so the route could not run while a picture could only be claimed at FIELD level. vs_bb_resolve_literal_row() now resolves object literals inside a repeater row and claims their slots, so the sentinels are real specs. All 13 slots verified live on /services/."
+      }
+     },
+     "known_gaps": [
+      "1. THE FIVE PHOTOGRAPHS — the same blocker as #cosmetic. See `_` under svc_cards.",
+      "",
+      "2. THE 780px COLLAPSE — the same missing `collapse_at` field as #cosmetic, on the grid",
+      "   services.css:520-522 names as .svc-grid-5."
+     ]
+    },
+    {
+     "section_id": "everyday",
+     "layout": "service_cards",
+     "band": "paper",
+     "band_evidence": "services/index.astro:318 <section class=\"section\"> with no modifier — services.css:116-118 sets padding only and no background, so the body paper shows through. The two coloured rules on this sheet (:126 .alt, :153 .dark) both need their modifier class.",
+     "fields": {
+      "eyebrow": {
+       "section": "eyebrow"
+      },
+      "heading": {
+       "section": "heading"
+      },
+      "body": {
+       "section": "body"
+      },
+      "card_style": {
+       "literal": "tiles"
+      },
+      "columns": {
+       "literal": "2",
+       "columns_evidence": ".services .svc-grid-2 is grid-template-columns: 1fr 1fr (services.css:253-255)."
+      },
+      "collapse_at": {
+       "literal": "780",
+       "from_template": "services.css:510 opens @media (max-width: 780px) and :520-524 stacks .svc-grid-6/-5/-2 to one column. The three hubs stack at 640 (cosmetic-dentistry.css:975 etc). Nothing derivable separates them — /services/ #cosmetic and /cosmetic-dentistry/ #services are both six tiles at columns=3 — which is why this field exists. It also drives the <Image> sizes hint."
+      }
+     },
+     "cta_note": "NO CTA FIELDS, and that is the band. services/index.astro:320-324 is a section-head of eyebrow, heading and body and nothing else — no .cta-row.in-head. ServiceCardsBlock.astro:457 gates the row on a label being non-empty, so leaving all seven blank is what keeps it absent.",
+     "rows": {
+      "svc_cards": {
+       "literal": [
+        {
+         "title": "General Dentistry",
+         "image": {
+          "image": "imgGeneral",
+          "part": "id"
+         },
+         "body": "Six-month exams, hygiene, fillings and crowns for every member of the family.",
+         "tag": "Cleanings & Care",
+         "href": "/general-dentistry/",
+         "image_alt": "Smiling woman seated in the Vivid Smiles Dentistry office lounge in Parker, CO",
+         "image_pos": "center 25%"
+        },
+        {
+         "title": "Emergency Dentistry",
+         "image": {
+          "image": "imgEmergency",
+          "part": "id"
+         },
+         "body": "Toothache, broken tooth, lost crown? Call now — we hold same-day spots open every day.",
+         "tag": "Same-Day",
+         "href": "/emergency-dentistry/",
+         "image_alt": "Same-day emergency dental care"
+        }
+       ],
+       "from_template": "services/index.astro:177-195 — the `everydayServices` array, in order.",
+       "tag_note": "The two `.svc-tag` pills are this page's only ones — services/index.astro:314 draws the span, and index.astro:91-92 says why only these two carry a kicker. ServiceCardsBlock.astro:614-616 emits the same span from `tag`, flush against the picture so the five tag-less bands gain no text node.",
+       "image_note": "Each row names its slot with {\"image\":\"<slot>\",\"part\":\"id\"}. These were `_image_slot_not_migrated` sentinels — a name no sub-field has — written deliberately so the route could not run while a picture could only be claimed at FIELD level. vs_bb_resolve_literal_row() now resolves object literals inside a repeater row and claims their slots, so the sentinels are real specs. All 13 slots verified live on /services/."
+      }
+     },
+     "known_gaps": [
+      "1. THE TWO PHOTOGRAPHS — the same blocker as the two bands above.",
+      "",
+      "2. THE 780px COLLAPSE — .svc-grid-2 is in the same services.css:520-525 rule. This band",
+      "   also collapses at 991px (services.css:504-508), which the block reproduces at",
+      "   ServiceCardsBlock.astro:1299-1306 for cols-2, so only the 780 step is at risk."
+     ]
+    }
+   ],
+   "exempt": {
+    "_": [
+     "Every repeater row on this page that no block above claims. The backfill fails, before",
+     "writing anything, on any row that is neither claimed nor listed here."
+    ],
+    "sections": [
+     {
+      "section_id": "process",
+      "reason": "The #process band stays in the template. No registered layout can draw it.",
+      "renders_today": "services/index.astro:354-390 — <ProcessStepGrid> of three <ProcessStep>, i.e. .vs-process-card > .vs-process-grid > .vs-pstep (src/components/ProcessStepGrid.astro, src/components/ProcessStep.astro).",
+      "read_this_before_running": [
+       "process_steps is the layout this band would use and ProcessStepsBlock.astro cannot draw",
+       "it. Its own header (:47-52) and its `layout` prop (:94) say only the `grid` shape is",
+       "drawn — `.process-grid` > `.process-card` — and the `divided` shape this band needs has",
+       "no markup at all. Three specific losses if it were forced through the grid shape:",
+       "  * the three taglines — \"Listen first.\", \"Calibrated to you.\", \"Quiet, careful",
+       "    delivery.\" (services/index.astro:363,370,380) — vanish. The `tagline` sub-field IS",
+       "    deployed (vs-content-model.php:2662-2672) and IS queried (manifest.ts:442), but",
+       "    ProcessStepsBlock's ProcessStep interface (:63-70) has no such prop and its card",
+       "    (:235-240) never reads one.",
+       "  * the step label moves. The template prints it LAST, as .vs-pstep-lbl after the body",
+       "    (ProcessStep.astro:25); the block prints `tag` FIRST, as .step-tag before the",
+       "    numeral (:236). Three labels reorder against the body copy.",
+       "  * `sub_foot` is deployed and selected too and is likewise never rendered — not",
+       "    needed by this band, but the same shape of gap.",
+       "Closed by giving ProcessStepsBlock the divided shape: .vs-process-card wrapper,",
+       ".vs-pstep children, num / tagline / title / body / tag-as-label in that order. Until",
+       "then the band stays where it is, and #faq stays behind it."
+      ]
+     },
+     {
+      "section_id": "faq",
+      "reason": "The #faq band stays in the template so that the un-migrated bands remain a contiguous tail and the page keeps its order.",
+      "renders_today": "services/index.astro:392-429 — the .faq-list <details> list plus its closing .cta-row.",
+      "read_this_before_running": [
+       "CAPABILITY IS NOT THE PROBLEM HERE — ORDER IS. The `faq` layout is deployed and FaqBlock",
+       "draws this exact list, and this band's six answers are already CMS rows (pageFields.faqs).",
+       "But a band left in the template renders after the whole block run, so migrating #faq while",
+       "#process cannot move would lift the FAQ above the process band on a live page. It moves in",
+       "the same change that closes #process.",
+       "When it does move, it needs: band `paper` (services/index.astro:392 bare .section, no",
+       "background rule on this sheet), the eyebrow/heading/body from this same `sections` row,",
+       "rows from `faqs` (question/answer/open), and the closing .cta-row pair transcribed from",
+       ":419-426 — \"Still Have Questions? Free Virtual Consult\" to #virtualConsult, and the phone",
+       "button as the `phone` token. Note the anchor: that button points at #virtualConsult, which",
+       "is VirtualConsult's own id and not a block."
+      ]
+     }
+    ],
+    "cards": [],
+    "process_steps": [],
+    "faqs": [
+     {
+      "all": true,
+      "reason": "All six faqs rows belong to the #faq band, which stays in the template for now — see the `faq` entry under sections above. They are not lost; they are still what services/index.astro:401-414 renders."
+     }
+    ],
+    "images": [],
+    "images_decision": [
+     "EMPTY ON PURPOSE AND IT IS THE POINT OF THIS FILE. All thirteen slots — imgVeneers,",
+     "imgSmileMakeover, imgClearAligners, imgWhitening, imgGumContouring, imgFullMouthRehab,",
+     "imgSingleImplant, imgFullMouthImplants, imgAllOn4, imgBoneGraft, imgSinusLift, imgGeneral,",
+     "imgEmergency — belong to tiles in the three blocks above and are NOT exempt, because they",
+     "are not \"somewhere else\": they are content this map cannot yet express. Listing them here",
+     "would let the backfill run and publish thirteen photograph-less tiles. Left unlisted they",
+     "are thirteen errors and nothing is written."
+    ],
+    "toc_links": [],
+    "toc_links_decision": [
+     "EMPTY BECAUSE THE PAGE HAS NONE. pageFields.tocLinks is null for /services/ on the live",
+     "endpoint and the template has no rail to feed. Nothing to exempt."
+    ]
+   },
+   "backfill_note": "RUNNABLE. The row-level image blocker that made this route deliberately un-runnable is closed; the 13 sentinels are real image specs and the whole-map backfill no longer stops here. #process and #faq stay template-rendered — they are unguarded on the page and carry no rows, which is the consistent pair, not an omission."
   }
  }
 }

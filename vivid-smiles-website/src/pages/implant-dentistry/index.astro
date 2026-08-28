@@ -38,13 +38,15 @@ import "../../styles/pages/implant-dentistry.css";
 // a prosthesis use real clinical/lab photography rather than a patient face,
 // which also keeps a real person from appearing to front a treatment they
 // may not have had.
-import { getPageContent, schemaImageUrl } from '../../lib/page-content';
+import { getPageContent, schemaImageUrl, type TocLink } from '../../lib/page-content';
+import PageBlocks from '../../blocks/PageBlocks.astro';
 // Six FAQs verbatim from SEO copy. set:html lets inline <a class="vs-link">
 // render on the answers that benefit from internal linking.
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Dental Implants in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, processSteps, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+const { blocks, hasBlocks, tocLinks, processSteps, faqs, section, image, seo } =
+  await getPageContent(Astro.url.pathname);
 
 
 
@@ -206,6 +208,104 @@ const schemaImages: Record<string, string> = Object.fromEntries(
   await Promise.all(services.map(async (s) => [s.title, await schemaImageUrl(s.img, Astro.site)])),
 );
 
+/**
+ * The "On this page" rail, derived from the blocks themselves (docs/PAGE-BLOCKS.md 1.2).
+ *
+ * Used only when this page renders from `blocks`. The `toc_links` repeater is
+ * ten rows that restate the order of the bands below it, so a reorder in
+ * wp-admin moves a band and leaves its rail entry pointing at the old
+ * neighbour — the single largest way a reorder breaks a link. Reading the
+ * anchors off the blocks makes that unrepresentable: there is one ordering and
+ * the rail is a projection of it.
+ *
+ * Three rules, in the order they bite:
+ *
+ * 1. A blank anchor is skipped. Not tidiness — src/scripts/toc-spy.ts:24 feeds
+ *    each rendered href straight to document.querySelector(), and
+ *    querySelector("") throws a SyntaxError that kills the whole spy, not just
+ *    the one entry. PageBlocks.astro emits no id at all for a blank anchor
+ *    (`id={anchor || undefined}`), so there is nothing to link to either.
+ * 2. An anchor that is not a valid id selector is skipped for the same reason —
+ *    "#3-reasons" is legal HTML and an illegal CSS selector. Dropping one rail
+ *    entry costs one link; letting it through costs every link on the page,
+ *    plus the mobile pill auto-centering.
+ * 3. Duplicate anchors follow PageBlocks.astro's dedup exactly, second
+ *    occurrence onward suffixed `-2`, `-3`. The counter has to advance on every
+ *    non-blank anchor, including blocks with no nav_label, or the rail's idea
+ *    of "the second #faq" drifts from the id the renderer actually emitted.
+ *
+ * A blank nav_label means "leave this block out of the rail" (1.2), which is
+ * how a band that should not be navigable opts out — and on this page that is
+ * exactly how the `service_cards` tile band stays out of a rail that has ten
+ * entries and must keep having ten.
+ */
+/**
+ * THE MIGRATION SWITCH (docs/PAGE-BLOCKS.md 2.3), and why it is documented HERE
+ * rather than above the markup it governs.
+ *
+ * `hasBlocks` means "this build can draw this page from its blocks" — not
+ * "WordPress sent rows" (src/lib/page-content.ts). True, PageBlocks draws the
+ * bands in the order an editor arranged them; false — every build until the
+ * backfill has run, and again the moment an editor empties the field — every
+ * band below renders exactly as it always has.
+ *
+ * Written as one guard per band rather than one guard around all ten, on the
+ * measurement clear-aligners.astro:264-283 records: wrapping the run in a
+ * Fragment drops a space at every boundary, and the harness compares bytes.
+ * A guard sitting exactly where its section sat emits byte-identical HTML.
+ *
+ * AND NO COMMENT SITS IN THE MARKUP. Sibling pages carry `{/* ---- WHY ---- *\/}`
+ * banners above their bands and could swap one comment for another for free;
+ * this template has none, so adding one would be a NEW expression, and Astro
+ * keeps whitespace between expressions — a text node either side of every
+ * banner, on a page that gained nothing. That exact mistake put 14 bytes into a
+ * live page earlier in this project. Hence: the reasoning lives in frontmatter,
+ * which emits nothing, and the markup below carries bare guards.
+ *
+ * THE THREE UNGUARDED BANDS AT THE FOOT ARE UNGUARDED ON PURPOSE. `.closing`,
+ * <VirtualConsult> and <FinalBand> all sit AFTER the last guarded band, so
+ * template order is still page order for them however an editor reorders the
+ * blocks — the LocalTrust fault (a band left unguarded in the MIDDLE of the run,
+ * which then landed at the bottom carrying a duplicate id) cannot reach them.
+ * `.closing` is the one of the three that is page copy rather than a shared
+ * component, and no layout and no `band_key` draws `.closing-inner`; until one
+ * does it is chrome an editor cannot move. Recorded in the route map's
+ * known_gaps, not silently.
+ */
+const ANCHOR_IS_ID_SELECTOR = /^[A-Za-z_][A-Za-z0-9_-]*$/;
+
+const anchorsSeen = new Map<string, number>();
+// Typed as TocLink[] rather than an equivalent inline shape so the ternary in
+// the rail below collapses to one type instead of a union of two array types,
+// which TypeScript will not let you call .map() on.
+const derivedTocLinks: TocLink[] = [];
+
+for (const block of blocks) {
+  // A nested block is drawn INSIDE the band above it, not as a band of its own,
+  // so it has no id to link to. Without this the rail emits an entry pointing at
+  // an anchor nothing renders — a dead link in the "On this page" list.
+  if (block?.nested) continue;
+
+  const anchor = typeof block.anchor === 'string' ? block.anchor.trim() : '';
+  if (anchor === '') continue;
+
+  const nth = (anchorsSeen.get(anchor) ?? 0) + 1;
+  anchorsSeen.set(anchor, nth);
+
+  const label = typeof block.navLabel === 'string' ? block.navLabel.trim() : '';
+  if (label === '') continue;
+
+  if (!ANCHOR_IS_ID_SELECTOR.test(anchor)) {
+    console.warn(
+      `[blocks] anchor "${anchor}" on ${Astro.url.pathname} cannot be used as a selector — ` +
+        `omitting "${label}" from the On this page rail so toc-spy keeps working`,
+    );
+    continue;
+  }
+
+  derivedTocLinks.push({ href: `#${nth > 1 ? `${anchor}-${nth}` : anchor}`, label });
+}
+
 ---
 
 <BaseLayout
@@ -267,13 +367,13 @@ const schemaImages: Record<string, string> = Object.fromEntries(
         <span class="toc-label">On this page</span>
         <div class="toc-scroll">
           <div class="toc-list">
-            {tocLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+            {(hasBlocks ? derivedTocLinks : tocLinks).map((l) => <a href={l.href}>{l.label}</a>)}
           </div>
         </div>
       </div>
     </nav>
 
-    <section class="section alt" id="why" data-vs-reveal-batch>
+    {hasBlocks ? <PageBlocks blocks={blocks} /> : <section class="section alt" id="why" data-vs-reveal-batch>
       <div class="why-grid">
         <div class="why-copy">
           <span class="eyebrow">{section("why").eyebrow}</span>
@@ -307,9 +407,9 @@ const schemaImages: Record<string, string> = Object.fromEntries(
           </div>
         </div>
       </div>
-    </section>
+    </section>}
 
-    <section class="section" id="what" data-vs-reveal-batch>
+    {hasBlocks ? null : <section class="section" id="what" data-vs-reveal-batch>
       <div class="wrap">
         <div class="what-grid">
           <div class="what-img" data-vs-parallax data-parallax="-25">
@@ -331,9 +431,9 @@ const schemaImages: Record<string, string> = Object.fromEntries(
           </div>
         </div>
       </div>
-    </section>
+    </section>}
 
-    <section class="section alt" id="solutions" data-vs-reveal-batch>
+    {hasBlocks ? null : <section class="section alt" id="solutions" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow">{section("solutions").eyebrow}</span>
@@ -369,9 +469,9 @@ const schemaImages: Record<string, string> = Object.fromEntries(
           Cases involving complex bone loss or zygomatic anchoring are evaluated case-by-case during your consultation. The in-house <a class="vs-link" href="/dental-membership-plan/">membership plan</a> is available for uninsured clients.
         </p>
       </div>
-    </section>
+    </section>}
 
-    <section class="section dark" id="compare" data-vs-reveal-batch>
+    {hasBlocks ? null : <section class="section dark" id="compare" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow light">Vs other options</span>
@@ -392,9 +492,9 @@ const schemaImages: Record<string, string> = Object.fromEntries(
           ))}
         </div>
       </div>
-    </section>
+    </section>}
 
-    <section class="section" id="process" data-vs-reveal-batch>
+    {hasBlocks ? null : <section class="section" id="process" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow">{section("process").eyebrow}</span>
@@ -415,9 +515,9 @@ const schemaImages: Record<string, string> = Object.fromEntries(
           </div>
         </div>
       </div>
-    </section>
+    </section>}
 
-    <section class="section alt" id="technology" data-vs-reveal-batch>
+    {hasBlocks ? null : <section class="section alt" id="technology" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow">{section("technology").eyebrow}</span>
@@ -436,9 +536,9 @@ const schemaImages: Record<string, string> = Object.fromEntries(
           ))}
         </div>
       </div>
-    </section>
+    </section>}
 
-    <section class="section" id="doctors" data-vs-reveal-batch>
+    {hasBlocks ? null : <section class="section" id="doctors" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow">{section("doctors").eyebrow}</span>
@@ -470,9 +570,9 @@ const schemaImages: Record<string, string> = Object.fromEntries(
           </div>
         </article>
       </div>
-    </section>
+    </section>}
 
-    <section class="section dark" id="candidacy" data-vs-reveal-batch>
+    {hasBlocks ? null : <section class="section dark" id="candidacy" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow light">Am I a candidate?</span>
@@ -518,9 +618,9 @@ const schemaImages: Record<string, string> = Object.fromEntries(
           </aside>
         </div>
       </div>
-    </section>
+    </section>}
 
-    <section class="section" id="area" data-vs-reveal-batch>
+    {hasBlocks ? null : <section class="section" id="area" data-vs-reveal-batch>
       <div class="wrap">
         <div class="area">
           <div class="area-copy">
@@ -554,9 +654,9 @@ const schemaImages: Record<string, string> = Object.fromEntries(
           </div>
         </div>
       </div>
-    </section>
+    </section>}
 
-    <section class="section alt" id="faq" data-vs-reveal-batch>
+    {hasBlocks ? null : <section class="section alt" id="faq" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow">{section("faq").eyebrow}</span>
@@ -580,7 +680,7 @@ const schemaImages: Record<string, string> = Object.fromEntries(
           </div>
         </div>
       </div>
-    </section>
+    </section>}
 
     <section class="closing" data-vs-reveal>
       <div class="wrap">
