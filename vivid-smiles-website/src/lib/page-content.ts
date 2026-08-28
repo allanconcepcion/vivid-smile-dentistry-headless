@@ -143,12 +143,59 @@ function readBlocks(data: unknown): PageBlock[] {
 
   if (!Array.isArray(rows)) return [];
 
-  return rows.filter(
-    (row): row is PageBlock =>
-      typeof row === "object" &&
-      row !== null &&
-      typeof (row as PageBlock).__typename === "string",
-  );
+  return rows
+    .filter(
+      (row): row is PageBlock =>
+        typeof row === "object" &&
+        row !== null &&
+        typeof (row as PageBlock).__typename === "string",
+    )
+    .map(unwrapSelects);
+}
+
+/**
+ * WPGraphQL RETURNS EVERY ACF SELECT AS A LIST, even a single-valued one:
+ * `band` arrives as `["charcoal"]`, not `"charcoal"`. Normalised here, at the
+ * one boundary every block row crosses, rather than in each component.
+ *
+ * THIS WAS A LIVE DEFECT, not a theoretical one. Eight components test
+ * `typeof band === "string"`, which a one-element array fails, so every one of
+ * them silently fell back to its hard-coded default — and a fallback is
+ * indistinguishable from a deliberate value. On /cosmetic-dentistry/
+ * clear-aligners/ the `what` and `natural` bands are `charcoal` in the map and
+ * `<section class="section alt">` in the template, and the built page was
+ * shipping `<section class="section">`: two charcoal bands rendering as paper,
+ * losing the background, the white headings and the 85%-white body copy.
+ *
+ * IT SURVIVED BECAUSE THE MEASUREMENT COULD NOT SEE IT. This migration is
+ * graded by a word-level diff of built HTML against the template baseline, and
+ * a band that loses its modifier class keeps every one of its words — the diff
+ * reported zero. Only a class-level comparison catches it, which is why
+ * scripts/vr-html.mjs exists and why a word count is not a substitute for it.
+ *
+ * CodeSectionBlock had already unwrapped `bandKey` by hand, which is the proof
+ * the shape was known — and the argument for fixing it once, here, instead of
+ * in the ninth component to hit it.
+ *
+ * Single-element arrays only. A genuine multi-select would lose data if
+ * flattened, so anything longer is passed through untouched, and a
+ * zero-element array becomes `null` — "the editor picked nothing", which is
+ * what every component's fallback already handles.
+ */
+function unwrapSelects(row: PageBlock): PageBlock {
+  const out: Record<string, unknown> = { ...row };
+
+  for (const [key, value] of Object.entries(out)) {
+    if (!Array.isArray(value)) continue;
+    if (value.length === 0) {
+      out[key] = null;
+    } else if (value.length === 1 && (typeof value[0] === "string" || typeof value[0] === "number")) {
+      out[key] = value[0];
+    }
+    // Longer arrays, and arrays of objects, are repeaters — left alone.
+  }
+
+  return out as PageBlock;
 }
 
 /**

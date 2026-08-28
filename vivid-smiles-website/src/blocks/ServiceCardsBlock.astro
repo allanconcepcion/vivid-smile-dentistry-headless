@@ -350,7 +350,7 @@ const colsClass = `cols-${cols}`;
    three across. Dropping it changed the class attribute on three live bands and
    orphaned services.css:235-255 and its breakpoints, so it is emitted here too.
    It is a hook, not a layout: this component still owns grid-template-columns. */
-const countClass = `svc-grid-${cardRows.length}`;
+const countClass = `svc-grid-${(Array.isArray(svcCards) ? svcCards : []).filter(Boolean).length}`;
 
 /* Blank = 640, which is what three of the four sheets do. */
 const collapseWidth = String(collapseAt ?? "").trim() === "780" ? "780" : "640";
