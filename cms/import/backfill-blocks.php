@@ -283,13 +283,119 @@ function vs_bb_resolve_field( $spec, $section, $sources, $where ) {
 }
 
 /**
+ * Whether a `literal` row's sub-field value is a SOURCE SPEC and not data.
+ *
+ * Two shapes a literal row legitimately holds beyond a scalar, and they must go
+ * opposite ways:
+ *
+ *   "image":    { "image": "imgVeneers", "part": "id" }   a spec — resolve it
+ *   "features": [ { "item": "…" }, { "item": "…" } ]      nested repeater rows
+ *
+ * Told apart by KEYING, not by looking for a known source name among the keys.
+ * A JSON object decodes to a string-keyed array and a JSON array to a list, and
+ * the nested-repeater case is always a list because a list is the only shape
+ * ACF accepts for a repeater value.
+ *
+ * Deciding on the keys instead — "resolve it if it has an `image` key" — would
+ * put a typo like { "imge": "imgVeneers" } straight back on the silent path
+ * this whole branch exists to close: an array written verbatim into a text
+ * field, no error, a live page with an array where a picture belongs. So
+ * everything string-keyed goes to vs_bb_resolve_field(), which refuses what it
+ * does not recognise. An unknown source kind is an error, never a guess (:236).
+ *
+ * The cost, stated so nobody is surprised by it: a nested repeater written as a
+ * string-keyed map rather than a list would now fail the plan instead of being
+ * written through. No map does that — checked across block-map.json's eleven
+ * routes and all four cms/import/routes/*.json — and a failed plan writes
+ * nothing, so the failure mode is a message and not a page.
+ *
+ * `array_is_list()` is PHP 8.1 and the CMS host's version is not this repo's to
+ * assume, hence the explicit key comparison.
+ */
+function vs_bb_is_source_spec( $value ) {
+	if ( ! is_array( $value ) || [] === $value ) {
+		return false;
+	}
+
+	return array_keys( $value ) !== range( 0, count( $value ) - 1 );
+}
+
+/**
+ * Resolve the source specs inside ONE `literal` row.
+ *
+ * Returns [ row, error ]. Sub-fields whose value is a scalar, or a list of
+ * nested repeater rows, are returned untouched — this only ever replaces a
+ * string-keyed array, and a row that holds none comes back identical.
+ *
+ * The names it did resolve are collected in $resolved for the provenance line,
+ * because "6 from the map" is a lie about a row list whose pictures came off
+ * the page and the report is the only place a migrator would see it.
+ */
+function vs_bb_resolve_literal_row( $row, $section, $sources, &$claimed, &$resolved, $where ) {
+	if ( ! is_array( $row ) ) {
+		return [ $row, null ];
+	}
+
+	foreach ( $row as $name => $spec ) {
+		if ( ! vs_bb_is_source_spec( $spec ) ) {
+			continue;
+		}
+
+		list( $value, $error ) = vs_bb_resolve_field(
+			$spec,
+			$section,
+			$sources,
+			sprintf( '%s sub-field "%s"', $where, (string) $name )
+		);
+
+		// Returned rather than collected, so the plan carries the FIRST thing
+		// wrong with this row and not a guess about the rest of it. The route
+		// aborts on any error anyway, and an images slot that failed to resolve
+		// is also still unclaimed — so the leftovers pass names it a second time
+		// with its own message.
+		if ( $error ) {
+			return [ null, $error ];
+		}
+
+		// The same claim the field path makes at block level (:567-569), for the
+		// same reason: an images slot claimed by nothing is collected as a
+		// leftover and fails the plan, so a picture carried INTO a row would
+		// otherwise be reported lost on the very run that carries it.
+		//
+		// Only images. A `section` source reads the block's own sections row,
+		// which the block claimed by section_id before it got here, and claiming
+		// it again here would be a no-op that reads as if rows could claim
+		// sections on their own.
+		if ( isset( $spec['image'] ) ) {
+			$claimed['images'][ (string) $spec['image'] ] = true;
+		}
+
+		$row[ $name ] = $value;
+
+		// A nested { "literal": … } resolves, but it came from the map like every
+		// other literal and joining the "from the page" list would make the
+		// provenance line state the opposite of the truth.
+		if ( ! array_key_exists( 'literal', $spec ) ) {
+			$resolved[ $name ] = true;
+		}
+	}
+
+	return [ $row, null ];
+}
+
+/**
  * Build the rows for one repeater inside a block.
  *
  * Returns [ rows, error, provenance ] — provenance being the one line the
  * report prints so a reader can see where each list came from without opening
  * the map.
+ *
+ * $section is the block's own sections row, threaded through for the one reason
+ * vs_bb_resolve_literal_row() needs it: a row sub-field may name
+ * { "section": "<name>" }, and without it that source could only ever be
+ * transcribed into the map as a copy that drifts on the next edit in wp-admin.
  */
-function vs_bb_resolve_rows( $spec, $sources, &$claimed, $where ) {
+function vs_bb_resolve_rows( $spec, $section, $sources, &$claimed, $where ) {
 	if ( ! is_array( $spec ) ) {
 		return [ null, "{$where}: expected an object", '' ];
 	}
@@ -300,9 +406,41 @@ function vs_bb_resolve_rows( $spec, $sources, &$claimed, $where ) {
 	// and the CMS has never held — see the map's own rule about what may appear
 	// as a literal.
 	if ( isset( $spec['literal'] ) && ! isset( $spec['cards'] ) ) {
-		$rows = array_values( (array) $spec['literal'] );
+		$rows     = array_values( (array) $spec['literal'] );
+		$resolved = [];
 
-		return [ $rows, null, sprintf( '%d from the map', count( $rows ) ) ];
+		// A literal row USED to be written through verbatim, and the sub-field
+		// name check downstream (:618-627) only ever looked at the names. So a
+		// value like { "image": "imgVeneers", "part": "id" } passed every check
+		// and went into ACF as an array — into an image field, or worse a text
+		// one — with nothing said about it. That is the shape this loop closes:
+		// a spec is resolved, everything else is left exactly as it was.
+		foreach ( $rows as $i => $literal_row ) {
+			list( $resolved_row, $error ) = vs_bb_resolve_literal_row(
+				$literal_row,
+				$section,
+				$sources,
+				$claimed,
+				$resolved,
+				sprintf( '%s row %d', $where, $i + 1 )
+			);
+
+			if ( $error ) {
+				return [ null, $error, '' ];
+			}
+
+			$rows[ $i ] = $resolved_row;
+		}
+
+		return [
+			$rows,
+			null,
+			sprintf(
+				'%d from the map%s',
+				count( $rows ),
+				$resolved ? ', ' . implode( ' and ', array_keys( $resolved ) ) . ' from the page' : ''
+			),
+		];
 	}
 
 	if ( isset( $spec['cards'] ) ) {
@@ -331,7 +469,8 @@ function vs_bb_resolve_rows( $spec, $sources, &$claimed, $where ) {
 			];
 		}
 
-		$rows = [];
+		$rows     = [];
+		$resolved = [];
 
 		foreach ( $source_rows as $i => $card ) {
 			$row = [];
@@ -341,7 +480,24 @@ function vs_bb_resolve_rows( $spec, $sources, &$claimed, $where ) {
 			}
 
 			if ( isset( $literal[ $i ] ) ) {
-				$row = array_merge( $row, (array) $literal[ $i ] );
+				// Resolved the same way as a stand-alone literal row, because it
+				// IS one: the map writes the same shapes here, and a spec that
+				// resolved in one branch and went through verbatim in the other
+				// would be the kind of split nobody finds until it is on a page.
+				list( $extra, $error ) = vs_bb_resolve_literal_row(
+					(array) $literal[ $i ],
+					$section,
+					$sources,
+					$claimed,
+					$resolved,
+					sprintf( '%s row %d', $where, $i + 1 )
+				);
+
+				if ( $error ) {
+					return [ null, $error, '' ];
+				}
+
+				$row = array_merge( $row, $extra );
 			}
 
 			$rows[] = $row;
@@ -353,10 +509,11 @@ function vs_bb_resolve_rows( $spec, $sources, &$claimed, $where ) {
 			$rows,
 			null,
 			sprintf(
-				'%d from cards.%s%s',
+				'%d from cards.%s%s%s',
 				count( $rows ),
 				$group,
-				$literal ? ', labels from the map' : ''
+				$literal ? ', labels from the map' : '',
+				$resolved ? ', ' . implode( ' and ', array_keys( $resolved ) ) . ' from the page' : ''
 			),
 		];
 	}
@@ -599,8 +756,13 @@ function vs_bb_plan_route( $route, $config, $shapes ) {
 				continue;
 			}
 
+			// $section is the block's own sections row, or [] for a block that has
+			// no section_id. Handed down so a row sub-field can name
+			// { "section": "<name>" }; where there is no row it stays [] and the
+			// resolver refuses by name rather than resolving to an empty string.
 			list( $rows, $error, $provenance ) = vs_bb_resolve_rows(
 				$spec,
+				$section,
 				$sources,
 				$claimed,
 				$where . ' rows ' . $name

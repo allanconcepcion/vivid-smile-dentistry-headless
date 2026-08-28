@@ -38,8 +38,8 @@
  *     one, set tight against the figure with no space — the same rule
  *     StatCalloutBlock applies to `.lasting-stat .big`.
  *   - exactly one card per page — the 300+ reviews card — opens its detail with
- *     a decorative star run. So `stars` is per-row, and blank rows emit no
- *     `<span>`, no space and no `&nbsp;`.
+ *     a decorative star run. So `stars` is per-row, and rows that do not set it
+ *     emit no `<span>`, no space and no `&nbsp;`.
  *
  * THE STAR RUN, byte for byte. All three pages ship
  *
@@ -53,6 +53,35 @@
  * (dist/implant-dentistry/index.html, verified). Both are carried. `&nbsp;` is
  * emitted as the entity rather than as a literal U+00A0 through an expression,
  * so the bytes match the pages this replaces and not merely the words.
+ *
+ * `stars` IS A FLAG, NOT COPY — and reading it as copy is the defect this
+ * revision closes. `stats.stars` is registered as a `true_false`
+ * (cms/mu-plugins/vs-content-model.php, `field_vs_blk_cstats_stat_stars`), so
+ * wpgraphql-acf returns a BOOLEAN. This file used to run it through `text()`,
+ * which returns "" for anything that is not a string — so `stars: true` fell to
+ * the blank branch and the span, the plain space and the `&nbsp;` all drew
+ * NOTHING, on every one of the three hubs. Nobody caught it because the
+ * word-level diff that grades this migration cannot see it: five glyphs in an
+ * `aria-hidden` span are decoration, not words, so a band that loses the entire
+ * run still measures lossless. Only a class-level diff shows `span.stars`
+ * missing. Rendered, not reasoned about: harness cases 01-10 in the scratchpad.
+ *
+ * THE GLYPHS ARE THE COMPONENT'S, NOT THE FIELD'S. The editor says whether the
+ * run appears; this template owns what it is. That is deliberate and it is
+ * MediaSplitBlock's contract for `creds.stars` already (:156-162, :822) — the
+ * run is `aria-hidden` presentation, so storing ★★★★★ in a text field would put
+ * it somewhere a retype can mangle it into four stars, or into an accessible
+ * name that reads "black star black star black star…". Printing the field's
+ * value would also re-open exactly that door.
+ *
+ * WHICH IS WHY `flag()` ACCEPTS MORE THAN A BOOLEAN. The route maps written
+ * against the old broken behaviour put the five literal glyphs in this field as
+ * a STRING (cms/import/routes/general-dentistry.json), and the sibling maps put
+ * `true`. The data is being corrected, but this component must be right under
+ * either, and under the "0"/"1" strings ACF stores a true_false as natively —
+ * because "0" is a non-empty string, and a truthiness test that only asked
+ * `Boolean(value)` would turn the OFF toggle ON. Named failure mode, guarded
+ * below.
  *
  * ONE BUTTON, NOT TWO. Each of the three pages ships a single ghost button at
  * the foot of `.why-copy` — `#doctors`, `#doctors`, `/about-us/` — with no
@@ -122,12 +151,17 @@ export interface CopyPlusStatsRow {
   /** The sentence under that line. */
   detail?: string | null;
   /**
-   * The decorative star run in front of `detail` — "★★★★★" on the one card per
-   * page that carries it. Marked `aria-hidden` because `label` already says
-   * "Five-Star Google Reviews" in words; see the header for the two spaces
-   * that follow it.
+   * ON/OFF for the decorative star run in front of `detail` — set on the one
+   * card per page that carries it. A `true_false` in the schema, so the wire
+   * type is `boolean`; the string and number forms are accepted only so the
+   * component survives the maps written against the old broken behaviour and
+   * ACF's own "0"/"1" storage. See the header, and `flag()` below.
+   *
+   * The glyphs themselves are NOT stored here — the template owns them, and
+   * marks them `aria-hidden` because `label` already says "Five-Star Google
+   * Reviews" in words. See the header for the two spaces that follow the span.
    */
-  stars?: string | null;
+  stars?: boolean | string | number | null;
 }
 
 interface Props {
@@ -187,6 +221,40 @@ const bandModifier = BAND_MODIFIER[band ?? "paper"] ?? null;
 const text = (input: unknown): string =>
   typeof input === "string" ? input.trim() : "";
 
+/**
+ * Read an ACF `true_false` as the on/off it is, whatever shape it arrives in.
+ *
+ * `text()` is the wrong reader for this field and was the defect: it returns ""
+ * for a boolean, so `stars: true` — the ONLY value the live schema can send —
+ * silently meant "off". This is the whole of the fix.
+ *
+ * The two string cases are the ones that bite, and neither is hypothetical:
+ *
+ *   - "★★★★★". The route maps drafted against the broken component wrote the
+ *     literal glyphs into this boolean field to force the run to appear
+ *     (cms/import/routes/general-dentistry.json). Any non-empty word means ON,
+ *     so those rows keep working while the data is corrected — and they render
+ *     the template's glyph run, not the pasted value, so a map that typed four
+ *     stars still gets five.
+ *   - "0". ACF stores a true_false as the STRINGS "0" and "1", and a raw REST
+ *     or wp-json read returns them that way. `Boolean("0")` is `true`, so a
+ *     naive truthiness test would turn every OFF toggle ON — the loudest
+ *     possible failure, five stars on all three cards of all three hubs. "0"
+ *     and "false" are therefore spelled out as off.
+ *
+ * Everything that is not a boolean, a number or a string — `null` from a
+ * toggle an editor never touched, `undefined` from a field nobody queried —
+ * is off. `null` must mean "no stars", not "maybe"; MediaSplitBlock:645-647
+ * says the same thing about the same field on the same grounds.
+ */
+const flag = (input: unknown): boolean => {
+  if (typeof input === "boolean") return input;
+  if (typeof input === "number") return input !== 0;
+  if (typeof input !== "string") return false;
+  const value = input.trim().toLowerCase();
+  return value !== "" && value !== "0" && value !== "false";
+};
+
 const eyebrowText = text(eyebrow);
 const headingHtml = text(heading);
 const bodyText = text(body);
@@ -208,6 +276,16 @@ const NBSP_HTML = "&nbsp;";
  * abandoned "Add a stat" — a row with ANY part filled is a row an editor
  * meant, and drawing a card with a label and no figure is better than silently
  * deleting the label.
+ *
+ * `stars` is deliberately NOT one of the fields that keeps a row alive, and it
+ * is the one exception to "any part filled". It is a toggle, not content: a
+ * row whose only mark is a clicked toggle is the leftover of an abandoned "Add
+ * a stat", and honouring it would put a card on a live hub containing nothing
+ * but a floating star run — five sage glyphs over empty space, with no figure
+ * and no label to say what was rated. MediaSplitBlock:643-647 drops its
+ * stars-only cred row for exactly this reason, and dropping it here also keeps
+ * the fix additive: a stars-only row renders nothing today (because `text()`
+ * blanked the flag) and must still render nothing.
  */
 const rows = (Array.isArray(stats) ? stats : [])
   .map((row) => ({
@@ -215,15 +293,14 @@ const rows = (Array.isArray(stats) ? stats : [])
     unit: text(row?.unit),
     label: text(row?.label),
     detail: text(row?.detail),
-    stars: text(row?.stars),
+    stars: flag(row?.stars),
   }))
   .filter(
     (row) =>
       row.value !== "" ||
       row.unit !== "" ||
       row.label !== "" ||
-      row.detail !== "" ||
-      row.stars !== "",
+      row.detail !== "",
   );
 
 /* The token map, hover table and resolvers live in ./cta.ts — ONE copy for
@@ -323,14 +400,35 @@ const hasAnything = hasCopy || hasStats;
                   <div class="stat-num">{row.value}{row.unit && <em>{row.unit}</em>}</div>
                 )}
                 {row.label && <div class="stat-label">{row.label}</div>}
-                {(row.detail !== "" || row.stars !== "") && (
+                {(row.detail !== "" || row.stars) && (
                   /* The star run, its plain space and its `&nbsp;` all sit on
                      ONE line inside the paragraph. Breaking them across lines
                      would put a newline between `</span>` and the entity, and
                      another between the entity and the detail — two extra
                      spaces in the only card per page that carries stars, and
-                     one leading space in every card that does not. */
-                  <p class="stat-detail">{row.stars && <Fragment><span class="stars" aria-hidden="true">{row.stars}</span> <Fragment set:html={NBSP_HTML} /></Fragment>}{row.detail}</p>
+                     one leading space in every card that does not.
+
+                     The glyphs are a LITERAL text node in this template, the
+                     same way MediaSplitBlock:822 writes them, not `{row.stars}`
+                     — the field is a flag and printing it would put whatever an
+                     editor or a route map happened to type on the page. The
+                     space between `</span>` and the `<Fragment set:html>` is
+                     load-bearing and it survives BECAUSE both sides are
+                     elements: MediaSplitBlock:812 records that the compiler
+                     collapses a bare space between an EXPRESSION and an element
+                     on one line, which is why the run is built from elements
+                     rather than from `{" "}`. Verified in the rendered output,
+                     `</span> &nbsp;Consistent…`, not assumed.
+
+                     A card with `stars` on and `detail` blank therefore ends on
+                     the `&nbsp;` — seen and left, not missed. It is an
+                     invisible trailing space inside a `<p>`, no page in the
+                     corpus ships that shape, and splitting the run into two
+                     conditionals to avoid it would put a second expression
+                     boundary in the one place whose whitespace this whole
+                     comment exists to protect. Cheap to change if a page ever
+                     wants it; not worth the risk today. */
+                  <p class="stat-detail">{row.stars && <Fragment><span class="stars" aria-hidden="true">★★★★★</span> <Fragment set:html={NBSP_HTML} /></Fragment>}{row.detail}</p>
                 )}
               </div>
             ))}
@@ -588,6 +686,17 @@ const hasAnything = hasCopy || hasStats;
     color: var(--vs-ink-soft);
     margin: 6px 0 0;
   }
+  /* implant-dentistry.css:505-508, general-dentistry.css:523-526,
+     cosmetic-dentistry.css:317 — the same two declarations in all three, with
+     the sheets' local `--sage` alias resolved back to `--vs-sage`.
+     Already lifted, and until this revision UNREACHABLE: nothing ever emitted
+     `span.stars`, so the rule had no element to paint. No new CSS was needed to
+     make the run appear, which is the tell that the defect was in the reader
+     and not in the styles.
+     Not band-conditional, and must not become so: `.stat-card` is white on
+     every band (see the block comment above), so sage-on-white is the computed
+     colour on charcoal, cream and sage alike. Three levels deep at (0,6,0),
+     clear of the pages' (0,3,0). */
   .why-stats .stat-card .stars {
     color: var(--vs-sage);
     letter-spacing: 0.06em;

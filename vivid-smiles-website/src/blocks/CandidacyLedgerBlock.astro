@@ -873,6 +873,24 @@ const sectionId = text(id) || undefined;
   .ledger.skin-ink .ledger-head {
     border-bottom: 1px solid rgba(0, 0, 0, 0.12);
   }
+  /* THE SKIN COVERS FIVE ELEMENTS, NOT THREE. The row hairline and the tag were
+     missing, and their sage defaults are unconditional at (0,4,0) — Astro stamps
+     the scope attribute on every compound — so they out-specify the page sheet's
+     `.impd .ledger-row` (implant-dentistry.css:1099-1106) and `.impd .ledger-tag`
+     (:1138-1151) at (0,2,0). Without these two, implant's four live tags
+     ("Age-Neutral", "CBCT", "Periodontal", "Systemic OK") would ship sage-on-white
+     inside a sage-outlined pill on a black-alpha card.
+     The hairline is stated on `.ledger-row`, not on `:not(:last-child)`, so the
+     existing `.ledger-row:last-child { border-bottom: 0 }` still clears the last
+     one. */
+  .ledger.skin-ink .ledger-row {
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  }
+  .ledger.skin-ink .ledger-tag {
+    color: var(--vs-ink-soft);
+    background: rgba(0, 0, 0, 0.06);
+    border-color: rgba(0, 0, 0, 0.12);
+  }
   .ledger.skin-ink .ledger-num {
     background: rgba(0, 0, 0, 0.1);
     color: var(--vs-ink);

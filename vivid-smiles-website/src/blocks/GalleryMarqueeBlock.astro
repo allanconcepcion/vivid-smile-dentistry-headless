@@ -62,6 +62,25 @@
  * never see the log of (R5, and the same rule PageBlocks.astro runs on). Empty
  * gallery here means a warning and a band with its heading and no strip.
  *
+ * ── The two-column head, and why `quote` is the switch ────────────────────
+ * Every band this component drew until now opened with the centred
+ * `.section-head`. The cosmetic hub's `#results` does not: it opens with a
+ * `.results-grid` — copy on the left, a cream review card on the right
+ * carrying a hardcoded five-star run, a pull quote and an attribution
+ * (src/pages/cosmetic-dentistry/index.astro:550-579). Map that band onto the
+ * centred head and 58 words plus the whole aside fall on the floor.
+ *
+ * The switch is `quote`, and it is a switch rather than a `layout` select on
+ * purpose: the aside cannot exist without a quote, so a second control would
+ * be a second way to say the same thing and a third state ("two-column, no
+ * quote") that has no markup. Blank `quote` — which is what all 33 saved rows
+ * hold — keeps the centred head byte-for-byte, and that is checked by
+ * rendering, not asserted here.
+ *
+ * `body2` is deliberately NOT gated on the two-column shape. It is just the
+ * second paragraph, and the centred head can carry one too; blank still emits
+ * nothing.
+ *
  * ── One thing the backfill has to supply ──────────────────────────────────
  * The template hard-codes the eyebrow "Smile Gallery"; the CMS `gallery`
  * section row's eyebrow is EMPTY on the pilot (and on its siblings). Backfill
@@ -110,6 +129,21 @@ interface Props {
   /** May contain `<em>` and nothing else (Fact 3), so it is rendered set:html. */
   heading?: string | null;
   body?: string | null;
+  /** The second paragraph. cosmetic-dentistry `#results` runs two: the CMS
+   *  `body`, then a hardcoded 38-word paragraph the one-body layout had
+   *  nowhere to put (index.astro:554-560). Emitted straight after `body` in
+   *  BOTH heads; blank emits nothing. */
+  body2?: string | null;
+  /** The pull quote in the review card, and the switch for the whole
+   *  two-column head. Non-empty is the ONLY thing that moves this block off
+   *  the centred `.section-head`. Carries its own quotation marks in the
+   *  value, exactly as index.astro:574-577 writes them. */
+  quote?: string | null;
+  /** The byline under the quote. Carries its leading em dash AND an inline
+   *  `<b>` in the value, so it is rendered set:html — same contract as
+   *  media_split's field of the same name. Optional: a quote with no byline
+   *  still draws the card. */
+  quoteAttrib?: string | null;
   /** The optional CTA row inside the section-head, after the body paragraph —
    *  smile-makeover's #results ships "View the Smile Gallery / Patient
    *  Stories" there (smile-makeover.astro:635-644). All seven blank = today's
@@ -125,7 +159,8 @@ interface Props {
   ctaNote?: string | null;
 }
 
-const { id, band, eyebrow, heading, body, ctaLabel, ctaHref, ctaHover,
+const { id, band, eyebrow, heading, body, body2, quote, quoteAttrib,
+  ctaLabel, ctaHref, ctaHover,
   ctaLabel2, ctaHref2, ctaHover2, ctaNote } = Astro.props;
 
 // `?? null` rather than a default: an unknown band from a future PHP choice
@@ -138,6 +173,15 @@ const text = (input: unknown): string =>
 const eyebrowText = text(eyebrow);
 const headingHtml = text(heading);
 const bodyText = text(body);
+const body2Text = text(body2);
+const quoteText = text(quote);
+const quoteAttribHtml = text(quoteAttrib);
+
+/* THE SWITCH. `text()` trims, so a field an editor opened and left as spaces
+   is blank here too — an untrimmed check would flip eleven live bands to a
+   two-column head the moment someone typed a space into the quote box and
+   saved. */
+const hasQuote = quoteText !== "";
 
 /* The token map, hover table and resolvers live in ./cta.ts — ONE copy for
    every block that draws a CTA row, extracted the day the fifth copy appeared.
@@ -184,10 +228,30 @@ if (galleryTiles.length === 0) {
 
 <section class:list={["section", bandModifier]} id={id}>
   <div class="wrap">
+    {
+      /* THE HEAD, one of two shapes, and the whitespace here is load-bearing.
+         The `\n    ` text node BEFORE this `{` is the one the eleven live
+         bands already emit (one space, after compressHTML); the two branches
+         are flushed `}{` so neither contributes a node of its own; the
+         `\n  ` after the second `}` is the node before `</div>`. The comment
+         lives INSIDE the braces rather than on a line of its own, because a
+         standalone brace-wrapped comment is a second expression, and it would
+         have added a second text node and a second space to every band
+         already saved. (A comment on its own line here also has to avoid the
+         two characters that end one, which is how the first draft of this
+         block leaked its own prose into the markup.) Indentation inside
+         .section-head is likewise untouched — re-indenting it would have
+         changed its bytes on every live route. */
+      !hasQuote && (
     <div class="section-head" data-vs-reveal>
       {eyebrowText && <span class="eyebrow light">{eyebrowText}</span>}
       {headingHtml && <h2><Fragment set:html={headingHtml} /></h2>}
       {bodyText && <p>{bodyText}</p>}{
+        /* body_2 — the second paragraph, flushed `}{` against the body above
+           and the cta row below so a blank field adds no text node to the
+           bands saved before it existed. */
+        body2Text && <p>{body2Text}</p>
+      }{
         /* smile-makeover.astro:635-644 — the row lives INSIDE .section-head,
            after the body paragraph, not at the band's foot. Flushed `}{` so an
            empty row adds no text node to the eleven bands saved before these
@@ -212,6 +276,83 @@ if (galleryTiles.length === 0) {
         )
       }
     </div>
+      )
+    }{
+      /* THE TWO-COLUMN HEAD — src/pages/cosmetic-dentistry/index.astro:550-579,
+         element for element. Flushed `}{` against the branch above so the
+         quote-less bands get one head and one text node, not two.
+
+         `data-vs-reveal` sits on `.results-grid` where the centred head
+         carries it on `.section-head`. The template instead puts
+         `data-vs-reveal-batch` on the SECTION and reveals `.wrap` and the
+         strip as a stagger — this block has never written that attribute
+         (clear-aligners' gallery band does not carry it either), and adding
+         it now would change the section element on all eleven live routes.
+         So: a named attribute-level delta on this one band, reveal behaviour
+         preserved, nothing else touched.
+
+         The eyebrow is `.eyebrow`, NOT `.eyebrow light` like the centred head
+         above. `.eyebrow.light` resolves to --vs-eyebrow-on-sage (#e8ead8) —
+         cream, for charcoal and sage bands. cosmetic's #results is a PAPER
+         band and the template writes a bare `.eyebrow`; carrying `light` over
+         would have painted the eyebrow near-white on near-white.
+
+         The ★★★★★ run in the aside is decoration, not content: hardcoded and
+         aria-hidden in the template, so hardcoded and aria-hidden here. A
+         field for it would be five characters an editor could only get wrong.
+         It is written as a bare element rather than behind a comment of its
+         own, because a standalone brace-wrapped comment there emitted a
+         second whitespace node inside the card. */
+      hasQuote && (
+        <div class="results-grid" data-vs-reveal>
+          <div class="results-copy">
+            {eyebrowText && <span class="eyebrow">{eyebrowText}</span>}
+            {headingHtml && <h2><Fragment set:html={headingHtml} /></h2>}
+            {bodyText && <p>{bodyText}</p>}{
+              body2Text && <p>{body2Text}</p>
+            }{
+              /* `.results-actions`, not `.cta-row`: the template's own class,
+                 and a different shape — the buttons are direct children, there
+                 is no `.cta-buttons` wrapper and the row is inline-flex, not a
+                 centred column. Same two cta fields feed it, so a band can
+                 carry the row in either head. */
+              hasCtaRow && (
+                <div class="results-actions">
+                  {hasCta && (
+                    <Button variant={primaryVariant} href={cta1.href} hoverLabel={cta1.hover}>
+                      {ctaLabel}
+                    </Button>
+                  )}{
+                    hasCta2 && (
+                    <Button variant={secondaryVariant} href={cta2.href} hoverLabel={cta2.hover}>
+                      {ctaLabel2}
+                    </Button>
+                  )}
+                </div>
+              )
+            }{
+              /* The template has no note in this head. Dropping a filled field
+                 silently is the failure this whole batch exists to stop, so it
+                 renders as a sibling of `.results-actions` — and only when an
+                 editor puts something there. cosmetic's row leaves it blank,
+                 so that route is unaffected. */
+              ctaNoteText !== "" && <span class="cta-note">{ctaNoteText}</span>
+            }
+          </div>
+
+          <div class="results-aside">
+            <span class="stars" aria-hidden="true">★★★★★</span>
+            <p class="quote">{quoteText}</p>{
+              /* set:html — the byline carries an inline <b> around the review
+                 count, and its own leading em dash. */
+              quoteAttribHtml && (
+                <span class="quote-attr"><Fragment set:html={quoteAttribHtml} /></span>
+              )
+            }
+          </div>
+        </div>
+      )
+    }
   </div>
 
   {
@@ -433,11 +574,180 @@ if (galleryTiles.length === 0) {
     color: rgba(255, 255, 255, 0.75);
   }
 
+  /* ── Two-column head ────────────────────────────────────────────────────
+     Copied from src/styles/pages/cosmetic-dentistry.css:653-694, the `.cdent`
+     prefix stripped and that sheet's local aliases (:36-55) resolved back to
+     the `--vs-*` tokens they alias one-for-one. Rendered values unchanged.
+
+     On specificity: cosmetic-dentistry.css is imported unconditionally by the
+     hub (index.astro:21) whether or not blocks are driving the page, so its
+     `.cdent .results-*` rules match this block's markup too. Astro stamps the
+     scope attribute on EVERY compound, so the descendant rules below —
+     `.results-copy[cid] h2[cid]` and friends — out-specify their page
+     counterparts and win outright. The three SINGLE-compound rules do not:
+     `.results-grid`, `.results-actions` and `.results-aside` scope to
+     (0,2,0), exactly tying `.cdent .results-grid` et al., and bundle order
+     decides. That is safe only because those three are verbatim copies.
+     Change a value here without changing it there and the tie, not the
+     intent, picks the winner. */
+  .results-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.05fr;
+    gap: 64px;
+    align-items: center;
+  }
+  /* cosmetic-dentistry.css:658-663. Note ::before ONLY — the centred head's
+     eyebrow is flanked by a rule on both sides (`.section-head .eyebrow`
+     above), this one is not. Copying the centred rule here would have added a
+     28px rule to the right of "Genuine results" that the template has never
+     drawn. */
+  .results-copy .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .results-copy .eyebrow::before {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+  /* The h2 typography that `.section-head h2` supplies for the centred head.
+     Resolved from cosmetic-dentistry.css:67-70 (family/weight/line-height),
+     :73 (size, letter-spacing), :1024 (the end-of-file `h2 { color: ink }`
+     override) and :664 (margin, max-width) — the four rules that decide this
+     heading on the live page, collapsed to what actually renders.
+
+     NO `:global(em)` rule, and that is deliberate. The centred head paints
+     `<em>` sage-soft; the cosmetic sheet has no `.results-copy h2 em` rule and
+     no `.cdent h2 em` rule (only `.cdent h1 em` at :72 and the charcoal-band
+     override at :1005), so the em in this band's live heading — "Why Parker
+     clients <em>love their new smiles.</em>", verified against the endpoint —
+     renders italic in the inherited ink. Adding the sage-soft rule "for
+     consistency" would be a silent colour change on the one route that has
+     this shape. */
+  .results-copy h2 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    font-size: clamp(32px, 4.2vw, 54px);
+    letter-spacing: -0.022em;
+    line-height: 1.1;
+    color: var(--vs-ink);
+    margin: 18px 0 22px;
+    max-width: 18ch;
+  }
+  /* cosmetic-dentistry.css:665-667. Left-aligned and 56ch, where the centred
+     head's paragraph is centred and 60ch — two paragraphs stack, hence the
+     bottom margin rather than `margin: 0 auto`. */
+  .results-copy p {
+    font-size: 16.5px;
+    line-height: 1.75;
+    color: var(--vs-ink-soft);
+    margin: 0 0 14px;
+    max-width: 56ch;
+  }
+  /* cosmetic-dentistry.css:669-671. */
+  .results-actions {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  /* The note has no rule in the page sheet because the template never draws
+     one. Borrowed from this block's own `.cta-row .cta-note` above so a field
+     an editor fills lands somewhere deliberate instead of unstyled. */
+  .results-copy .cta-note {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 16px;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--vs-muted);
+  }
+  /* cosmetic-dentistry.css:672-679. `--shadow` is page-local (:47) and has no
+     global token — the same two-part value ServiceCardsBlock and
+     CopyPlusStatsBlock already carry inline. */
+  .results-aside {
+    background: var(--vs-cream);
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-lg);
+    padding: 44px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    box-shadow:
+      0 24px 60px -30px rgba(40, 40, 30, 0.25),
+      0 8px 20px -10px rgba(40, 40, 30, 0.08);
+  }
+  /* cosmetic-dentistry.css:680-682. */
+  .results-aside .stars {
+    font-size: 24px;
+    letter-spacing: 0.05em;
+    color: var(--vs-sage);
+  }
+  /* cosmetic-dentistry.css:683-688. */
+  .results-aside .quote {
+    font-family: var(--vs-font-display);
+    font-weight: 300;
+    font-style: italic;
+    font-size: clamp(20px, 2.2vw, 26px);
+    line-height: 1.35;
+    color: var(--vs-ink);
+    margin: 0;
+    letter-spacing: -0.005em;
+  }
+  /* cosmetic-dentistry.css:689-693. */
+  .results-aside .quote-attr {
+    font-family: var(--vs-font-body);
+    font-size: 12.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--vs-muted);
+    font-weight: 500;
+  }
+  /* cosmetic-dentistry.css:694. `:global` because the `<b>` arrives through
+     set:html and carries no scope attribute — same reason the `<em>` in the
+     centred head's h2 needs it. The scope stays on `.quote-attr`, so this
+     cannot leak off the block. */
+  .results-aside .quote-attr :global(b) {
+    font-weight: 600;
+    color: var(--vs-sage);
+  }
+  /* The aside is cream on EVERY band, so the quote has to hold its ink
+     against this block's own band overrides above — `.section.alt p` and
+     friends match `p.quote` inside the card, and on a charcoal band would
+     paint it white on cream. Scoped these come out at (0,6,0) against that
+     rule's (0,4,1), so they win on specificity rather than on file order.
+     cosmetic's #results is a paper band and never exercises this; a page that
+     drops the shape on a dark band would, which is the whole point of a block
+     deciding its own colours. */
+  .section.alt .results-aside .quote,
+  .section.dark .results-aside .quote,
+  .section.sage .results-aside .quote {
+    color: var(--vs-ink);
+  }
+
+  /* cosmetic-dentistry.css:919 + :935 — the two-column head stacks at 1100,
+     not at the block set's 780. Kept at the source breakpoint rather than
+     normalised: 1fr/1.05fr with a 64px gutter is already tight at 1100px, and
+     moving the stack down to 780 would be a layout change wearing the costume
+     of a tidy-up. */
+  @media (max-width: 1100px) {
+    .results-grid {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+  }
+
   @media (max-width: 780px) {
     .section { padding: 70px 0; }
     .wrap { padding: 0 22px; }
     /* smile-makeover.css:766 collapses the row's top gap on small screens. */
     .cta-row { margin-top: 36px; }
+    /* cosmetic-dentistry.css:962. */
+    .results-aside { padding: 32px 24px; }
   }
 
   @media (max-width: 479px) {

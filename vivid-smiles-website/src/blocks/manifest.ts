@@ -825,9 +825,30 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    * head (/services/ `#cosmetic` and `#implants`), only when a label is
    * non-empty, never in nested mode.
    */
+  /**
+   * WAVE A ADDS `collapseAt`, AND IT IS THE ONE THING THAT SEPARATES THE
+   * /services/ GRIDS FROM THE HUBS'. It arrives "640" | "780" — the width at
+   * which the tiles drop to one column — because the four pages genuinely
+   * disagree (cosmetic-dentistry.css:974-976, implant-dentistry.css:1501-1504
+   * and general-dentistry.css:1338-1341 stack at 640; services.css:510,520-523
+   * stacks all three of its grids at 780) and NO OTHER STORED VALUE tells them
+   * apart: /services/ #cosmetic and /cosmetic-dentistry/ #services are both
+   * six tiles at columns=3, same cardStyle, same band. Selected after
+   * `columns` because that is its order in the PHP and both are the grid's
+   * geometry.
+   *
+   * ServiceCardsBlock already reads it — and derives the <Image> `sizes` hint
+   * from it, one control instead of two that can contradict each other — so
+   * this line is the schema half of a contract whose other half already
+   * shipped. Blank is "640", which is the branch the component takes for null.
+   *
+   * Additive with nothing to prove around it: no page holds a service_cards
+   * row at all today (checked against the live endpoint, not inferred from
+   * the maps), so there is no saved band this can move.
+   */
   PageFieldsBlocksServiceCardsLayout: {
     typeName: "PageFieldsBlocksServiceCardsLayout",
-    fields: `${BLOCK_PREAMBLE_FIELDS} nested cardStyle columns svcCards { title body tag href imagePos imageAlt image { node { sourceUrl altText mediaDetails { width height } } } } subFoot ctaLabel ctaHref ctaHover ctaLabel2 ctaHref2 ctaHover2 ctaNote`,
+    fields: `${BLOCK_PREAMBLE_FIELDS} nested cardStyle columns collapseAt svcCards { title body tag href imagePos imageAlt image { node { sourceUrl altText mediaDetails { width height } } } } subFoot ctaLabel ctaHref ctaHover ctaLabel2 ctaHref2 ctaHover2 ctaNote`,
   },
 
   /**
@@ -868,9 +889,33 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    * which this band has never drawn; the component fixes the variants to
    * the template's light + outline-light pair.
    */
+  /**
+   * WAVE A ADDS `ledgerSkin`, AND THE BAND VALUE IS WHY IT HAS TO EXIST. Both
+   * live #candidacy bands are `section.section.dark` — the same sage-pale
+   * ground — and the two sheets still skin the aside differently in five
+   * places: the card fill and border, the head rule, the row rule, the numeral
+   * bubble and the tag. cosmetic-dentistry.css:734-740/741-745/755-760/762-770/
+   * 780-790 is white glass with a solid sage numeral; implant-dentistry.css:
+   * 1072-1079/1080-1084/1099-1106/1110-1123/1138-1151 is the same geometry in
+   * black-alpha with an ink numeral. Nothing already stored distinguishes
+   * them, so one component drawing one skin would repaint whichever band
+   * migrated second.
+   *
+   * AND THE DIFF WOULD NOT CATCH IT. A recoloured card keeps every word, so
+   * the word-level comparison this phase is graded on reports zero — exactly
+   * how 26 bands shipped with the wrong background. `ledgerSkin` is what makes
+   * the difference a stored decision instead of a silent one. It arrives
+   * "sage" | "ink"; blank is "sage", the branch CandidacyLedgerBlock already
+   * takes for null. Selected before `ledgerEyebrow` because that is its order
+   * in the PHP: the switch that decides how the panel looks comes before the
+   * panel's copy, the way `cardStyle` and `layout` do on their layouts.
+   *
+   * Additive: no page holds a candidacy_ledger row today, checked against the
+   * live endpoint.
+   */
   PageFieldsBlocksCandidacyLedgerLayout: {
     typeName: "PageFieldsBlocksCandidacyLedgerLayout",
-    fields: `${BLOCK_PREAMBLE_FIELDS} copyHeading copyBody copyHeading2 copyBody2 ledgerEyebrow ledgerHeading ledger { title body tag } ctaLabel ctaHref ctaHover ctaLabel2 ctaHref2 ctaHover2`,
+    fields: `${BLOCK_PREAMBLE_FIELDS} copyHeading copyBody copyHeading2 copyBody2 ledgerSkin ledgerEyebrow ledgerHeading ledger { title body tag } ctaLabel ctaHref ctaHover ctaLabel2 ctaHref2 ctaHover2`,
   },
 
   /**

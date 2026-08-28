@@ -4020,6 +4020,55 @@ function register_field_groups(): void {
 										'multiple'      => 0,
 										'ui'            => 0,
 									],
+									/**
+									 * The width at which the tiles drop to ONE column.
+									 *
+									 * A FIELD BECAUSE NO OTHER STORED VALUE SEPARATES THE PAGES.
+									 * cosmetic-dentistry.css:974-976, implant-dentistry.css:1501-1504 and
+									 * general-dentistry.css:1338-1341 stack at 640; services.css:510,520-523
+									 * stacks all three of its grids at 780. And /services/ #cosmetic and
+									 * /cosmetic-dentistry/ #services are BOTH six tiles at columns=3 — the
+									 * same card_style, the same count, the same band. Deriving the
+									 * breakpoint from any of those would have to pick one, and the page
+									 * that lost would change what a visitor sees between 640px and 780px.
+									 * That is a design change, and this migration changes the words, not
+									 * the design.
+									 *
+									 * ONE CONTROL, NOT TWO. ServiceCardsBlock also derives the <Image>
+									 * `sizes` hint from this value, because on every page the two agree: a
+									 * band that stacks at 780 ships `(max-width: 991px) 100vw, 33vw` and a
+									 * band that stacks at 640 ships the 640/1100 three-stop form. A second
+									 * field for the hint would be a second chance to contradict this one,
+									 * and a wrong `sizes` picks the wrong candidate — a soft or a wasteful
+									 * image, silently.
+									 *
+									 * ADDITIVE TWICE OVER. No page holds a service_cards row today — checked
+									 * against the live endpoint on 2026-08-29, not assumed from the maps —
+									 * so there is no saved band this can move. And blank resolves to "640",
+									 * which is the branch the component already takes for null, so a row
+									 * written by any path that skips the select renders the majority shape
+									 * rather than the one hub's exception.
+									 *
+									 * Mints no GraphQL type: a select is a scalar, and only repeaters,
+									 * groups and flexible layouts mint types. Nothing to collide.
+									 */
+									[
+										'key'           => 'field_vs_blk_svc_collapse_at',
+										'label'         => 'Stack to one column at',
+										'name'          => 'collapse_at',
+										'type'          => 'select',
+										'choices'       => [
+											'640' => '640px — the tiles stay side by side on a small tablet',
+											'780' => '780px — the tiles stack one row earlier',
+										],
+										'default_value' => '640',
+										'return_format' => 'value',
+										'allow_null'    => 0,
+										'multiple'      => 0,
+										'ui'            => 0,
+										'instructions'  => 'Leave this at 640px. The three grids on the Services page stack '
+											. 'a step earlier than the rest of the site and are the only bands that use 780px.',
+									],
 									[
 										'key'          => 'field_vs_blk_svc_cards',
 										'label'        => 'Tiles',
@@ -4254,6 +4303,65 @@ function register_field_groups(): void {
 										'type'         => 'textarea',
 										'rows'         => 4,
 										'instructions' => 'May contain inline <a class="vs-link"> anchors.',
+									],
+									/**
+									 * Which chrome the ledger aside wears.
+									 *
+									 * A FIELD BECAUSE THE BAND VALUE CANNOT TELL THE TWO APART. Both
+									 * /cosmetic-dentistry/ #candidacy and /implant-dentistry/ #candidacy are
+									 * `section.section.dark`, i.e. the same sage-pale ground, and the two
+									 * sheets still skin the panel differently in five places:
+									 *
+									 *   cosmetic-dentistry.css:734-740  50%-white card, 70%-white border
+									 *                        741-745  head rule in --vs-ink-soft
+									 *                        755-760  row rule rgba(40,40,30,.12)
+									 *                        762-770  solid --vs-sage numeral, white figure
+									 *                        780-790  sage tag on 60%-white, sage border
+									 *   implant-dentistry.css:1072-1079  4%-black card, 12%-black border
+									 *                        1080-1084  head rule rgba(0,0,0,.12)
+									 *                        1099-1106  row rule rgba(0,0,0,.1)
+									 *                        1110-1123  10%-black numeral, ink figure
+									 *                        1138-1151  grey tag on 6%-black, 12%-black border
+									 *
+									 * Same ground, same markup, two skins. One component has to draw both,
+									 * and it cannot be told which from anything already stored — so shipping
+									 * a single skin would repaint one live band the moment it migrated. THE
+									 * WORD-LEVEL DIFF THAT GRADES THIS PHASE WOULD REPORT NOTHING: no word
+									 * moves when a card changes colour. That is the same blind spot that let
+									 * 26 bands ship with the wrong background for a fortnight.
+									 *
+									 * A page stylesheet cannot fix it afterwards either: the block draws
+									 * `.ledger` inside its own scope, and an attribute-scoped compound in the
+									 * component outranks `.impd .ledger` in the page sheet. The skin has to
+									 * be a stored value, chosen here.
+									 *
+									 * Additive: no page holds a candidacy_ledger row today (checked against
+									 * the live endpoint on 2026-08-29), and blank resolves to "sage", the
+									 * branch CandidacyLedgerBlock already takes for null.
+									 *
+									 * NAMED `ledger_skin`, NOT `skin` UNDER THE `ledger` REPEATER. A scalar
+									 * mints no type, so this name is safe as it stands — but a repeater or
+									 * group called `skin` nested inside `ledger` would mint
+									 * PageFieldsBlocksLedgerSkin, the concatenation alias of a top-level
+									 * container by this name. If either ever becomes a container, one of them
+									 * has to be renamed first.
+									 */
+									[
+										'key'           => 'field_vs_blk_cand_ledger_skin',
+										'label'         => 'Ledger panel style',
+										'name'          => 'ledger_skin',
+										'type'          => 'select',
+										'choices'       => [
+											'sage' => 'White glass — a green numeral and a green tag outline',
+											'ink'  => 'Neutral — a grey numeral and a grey tag outline',
+										],
+										'default_value' => 'sage',
+										'return_format' => 'value',
+										'allow_null'    => 0,
+										'multiple'      => 0,
+										'ui'            => 0,
+										'instructions'  => 'The colour of the side panel only — the words and the '
+											. 'background of the section are unchanged either way.',
 									],
 									[
 										'key'          => 'field_vs_blk_cand_ledger_eyebrow',
