@@ -45,14 +45,12 @@
 .sinuslift p { margin: 0; color: var(--ink-soft); }
 .sinuslift em { font-style: italic; color: var(--sage-soft); font-weight: 300; }
 
-.sinuslift .prose a,
-.sinuslift .final-band-text a {
+.sinuslift .prose a {
   color: var(--sage); text-decoration: underline; text-decoration-thickness: 1px;
   text-underline-offset: 3px;
   transition: color 0.2s ease;
 }
-.sinuslift .prose a:hover,
-.sinuslift .final-band-text a:hover { color: var(--sage-deep); }
+.sinuslift .prose a:hover { color: var(--sage-deep); }
 
 /* ---------- HERO ---------- */
 .sinuslift .hero {
@@ -828,49 +826,6 @@
   color: var(--sage); line-height: 1.45; letter-spacing: -0.005em;
 }
 
-/* ---------- CLOSING BAND ---------- */
-.sinuslift .final-band {
-  padding: 90px 40px;
-  background: var(--paper);
-  border-top: 1px solid var(--line);
-}
-.sinuslift .final-band .wrap {
-  max-width: 1100px;
-  margin: 0 auto;
-}
-.sinuslift .final-band-inner {
-  display: grid;
-  grid-template-columns: 1.2fr auto;
-  align-items: center;
-  gap: 40px;
-}
-.sinuslift .final-band-text .eyebrow {
-  display: inline-flex; align-items: center; gap: 14px;
-  color: var(--sage);
-}
-.sinuslift .final-band-text .eyebrow::before {
-  content: ""; width: 28px; height: 1px; background: var(--sage);
-}
-.sinuslift .final-band-text p {
-  margin: 14px 0 0;
-  font-size: 16px;
-  color: var(--ink-soft);
-  max-width: 60ch;
-}
-.sinuslift .final-band-phone {
-  margin-top: 12px;
-  font-family: var(--f-display);
-  font-size: 22px;
-  color: var(--sage);
-  letter-spacing: -0.01em;
-}
-.sinuslift .final-band-actions {
-  display: inline-flex;
-  gap: 14px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
 /* ---------- RESPONSIVE ---------- */
 @media (max-width: 1240px) {
   /* Multi-col cause/process grids feel cramped before 1100px — drop earlier. */
@@ -891,11 +846,6 @@
 }
 
 @media (max-width: 991px) {
-  .sinuslift .final-band-inner {
-    grid-template-columns: 1fr;
-    gap: 28px;
-  }
-  .sinuslift .final-band-actions { justify-content: flex-start; }
   .sinuslift .invest-grid { grid-template-columns: 1fr; gap: 40px; }
   .sinuslift .insurance-card { padding: 38px 32px 32px; }
 }
@@ -926,15 +876,12 @@
   .sinuslift .cta-row { margin-top: 36px; }
   .sinuslift .faq summary { padding: 22px 24px; }
   .sinuslift .faq .answer { padding: 0 24px 22px; }
-  .sinuslift .final-band { padding: 60px 22px; }
-  .sinuslift .final-band-inner { text-align: left; }
   .sinuslift .pull { padding: 28px 24px; }
 }
 
 @media (max-width: 480px) {
   .sinuslift .hero h1 { max-width: none; }
   .sinuslift .smile-tile { width: 280px; height: 210px; }
-  .sinuslift .final-band-phone { font-size: 18px; }
   .sinuslift .cost-factor { grid-template-columns: 1fr; gap: 8px; padding: 22px 0; }
   .sinuslift .cost-factor__num { font-size: 36px; }
   .sinuslift .insurance-card { padding: 32px 24px 28px; }

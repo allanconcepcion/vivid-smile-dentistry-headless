@@ -665,52 +665,6 @@
   color: var(--sage); line-height: 1.45; letter-spacing: -0.005em;
 }
 
-/* ---------- CLOSING BAND ----------
-   Slim final fallback below the VirtualConsult form section. Two-column
-   layout at desktop (text left, action pair right) collapses to stacked at
-   ≤991px. Lives on the same paper surface the previous .final card sat on. */
-.caligners .final-band {
-  padding: 90px 40px;
-  background: var(--paper);
-  border-top: 1px solid var(--line);
-}
-.caligners .final-band .wrap {
-  max-width: 1100px;
-  margin: 0 auto;
-}
-.caligners .final-band-inner {
-  display: grid;
-  grid-template-columns: 1.2fr auto;
-  align-items: center;
-  gap: 40px;
-}
-.caligners .final-band-text .eyebrow {
-  display: inline-flex; align-items: center; gap: 14px;
-  color: var(--sage);
-}
-.caligners .final-band-text .eyebrow::before {
-  content: ""; width: 28px; height: 1px; background: var(--sage);
-}
-.caligners .final-band-text p {
-  margin: 14px 0 0;
-  font-size: 16px;
-  color: var(--ink-soft);
-  max-width: 50ch;
-}
-.caligners .final-band-phone {
-  margin-top: 12px;
-  font-family: var(--f-display);
-  font-size: 22px;
-  color: var(--sage);
-  letter-spacing: -0.01em;
-}
-.caligners .final-band-actions {
-  display: inline-flex;
-  gap: 14px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
 /* ---------- RESPONSIVE ----------
    Mixed ownership, so read the selector before deleting a line. The hero, keys
    and toc rules stay whichever way the page renders; .why-grid, .what-grid,
@@ -752,20 +706,12 @@
   .caligners .cta-row { margin-top: 36px; }
   .caligners .faq summary { padding: 22px 24px; }
   .caligners .faq .answer { padding: 0 24px 22px; }
-  .caligners .final-band { padding: 60px 22px; }
-  .caligners .final-band-inner {
-    grid-template-columns: 1fr;
-    gap: 28px;
-    text-align: left;
-  }
-  .caligners .final-band-actions { justify-content: flex-start; }
   .caligners .pull { padding: 28px 24px; }
 }
 
 @media (max-width: 480px) {
   .caligners .hero h1 { max-width: none; }
   .caligners .smile-tile { width: 280px; height: 210px; }
-  .caligners .final-band-phone { font-size: 18px; }
 }
 
 /* ---------- Reduced-motion safety ----------

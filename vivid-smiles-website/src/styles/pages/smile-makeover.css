@@ -679,49 +679,6 @@
   color: var(--sage); line-height: 1.45; letter-spacing: -0.005em;
 }
 
-/* ---------- CLOSING BAND ---------- */
-.smilemakeover .final-band {
-  padding: 90px 40px;
-  background: var(--paper);
-  border-top: 1px solid var(--line);
-}
-.smilemakeover .final-band .wrap {
-  max-width: 1100px;
-  margin: 0 auto;
-}
-.smilemakeover .final-band-inner {
-  display: grid;
-  grid-template-columns: 1.2fr auto;
-  align-items: center;
-  gap: 40px;
-}
-.smilemakeover .final-band-text .eyebrow {
-  display: inline-flex; align-items: center; gap: 14px;
-  color: var(--sage);
-}
-.smilemakeover .final-band-text .eyebrow::before {
-  content: ""; width: 28px; height: 1px; background: var(--sage);
-}
-.smilemakeover .final-band-text p {
-  margin: 14px 0 0;
-  font-size: 16px;
-  color: var(--ink-soft);
-  max-width: 56ch;
-}
-.smilemakeover .final-band-phone {
-  margin-top: 12px;
-  font-family: var(--f-display);
-  font-size: 22px;
-  color: var(--sage);
-  letter-spacing: -0.01em;
-}
-.smilemakeover .final-band-actions {
-  display: inline-flex;
-  gap: 14px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
 /* ---------- RESPONSIVE ---------- */
 @media (max-width: 1100px) {
   .smilemakeover .hero-inner { grid-template-columns: 1fr; gap: 50px; }
@@ -742,13 +699,6 @@
   }
 }
 
-@media (max-width: 991px) {
-  .smilemakeover .final-band-inner {
-    grid-template-columns: 1fr;
-    gap: 28px;
-  }
-  .smilemakeover .final-band-actions { justify-content: flex-start; }
-}
 
 @media (max-width: 780px) {
   .smilemakeover .wrap { padding: 0 22px; }
@@ -766,8 +716,6 @@
   .smilemakeover .cta-row { margin-top: 36px; }
   .smilemakeover .faq summary { padding: 22px 24px; }
   .smilemakeover .faq .answer { padding: 0 24px 22px; }
-  .smilemakeover .final-band { padding: 60px 22px; }
-  .smilemakeover .final-band-inner { text-align: left; }
   .smilemakeover .pull { padding: 28px 24px; }
 }
 
@@ -775,7 +723,6 @@
   .smilemakeover .hero h1 { max-width: none; }
   .smilemakeover .issues-grid { grid-template-columns: 1fr; }
   .smilemakeover .smile-tile { width: 280px; height: 210px; }
-  .smilemakeover .final-band-phone { font-size: 18px; }
   .smilemakeover .lasting-stat .big { white-space: normal; }
 }
 
