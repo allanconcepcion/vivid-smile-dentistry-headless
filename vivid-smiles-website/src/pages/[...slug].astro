@@ -21,14 +21,50 @@
  *
  * It is a floor, not a ceiling: the right typography in the right shell. A page
  * that matters still deserves its own template.
+ *
+ * ONE COST, STATED RATHER THAN DISCOVERED LATER. Importing PageBlocks below is a
+ * STATIC import, so Astro attaches the whole 17-block CSS graph to every page
+ * this route builds — including a page that has no blocks and renders the
+ * repeater fallback. Measured on a real catch-all page: 117,106 bytes of
+ * render-blocking CSS becomes 296,847, of which 177,972 is the block bundle.
+ * The branch is a runtime ternary; the module graph is not, and a dynamic
+ * import cannot supply a component to Astro's template compiler.
+ *
+ * Accepted, for now, because it costs nothing today and the trade is the right
+ * way round tomorrow: this route builds ZERO pages at present (every WordPress
+ * page has a hand-built template that wins), and the pages it exists to create
+ * are blocks pages, which need that CSS. The page that overpays is the legacy
+ * shape — repeaters, no blocks — and none exists. If that changes, the fix is
+ * to split this into two routes rather than to make the import conditional.
  */
 import { readdir } from "node:fs/promises";
 import { join } from "node:path";
 import type { GetStaticPaths } from "astro";
 import { getCollection, type CollectionEntry } from "astro:content";
 import BaseLayout from "../layouts/BaseLayout.astro";
+import PageBlocks from "../blocks/PageBlocks.astro";
 import { optimizeBodyImages } from "../lib/wp-body-images";
+import { getPageContent } from "../lib/page-content";
+import { fillSiteTokens } from "../blocks/site-tokens";
+/**
+ * Imported at module scope, not inside the component, because getStaticPaths is
+ * lifted out of this frontmatter and only module imports come with it — see the
+ * note above the function. `hasCopy` calls it.
+ *
+ * manifest.ts, never registry.ts: manifest.ts:1-20 exists precisely so that
+ * something can KNOW about layouts without pulling the 17 block components —
+ * and their ~62 kB of scoped CSS — into the importer's module graph.
+ */
+import { isRegisteredLayout } from "../blocks/manifest";
 import "../styles/pages/wp-page.css";
+/**
+ * The blocks branch's cascade. Everything a designed page's namespace element
+ * supplies and a blank page has none of; see the file's own header. Ordered
+ * after wp-page.css deliberately, though nothing in the two ties: the sheets
+ * share no selector, and the blocks branch renders `.wp-blocks`, which
+ * `.wp-page .wrap` cannot match.
+ */
+import "../styles/pages/wp-page-blocks.css";
 
 type PageData = CollectionEntry<"pages">["data"];
 
@@ -138,10 +174,35 @@ export const getStaticPaths = (async () => {
     // is then an ordinary edit rather than a mystery.
     //
     // Note tocLinks counts as copy. It did not before, so a page using only the
-    // "On this page" tab — one of the three tabs a newly created page can
-    // actually use today — was skipped as empty.
-    const { sections, processSteps, faqs, cards, tocLinks } = entry.data;
+    // "On this page" tab was skipped as empty.
+    //
+    // The tab arithmetic, recounted against cms/mu-plugins/vs-content-model.php
+    // because the number here was stale. Eight tabs exist (:1125, :1154, :1189,
+    // :1258, :1320, :1372, :1409, :1559). A newly created page could already
+    // use FIVE of them — On this page, Process, Section copy, Cards & lists,
+    // FAQ — and three did nothing: Images (this route never reads
+    // `page.images`), Hero (not on the pages schema and not in
+    // src/loaders/pages.ts, so it never crosses into Astro at all) and Page
+    // sections. This change makes Page sections the sixth that works, leaving
+    // two that do not.
+    //
+    // `blocks` is tested with isRegisteredLayout, NOT `.length > 0`, and the
+    // difference is the whole point of the line. A row whose layout this build
+    // has no component for renders as nothing (PageBlocks.astro:229-231), so a
+    // page whose only rows are unregistered layouts really does ship hero-only
+    // and the "title-only" log SHOULD fire for it. Asking the registry is the
+    // same question src/lib/page-content.ts:253 asks, for the same reason
+    // recorded at :243-252.
+    //
+    // Safe to read raw here even though the rest of this file goes through
+    // getPageContent for `unwrapSelects` (see the component frontmatter):
+    // `__typename` is a GraphQL meta field, guaranteed present and a string by
+    // UNKNOWN_BLOCK = z.looseObject({ __typename: z.string().min(1) })
+    // (src/content.config.ts:168), and never array-shaped — so it is the one
+    // sub-field the missing unwrap cannot corrupt.
+    const { sections, processSteps, faqs, cards, tocLinks, blocks } = entry.data;
     const hasCopy =
+      blocks.some((b) => isRegisteredLayout(b.__typename)) ||
       sections.some((s) => s.heading.trim() || s.body.trim()) ||
       processSteps.length > 0 ||
       faqs.length > 0 ||
@@ -154,15 +215,78 @@ export const getStaticPaths = (async () => {
       console.info(`[wp-pages] ${route} has no content in any field — building it title-only.`);
     }
 
-    return [{ params: { slug: route.slice(1, -1) }, props: { page: entry.data } }];
+    // `route` travels in props because the component needs the normalized key
+    // to call getPageContent, and this is the copy that cannot drift: it was
+    // normalized at the top of this closure (trailing slash guaranteed) from
+    // the same entry the props carry. Astro.url.pathname would be a second
+    // source of truth for the same fact.
+    return [{ params: { slug: route.slice(1, -1) }, props: { page: entry.data, route } }];
   });
 }) satisfies GetStaticPaths;
 
 interface Props {
   page: PageData;
+  route: string;
 }
 
-const { page } = Astro.props;
+const { page, route } = Astro.props;
+
+/**
+ * The ordered section list, read through getPageContent rather than off
+ * `page.blocks` — and that is not a stylistic preference.
+ *
+ * `unwrapSelects` (src/lib/page-content.ts:156-199) runs only inside
+ * getPageContent, and its header records the consequence of skipping it as a
+ * SHIPPED defect: WPGraphQL returns every ACF select as a list, so `band`
+ * arrives as ["charcoal"], eight components test `typeof band === "string"`,
+ * and every one of them silently falls back to its default. Two charcoal bands
+ * shipped as paper on /cosmetic-dentistry/clear-aligners/ and the word-level
+ * diff reported zero differences, because a band that loses its modifier class
+ * keeps all of its words. Reading `page.blocks` here would reintroduce exactly
+ * that on every page this branch exists to create.
+ *
+ * `hasBlocks` comes from the same call for the same reason: it is defined once
+ * (page-content.ts:243-253) as "does the registry know how to draw any of
+ * these", never `blocks.length > 0`, so that a page migrated against a layout
+ * that has not shipped yet degrades to "not migrated" instead of going blank.
+ * Restating it here is what page-content.ts:101-104 forbids.
+ *
+ * It cannot throw for a route built here: getPageContent throws only when
+ * getEntry misses (:216-222), and `route` came out of getCollection("pages") in
+ * getStaticPaths above.
+ */
+const { blocks, hasBlocks } = await getPageContent(route);
+
+/**
+ * THE TWO CONTAINER DECISIONS IN THE MARKUP BELOW, since neither can carry its
+ * own comment: a `{/* … *\/}` in a position that has none today would leave a
+ * permanent whitespace text node in the output, and whitespace is a real diff.
+ *
+ * 1. THE SHELL CLASS IS A CASCADE SWITCH, not decoration.
+ *    `.wp-page .wrap` (src/styles/pages/wp-page.css:12-16) is (0,2,0), and every
+ *    block's own scoped `.wrap` compiles to `.wrap[data-astro-cid-…]`, also
+ *    (0,2,0) — 14 blocks declare one. Astro compiles ATTRIBUTE scoping, not
+ *    :where(), so those TIE and bundle order decides it, which this project has
+ *    already paid for twice. The values differ on both properties: 1280px
+ *    (--vs-container-max, tokens.css:64) vs 1240px, and clamp(20px,5vw,48px) vs
+ *    0 40px. Renaming the root on the blocks branch puts wp-page.css out of
+ *    reach entirely rather than out-specifying it.
+ *
+ * 2. THE HERO'S CONTAINER CHANGES WITH IT. `.wp-page-hero` (wp-page.css:18-20)
+ *    is a single-class rule and applies on both branches, but its inner
+ *    `<div class="wrap">` gets its geometry solely from `.wp-page .wrap` — which
+ *    decision 1 just removed. A bare `.wrap` has no global rule (checked:
+ *    src/styles/global.css declares none), so it would render full-bleed and
+ *    unpadded. `.wp-blocks-wrap` supplies the BLOCKS' geometry rather than
+ *    wp-page's, so the H1 aligns with the bands directly beneath it; wp-page's
+ *    container would leave it 20px outboard of every band edge.
+ *
+ * The hero itself stays outside the switch, unconditionally, and that is
+ * mechanical rather than aesthetic: `grep -n "<h1" src/blocks/*.astro` and the
+ * seven code-owned bands returns ZERO matches — every block heads itself with
+ * an <h2>. Drop the hero and a blocks-composed page ships with no <h1> at all,
+ * on precisely the pages this branch exists to create.
+ */
 
 /**
  * A field's copy as HTML.
@@ -207,17 +331,97 @@ for (const card of page.cards) {
   cardGroups.set(card.group, [...(cardGroups.get(card.group) ?? []), card]);
 }
 
-// Editor-managed SEO wins. Falling back to the opening copy beats the
-// site-wide default repeated on every page an editor adds.
-const description =
-  page.seo.description ||
-  sections[0]?.html
-    .replace(/<[^>]+>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 155) ||
-  undefined;
+/**
+ * The first RENDERED band's body, as a meta description.
+ *
+ * `sections` is empty on a page composed only of blocks, so the existing
+ * fallback yields undefined and the page ships the site-wide default on every
+ * page an editor adds. `body` is the honest substitute: docs/PAGE-BLOCKS.md:92
+ * makes it a textarea that is plain text, no tags ever, so it needs collapsing
+ * but no stripping. Nested rows are skipped — they are drawn inside the band
+ * above (PageBlocks.astro:146-177) and are not the page's opening sentence.
+ * `code_section` carries no `body` at all — its selection set is the three
+ * fields at manifest.ts:1103-1110 and never grows — so it never matches.
+ *
+ * `heading` is deliberately not a candidate: docs/PAGE-BLOCKS.md:87 permits
+ * <em> inside it, so it would need stripping, and a bare heading is a label
+ * rather than a description.
+ */
+const blockBody = blocks.find(
+  (b) => !b?.nested && typeof b.body === "string" && b.body.trim() !== "",
+)?.body as string | undefined;
 
+const blockDescription = blockBody
+  ? blockBody.replace(/\s+/g, " ").trim().slice(0, 155)
+  : undefined;
+
+const sectionDescription = sections[0]?.html
+  .replace(/<[^>]+>/g, " ")
+  .replace(/\s+/g, " ")
+  .trim()
+  .slice(0, 155);
+
+// Editor-managed SEO wins. Falling back to the opening copy beats the
+// site-wide default repeated on every page an editor adds — but the fallback
+// must describe what the page RENDERS, so the blocks branch never falls back to
+// `sections`, whose rows it does not draw. On the non-blocks branch this is
+// byte-identical to the single `description` it replaces.
+const metaDescription =
+  page.seo.description || (hasBlocks ? blockDescription : sectionDescription) || undefined;
+
+/**
+ * The visible lede, which is NOT the meta description on a blocks page.
+ *
+ * `description` was consumed twice — once as <meta name="description"> and once
+ * as the <p class="vs-lede"> under the H1. Feeding a blocks page's derived
+ * description to both would print the first band's opening sentence twice, ~40px
+ * apart, the second copy cut mid-word at 155 characters. So a blocks page shows
+ * a lede only when an editor wrote one in the SEO tab, and shows none otherwise.
+ *
+ * An all-`code_section` page has no `body` anywhere, so `blockDescription` is
+ * undefined and BaseLayout's site-wide default stands. That is the honest
+ * answer; reaching into `sections` to fill it would describe rows the page does
+ * not draw.
+ */
+const heroLede = hasBlocks ? page.seo.description || undefined : metaDescription;
+
+/**
+ * FAQPage follows the same switch the visible accordion does — never a merge
+ * and never a fallback-when-empty. A FAQPage listing questions the page does
+ * not answer is worse than no FAQPage at all, so an empty list emits no script.
+ * Modelled on emergency-dentistry/index.astro:325-334, which is the correct
+ * model; clear-aligners.astro:667-680 is the pilot page and still reads the
+ * pre-migration `faqs` array, a known pre-existing gap (block-map.json:10960).
+ *
+ * Every field is read defensively: an ACF row an editor has never saved comes
+ * back null, and `null.trim()` on a live route is a failed build. Annotated
+ * rather than inferred, because the ternary otherwise collapses to a union of
+ * two array types that TypeScript will not let you call .map() on.
+ *
+ * `answer` goes through fillSiteTokens (src/blocks/site-tokens.ts:39) because
+ * stored answers carry `{phone}` / `{phone_href}` under the href policy —
+ * without it the schema ships literal braces to a search engine. The shared
+ * helper rather than a local token table: emergency-dentistry/index.astro:295-308
+ * and contact/index.astro both keep a hand-rolled copy and both record "switch
+ * to fillSiteTokens once it lands". It has landed.
+ */
+const faqSchemaItems: Array<{ q: string; a: string }> = hasBlocks
+  ? blocks
+      .filter((b) => !b?.nested && b?.__typename === "PageFieldsBlocksFaqLayout")
+      .flatMap((b) => (Array.isArray(b.items) ? (b.items as unknown[]) : []))
+      .map((row) => (row ?? {}) as { question?: unknown; answer?: unknown })
+      .map((row) => ({
+        q: typeof row.question === "string" ? row.question : "",
+        a: typeof row.answer === "string" ? fillSiteTokens(row.answer) : "",
+      }))
+      .filter((row) => row.q !== "")
+  : faqs.map((f) => ({ q: f.q, a: f.a }));
+
+// DO NOT ADD `blocks` TO hasBody. It guards `.wp-page-body`, and the block run
+// must never live inside that wrapper — the shell below records both reasons.
+// A blocks-only page evaluating hasBody === false is correct and required; the
+// PageBlocks branch is a SIBLING of this gate, not a child of it.
+//
 // A page whose fields are all empty renders as hero only. Without this the
 // body wrapper still emits, and its padding leaves a tall blank slab under the
 // heading that reads as a broken page rather than an unfinished one.
@@ -231,10 +435,10 @@ const hasBody =
 
 <BaseLayout
   title={page.seo.title || `${page.title} | Vivid Smiles Dentistry`}
-  description={description}
+  description={metaDescription}
   noindex={page.seo.noindex}
   ogImage={page.seo.ogImage || undefined}>
-  <div class="wp-page">
+  <div class={hasBlocks ? "wp-blocks" : "wp-page"}>
     {/* ---------- BREADCRUMB ---------- */}
     <nav class="crumbs" aria-label="Breadcrumb">
       <div class="crumbs-inner">
@@ -247,13 +451,13 @@ const hasBody =
     <main id="main">
       {/* ---------- HERO ---------- */}
       <header class="wp-page-hero" data-vs-reveal-batch>
-        <div class="wrap">
+        <div class={hasBlocks ? "wp-blocks-wrap" : "wrap"}>
           <h1 class="vs-h1">{page.title}</h1>
-          {description && <p class="vs-lede">{description}</p>}
+          {heroLede && <p class="vs-lede">{heroLede}</p>}
         </div>
       </header>
 
-      {hasBody && (
+      {hasBlocks ? <PageBlocks blocks={blocks} route={route} /> : hasBody && (
         <div class="wp-page-body">
           <div class="wrap">
             {page.tocLinks.length > 0 && (
@@ -326,4 +530,39 @@ const hasBody =
       )}
     </main>
   </div>
+
+  {/*
+    BOTH SCRIPTS ARE NEW, ON BOTH BRANCHES, AND NEITHER CAN REGRESS ANYTHING.
+    This route emits zero JSON-LD today — `grep -c "application/ld+json"` on
+    this file before the change returned 0 — despite rendering a visible
+    breadcrumb since it was written and a visible FAQ accordion below. There is
+    no baseline to move. Placed at the tail of the BaseLayout slot so the text
+    nodes around them land directly in <body>, outside any flex or grid
+    container, rather than inside a band's `.wrap` where a stray node collapses
+    a margin.
+
+    `new URL(route, Astro.site)` is safe: `route` arrives from getStaticPaths
+    already normalized with a leading AND trailing slash. Note BaseLayout.astro:49
+    derives `canonical` from Astro.url.pathname and declares no canonical prop,
+    so `page.seo.canonical` stays unread here — site-wide and pre-existing, out
+    of scope for this change.
+  */}
+  <script type="application/ld+json" is:inline set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      { "@type": "ListItem", "position": 1, "name": "Home", "item": new URL("/", Astro.site).href },
+      { "@type": "ListItem", "position": 2, "name": page.title, "item": new URL(route, Astro.site).href },
+    ],
+  })} />
+
+  {faqSchemaItems.length > 0 && <script type="application/ld+json" is:inline set:html={JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": faqSchemaItems.map((f) => ({
+      "@type": "Question",
+      "name": f.q,
+      "acceptedAnswer": { "@type": "Answer", "text": f.a },
+    })),
+  })} />}
 </BaseLayout>
