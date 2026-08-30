@@ -662,6 +662,57 @@ const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
     gap: 18px;
   }
 
+  /* Five across. A SCOPED COMPOUND rather than anything left to a page sheet,
+     for the reason ProcessStepsBlock.astro:734-750 records for its own
+     `.cols-5`: both pages that draw five spell it at (0,2,0)
+     (`.smilemakeover .issues-grid`, smile-makeover.css:363-366;
+     `.singletooth .benefits-grid`, single-tooth-dental-implants.css:563-566),
+     and this file's scoped `.why-grid` compiles to `.why-grid[data-astro-cid-…]`
+     — also (0,2,0). A tie decided by bundle order is not a thing a band's
+     column count should hang on. This compound is (0,3,0) and wins outright.
+
+     18px, matching BOTH sheets exactly — they agree on the desktop shape even
+     though they disagree about the collapse below. */
+  .why-grid.cols-5 {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 18px;
+  }
+
+  /* THE FIVE-TRACK LADDER, AND THE ONE PLACE THE TWO PAGES DISAGREE.
+     Stated here rather than folded into the 991px/780px pair below, because a
+     five-track row is already under 220px per card at 1240px and has to start
+     collapsing before three or four do.
+
+       smile-makeover.css:691,713,724   5 -> 3 @1100 -> 2 @780 -> 1 @480
+       single-tooth…css:674,687,…       5 -> 3 @1240 -> 2 @1100 -> 1 @780
+
+     Neither is wrong; they are two pages authored a year apart. This takes
+     smile-makeover's, which is EXACT for that route and never overflows on the
+     other — single-tooth draws five where its sheet drew three between 1100 and
+     1240, and two where its sheet drew one between 480 and 780. Recorded on
+     that block rather than papered over, and the honest close is a named ladder
+     field the way `collapse_at` closed the same species of disagreement for
+     service_cards. Not worth a second field for two rows today.
+
+     All three are (0,3,0), same as the desktop rule, so SOURCE ORDER decides
+     between them — narrowest last. Reordering these three blocks changes the
+     layout. */
+  @media (max-width: 1100px) {
+    .why-grid.cols-5 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  @media (max-width: 780px) {
+    .why-grid.cols-5 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 480px) {
+    .why-grid.cols-5 {
+      grid-template-columns: 1fr;
+    }
+  }
+
   .why-card {
     background: #fff;
     border: 1px solid var(--vs-line);
@@ -934,6 +985,9 @@ const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
     .why-grid.cols-4 {
       grid-template-columns: repeat(2, 1fr);
     }
+    /* cols-5 is deliberately NOT in the pair above: five tracks have to start
+       collapsing EARLIER than three or four do, and the two pages that draw
+       five disagree about where. Its ladder is stated on its own, below. */
     /* sinus-lift.css:899-900 — the two columns stack, panel under cards. */
     .invest-grid {
       grid-template-columns: 1fr;

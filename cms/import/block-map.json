@@ -6176,7 +6176,8 @@
        "section": "body"
       },
       "columns": {
-       "literal": "4"
+       "literal": "4",
+       "from_template": "Four, and NOT five, even though the Columns select now offers five and the component draws it. See known_gaps: measured in a browser, five across with `.why-card` chrome leaves a 131px content column and wraps the <h3> to five lines. The column count closes with the card family, not before it."
       },
       "numbered": {
        "literal": true
@@ -6228,7 +6229,29 @@
       "rollback path and it still renders `.benefits-grid`.",
       "",
       "NOTHING IS LOST. All five cards, their headings, their paragraphs and their numbering",
-      "come back. This gap is entirely about how many sit in a row and what they are called."
+      "come back. This gap is entirely about how many sit in a row and what they are called.",
+      "",
+      "MEASURED 2026-08-31, AND THE ANSWER CHANGED THE PLAN. The `5` choice and the",
+      "`.why-grid.cols-5` rule that this note asked for BOTH EXIST NOW — an editor can pick",
+      "five, and any future band that wants five gets it. This row deliberately stays on 4.",
+      "",
+      "Flipping it was tried in a browser at 1440px before committing to it, and the three",
+      "gaps turn out to be COUPLED: closing (1) alone makes (2) and (3) worse, which this",
+      "note did not anticipate.",
+      "",
+      "    cols-4 (today)   card 268px, content 192px, the <h3> wraps to  70px",
+      "    cols-5           card 207px, content 131px, the <h3> wraps to 117px",
+      "",
+      "`.why-card` carries 42px/38px padding and a 22px display <h3>. At five across that",
+      "leaves a 131px column, so a line like \"Severe staining that no longer responds to",
+      "whitening\" breaks into about five very narrow lines and the cards grow from 202px to",
+      "249px tall. The template gets away with five across because `.issues-card` is a 15px",
+      "LABEL, not a display heading — which is gap (3). So the column count cannot be closed",
+      "ahead of the card family; they close together or not at all.",
+      "",
+      "WHAT CLOSES IT NOW: gap (2)/(3) — the card-family rename — after which this row moves",
+      "to columns 5 in one edit. Until then four across with the fifth wrapping is the better",
+      "of two imperfect shapes, and it is the one the page already ships."
      ]
     },
     {
@@ -7344,7 +7367,8 @@
        "section": "body"
       },
       "columns": {
-       "literal": "4"
+       "literal": "4",
+       "from_template": "Four, and NOT five, even though the Columns select now offers five and the component draws it. See known_gaps: measured in a browser, five across with `.why-card` chrome leaves a 131px content column and wraps the <h3> to five lines. The column count closes with the card family, not before it."
       },
       "numbered": {
        "literal": true
@@ -7399,7 +7423,29 @@
       "today.",
       "",
       "The five sentences, their order, their numbering and the band's id, rail entry,",
-      "eyebrow, heading and intro paragraph are all carried."
+      "eyebrow, heading and intro paragraph are all carried.",
+      "",
+      "MEASURED 2026-08-31, AND THE ANSWER CHANGED THE PLAN. The `5` choice and the",
+      "`.why-grid.cols-5` rule that this note asked for BOTH EXIST NOW — an editor can pick",
+      "five, and any future band that wants five gets it. This row deliberately stays on 4.",
+      "",
+      "Flipping it was tried in a browser at 1440px before committing to it, and the three",
+      "gaps turn out to be COUPLED: closing (1) alone makes (2) and (3) worse, which this",
+      "note did not anticipate.",
+      "",
+      "    cols-4 (today)   card 268px, content 192px, the <h3> wraps to  70px",
+      "    cols-5           card 207px, content 131px, the <h3> wraps to 117px",
+      "",
+      "`.why-card` carries 42px/38px padding and a 22px display <h3>. At five across that",
+      "leaves a 131px column, so a line like \"Severe staining that no longer responds to",
+      "whitening\" breaks into about five very narrow lines and the cards grow from 202px to",
+      "249px tall. The template gets away with five across because `.issues-card` is a 15px",
+      "LABEL, not a display heading — which is gap (3). So the column count cannot be closed",
+      "ahead of the card family; they close together or not at all.",
+      "",
+      "WHAT CLOSES IT NOW: gap (2)/(3) — the card-family rename — after which this row moves",
+      "to columns 5 in one edit. Until then four across with the fifth wrapping is the better",
+      "of two imperfect shapes, and it is the one the page already ships."
      ]
     },
     {

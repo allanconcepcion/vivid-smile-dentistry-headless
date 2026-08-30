@@ -1809,10 +1809,26 @@ function register_field_groups(): void {
 										'label'         => 'Columns',
 										'name'          => 'columns',
 										'type'          => 'select',
+										/*
+										 * Phase 5 adds 5, and it closes the geometry half of TWO
+										 * recorded gaps at once: /cosmetic-dentistry/smile-makeover/
+										 * #issues and /implant-dentistry/single-tooth-dental-implants/
+										 * #benefits both draw five cards and both came back four across
+										 * with the fifth wrapping, because this select stopped at 4.
+										 * Same pair of changes that closed porcelain-veneers' five-step
+										 * process band: a choice here plus a `.why-grid.cols-5` rule in
+										 * CardGridBlock.astro.
+										 *
+										 * It fixes the COLUMN COUNT only. Both gaps also record a card
+										 * -family rename (.issues-card / .benefits-card become
+										 * .why-card) which no field can close and which has to wait
+										 * for the un-migrated else branch to be retired.
+										 */
 										'choices'       => [
 											'2' => '2',
 											'3' => '3',
 											'4' => '4',
+											'5' => '5',
 										],
 										'default_value' => '3',
 										'return_format' => 'value',
