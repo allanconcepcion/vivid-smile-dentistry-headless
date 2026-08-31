@@ -119,7 +119,27 @@ const HERO_SELECTION = `          hero {
             ratings
           }`;
 
-function pagesQuery(includeBlocks: boolean): string {
+/**
+ * The `closing` selection, indented to sit inside `pageFields { … }`.
+ *
+ * The two bands under everything else on the page — the consultation invite
+ * (VirtualConsult's eyebrow, headline and body) and the booking-strip sentence
+ * above the footer (FinalBand's one <p>). Like `hero`, they are chrome rather
+ * than sections: an editor can change their words but cannot reorder or delete
+ * them, which is why the CMS models the copy as a group and not as a `blocks`
+ * layout an editor could add twice.
+ *
+ * NOT gated on the blocks/hero probe, unlike HERO_SELECTION directly above —
+ * see cmsSupportsClosing below for why this field must carry its own.
+ */
+const CLOSING_SELECTION = `          closing {
+            consultEyebrow
+            consultHeadline
+            consultBody
+            note
+          }`;
+
+function pagesQuery(includeBlocks: boolean, includeClosing: boolean): string {
   return /* GraphQL */ `
   query Pages($first: Int!, $after: String) {
     pages(first: $first, after: $after, where: { status: PUBLISH }) {
@@ -142,6 +162,7 @@ function pagesQuery(includeBlocks: boolean): string {
         pageFields {
 ${includeBlocks ? BLOCKS_SELECTION : ""}
 ${includeBlocks ? HERO_SELECTION : ""}
+${includeClosing ? CLOSING_SELECTION : ""}
           tocLinks {
             label
             anchor
@@ -347,6 +368,91 @@ ${HERO_SELECTION}
 }
 
 /**
+ * The closing probe's answer, kept for the life of the process — same
+ * lifetime and same reasoning as blocksSupport above.
+ */
+let closingSupport: boolean | undefined;
+
+/**
+ * Ask the CMS whether its schema carries `closing` yet.
+ *
+ * A SECOND probe, not a third field in the blocks/hero one, and the difference
+ * is structural, not stylistic. That probe answers for `blocks` and `hero`
+ * together because they cannot arrive separately — one 'fields' array, one
+ * deployment. `closing` is the first field that BY DEFINITION arrives
+ * separately: this code lands first and the mu-plugin that adds the field is
+ * hand-deployed after it, so for a window of unknown length the schema has
+ * blocks and hero and no closing. Put `closing` into the shared probe and that
+ * window has exactly two endings, both wrong. Teach the benign regex the word
+ * "closing" and the shared probe answers false for all three — BLOCKS_SELECTION
+ * and HERO_SELECTION are dropped too, and every migrated page and every
+ * backfilled hero silently renders from template literals until the PHP lands;
+ * an edit made in wp-admin during the window is reverted by the next
+ * editor-triggered deploy, with nothing in the log an editor would ever see.
+ * Don't teach it, and the failure lands in the mismatch branch instead and
+ * every build throws until the PHP is deployed. A probe of its own is the
+ * identical pattern at the identical cost — one POST, ~0.4s, cached per
+ * process — and degrades only `closing`.
+ */
+async function cmsSupportsClosing(logger: LoaderContext["logger"]): Promise<boolean> {
+  if (closingSupport !== undefined) return closingSupport;
+
+  const query = /* GraphQL */ `
+  query PageClosingProbe {
+    pages(first: 1) {
+      nodes {
+        pageFields {
+${CLOSING_SELECTION}
+        }
+      }
+    }
+  }
+`;
+
+  try {
+    await wpQuery(query, {}, "closing-bands probe");
+    logger.info("Closing bands: available in WordPress.");
+    closingSupport = true;
+    return closingSupport;
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+
+    // The one benign answer: the mu-plugin on the host predates the field.
+    if (/Cannot query field ["']closing["']/i.test(detail)) {
+      logger.info(
+        "Closing bands: not in WordPress yet, so every page keeps its built-in " +
+          "closing copy. Deploy cms/mu-plugins/vs-content-model.php to add them.",
+      );
+      closingSupport = false;
+      return closingSupport;
+    }
+
+    // A wrong SUB-field (say consultHeadlin) is our mistake — fail loudly,
+    // exactly as the blocks probe does for a wrong hero sub-field.
+    if (/Cannot query field/i.test(detail)) {
+      throw new Error(
+        "WordPress has the closing fields, but this build asked for a sub-field " +
+          "it does not have — a mismatch between CLOSING_SELECTION in " +
+          "src/loaders/pages.ts and cms/mu-plugins/vs-content-model.php.\n\n" +
+          detail,
+      );
+    }
+
+    // Transport-class failure: the templates ship wired to this field, so once
+    // the CMS holds real closing copy a guessed "false" would silently revert
+    // it site-wide. Refuse to guess — same policy as the migrated-blocks branch
+    // of cmsSupportsBlocks. In practice unreachable unless the network died
+    // between the two probes: cmsSupportsBlocks has already thrown for
+    // transport failures by the time this runs.
+    throw new Error(
+      "Could not determine whether WordPress has the closing-band fields. " +
+        "Refusing to build every page from its built-in closing copy on a guess. " +
+        `Reason: ${detail}`,
+    );
+  }
+}
+
+/**
  * Rows are carried in the registry's own BlockNode shape — `__typename` plus
  * whatever else the selection set asked for.
  *
@@ -419,6 +525,19 @@ type PageNode = {
       sub: string | null;
       ctas: Array<{ label: string | null; href: string | null }> | null;
       ratings: boolean | null;
+    } | null;
+    /**
+     * Optional for the same reason hero is — absent when the deployed
+     * mu-plugin predates the field — but gated on its OWN probe: unlike hero,
+     * closing can arrive separately from blocks (its PHP ships after the
+     * Astro side), and riding the shared probe would switch blocks and hero
+     * off site-wide for the length of that window. See cmsSupportsClosing.
+     */
+    closing?: {
+      consultEyebrow: string | null;
+      consultHeadline: string | null;
+      consultBody: string | null;
+      note: string | null;
     } | null;
     tocLinks: Array<{ label: string | null; anchor: string | null }> | null;
     processSteps: Array<{ tag: string | null; title: string | null; body: string | null }> | null;
@@ -507,9 +626,12 @@ export function pagesLoader(): Loader {
       logger.info("Fetching pages from WordPress");
 
       const includeBlocks = await cmsSupportsBlocks(logger);
+      // The closing group lives in the same mu-plugin as blocks and hero:
+      // without them its field cannot exist, so don't spend a POST asking.
+      const includeClosing = includeBlocks && (await cmsSupportsClosing(logger));
 
       const nodes = await wpQueryAll<PageNode>(
-        pagesQuery(includeBlocks),
+        pagesQuery(includeBlocks, includeClosing),
         (data) => data.pages,
         "pages",
       );
@@ -651,6 +773,17 @@ export function pagesLoader(): Loader {
                   // page down.
                   .slice(0, 2)
                   .map((c) => ({ label: c.label!.trim(), href: c.href!.trim() })),
+              },
+              // The two closing bands, normalized to "" exactly as `hero`
+              // above: blank means "the template keeps its own words", and
+              // nothing here can throw. The consult gate — the headline is the
+              // switch for the trio — is NOT applied here; it lives once, in
+              // src/lib/page-content.ts, next to the hero gate it mirrors.
+              closing: {
+                consultEyebrow: f?.closing?.consultEyebrow?.trim() ?? "",
+                consultHeadline: f?.closing?.consultHeadline?.trim() ?? "",
+                consultBody: f?.closing?.consultBody?.trim() ?? "",
+                note: f?.closing?.note?.trim() ?? "",
               },
               // Passed through exactly as WordPress sent it, unlike everything
               // below. The fields of a block belong to its layout, and a loader

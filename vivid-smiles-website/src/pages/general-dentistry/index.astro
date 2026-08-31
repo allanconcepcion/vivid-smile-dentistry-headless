@@ -70,7 +70,7 @@ import PageBlocks from '../../blocks/PageBlocks.astro';
 // tocLinks, faqs are edited in WordPress (Pages -> General Dentistry in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { hero, blocks, hasBlocks, tocLinks, faqs, section, image, seo } =
+const { hero, closing, blocks, hasBlocks, tocLinks, faqs, section, image, seo } =
   await getPageContent(Astro.url.pathname);
 
 /**
@@ -651,20 +651,20 @@ for (const block of blocks) {
         </div>
       </section>
 
-      <VirtualConsult id="consult" eyebrow="Free general dentistry consultation">
-        <Fragment slot="headline">Free general dentistry <em>consultation.</em></Fragment>
-        <Fragment slot="body">
+      <VirtualConsult id="consult" eyebrow={closing.consultEyebrow || "Free general dentistry consultation"}>
+        <Fragment slot="headline">{closing.consultHeadline ? <Fragment set:html={closing.consultHeadline} /> : <>Free general dentistry <em>consultation.</em></>}</Fragment>
+        <Fragment slot="body">{closing.consultBody ? closing.consultBody : <>
           New to the practice or returning after years away? Send a few photos and we'll record a
           custom video response with findings, next steps, and a recommended visit cadence. Photos
           in, video out — no commitments.
-        </Fragment>
+        </>}</Fragment>
       </VirtualConsult>
 
       <FinalBand>
-        <p>
+        <p>{closing.note ? closing.note : <>
           Vivid Smiles Dentistry in Parker offers comprehensive general care from a dual-doctor team
           backed by advanced diagnostic technology and 300+ five-star Google reviews.
-        </p>
+        </>}</p>
       </FinalBand>
     </main>
 

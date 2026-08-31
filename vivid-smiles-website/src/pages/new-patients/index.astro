@@ -16,7 +16,7 @@ import PageBlocks from '../../blocks/PageBlocks.astro';
 // faqs is edited in WordPress (Pages -> New Patients in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { hero, blocks, hasBlocks, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+const { hero, closing, blocks, hasBlocks, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
 
 /**
  * THE MIGRATION SWITCH (docs/PAGE-BLOCKS.md 2.3), documented here and nowhere
@@ -340,12 +340,12 @@ const description =
     </section>
 
     {/* ---------- CLOSING CTA — uses <VirtualConsult>, same as service pages ---------- */}
-    <VirtualConsult id="consult" eyebrow="Ready when you are">
-      <Fragment slot="headline">Let's get you <em>scheduled.</em></Fragment>
-      <Fragment slot="body">
+    <VirtualConsult id="consult" eyebrow={closing.consultEyebrow || "Ready when you are"}>
+      <Fragment slot="headline">{closing.consultHeadline ? <Fragment set:html={closing.consultHeadline} /> : <>Let's get you <em>scheduled.</em></>}</Fragment>
+      <Fragment slot="body">{closing.consultBody ? closing.consultBody : <>
         Book online, give us a call, or send a quick virtual consult with a photo or
         two — whatever's easiest. We'll take it from there.
-      </Fragment>
+      </>}</Fragment>
     </VirtualConsult>
 
     </main>

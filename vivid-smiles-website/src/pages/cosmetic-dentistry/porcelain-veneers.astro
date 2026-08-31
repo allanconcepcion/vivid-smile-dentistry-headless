@@ -57,7 +57,7 @@ import '../../styles/pages/porcelain-veneers.css';
 // Table of contents, process steps and FAQs are edited in WordPress
 // (Pages -> Porcelain Veneers). The shapes are identical to the arrays that
 // used to live here, so the markup below is unchanged.
-const { hero, blocks, hasBlocks, tocLinks, processSteps, faqs, section, image, seo } =
+const { hero, closing, blocks, hasBlocks, tocLinks, processSteps, faqs, section, image, seo } =
   await getPageContent(Astro.url.pathname);
 
 
@@ -638,18 +638,18 @@ for (const block of blocks) {
          Dr. Richardson their photo + questions for a personalized video reply.
          Service-specific framing via slot. */
       }
-      <VirtualConsult id="consult" eyebrow="Free veneers consultation">
-        <Fragment slot="headline">Free veneers <em>consultation.</em></Fragment>
-        <Fragment slot="body">
+      <VirtualConsult id="consult" eyebrow={closing.consultEyebrow || "Free veneers consultation"}>
+        <Fragment slot="headline">{closing.consultHeadline ? <Fragment set:html={closing.consultHeadline} /> : <>Free veneers <em>consultation.</em></>}</Fragment>
+        <Fragment slot="body">{closing.consultBody ? closing.consultBody : <>
           Curious about your veneer options? Skip the office visit — Dr. Richardson personally
           records a custom video reviewing your smile, the changes you're imagining, and what's
           possible with no-prep or minimal-prep porcelain veneers, all from photos you submit below.
-        </Fragment>
+        </>}</Fragment>
       </VirtualConsult>
 
       {/* ---------- CLOSING BAND ---------- */}
       <FinalBand>
-        <p>Patients welcome locally and from out of state.</p>
+        <p>{closing.note ? closing.note : <>Patients welcome locally and from out of state.</>}</p>
       </FinalBand>
     </main>
 

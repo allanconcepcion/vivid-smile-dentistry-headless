@@ -59,7 +59,7 @@ import PageBlocks from '../../blocks/PageBlocks.astro';
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Bone Grafting in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { blocks, hasBlocks, tocLinks, processSteps, faqs, hero, section, image, seo } =
+const { blocks, hasBlocks, tocLinks, processSteps, faqs, hero, closing, section, image, seo } =
   await getPageContent(Astro.url.pathname);
 
 
@@ -725,9 +725,9 @@ for (const block of blocks) {
          template order and PageBlocks draws at the `why` position, so the
          closing pair still comes last. */
       }
-      <VirtualConsult id="consult" eyebrow="Free bone grafting consultation">
-        <Fragment slot="headline">Free bone grafting <em>consultation.</em></Fragment>
-        <Fragment slot="body">
+      <VirtualConsult id="consult" eyebrow={closing.consultEyebrow || "Free bone grafting consultation"}>
+        <Fragment slot="headline">{closing.consultHeadline ? <Fragment set:html={closing.consultHeadline} /> : <>Free bone grafting <em>consultation.</em></>}</Fragment>
+        <Fragment slot="body">{closing.consultBody ? closing.consultBody : <>
           Vivid Smiles Dentistry serves patients across Parker, Douglas County, and the surrounding
           communities. Schedule a free consultation <a
             href={bookNowHref}
@@ -735,16 +735,16 @@ for (const block of blocks) {
             rel="noopener noreferrer">online</a
           > or call
           {' '}{phoneLabel} to find out whether bone grafting is the right next step for you.
-        </Fragment>
+        </>}</Fragment>
       </VirtualConsult>
 
       {/* ---------- CLOSING BAND ---------- */}
       <FinalBand>
-        <p>
+        <p>{closing.note ? closing.note : <>
           Dr. Bryce Richardson combines CBCT-guided planning with 600-plus hours of advanced
           surgical training to deliver bone grafting outcomes built to support implants for the long
           term.
-        </p>
+        </>}</p>
       </FinalBand>
     </main>
 

@@ -67,7 +67,7 @@ import PageBlocks from '../../blocks/PageBlocks.astro';
 // tocLinks, faqs are edited in WordPress (Pages -> Teeth Whitening in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { hero, blocks, hasBlocks, tocLinks, faqs, section, image, seo } =
+const { hero, closing, blocks, hasBlocks, tocLinks, faqs, section, image, seo } =
   await getPageContent(Astro.url.pathname);
 
 const galleryTiles = getSmiles();
@@ -798,18 +798,18 @@ for (const block of blocks) {
          Body slot hosts the verbatim italicized first closing paragraph
          from the source (the consultation pitch). */
       }
-      <VirtualConsult id="consult" eyebrow="Free whitening consultation">
-        <Fragment slot="headline">Free whitening <em>consultation.</em></Fragment>
-        <Fragment slot="body">
+      <VirtualConsult id="consult" eyebrow={closing.consultEyebrow || "Free whitening consultation"}>
+        <Fragment slot="headline">{closing.consultHeadline ? <Fragment set:html={closing.consultHeadline} /> : <>Free whitening <em>consultation.</em></>}</Fragment>
+        <Fragment slot="body">{closing.consultBody ? closing.consultBody : <>
           Getting a noticeably whiter smile in Parker starts with a consultation built around your
           specific staining type and shade goals. KOR's treatment levels cover nearly every case,
           and digital smile design gives you a preview of results before treatment begins.
-        </Fragment>
+        </>}</Fragment>
       </VirtualConsult>
 
       {/* ---------- CLOSING BAND ---------- */}
       <FinalBand>
-        <p>Schedule your consultation and take the first step toward lasting whitening results.</p>
+        <p>{closing.note ? closing.note : <>Schedule your consultation and take the first step toward lasting whitening results.</>}</p>
       </FinalBand>
     </main>
 

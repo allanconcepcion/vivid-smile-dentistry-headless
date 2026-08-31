@@ -51,7 +51,7 @@ import { getPageContent, type TocLink } from '../../lib/page-content';
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Sinus Lift Procedure in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { blocks, hasBlocks, tocLinks, processSteps, faqs, hero, section, image, seo } =
+const { blocks, hasBlocks, tocLinks, processSteps, faqs, hero, closing, section, image, seo } =
   await getPageContent(Astro.url.pathname);
 
 
@@ -707,25 +707,25 @@ for (const block of blocks) {
          page — including the two the `what` block and the `investment` band
          emit — so it must survive the switch. */
       }
-      <VirtualConsult id="consult" eyebrow="Free sinus lift consultation">
-        <Fragment slot="headline">Free sinus lift <em>consultation.</em></Fragment>
-        <Fragment slot="body">
+      <VirtualConsult id="consult" eyebrow={closing.consultEyebrow || "Free sinus lift consultation"}>
+        <Fragment slot="headline">{closing.consultHeadline ? <Fragment set:html={closing.consultHeadline} /> : <>Free sinus lift <em>consultation.</em></>}</Fragment>
+        <Fragment slot="body">{closing.consultBody ? closing.consultBody : <>
           Curious whether a sinus lift is the right next step toward upper-jaw implants? Skip the
           office visit — Dr. Richardson personally records a custom video reviewing your case, your
           candidacy, and what's possible at Vivid Smiles Dentistry, all from photos you submit
           below.
-        </Fragment>
+        </>}</Fragment>
       </VirtualConsult>
 
       {/* ---------- CLOSING BAND ---------- */}
       <FinalBand>
-        <p>
+        <p>{closing.note ? closing.note : <>
           Vivid Smiles Dentistry in Parker, CO, pairs Dr. Richardson's surgical training with CBCT
           imaging and robotic implant placement. Call {phoneLabel} or
           <a href={bookNowHref} target="_blank" rel="noopener noreferrer">
             book a free consultation</a
           > to start with a 3D scan and a personalized plan.
-        </p>
+        </>}</p>
       </FinalBand>
     </main>
 

@@ -52,7 +52,7 @@ import PageBlocks from '../../blocks/PageBlocks.astro';
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Single Tooth Dental Implants in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { blocks, hasBlocks, tocLinks, processSteps, faqs, hero, section, image, seo } =
+const { blocks, hasBlocks, tocLinks, processSteps, faqs, hero, closing, section, image, seo } =
   await getPageContent(Astro.url.pathname);
 
 
@@ -711,21 +711,21 @@ for (const block of blocks) {
          Anchor #consult is the destination for every mid-page CTA on this
          page. Service-specific framing via slot. */
       }
-      <VirtualConsult id="consult" eyebrow="Free single tooth implant consultation">
-        <Fragment slot="headline">Free single tooth implant <em>consultation.</em></Fragment>
-        <Fragment slot="body">
+      <VirtualConsult id="consult" eyebrow={closing.consultEyebrow || "Free single tooth implant consultation"}>
+        <Fragment slot="headline">{closing.consultHeadline ? <Fragment set:html={closing.consultHeadline} /> : <>Free single tooth implant <em>consultation.</em></>}</Fragment>
+        <Fragment slot="body">{closing.consultBody ? closing.consultBody : <>
           Vivid Smiles Dentistry in Parker, CO, manages the complete single-tooth implant process
           under one roof, without specialist referrals. Call {phoneLabel} or book online to schedule your
           consultation with Dr. Richardson.
-        </Fragment>
+        </>}</Fragment>
       </VirtualConsult>
 
       {/* ---------- CLOSING BAND ---------- */}
       <FinalBand>
-        <p>
+        <p>{closing.note ? closing.note : <>
           Dr. Bryce Richardson pairs robotic precision with 600-plus hours of advanced surgical
           training to deliver single tooth implant outcomes built to last decades.
-        </p>
+        </>}</p>
       </FinalBand>
     </main>
 

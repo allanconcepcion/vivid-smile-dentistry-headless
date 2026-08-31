@@ -12,7 +12,7 @@ import '../../styles/pages/smile-gallery.css';
 // on this page twice.
 import { getPageContent } from '../../lib/page-content';
 // Section copy is edited in WordPress (Pages -> this page -> Section copy).
-const { hero, section, image, seo } = await getPageContent(Astro.url.pathname);
+const { hero, closing, section, image, seo } = await getPageContent(Astro.url.pathname);
 
 
 /*
@@ -158,13 +158,13 @@ const lightboxSrcs = await Promise.all(
       </section>
 
       {/* ---------- VIRTUAL CONSULT — closing conversion ---------- */}
-      <VirtualConsult id="consult" eyebrow="Begin Your Case" background="cream">
-        <Fragment slot="headline">Your smile <em>could be next.</em></Fragment>
-        <Fragment slot="body">
+      <VirtualConsult id="consult" eyebrow={closing.consultEyebrow || "Begin Your Case"} background="cream">
+        <Fragment slot="headline">{closing.consultHeadline ? <Fragment set:html={closing.consultHeadline} /> : <>Your smile <em>could be next.</em></>}</Fragment>
+        <Fragment slot="body">{closing.consultBody ? closing.consultBody : <>
           Every smile in the gallery above started with one conversation. Skip the office visit and
           Dr. Richardson personally records a custom video reviewing your smile, the changes you're
           imagining, and what's possible, all from photos you submit below.
-        </Fragment>
+        </>}</Fragment>
       </VirtualConsult>
     </main>
 

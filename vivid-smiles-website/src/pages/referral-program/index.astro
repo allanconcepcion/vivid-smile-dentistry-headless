@@ -17,7 +17,7 @@ import PageBlocks from '../../blocks/PageBlocks.astro';
 // faqs is edited in WordPress (Pages -> Referral Program).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { hero, blocks, hasBlocks, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+const { hero, closing, blocks, hasBlocks, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
 
 /**
  * THE MIGRATION SWITCH (docs/PAGE-BLOCKS.md 2.3), documented here and nowhere
@@ -276,11 +276,11 @@ const description =
 
     {/* ---------- FINAL BAND ---------- */}
     <FinalBand eyebrow="Ready to refer?" background="cream-warm">
-      <p>
+      <p>{closing.note ? closing.note : <>
         Sharing a smile has never been easier. If you'd like to refer a friend or
         have a question about the program, give us a call at
         <a class="vs-link" href={phoneHref}>{phoneLabel}</a> — we'll take it from there.
-      </p>
+      </>}</p>
     </FinalBand>
 
     </main>

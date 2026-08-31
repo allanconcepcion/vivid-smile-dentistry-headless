@@ -89,7 +89,7 @@ import PageBlocks from '../../blocks/PageBlocks.astro';
 // tocLinks is edited in WordPress (Pages -> Emergency Dental Care in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { hero, blocks, hasBlocks, tocLinks, section, image, seo } =
+const { hero, closing, blocks, hasBlocks, tocLinks, section, image, seo } =
   await getPageContent(Astro.url.pathname);
 
 /**
@@ -659,10 +659,10 @@ const blockFaqItems: Array<{ q: string; a: string }> = hasBlocks
     </section>
 
     <FinalBand>
-      <p>
+      <p>{closing.note ? closing.note : <>
         Vivid Smiles Dentistry in Parker offers same-day emergency dental care backed by CBCT 3D imaging, in-house
         milling, and a dual-doctor team with 600+ hours of advanced surgical training.
-      </p>
+      </>}</p>
     </FinalBand>
 
     </main>

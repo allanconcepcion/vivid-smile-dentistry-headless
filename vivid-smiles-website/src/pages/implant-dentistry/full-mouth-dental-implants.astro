@@ -66,7 +66,7 @@ import PageBlocks from '../../blocks/PageBlocks.astro';
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Full Mouth Dental Implants in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { blocks, hasBlocks, tocLinks, processSteps, faqs, hero, section, image, seo } =
+const { blocks, hasBlocks, tocLinks, processSteps, faqs, hero, closing, section, image, seo } =
   await getPageContent(Astro.url.pathname);
 
 
@@ -861,24 +861,24 @@ for (const block of blocks) {
          Anchor #consult is the destination for every mid-page CTA on this
          page. */
       }
-      <VirtualConsult id="consult" eyebrow="Free full mouth implant consultation">
-        <Fragment slot="headline">Free full mouth implant <em>consultation.</em></Fragment>
-        <Fragment slot="body">
+      <VirtualConsult id="consult" eyebrow={closing.consultEyebrow || "Free full mouth implant consultation"}>
+        <Fragment slot="headline">{closing.consultHeadline ? <Fragment set:html={closing.consultHeadline} /> : <>Free full mouth implant <em>consultation.</em></>}</Fragment>
+        <Fragment slot="body">{closing.consultBody ? closing.consultBody : <>
           Vivid Smiles Dentistry in Parker, CO, brings Dr. Richardson's 600+ hours of surgical
           training, Implant Pathway credentials, and robotic technology to deliver outcomes grounded
           in precision planning. Schedule your free consultation below or call {phoneLabel} to learn whether
           full-mouth implants are the right path for you.
-        </Fragment>
+        </>}</Fragment>
       </VirtualConsult>
 
       {/* ---------- CLOSING BAND ---------- */}
       <FinalBand>
-        <p>
+        <p>{closing.note ? closing.note : <>
           Dr. Richardson's staff training at Implant Pathway, robotic placement technology, and
           in-house lab capabilities give Parker-area clients access to our
           <a href="/services/"> full range of dental services</a> at a level found only at specialized
           surgical centers.
-        </p>
+        </>}</p>
       </FinalBand>
     </main>
   </div>

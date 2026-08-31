@@ -30,7 +30,7 @@ import PageBlocks from '../../blocks/PageBlocks.astro';
 // faqs is edited in WordPress (Pages -> Our Office in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { hero, blocks, hasBlocks, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+const { hero, closing, blocks, hasBlocks, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
 
 /**
  * THE MIGRATION SWITCH (docs/PAGE-BLOCKS.md 2.3), documented HERE and nowhere
@@ -403,12 +403,12 @@ const faqEntities: { q: string; a: string }[] = hasBlocks
     </section>}
 
     {/* ---------- CLOSING — VirtualConsult (cream default) ---------- */}
-    <VirtualConsult id="consult" eyebrow="Plan your first visit">
-      <Fragment slot="headline">Plan your <em>first visit.</em></Fragment>
-      <Fragment slot="body">
+    <VirtualConsult id="consult" eyebrow={closing.consultEyebrow || "Plan your first visit"}>
+      <Fragment slot="headline">{closing.consultHeadline ? <Fragment set:html={closing.consultHeadline} /> : <>Plan your <em>first visit.</em></>}</Fragment>
+      <Fragment slot="body">{closing.consultBody ? closing.consultBody : <>
         Book online, give us a call, or send a quick virtual consult with a photo
         or two — whatever's easiest. Our team will take it from there.
-      </Fragment>
+      </>}</Fragment>
     </VirtualConsult>
 
     </main>

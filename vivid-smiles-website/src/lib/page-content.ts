@@ -97,6 +97,27 @@ export type Hero = {
 };
 
 /**
+ * The closing bands an editor typed, or the absence of them.
+ *
+ * THE GATE IS APPLIED HERE, NOT EXPOSED — same shape as Hero. The consult trio
+ * activates only when consultHeadline is non-empty (a page can never get a new
+ * invite paragraph without a new invite headline, and that is the right way
+ * round — the headline is the point of the band). `note` stands alone: the
+ * booking-strip sentence has no companion fields to drag along. Blank = the
+ * template keeps its own words, byte-identical.
+ */
+export type Closing = {
+  /** Plain text. "" keeps the template's own eyebrow prop. */
+  consultEyebrow: string;
+  /** HTML — may carry <em>. Rendered with set:html, never interpolated. */
+  consultHeadline: string;
+  /** Plain text, escaped on output. */
+  consultBody: string;
+  /** Plain text, escaped on output. "" keeps the template's own note. */
+  note: string;
+};
+
+/**
  * One row of the `blocks` flexible-content field.
  *
  * Deliberately open. `__typename` is the layout name the renderer switches on
@@ -175,6 +196,13 @@ export type PageContent = {
    * failure and not like a deliberately blanked headline. See `Hero`.
    */
   hero: Hero;
+  /**
+   * The closing bands — the consultation invite and the booking-strip note —
+   * as overrides of the ones in the template. Same posture as `hero`: empty
+   * must look exactly like the site does now, not like a failure and not like
+   * a deliberately blanked band. See `Closing`.
+   */
+  closing: Closing;
   section: (id: string) => Section;
   /**
    * A page image by slot, for <Image src={…} width={…} height={…} />.
@@ -311,6 +339,15 @@ export async function getPageContent(route: string): Promise<PageContent> {
   const h = entry.data.hero;
   const heroOn = h.h1 !== ""; // "" is what the loader stores for blank
 
+  // THE CLOSING GATE, the hero gate's twin, applied once, here. The consult
+  // trio — eyebrow, headline, body — activates only when an editor has typed
+  // the HEADLINE: the eyebrow and paragraph have blank readings that are
+  // indistinguishable from never having been touched, so a page can never get
+  // a new invite paragraph without a new invite headline. `note` is not part
+  // of the trio and stands alone.
+  const c = entry.data.closing;
+  const consultOn = c.consultHeadline !== ""; // "" is what the loader stores for blank
+
   return {
     title: entry.data.title,
     seo: entry.data.seo,
@@ -341,6 +378,13 @@ export async function getPageContent(route: string): Promise<PageContent> {
       // is not a missing asset — the template still has its own, and "nothing"
       // is a thing a hero can render.
       cta: (i: number) => (heroOn ? (h.ctas[i] ?? null) : null),
+    },
+    closing: {
+      consultEyebrow: consultOn ? c.consultEyebrow : "",
+      consultHeadline: consultOn ? c.consultHeadline : "",
+      consultBody: consultOn ? c.consultBody : "",
+      // Ungated: a typed booking-strip sentence is simply a typed sentence.
+      note: c.note,
     },
     section: (sectionId: string) =>
       sections.find((s) => s.section_id === sectionId) ?? EMPTY_SECTION,

@@ -21,7 +21,7 @@ const joinHref = "https://app.nexhealth.com/appt/vivid-smiles?gei=SNOCZ9DYI4iz0P
 
 import { getPageContent } from '../../lib/page-content';
 // Section copy is edited in WordPress (Pages -> this page -> Section copy).
-const { hero, section, image, seo } = await getPageContent(Astro.url.pathname);
+const { hero, closing, section, image, seo } = await getPageContent(Astro.url.pathname);
 
 
 
@@ -340,7 +340,7 @@ const faqs = [
 
     {/* ---------- FINAL BAND ---------- */}
     <FinalBand eyebrow="Ready when you are" background="cream-warm">
-      <p>Join today and use the benefits this afternoon. No paperwork, no waiting period, no surprises.</p>
+      <p>{closing.note ? closing.note : <>Join today and use the benefits this afternoon. No paperwork, no waiting period, no surprises.</>}</p>
     </FinalBand>
 
     {/* ---------- JSON-LD ---------- */}

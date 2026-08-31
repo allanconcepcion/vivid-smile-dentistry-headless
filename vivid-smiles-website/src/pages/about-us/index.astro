@@ -34,7 +34,7 @@ import '../../styles/pages/about-us.css';
 // Team headshots (10 — hygienists, assistants, coordination, comfort officers).
 import { getPageContent, schemaImageUrl } from '../../lib/page-content';
 // Section copy is edited in WordPress (Pages -> this page -> Section copy).
-const { hero, section, image, seo } = await getPageContent(Astro.url.pathname);
+const { hero, closing, section, image, seo } = await getPageContent(Astro.url.pathname);
 
 // Person schema must reference this site's optimized copy, not the
 // WordPress media URL — the CMS host is noindexed and is not where
@@ -624,12 +624,12 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
     </main>
 
     {/* ---------- VIRTUAL CONSULT (cream) ---------- */}
-    <VirtualConsult id="consult" eyebrow="Free virtual consultation">
-      <Fragment slot="headline">Begin your <em>Vivid Smile.</em></Fragment>
-      <Fragment slot="body">
+    <VirtualConsult id="consult" eyebrow={closing.consultEyebrow || "Free virtual consultation"}>
+      <Fragment slot="headline">{closing.consultHeadline ? <Fragment set:html={closing.consultHeadline} /> : <>Begin your <em>Vivid Smile.</em></>}</Fragment>
+      <Fragment slot="body">{closing.consultBody ? closing.consultBody : <>
         Whether it's a smile makeover, a second opinion, or just a question — Dr. Richardson
         personally records a custom video reply for every consultation request.
-      </Fragment>
+      </>}</Fragment>
     </VirtualConsult>
 
     {/* ---------- JSON-LD STRUCTURED DATA ---------- */}

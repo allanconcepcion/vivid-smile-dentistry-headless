@@ -1112,10 +1112,11 @@ function register_field_groups(): void {
 					'name'    => '',
 					'type'    => 'message',
 					'message' => "<strong>Everything visitors read on this page is edited from these tabs.</strong><br>\n"
-						. "Start with <em>Hero</em> (the big headline area at the top) and <em>Page sections</em> "
-						. "(the rest of the page, one row per section). If <em>Page sections</em> has rows, that "
-						. "is this page — edit the words there. <em>Images</em>, <em>Cards &amp; lists</em> and "
-						. "<em>FAQ</em> work on every page.\n"
+						. "Start with <em>Hero</em> (the big headline area at the top), <em>Page sections</em> "
+						. "(the rest of the page, one row per section) and <em>Bottom of page</em> (the "
+						. "consultation invite and the booking strip above the footer). If <em>Page sections</em> "
+						. "has rows, that is this page — edit the words there. <em>Images</em>, "
+						. "<em>Cards &amp; lists</em> and <em>FAQ</em> work on every page.\n"
 						. "<em>On this page</em>, <em>Process</em> and <em>Section copy</em> only still matter on "
 						. "the few pages where <em>Page sections</em> is empty — each of those tabs explains this "
 						. "at the top.\n"
@@ -5002,6 +5003,80 @@ function register_field_groups(): void {
 									],
 								]
 							),
+						],
+					],
+				],
+				[
+					'key'   => 'field_vs_closing_tab',
+					'label' => 'Bottom of page',
+					'type'  => 'tab',
+				],
+				[
+					'key'       => 'field_vs_closing_intro',
+					'label'     => '',
+					'name'      => '',
+					'type'      => 'message',
+					'message'   => "<strong>These boxes are live.</strong> They hold the two sections at the very "
+						. "bottom of the page — the consultation invite (the headline and paragraph beside the "
+						. "photo-upload form) and the booking strip just above the footer (the sentence beside "
+						. "the Book Online and Call buttons).\n"
+						. "The Invite headline is the switch: while it is empty, the site keeps the page's "
+						. "built-in invite wording and ignores the other two invite boxes. The Booking strip "
+						. "sentence works on its own.\n"
+						. "Not every page has both sections — a box for a section this page does not have is "
+						. "simply ignored. The four numbered steps, the form and the buttons never change from "
+						. "here. A few pages (the home page and the blog, for instance) still have hand-built "
+						. "closing sections; if an edit here does not appear after the build, tell us and we "
+						. "will connect it.",
+					'esc_html'  => 0,
+					'new_lines' => 'wpautop',
+				],
+				[
+					'key'        => 'field_vs_page_closing',
+					'label'      => 'Bottom of page',
+					'name'       => 'closing',
+					'type'       => 'group',
+					'layout'     => 'block',
+					'sub_fields' => [
+						[
+							'key'          => 'field_vs_page_closing_consult_eyebrow',
+							'label'        => 'Invite — small line',
+							'name'         => 'consult_eyebrow',
+							'type'         => 'text',
+							'instructions' => 'The small line above the invite headline, like “Free veneers consultation”. '
+								. 'Leave blank to keep the page’s current line.',
+						],
+						[
+							'key'          => 'field_vs_page_closing_consult_headline',
+							'label'        => 'Invite — headline',
+							'name'         => 'consult_headline',
+							'type'         => 'textarea',
+							'rows'         => 2,
+							'instructions' => 'The big line of the consultation invite. This box is the switch: while it is '
+								. 'empty, the site keeps this page’s built-in invite wording and ignores the small line '
+								. 'and the paragraph. To give a few words the italic accent, type &lt;em&gt; before them '
+								. 'and &lt;/em&gt; after, like this: Free veneers &lt;em&gt;consultation.&lt;/em&gt; '
+								. 'Everything else is plain text.',
+						],
+						[
+							'key'          => 'field_vs_page_closing_consult_body',
+							'label'        => 'Invite — paragraph',
+							'name'         => 'consult_body',
+							'type'         => 'textarea',
+							'rows'         => 3,
+							'instructions' => 'Plain text. The short paragraph under the invite headline. Leave blank to keep '
+								. 'the page’s current paragraph. Best written without the phone number — a number typed '
+								. 'here goes out of date, and the site’s buttons always carry the current one.',
+						],
+						[
+							'key'          => 'field_vs_page_closing_note',
+							'label'        => 'Booking strip — sentence',
+							'name'         => 'note',
+							'type'         => 'textarea',
+							'rows'         => 2,
+							'instructions' => 'The one sentence beside the Book Online and Call buttons, in the strip just '
+								. 'above the footer. Plain text. Works on its own — the invite boxes above do not affect '
+								. 'it. Leave blank to keep the page’s current sentence.',
 						],
 					],
 				],

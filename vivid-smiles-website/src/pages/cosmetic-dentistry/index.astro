@@ -38,7 +38,7 @@ import PageBlocks from '../../blocks/PageBlocks.astro';
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Cosmetic Dentistry in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { hero, blocks, hasBlocks, tocLinks, processSteps, faqs, section, image, seo } =
+const { hero, closing, blocks, hasBlocks, tocLinks, processSteps, faqs, section, image, seo } =
   await getPageContent(Astro.url.pathname);
 
 
@@ -766,20 +766,20 @@ for (const block of blocks) {
         </div>
       </section>
 
-      <VirtualConsult id="consult" eyebrow="Free cosmetic dentistry consultation">
-        <Fragment slot="headline">Free cosmetic dentistry <em>consultation.</em></Fragment>
-        <Fragment slot="body">
+      <VirtualConsult id="consult" eyebrow={closing.consultEyebrow || "Free cosmetic dentistry consultation"}>
+        <Fragment slot="headline">{closing.consultHeadline ? <Fragment set:html={closing.consultHeadline} /> : <>Free cosmetic dentistry <em>consultation.</em></>}</Fragment>
+        <Fragment slot="body">{closing.consultBody ? closing.consultBody : <>
           Taking the first step toward your smile has never been easier. Nothing to schedule — Dr.
           Richardson personally records a custom video response for every consultation request.
           Photos in, video out.
-        </Fragment>
+        </>}</Fragment>
       </VirtualConsult>
 
       <FinalBand>
-        <p>
+        <p>{closing.note ? closing.note : <>
           Vivid Smiles is located in Parker, CO and has earned 300+ five-star Google reviews from
           patients who wanted natural, lasting cosmetic results and got them.
-        </p>
+        </>}</p>
       </FinalBand>
     </main>
 

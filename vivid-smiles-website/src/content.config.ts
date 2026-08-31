@@ -302,6 +302,23 @@ const pages = defineCollection({
         ctas: z.array(z.object({ label: z.string(), href: z.string() })),
       })
       .default({ eyebrow: "", h1: "", sub: "", ratings: false, ctas: [] }),
+    // The two closing bands — the consultation invite beside the form and the
+    // booking-strip note above the footer. As with `hero`, this declaration is
+    // the wiring, not documentation: z.object STRIPS undeclared keys silently.
+    // Empty strings mean "no override", exactly as in `hero`; `.default()`
+    // covers a CMS whose mu-plugin predates the field. Unlike `hero`, that
+    // default has its own deployment window — the closing PHP ships AFTER this
+    // code and is gated on its own probe (see cmsSupportsClosing in
+    // src/loaders/pages.ts), so this default is the live path on every build
+    // until it lands.
+    closing: z
+      .object({
+        consultEyebrow: z.string(),
+        consultHeadline: z.string(),
+        consultBody: z.string(),
+        note: z.string(),
+      })
+      .default({ consultEyebrow: "", consultHeadline: "", consultBody: "", note: "" }),
     // The ordered section list. Empty on every page until one is migrated,
     // and empty again the moment an editor clears the field.
     blocks: z.array(PAGE_BLOCK).default([]),

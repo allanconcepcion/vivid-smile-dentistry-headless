@@ -88,7 +88,7 @@ import { getPageContent, type TocLink } from '../../lib/page-content';
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Laser Gum Contouring in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { hero, blocks, hasBlocks, tocLinks, processSteps, faqs, section, image, seo } =
+const { hero, closing, blocks, hasBlocks, tocLinks, processSteps, faqs, section, image, seo } =
   await getPageContent(Astro.url.pathname);
 
 
@@ -571,19 +571,19 @@ for (const block of blocks) {
          and has no row in the map. It sits after the block run in template order
          and PageBlocks draws at the `what` position, so the closing pair still
          comes last. */}
-    <VirtualConsult id="consult" eyebrow="Free gum contouring consultation">
-      <Fragment slot="headline">Free gum contouring <em>consultation.</em></Fragment>
-      <Fragment slot="body">
+    <VirtualConsult id="consult" eyebrow={closing.consultEyebrow || "Free gum contouring consultation"}>
+      <Fragment slot="headline">{closing.consultHeadline ? <Fragment set:html={closing.consultHeadline} /> : <>Free gum contouring <em>consultation.</em></>}</Fragment>
+      <Fragment slot="body">{closing.consultBody ? closing.consultBody : <>
         Gum contouring is one of the most efficient cosmetic procedures available: immediate results, minimal
         recovery, and a lasting change to the way your smile looks. If you have ever wondered whether your gum
         line is affecting the way your teeth appear, a consultation with Dr. Richardson will give you a clear
         answer and a preview of what is possible before any commitment is made.
-      </Fragment>
+      </>}</Fragment>
     </VirtualConsult>
 
     {/* ---------- CLOSING BAND ---------- */}
     <FinalBand>
-      <p>Free cosmetic consultations at 17167 Cedar Gulch Pkwy, Suite 102, Parker, CO 80134.</p>
+      <p>{closing.note ? closing.note : <>Free cosmetic consultations at 17167 Cedar Gulch Pkwy, Suite 102, Parker, CO 80134.</>}</p>
     </FinalBand>
 
     </main>

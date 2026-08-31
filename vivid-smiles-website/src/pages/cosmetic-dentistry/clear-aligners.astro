@@ -50,7 +50,7 @@ import PageBlocks from '../../blocks/PageBlocks.astro';
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Clear Aligners in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { hero, blocks, hasBlocks, tocLinks, processSteps, faqs, section, image, seo } =
+const { hero, closing, blocks, hasBlocks, tocLinks, processSteps, faqs, section, image, seo } =
   await getPageContent(Astro.url.pathname);
 
 const galleryTiles = getSmiles();
@@ -601,22 +601,22 @@ for (const block of blocks) {
          Dr. Richardson their photo + questions for a personalized video reply.
          Service-specific framing via slot. */
       }
-      <VirtualConsult id="consult" eyebrow="Free aligners consultation">
-        <Fragment slot="headline">Free aligners <em>consultation.</em></Fragment>
-        <Fragment slot="body">
+      <VirtualConsult id="consult" eyebrow={closing.consultEyebrow || "Free aligners consultation"}>
+        <Fragment slot="headline">{closing.consultHeadline ? <Fragment set:html={closing.consultHeadline} /> : <>Free aligners <em>consultation.</em></>}</Fragment>
+        <Fragment slot="body">{closing.consultBody ? closing.consultBody : <>
           Wondering whether Spark aligners are right for your smile? Skip the office visit — Dr.
           Richardson personally records a custom video previewing your alignment options, your
           projected timeline, and what to expect from candidacy through the final tray, all from a
           few photos you submit below.
-        </Fragment>
+        </>}</Fragment>
       </VirtualConsult>
 
       {/* ---------- CLOSING BAND ---------- */}
       <FinalBand>
-        <p>
+        <p>{closing.note ? closing.note : <>
           17167 Cedar Gulch Pkwy Ste 102, Parker, CO 80134. Patients welcome locally and from out of
           state.
-        </p>
+        </>}</p>
       </FinalBand>
     </main>
 

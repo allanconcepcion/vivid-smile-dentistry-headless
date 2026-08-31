@@ -45,7 +45,7 @@ import PageBlocks from '../../blocks/PageBlocks.astro';
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Dental Implants in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { blocks, hasBlocks, tocLinks, processSteps, faqs, hero, section, image, seo } =
+const { blocks, hasBlocks, tocLinks, processSteps, faqs, hero, closing, section, image, seo } =
   await getPageContent(Astro.url.pathname);
 
 
@@ -699,19 +699,19 @@ for (const block of blocks) {
       </div>
     </section>
 
-    <VirtualConsult id="consult" eyebrow="Free dental implant consultation">
-      <Fragment slot="headline">Free dental implant <em>consultation.</em></Fragment>
-      <Fragment slot="body">
+    <VirtualConsult id="consult" eyebrow={closing.consultEyebrow || "Free dental implant consultation"}>
+      <Fragment slot="headline">{closing.consultHeadline ? <Fragment set:html={closing.consultHeadline} /> : <>Free dental implant <em>consultation.</em></>}</Fragment>
+      <Fragment slot="body">{closing.consultBody ? closing.consultBody : <>
         Considering implants? Send a few photos and Dr. Richardson personally records a custom video response
         with candidacy assessment, treatment options, and next steps. Photos in, video out — no commitments.
-      </Fragment>
+      </>}</Fragment>
     </VirtualConsult>
 
     <FinalBand>
-      <p>
+      <p>{closing.note ? closing.note : <>
         Vivid Smiles Dentistry in Parker offers robotic-guided placement and in-house surgical + restorative
         care, backed by 600-plus hours of advanced training and 300+ five-star Google reviews.
-      </p>
+      </>}</p>
     </FinalBand>
 
     </main>

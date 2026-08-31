@@ -85,7 +85,7 @@ import PageBlocks from '../../blocks/PageBlocks.astro';
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Full-Mouth Rehabilitation in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { hero, blocks, hasBlocks, tocLinks, processSteps, faqs, section, image, seo } =
+const { hero, closing, blocks, hasBlocks, tocLinks, processSteps, faqs, section, image, seo } =
   await getPageContent(Astro.url.pathname);
 
 
@@ -613,18 +613,18 @@ for (const block of blocks) {
        and PageBlocks draws at the `why` position, so the closing pair still
        comes last. */
     }
-    <VirtualConsult id="consult" eyebrow="Free full-mouth rehab consultation">
-      <Fragment slot="headline">Free full-mouth rehab <em>consultation.</em></Fragment>
-      <Fragment slot="body">
+    <VirtualConsult id="consult" eyebrow={closing.consultEyebrow || "Free full-mouth rehab consultation"}>
+      <Fragment slot="headline">{closing.consultHeadline ? <Fragment set:html={closing.consultHeadline} /> : <>Free full-mouth rehab <em>consultation.</em></>}</Fragment>
+      <Fragment slot="body">{closing.consultBody ? closing.consultBody : <>
         Curious about full-mouth rehabilitation? Skip the office visit — Dr. Richardson personally records a
         custom video reviewing your situation, the path that fits your case, and what's possible with implants,
         cosmetic work, or a hybrid plan, all from photos you submit below.
-      </Fragment>
+      </>}</Fragment>
     </VirtualConsult>
 
     {/* ---------- CLOSING BAND ---------- */}
     <FinalBand>
-      <p>Vivid Smiles Dentistry in Parker, Colorado, offers the specialized training, technology, and in-house coordination that full-mouth cases require.</p>
+      <p>{closing.note ? closing.note : <>Vivid Smiles Dentistry in Parker, Colorado, offers the specialized training, technology, and in-house coordination that full-mouth cases require.</>}</p>
     </FinalBand>
 
     </main>

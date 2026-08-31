@@ -19,7 +19,7 @@ import PageBlocks from '../../blocks/PageBlocks.astro';
 // faqs is edited in WordPress (Pages -> Services in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { hero, blocks, hasBlocks, faqs, section, seo, image } = await getPageContent(Astro.url.pathname);
+const { hero, closing, blocks, hasBlocks, faqs, section, seo, image } = await getPageContent(Astro.url.pathname);
 
 /**
  * THE MIGRATION SWITCH (docs/PAGE-BLOCKS.md 2.3), and the two bands it does
@@ -432,13 +432,13 @@ const allServices = await Promise.all(
         /* VirtualConsult mounts id="virtualConsult" — keeps the global footer
         "Free Virtual Consult" link resolving here. */
       }
-      <VirtualConsult eyebrow="Free virtual consultation">
-        <Fragment slot="headline">Free virtual <em>consultation.</em></Fragment>
-        <Fragment slot="body">
+      <VirtualConsult eyebrow={closing.consultEyebrow || "Free virtual consultation"}>
+        <Fragment slot="headline">{closing.consultHeadline ? <Fragment set:html={closing.consultHeadline} /> : <>Free virtual <em>consultation.</em></>}</Fragment>
+        <Fragment slot="body">{closing.consultBody ? closing.consultBody : <>
           Taking the first step toward your smile has never been easier. Nothing to schedule — Dr.
           Richardson personally records a custom video response for every consultation request.
           Photos in, video out.
-        </Fragment>
+        </>}</Fragment>
       </VirtualConsult>
     </main>
 

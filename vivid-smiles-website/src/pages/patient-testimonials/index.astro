@@ -44,7 +44,7 @@ const reviews = (await getCollection("reviews"))
 // Hero image — Vivid Smiles team in the Parker studio.
 import { getPageContent } from '../../lib/page-content';
 // Section copy is edited in WordPress (Pages -> this page -> Section copy).
-const { hero, section, image, seo } = await getPageContent(Astro.url.pathname);
+const { hero, closing, section, image, seo } = await getPageContent(Astro.url.pathname);
 
 
 ---
@@ -413,13 +413,13 @@ const { hero, section, image, seo } = await getPageContent(Astro.url.pathname);
     />
 
     {/* ---------- VIRTUAL CONSULT — closing conversion ---------- */}
-    <VirtualConsult id="consult" eyebrow="Free virtual consultation">
-      <Fragment slot="headline">Ready to write <em>your story?</em></Fragment>
-      <Fragment slot="body">
+    <VirtualConsult id="consult" eyebrow={closing.consultEyebrow || "Free virtual consultation"}>
+      <Fragment slot="headline">{closing.consultHeadline ? <Fragment set:html={closing.consultHeadline} /> : <>Ready to write <em>your story?</em></>}</Fragment>
+      <Fragment slot="body">{closing.consultBody ? closing.consultBody : <>
         Every transformation on this page started the same way — a few photos, a few
         questions, and a custom video back from Dr. Richardson. Skip the office visit
         for the first conversation and see what's possible for your smile.
-      </Fragment>
+      </>}</Fragment>
     </VirtualConsult>
 
     </main>

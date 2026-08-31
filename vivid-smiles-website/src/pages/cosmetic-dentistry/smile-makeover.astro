@@ -87,7 +87,7 @@ import PageBlocks from '../../blocks/PageBlocks.astro';
 // tocLinks, faqs are edited in WordPress (Pages -> Smile Makeover in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { hero, blocks, hasBlocks, tocLinks, faqs, section, image, seo } = await getPageContent(
+const { hero, closing, blocks, hasBlocks, tocLinks, faqs, section, image, seo } = await getPageContent(
   Astro.url.pathname,
 );
 
@@ -724,22 +724,22 @@ for (const block of blocks) {
          template order and PageBlocks draws at the `what` position, so the
          closing pair still comes last. */
       }
-      <VirtualConsult id="consult" eyebrow="Free smile makeover consultation">
-        <Fragment slot="headline">Free smile makeover <em>consultation.</em></Fragment>
-        <Fragment slot="body">
+      <VirtualConsult id="consult" eyebrow={closing.consultEyebrow || "Free smile makeover consultation"}>
+        <Fragment slot="headline">{closing.consultHeadline ? <Fragment set:html={closing.consultHeadline} /> : <>Free smile makeover <em>consultation.</em></>}</Fragment>
+        <Fragment slot="body">{closing.consultBody ? closing.consultBody : <>
           If you have spent years wanting to fix your smile, the next step is a consultation, not a
           commitment. At Vivid Smiles Dentistry, Dr. Richardson starts every smile makeover with a
           comprehensive analysis and a digital preview so you can see exactly what your results will
           look like before any treatment begins.
-        </Fragment>
+        </>}</Fragment>
       </VirtualConsult>
 
       {/* ---------- CLOSING BAND ---------- */}
       <FinalBand>
-        <p>
+        <p>{closing.note ? closing.note : <>
           Vivid Smiles is located in Parker, CO and has earned 300+ five-star Google reviews from
           patients who wanted natural, lasting results and got them.
-        </p>
+        </>}</p>
       </FinalBand>
     </main>
 
