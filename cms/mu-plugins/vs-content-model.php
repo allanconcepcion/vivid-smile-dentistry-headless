@@ -318,11 +318,11 @@ function block_preamble( string $slug ): array {
 		],
 		[
 			'key'          => $k . 'nav_label',
-			'label'        => 'Rail label',
+			'label'        => 'Side menu label',
 			'name'         => 'nav_label',
 			'type'         => 'text',
-			'instructions' => 'What this section is called in the “On this page” rail down the side. '
-				. 'Leave it blank to keep the section out of the rail.',
+			'instructions' => 'What this section is called in the “On this page” menu down the side of '
+				. 'the page. Leave it blank to keep this section out of that menu.',
 		],
 		[
 			'key'           => $k . 'band',
@@ -343,10 +343,11 @@ function block_preamble( string $slug ): array {
 				. 'two of the same in a row read as one long section.',
 		],
 		[
-			'key'   => $k . 'eyebrow',
-			'label' => 'Eyebrow',
-			'name'  => 'eyebrow',
-			'type'  => 'text',
+			'key'          => $k . 'eyebrow',
+			'label'        => 'Eyebrow',
+			'name'         => 'eyebrow',
+			'type'         => 'text',
+			'instructions' => 'The small line printed above the heading. A few words. Leave blank for none.',
 		],
 		[
 			'key'          => $k . 'heading',
@@ -354,7 +355,7 @@ function block_preamble( string $slug ): array {
 			'name'         => 'heading',
 			'type'         => 'textarea',
 			'rows'         => 2,
-			'instructions' => 'May contain <em>…</em> for the accent styling.',
+			'instructions' => 'To give a few words the italic accent, type &lt;em&gt; before them and &lt;/em&gt; after, like this: Your &lt;em&gt;best&lt;/em&gt; smile.',
 		],
 		[
 			'key'          => $k . 'body',
@@ -1110,13 +1111,15 @@ function register_field_groups(): void {
 					'label'   => '',
 					'name'    => '',
 					'type'    => 'message',
-					'message' => "<strong>This page's layout and body copy live in the site templates.</strong><br>\n"
-						. "What you edit here is the content those templates pour in, a tab each: the “On this page” rail, "
-						. "the process steps, the heading and intro copy for each section, the photos, "
-						. "the cards and lists, and the FAQ.\n"
-						. "Changes go live on the next site build.\n"
-						. "The last two tabs — <em>Hero</em> and <em>Page sections</em> — are part of the rebuild "
-						. "that is under way. Nothing on the site reads them yet, and each says so.",
+					'message' => "<strong>Everything visitors read on this page is edited from these tabs.</strong><br>\n"
+						. "Start with <em>Hero</em> (the big headline area at the top) and <em>Page sections</em> "
+						. "(the rest of the page, one row per section). If <em>Page sections</em> has rows, that "
+						. "is this page — edit the words there. <em>Images</em>, <em>Cards &amp; lists</em> and "
+						. "<em>FAQ</em> work on every page.\n"
+						. "<em>On this page</em>, <em>Process</em> and <em>Section copy</em> only still matter on "
+						. "the few pages where <em>Page sections</em> is empty — each of those tabs explains this "
+						. "at the top.\n"
+						. "Changes go live on the next site build.",
 					'esc_html' => 0,
 					'new_lines' => 'wpautop',
 				],
@@ -1124,6 +1127,18 @@ function register_field_groups(): void {
 					'key'   => 'field_vs_toc_tab',
 					'label' => 'On this page',
 					'type'  => 'tab',
+				],
+				[
+					'key'       => 'field_vs_toc_note',
+					'label'     => '',
+					'name'      => '',
+					'type'      => 'message',
+					'message'   => "<strong>Check the Page sections tab first.</strong> If it has rows, the side "
+						. "menu is built from those sections automatically and the list below no longer "
+						. "changes the site — name a section in the menu with its “Side menu label” box "
+						. "there. If Page sections is empty, the list below still runs the side menu.",
+					'esc_html'  => 0,
+					'new_lines' => 'wpautop',
 				],
 				[
 					'key'          => 'field_vs_toc_links',
@@ -1153,6 +1168,18 @@ function register_field_groups(): void {
 					'key'   => 'field_vs_process_tab',
 					'label' => 'Process',
 					'type'  => 'tab',
+				],
+				[
+					'key'       => 'field_vs_process_note',
+					'label'     => '',
+					'name'      => '',
+					'type'      => 'message',
+					'message'   => "<strong>Check the Page sections tab first.</strong> If it has rows, this page "
+						. "has moved to the new system and the steps below no longer change the site — "
+						. "edit the Process section’s own row in Page sections instead. If Page sections "
+						. "is empty, the steps below still run the page.",
+					'esc_html'  => 0,
+					'new_lines' => 'wpautop',
 				],
 				[
 					'key'          => 'field_vs_process_steps',
@@ -1190,6 +1217,19 @@ function register_field_groups(): void {
 					'type'  => 'tab',
 				],
 				[
+					'key'       => 'field_vs_sections_note',
+					'label'     => '',
+					'name'      => '',
+					'type'      => 'message',
+					'message'   => "<strong>Check the Page sections tab first.</strong> If it has rows, most of "
+						. "this page’s headings and copy are edited there now, and the matching rows below "
+						. "no longer change the site — they will save, but nothing happens. Rows below with "
+						. "no match in Page sections still work.\n"
+						. "Rule of thumb: if you can find the same words in Page sections, edit them there.",
+					'esc_html'  => 0,
+					'new_lines' => 'wpautop',
+				],
+				[
 					'key'          => 'field_vs_sections',
 					'label'        => 'Sections',
 					'name'         => 'sections',
@@ -1212,7 +1252,7 @@ function register_field_groups(): void {
 							// internal key is how you get a row that never appears, or a
 							// row that cannot be saved at all.
 							'required'     => 0,
-							'instructions' => 'Set by the migration. Do not change.',
+							'instructions' => 'Filled in automatically — leave it exactly as it is.',
 							'readonly'     => 1,
 						],
 						[
@@ -1227,7 +1267,7 @@ function register_field_groups(): void {
 							'name'         => 'heading',
 							'type'         => 'textarea',
 							'rows'         => 2,
-							'instructions' => 'May contain <em>…</em> for the accent styling.',
+							'instructions' => 'To give a few words the italic accent, type &lt;em&gt; before them and &lt;/em&gt; after, like this: Your &lt;em&gt;best&lt;/em&gt; smile.',
 						],
 						[
 							'key'   => 'field_vs_section_body',
@@ -1278,7 +1318,7 @@ function register_field_groups(): void {
 							// Generated on save when left blank, exactly as Section ID is
 							// above; see fill_blank_row_id().
 							'required'     => 0,
-							'instructions' => 'Set by the migration. Do not change.',
+							'instructions' => 'Filled in automatically — leave it exactly as it is.',
 							'readonly'     => 1,
 						],
 						[
@@ -1336,7 +1376,7 @@ function register_field_groups(): void {
 							'name'         => 'group',
 							'type'         => 'text',
 							'required'     => 1,
-							'instructions' => 'Set by the migration. Do not change.',
+							'instructions' => 'Filled in automatically — leave it exactly as it is.',
 							'readonly'     => 1,
 						],
 						[
@@ -1379,7 +1419,7 @@ function register_field_groups(): void {
 					'type'         => 'repeater',
 					'layout'       => 'row',
 					'button_label' => 'Add question',
-					'instructions' => 'These also generate the page\'s FAQPage structured data, so keep answers factual and self-contained.',
+					'instructions' => 'Google can show these questions and answers right in its search results, so keep each answer factual and complete on its own.',
 					'sub_fields'   => [
 						[
 							'key'   => 'field_vs_faq_q',
@@ -1414,11 +1454,13 @@ function register_field_groups(): void {
 					'label'     => '',
 					'name'      => '',
 					'type'      => 'message',
-					'message'   => "<strong>Not connected yet.</strong> The hero is still written into each page's "
-						. "template, and the site does not read these boxes. Filling them in now changes nothing on "
-						. "the site — it is not broken, it is not finished.\n"
-						. "Each page starts reading its hero from here as it is rebuilt onto the new section system; "
-						. "this note comes down when the last one has been.",
+					'message'   => "<strong>These boxes are live.</strong> They hold this page's current top-of-page "
+						. "wording — the small line, the big headline, the paragraph under it and the buttons — "
+						. "and an edit here goes live on the next site build.\n"
+						. "The Headline is the switch: while it is empty, the site keeps the page's built-in "
+						. "wording and ignores the rest of this tab.\n"
+						. "A few special pages (the home page, for one) still have hand-built heroes. If an edit "
+						. "here does not appear after the build, tell us and we will connect it.",
 					'esc_html'  => 0,
 					'new_lines' => 'wpautop',
 				],
@@ -1434,11 +1476,16 @@ function register_field_groups(): void {
 				 * signal there is. A group gives exactly the same editable copy
 				 * with none of that surface.
 				 *
-				 * These fields are inert until a page's template reads them, which
-				 * is the rule the previous hero fields were REMOVED under (see the
-				 * group docblock above). The message field directly above is what
-				 * pays that debt in the meantime: an editor is told, on the screen,
-				 * that typing here does nothing yet. Delete both together.
+				 * NO LONGER INERT — since the Astro side's hero wiring, 25 routes
+				 * read eyebrow, h1, sub and ctas through pageFields.hero, gated on
+				 * h1 being non-empty, and a backfill has filled all 24 payload
+				 * routes with each page's own current wording. The message field
+				 * directly above was rewritten the same day: it used to say
+				 * "typing here does nothing yet", which had become false in the
+				 * dangerous direction. image, image_alt and media_shape remain
+				 * unread ON PURPOSE — the photo already comes from the Images tab,
+				 * and media_shape has no consumer, which is the registered-value-
+				 * with-no-branch defect this project keeps re-learning.
 				 */
 				[
 					'key'        => 'field_vs_page_hero',
@@ -1448,10 +1495,11 @@ function register_field_groups(): void {
 					'layout'     => 'block',
 					'sub_fields' => [
 						[
-							'key'   => 'field_vs_page_hero_eyebrow',
-							'label' => 'Eyebrow',
-							'name'  => 'eyebrow',
-							'type'  => 'text',
+							'key'          => 'field_vs_page_hero_eyebrow',
+							'label'        => 'Eyebrow',
+							'name'         => 'eyebrow',
+							'type'         => 'text',
+							'instructions' => 'The small line above the big headline — a few words, like “Trusted Family Dentistry”. Leave blank for none.',
 						],
 						[
 							'key'          => 'field_vs_page_hero_h1',
@@ -1459,8 +1507,9 @@ function register_field_groups(): void {
 							'name'         => 'h1',
 							'type'         => 'textarea',
 							'rows'         => 2,
-							'instructions' => 'The page\'s main headline — its <h1>, and usually what Google shows. '
-								. 'May contain <em>…</em> for the accent styling.',
+							'instructions' => 'The big headline at the top of the page — usually also what Google shows. '
+								. 'To give a few words the italic accent, type &lt;em&gt; before them and &lt;/em&gt; '
+								. 'after, like this: Your &lt;em&gt;best&lt;/em&gt; smile. Everything else is plain text.',
 						],
 						[
 							'key'          => 'field_vs_page_hero_sub',
@@ -1495,7 +1544,10 @@ function register_field_groups(): void {
 									'label'        => 'Link',
 									'name'         => 'href',
 									'type'         => 'text',
-									'instructions' => 'A path on this site like /contact/, an anchor like #process, or a full address.',
+									'instructions' => 'Where the button goes: a page on this site, typed like /contact/, or a spot '
+										. 'on this page, typed like #consult. Do not paste booking links or phone numbers '
+										. 'here — those live under Practice Settings so they can never go out of date. A '
+										. 'button needs both its Label and its Link filled, or it will not appear.',
 								],
 							],
 						],
@@ -1578,13 +1630,12 @@ function register_field_groups(): void {
 					'label'     => '',
 					'name'      => '',
 					'type'      => 'message',
-					'message'   => "<strong>This is how a page is built once it has been moved over.</strong> "
-						. "Pages are moved one at a time, by us. Until this one has been, the list stays empty and "
-						. "the page renders from its template exactly as it always has, using the other tabs — so "
-						. "adding a section here yourself does nothing yet.\n"
-						. "On a page that has been moved: drag a row to move that section up or down the page. "
-						. "Emptying the list puts the page straight back the way it was on the next build, "
-						. "with nothing to undo.",
+					'message'   => "<strong>The page, top to bottom — one row per section.</strong> If this list has "
+						. "rows, this is where the page is edited: open a row to change its words, drag rows to "
+						. "reorder the page. Changes go live on the next site build.\n"
+						. "If this list is empty, the page still runs on its original built-in layout — and adding "
+						. "even one row here switches the whole page over to only what this list holds. Leave an "
+						. "empty list empty: we move each page over for you.",
 					'esc_html'  => 0,
 					'new_lines' => 'wpautop',
 				],
@@ -4132,7 +4183,7 @@ function register_field_groups(): void {
 										'name'         => 'callout_heading',
 										'type'         => 'textarea',
 										'rows'         => 2,
-										'instructions' => 'May contain <em>…</em> for the accent styling.',
+										'instructions' => 'To give a few words the italic accent, type &lt;em&gt; before them and &lt;/em&gt; after, like this: Your &lt;em&gt;best&lt;/em&gt; smile.',
 									],
 									[
 										'key'   => 'field_vs_blk_tech_callout_body',
