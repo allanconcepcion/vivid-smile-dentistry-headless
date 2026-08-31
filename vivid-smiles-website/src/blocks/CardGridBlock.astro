@@ -218,7 +218,26 @@ const eyebrowLight = bandKey === "sage-pale" || bandKey === "sage";
  * page ships today.
  */
 const cols = String(columns ?? "2");
-const colsClass = cols === "3" || cols === "4" ? `cols-${cols}` : undefined;
+
+/*
+ * ENUMERATED, AND `5` HAS TO BE IN THE LIST. The Columns select offers
+ * 2/3/4/5 (vs-content-model.php:1826-1831) and this file carries the
+ * `.why-grid.cols-5` rules, but the commit that landed both left this guard at
+ * 3/4 — so a row storing "5" emitted NO modifier, fell through to the two-column
+ * base above, and drew a five-card band TWO across. Worse than the four it was
+ * meant to replace, on a live page, with nothing to catch it: no live row stores
+ * 5 yet, so the build is green and the CSS is merely unreachable.
+ *
+ * That is this project's most-repeated defect wearing a different hat — a
+ * registered select VALUE with no branch in the component, invisible to query
+ * validation and to scripts/check-block-schema.mjs because it changes no
+ * fragment. ProcessStepsBlock.astro:283 enumerates its own choices for the same
+ * reason; ServiceCardsBlock.astro:383 keeps a COLUMN_CHOICES array.
+ *
+ * Still nothing at 2: see the note above for why the base stays classless.
+ */
+const colsClass =
+  cols === "3" || cols === "4" || cols === "5" ? `cols-${cols}` : undefined;
 
 const rows = Array.isArray(cards) ? cards : [];
 
