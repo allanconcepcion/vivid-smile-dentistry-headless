@@ -50,7 +50,7 @@ import PageBlocks from '../../blocks/PageBlocks.astro';
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Clear Aligners in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { blocks, hasBlocks, tocLinks, processSteps, faqs, section, image, seo } =
+const { hero, blocks, hasBlocks, tocLinks, processSteps, faqs, section, image, seo } =
   await getPageContent(Astro.url.pathname);
 
 const galleryTiles = getSmiles();
@@ -176,26 +176,26 @@ for (const block of blocks) {
       <header class="hero" data-vs-reveal-batch>
         <div class="wrap hero-inner">
           <div class="hero-copy">
-            <span class="eyebrow">Cosmetic Dentistry · Parker, CO</span>
-            <h1 data-vs-reveal-lines>Clear Aligners <em>in Parker, CO</em></h1>
-            <p class="hero-sub">
+            {hero.eyebrow ? <span class="eyebrow">{hero.eyebrow}</span> : <span class="eyebrow">Cosmetic Dentistry · Parker, CO</span>}
+            {hero.h1 ? <h1 data-vs-reveal-lines set:html={hero.h1} /> : <h1 data-vs-reveal-lines>Clear Aligners <em>in Parker, CO</em></h1>}
+            {hero.sub ? <p class="hero-sub">{hero.sub}</p> : <p class="hero-sub">
               Clear aligners are custom-made, removable plastic trays that shift teeth gradually
               into alignment, offering a nearly invisible alternative to traditional braces. Unlike
               metal brackets and wires, they come out for meals and daily brushing, and digital
               planning tools let you see your projected results before treatment begins. Here is
               what to expect from the process, who qualifies, and why Parker residents choose Vivid
               Smiles Dentistry for their clear aligner care.
-            </p>
+            </p>}
             <div class="hero-actions">
-              <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button
+              <Button variant="light" href={hero.cta(0) ? hero.cta(0)!.href : bookNowHref} hoverLabel="Let's Talk">{hero.cta(0) ? hero.cta(0)!.label : "Book Online"}</Button
               >
-              <Button variant="ghost-light" href="#consult" hoverLabel="Get a Video"
-                >Free Virtual Consult</Button
+              <Button variant="ghost-light" href={hero.cta(1) ? hero.cta(1)!.href : "#consult"} hoverLabel="Get a Video"
+                >{hero.cta(1) ? hero.cta(1)!.label : "Free Virtual Consult"}</Button
               >
-              <div class="ratings">
+              {hero.showRatings && <div class="ratings">
                 <span class="stars" aria-hidden="true">★★★★★</span>
                 <span>5.0 · 300+ reviews</span>
-              </div>
+              </div>}
             </div>
           </div>
           <div class="hero-img" data-vs-parallax data-parallax="-30">

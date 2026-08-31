@@ -272,6 +272,36 @@ const pages = defineCollection({
       noindex: z.boolean(),
       ogImage: z.string(),
     }),
+    // The hero — the headline, kicker, intro paragraph and buttons above every
+    // band on the page.
+    //
+    // This declaration is not documentation, it is the wiring: z.object STRIPS
+    // undeclared keys silently, so a loader that fetched `hero` without this
+    // would hand the templates nothing and report no error at all.
+    //
+    // Empty strings mean "no override", exactly as in `seo` above: a blank box
+    // in WordPress can never blank out a headline that is still in the
+    // template. `.default()` covers the CMS that has no `hero` field yet — the
+    // same deployment window the `blocks` docblock describes, and the loader
+    // omits both fields together, so both defaults are taken together.
+    //
+    // Note what is NOT here: image, imageAlt, mediaShape. The loader does not
+    // fetch them and no template reads them; declaring them would make this
+    // file lie about what actually reaches a page.
+    //
+    // Deliberately no .max(2) on ctas: ACF caps the repeater at 2 and the
+    // loader slices to 2, so a third row can only appear if both drift — and a
+    // Zod failure there would take a whole page down (badPages) over a button
+    // that should simply be dropped.
+    hero: z
+      .object({
+        eyebrow: z.string(),
+        h1: z.string(),
+        sub: z.string(),
+        ratings: z.boolean(),
+        ctas: z.array(z.object({ label: z.string(), href: z.string() })),
+      })
+      .default({ eyebrow: "", h1: "", sub: "", ratings: false, ctas: [] }),
     // The ordered section list. Empty on every page until one is migrated,
     // and empty again the moment an editor clears the field.
     blocks: z.array(PAGE_BLOCK).default([]),

@@ -34,7 +34,7 @@ import '../../styles/pages/about-us.css';
 // Team headshots (10 — hygienists, assistants, coordination, comfort officers).
 import { getPageContent, schemaImageUrl } from '../../lib/page-content';
 // Section copy is edited in WordPress (Pages -> this page -> Section copy).
-const { section, image, seo } = await getPageContent(Astro.url.pathname);
+const { hero, section, image, seo } = await getPageContent(Astro.url.pathname);
 
 // Person schema must reference this site's optimized copy, not the
 // WordPress media URL — the CMS host is noindexed and is not where
@@ -254,25 +254,25 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
       <header class="hero">
         <div class="wrap hero-inner">
           <div class="hero-copy" data-vs-reveal-batch>
-            <Eyebrow>About Vivid Smiles · Parker, CO</Eyebrow>
-            <h1 data-vs-reveal-lines>
+            {hero.eyebrow ? <Eyebrow>{hero.eyebrow}</Eyebrow> : <Eyebrow>About Vivid Smiles · Parker, CO</Eyebrow>}
+            {hero.h1 ? <h1 data-vs-reveal-lines set:html={hero.h1} /> : <h1 data-vs-reveal-lines>
               Where artistry meets <em class="vs-italic-word">esthetic dentistry.</em>
-            </h1>
-            <p class="hero-sub">
+            </h1>}
+            {hero.sub ? <p class="hero-sub">{hero.sub}</p> : <p class="hero-sub">
               Vivid Smiles Dentistry is Colorado's premier destination for highly esthetic smile
               transformations. Founded on the belief that a smile should feel effortless, youthful,
               and authentically you, we pair world-class cosmetic artistry with the most advanced
               clinical technology available.
-            </p>
+            </p>}
             <div class="hero-actions">
-              <Button variant="sage" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button>
-              <Button variant="ghost" href="#doctors" hoverLabel="The Doctors"
-                >Meet the Doctors</Button
+              <Button variant="sage" href={hero.cta(0) ? hero.cta(0)!.href : bookNowHref} hoverLabel="Let's Talk">{hero.cta(0) ? hero.cta(0)!.label : "Book Online"}</Button>
+              <Button variant="ghost" href={hero.cta(1) ? hero.cta(1)!.href : "#doctors"} hoverLabel="The Doctors"
+                >{hero.cta(1) ? hero.cta(1)!.label : "Meet the Doctors"}</Button
               >
-              <div class="ratings">
+              {hero.showRatings && <div class="ratings">
                 <span class="stars" aria-hidden="true">★★★★★</span>
                 <span>5.0 · 300+ reviews</span>
-              </div>
+              </div>}
             </div>
           </div>
           <div class="hero-img" data-vs-reveal data-vs-parallax data-parallax="-30">

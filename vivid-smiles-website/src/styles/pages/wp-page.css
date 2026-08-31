@@ -181,6 +181,23 @@
   text-underline-offset: 3px;
 }
 
+/* The hero's button row, on a WordPress-authored page that filled in the two
+   `ctas` rows. A ROW WRAPPER AND NOTHING ELSE: the links inside are the same
+   `.wp-page-cta` the section bodies already use, so a hero button and a section
+   button look alike on this template rather than inventing a second style for
+   a page type whose whole job is to be a plain, honest floor.
+
+   `margin-top` is 0 here because `.wp-page-cta` above already carries 1.2em and
+   two stacked margins would space the row twice. */
+.wp-page-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.4em;
+}
+.wp-page-hero-actions .wp-page-cta {
+  margin-top: 0;
+}
+
 .wp-page-steps {
   max-width: 72ch;
   margin: 0;

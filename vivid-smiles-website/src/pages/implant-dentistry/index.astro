@@ -45,7 +45,7 @@ import PageBlocks from '../../blocks/PageBlocks.astro';
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Dental Implants in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { blocks, hasBlocks, tocLinks, processSteps, faqs, section, image, seo } =
+const { blocks, hasBlocks, tocLinks, processSteps, faqs, hero, section, image, seo } =
   await getPageContent(Astro.url.pathname);
 
 
@@ -329,22 +329,22 @@ for (const block of blocks) {
     <header class="hero" data-vs-reveal-batch>
       <div class="hero-inner">
         <div class="hero-copy">
-          <span class="eyebrow">Implant Dentistry · Parker, CO</span>
-          <h1 data-vs-reveal-lines>Advanced dental implants <em>in Parker, Colorado.</em></h1>
-          <p class="hero-sub">
+          {hero.eyebrow ? <span class="eyebrow">{hero.eyebrow}</span> : <span class="eyebrow">Implant Dentistry · Parker, CO</span>}
+          {hero.h1 ? <h1 data-vs-reveal-lines set:html={hero.h1} /> : <h1 data-vs-reveal-lines>Advanced dental implants <em>in Parker, Colorado.</em></h1>}
+          {hero.sub ? <p class="hero-sub">{hero.sub}</p> : <p class="hero-sub">
             Dental implants are the only tooth replacement that functions at the root level — preserving the
             jawbone and restoring full biting strength. Unlike bridges or dentures, implants fuse with the bone,
             making them a permanent solution rather than a prosthetic one. At Vivid Smiles Dentistry, Dr. Bryce
             Richardson places and restores implants entirely in-house with robotic guidance and full digital
             fabrication capability.
-          </p>
+          </p>}
           <div class="hero-actions">
-            <Button variant="sage" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button>
-            <Button variant="ghost" href="#consult" hoverLabel="Get a Video">Free Virtual Consult</Button>
-            <div class="ratings">
+            <Button variant="sage" href={hero.cta(0) ? hero.cta(0)!.href : bookNowHref} hoverLabel="Let's Talk">{hero.cta(0) ? hero.cta(0)!.label : "Book Online"}</Button>
+            <Button variant="ghost" href={hero.cta(1) ? hero.cta(1)!.href : "#consult"} hoverLabel="Get a Video">{hero.cta(1) ? hero.cta(1)!.label : "Free Virtual Consult"}</Button>
+            {hero.showRatings && <div class="ratings">
               <span class="stars" aria-hidden="true">★★★★★</span>
               <span>5.0 · 300+ reviews</span>
-            </div>
+            </div>}
           </div>
         </div>
         <div class="hero-stack">

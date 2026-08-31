@@ -255,7 +255,28 @@ const { page, route } = Astro.props;
  * getEntry misses (:216-222), and `route` came out of getCollection("pages") in
  * getStaticPaths above.
  */
-const { blocks, hasBlocks } = await getPageContent(route);
+const { blocks, hasBlocks, hero } = await getPageContent(route);
+
+/**
+ * THE HERO, ON THE ONE PAGE TYPE THAT IS ENTIRELY WORDPRESS-AUTHORED.
+ *
+ * Wired last and nearly not at all: the pass that wired the hero across 24
+ * designed templates skipped this file, and an adversarial review caught it.
+ * That omission was the sharpest version of the defect the whole exercise
+ * exists to prevent — a page an editor CREATES in wp-admin, whose every word
+ * comes from wp-admin, showing hero boxes that do nothing.
+ *
+ * The fallbacks are this route's existing behaviour, not blanks:
+ *   h1  -> `page.title`, the WordPress post title (:455 before this change);
+ *   sub -> `heroLede`, which is the SEO description doing double duty (:386).
+ * So a page whose hero fields are untouched renders exactly as it did, and a
+ * page where they are filled prefers them. `heroOn` gating happens inside
+ * getPageContent, so a blank hero yields "" here and never wins the `||`.
+ */
+const heroH1 = hero.h1 !== "" ? hero.h1 : null;
+const heroSub = hero.sub !== "" ? hero.sub : heroLede;
+const heroCtaA = hero.cta(0);
+const heroCtaB = hero.cta(1);
 
 /**
  * THE TWO CONTAINER DECISIONS IN THE MARKUP BELOW, since neither can carry its
@@ -452,8 +473,15 @@ const hasBody =
       {/* ---------- HERO ---------- */}
       <header class="wp-page-hero" data-vs-reveal-batch>
         <div class={hasBlocks ? "wp-blocks-wrap" : "wrap"}>
-          <h1 class="vs-h1">{page.title}</h1>
-          {heroLede && <p class="vs-lede">{heroLede}</p>}
+          {hero.eyebrow !== "" && <span class="wp-page-eyebrow">{hero.eyebrow}</span>}
+          {heroH1 ? <h1 class="vs-h1" set:html={heroH1} /> : <h1 class="vs-h1">{page.title}</h1>}
+          {heroSub && <p class="vs-lede">{heroSub}</p>}
+          {(heroCtaA || heroCtaB) && (
+            <div class="wp-page-hero-actions">
+              {heroCtaA && <a class="wp-page-cta" href={heroCtaA.href}>{heroCtaA.label}</a>}
+              {heroCtaB && <a class="wp-page-cta" href={heroCtaB.href}>{heroCtaB.label}</a>}
+            </div>
+          )}
         </div>
       </header>
 

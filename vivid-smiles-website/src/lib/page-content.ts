@@ -41,6 +41,61 @@ export type PageImage = {
   alt: string;
 };
 
+export type HeroCta = { label: string; href: string };
+
+/**
+ * The hero an editor typed, or the absence of one.
+ *
+ * THE GATE IS APPLIED HERE, NOT EXPOSED. Every member is already gated: with
+ * no headline, `eyebrow`/`h1`/`sub` are "" and `showRatings` is true, so every
+ * template renders exactly what it renders today and never has to ask two
+ * questions. An `on` boolean was exposed too and read by nothing, which is the
+ * same unread-surface defect this project keeps writing down — removed.
+ */
+export type Hero = {
+  eyebrow: string;
+  /** HTML — may carry <em>. Rendered with set:html, never interpolated. */
+  h1: string;
+  /** Plain text, escaped on output — the field says so (vs-content-model.php:1471). */
+  sub: string;
+  /**
+   * Whether to draw the review line.
+   *
+   * NOT the raw `ratings` switch, and the reason is worth keeping even though
+   * the CMS side has since been fixed.
+   *
+   * `ratings` originally declared no `default_value`, so ACF answered `false`
+   * for every untouched page — indistinguishable from a deliberate "off". This
+   * gate was written to survive that, and an adversarial review then proved the
+   * gate ALONE was not enough: it protects a page with nothing typed, but the
+   * moment an editor typed only a HEADLINE — the likeliest first action, and
+   * the whole point of wiring the hero — `heroOn` flipped true and this
+   * collapsed to a false `ratings`. Measured: the 22 routes rendering
+   * `class="ratings"` became 0.
+   *
+   * Closed at the source instead. `field_vs_page_hero_ratings` now declares
+   * `'default_value' => 1`, so "never touched" means what the site already
+   * does. Verified against the live endpoint after deploying: six pages with
+   * `h1: null` all return `ratings: true`. The `!heroOn ||` half stays as belt
+   * and braces for any install whose stored value predates that default.
+   *
+   * The rule lives here, once, for the same reason `hasBlocks` does: so it
+   * means the same thing in all 25 templates and no template can restate it
+   * wrongly.
+   */
+  showRatings: boolean;
+  /**
+   * Button i (0 = the solid one, 1 = the outlined one), or null to keep the
+   * template's own.
+   *
+   * A function rather than an array so a template reads `hero.cta(1)` and gets
+   * null for "the editor typed one button", instead of indexing off the end.
+   * Label and href only: the variant and the hover label are band and motion
+   * decisions the `ctas` repeater does not model, and the template keeps them.
+   */
+  cta: (i: number) => HeroCta | null;
+};
+
 /**
  * One row of the `blocks` flexible-content field.
  *
@@ -112,6 +167,14 @@ export type PageContent = {
    * here would take the whole site's build down over one blank heading.
    */
   seo: PageSeo;
+  /**
+   * The hero band, as an override of the one in the template.
+   *
+   * Empty on every page today — the CMS fields exist and nobody has typed in
+   * them — and empty must look exactly like the site does now, not like a
+   * failure and not like a deliberately blanked headline. See `Hero`.
+   */
+  hero: Hero;
   section: (id: string) => Section;
   /**
    * A page image by slot, for <Image src={…} width={…} height={…} />.
@@ -232,6 +295,22 @@ export async function getPageContent(route: string): Promise<PageContent> {
 
   const blocks = readBlocks(entry.data);
 
+  // THE HERO GATE, applied once, here, so that no template can implement it
+  // differently. A hero is "on" when an editor has typed a headline and only
+  // then: the h1 is the one field with no safe blank reading, because every
+  // other member of the group has a meaning when empty that is
+  // indistinguishable from never having been touched. `ratings` is the sharp
+  // one (see Hero.showRatings), but eyebrow, sub and ctas have the same shape
+  // of problem — a page whose editor cleared the headline and nothing else
+  // should not lose its kicker.
+  //
+  // Consequence worth naming: a page can never be given a hero SUB without a
+  // hero H1. That is the trade, and it is the right way round — the h1 is the
+  // point of this whole change, and a sub with no headline is not a state
+  // anybody wants to ship.
+  const h = entry.data.hero;
+  const heroOn = h.h1 !== ""; // "" is what the loader stores for blank
+
   return {
     title: entry.data.title,
     seo: entry.data.seo,
@@ -251,6 +330,18 @@ export async function getPageContent(route: string): Promise<PageContent> {
     // Asking the registry instead means an unshipped layout degrades to "not
     // migrated yet", which is the honest answer and a visible one.
     hasBlocks: blocks.some((block) => isRegisteredLayout(block.__typename)),
+    hero: {
+      eyebrow: heroOn ? h.eyebrow : "",
+      h1: heroOn ? h.h1 : "",
+      sub: heroOn ? h.sub : "",
+      // The only member that is not simply blanked: "draw the stars" is what
+      // every template does today, so that is what the gate has to mean.
+      showRatings: !heroOn || h.ratings,
+      // Never throws, unlike image() below. A button an editor has not typed
+      // is not a missing asset — the template still has its own, and "nothing"
+      // is a thing a hero can render.
+      cta: (i: number) => (heroOn ? (h.ctas[i] ?? null) : null),
+    },
     section: (sectionId: string) =>
       sections.find((s) => s.section_id === sectionId) ?? EMPTY_SECTION,
     image: (slot: string) => {

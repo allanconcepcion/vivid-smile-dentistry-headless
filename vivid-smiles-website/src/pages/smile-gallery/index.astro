@@ -12,7 +12,7 @@ import '../../styles/pages/smile-gallery.css';
 // on this page twice.
 import { getPageContent } from '../../lib/page-content';
 // Section copy is edited in WordPress (Pages -> this page -> Section copy).
-const { section, image, seo } = await getPageContent(Astro.url.pathname);
+const { hero, section, image, seo } = await getPageContent(Astro.url.pathname);
 
 
 /*
@@ -68,25 +68,25 @@ const lightboxSrcs = await Promise.all(
       <header class="hero" data-vs-reveal-batch>
         <div class="hero-inner">
           <div class="hero-copy">
-            <span class="eyebrow">Smile Gallery · Real Patients</span>
-            <h1 data-vs-reveal-lines>
+            {hero.eyebrow ? <span class="eyebrow">{hero.eyebrow}</span> : <span class="eyebrow">Smile Gallery · Real Patients</span>}
+            {hero.h1 ? <h1 data-vs-reveal-lines set:html={hero.h1} /> : <h1 data-vs-reveal-lines>
               Finished smiles, <em class="vs-italic-word">up close.</em>
-            </h1>
-            <p class="hero-sub">
+            </h1>}
+            {hero.sub ? <p class="hero-sub">{hero.sub}</p> : <p class="hero-sub">
               A working portfolio of the cosmetic and restorative work that leaves Dr. Bryce
               Richardson's chair. Every smile here belongs to a Vivid Smiles patient, photographed
               in our Parker office.
-            </p>
+            </p>}
             <div class="hero-actions">
-              <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button
+              <Button variant="light" href={hero.cta(0) ? hero.cta(0)!.href : bookNowHref} hoverLabel="Let's Talk">{hero.cta(0) ? hero.cta(0)!.label : "Book Online"}</Button
               >
-              <Button variant="ghost-light" href="#consult" hoverLabel="Get a Video"
-                >Free Virtual Consult</Button
+              <Button variant="ghost-light" href={hero.cta(1) ? hero.cta(1)!.href : "#consult"} hoverLabel="Get a Video"
+                >{hero.cta(1) ? hero.cta(1)!.label : "Free Virtual Consult"}</Button
               >
-              <div class="ratings">
+              {hero.showRatings && <div class="ratings">
                 <span class="stars" aria-hidden="true">★★★★★</span>
                 <span>5.0 · 300+ reviews</span>
-              </div>
+              </div>}
             </div>
           </div>
           <div class="hero-img" data-vs-reveal>

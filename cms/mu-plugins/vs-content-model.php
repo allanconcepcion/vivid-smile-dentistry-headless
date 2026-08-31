@@ -1505,16 +1505,30 @@ function register_field_groups(): void {
 							'name'         => 'ratings',
 							'type'         => 'true_false',
 							'ui'           => 1,
+							'default_value' => 1,
 							'instructions' => 'The five stars and Google review count under the buttons.',
-							// Nothing in this group declares a `default_value`, and that
-							// is deliberate. A group's sub-fields are read straight off
-							// the page, and ACF answers a field with no stored value
-							// with its default — so a default here is a value all 33
-							// pages would report having the moment this deploys, without
-							// anyone typing anything. Every one of them has to come back
-							// empty. (A switch is the one exception that cannot be
-							// avoided: ACF's own type default is off, which is the empty
-							// state anyway.)
+							// THE ONE SUB-FIELD THAT MUST DECLARE A DEFAULT, and the note
+							// that used to sit here had it backwards.
+							//
+							// Every other sub-field is text, and for those a default is a
+							// value all 33 pages would claim to have the moment this
+							// deploys, without anyone typing anything — so they have
+							// none, and each has to come back empty. That reasoning was
+							// then extended to this switch with the words "ACF's own type
+							// default is off, which is the empty state anyway". It is
+							// not. For this field the empty state is ON: 22 live pages
+							// render the review line today.
+							//
+							// Left at off, the first editor who typed ONLY a headline —
+							// the single most likely first action, and the whole point of
+							// wiring the hero — would have flipped the group live with
+							// `ratings` still reporting false, and the review line would
+							// have vanished from all 22. Measured before the fix: 22
+							// routes rendering `class="ratings"` became 0.
+							//
+							// A default of 1 makes "never touched" mean what the site
+							// already does, and it is self-healing: the switch shows ON
+							// in wp-admin, so the first save persists the truth.
 						],
 						block_image_field( 'field_vs_page_hero_image' ),
 						[

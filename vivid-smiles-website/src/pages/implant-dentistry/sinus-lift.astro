@@ -51,7 +51,7 @@ import { getPageContent, type TocLink } from '../../lib/page-content';
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Sinus Lift Procedure in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { blocks, hasBlocks, tocLinks, processSteps, faqs, section, image, seo } =
+const { blocks, hasBlocks, tocLinks, processSteps, faqs, hero, section, image, seo } =
   await getPageContent(Astro.url.pathname);
 
 
@@ -207,9 +207,9 @@ for (const block of blocks) {
       <header class="hero" data-vs-reveal-batch>
         <div class="wrap hero-inner">
           <div class="hero-copy">
-            <span class="eyebrow">Implant Dentistry · Parker, CO</span>
-            <h1 data-vs-reveal-lines>Sinus Lift Procedure <em>in Parker, Colorado</em></h1>
-            <p class="hero-sub">
+            {hero.eyebrow ? <span class="eyebrow">{hero.eyebrow}</span> : <span class="eyebrow">Implant Dentistry · Parker, CO</span>}
+            {hero.h1 ? <h1 data-vs-reveal-lines set:html={hero.h1} /> : <h1 data-vs-reveal-lines>Sinus Lift Procedure <em>in Parker, Colorado</em></h1>}
+            {hero.sub ? <p class="hero-sub">{hero.sub}</p> : <p class="hero-sub">
               A sinus lift (sinus augmentation) adds bone to the upper jaw, so <a
                 class="vs-link"
                 href="/implant-dentistry/single-tooth-dental-implants/">dental implants</a
@@ -217,17 +217,17 @@ for (const block of blocks) {
               and the sinus expands downward, leaving insufficient bone for a stable implant. Here is
               who needs a sinus lift, how the procedure works, and what recovery looks like at Vivid Smiles
               in Parker, CO.
-            </p>
+            </p>}
             <div class="hero-actions">
-              <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button
+              <Button variant="light" href={hero.cta(0) ? hero.cta(0)!.href : bookNowHref} hoverLabel="Let's Talk">{hero.cta(0) ? hero.cta(0)!.label : "Book Online"}</Button
               >
-              <Button variant="ghost-light" href="#consult" hoverLabel="Get a Video"
-                >Free Virtual Consult</Button
+              <Button variant="ghost-light" href={hero.cta(1) ? hero.cta(1)!.href : "#consult"} hoverLabel="Get a Video"
+                >{hero.cta(1) ? hero.cta(1)!.label : "Free Virtual Consult"}</Button
               >
-              <div class="ratings">
+              {hero.showRatings && <div class="ratings">
                 <span class="stars" aria-hidden="true">★★★★★</span>
                 <span>5.0 · 300+ reviews</span>
-              </div>
+              </div>}
             </div>
           </div>
           <div class="hero-img" data-vs-parallax data-parallax="-30">

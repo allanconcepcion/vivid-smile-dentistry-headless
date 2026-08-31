@@ -70,7 +70,7 @@ import PageBlocks from '../../blocks/PageBlocks.astro';
 // tocLinks, faqs are edited in WordPress (Pages -> General Dentistry in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { blocks, hasBlocks, tocLinks, faqs, section, image, seo } =
+const { hero, blocks, hasBlocks, tocLinks, faqs, section, image, seo } =
   await getPageContent(Astro.url.pathname);
 
 /**
@@ -263,25 +263,25 @@ for (const block of blocks) {
       <header class="hero" data-vs-reveal-batch>
         <div class="hero-inner">
           <div class="hero-copy">
-            <span class="eyebrow">General Dentistry · Parker, CO</span>
-            <h1 data-vs-reveal-lines>
+            {hero.eyebrow ? <span class="eyebrow">{hero.eyebrow}</span> : <span class="eyebrow">General Dentistry · Parker, CO</span>}
+            {hero.h1 ? <h1 data-vs-reveal-lines set:html={hero.h1} /> : <h1 data-vs-reveal-lines>
               Comprehensive general dentistry <em>for Parker, CO families.</em>
-            </h1>
-            <p class="hero-sub">
+            </h1>}
+            {hero.sub ? <p class="hero-sub">{hero.sub}</p> : <p class="hero-sub">
               Vivid Smiles Dentistry provides general dentistry in Parker, covering preventive care,
               same-day crowns, periodontal treatment, and emergency services all under one roof.
               What separates the practice is a dual-doctor model backed by diagnostic technology,
               including CBCT 3D imaging and in-house milling.
-            </p>
+            </p>}
             <div class="hero-actions">
-              <Button variant="sage" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button>
-              <Button variant="ghost" href="#consult" hoverLabel="Get a Video"
-                >Free Virtual Consult</Button
+              <Button variant="sage" href={hero.cta(0) ? hero.cta(0)!.href : bookNowHref} hoverLabel="Let's Talk">{hero.cta(0) ? hero.cta(0)!.label : "Book Online"}</Button>
+              <Button variant="ghost" href={hero.cta(1) ? hero.cta(1)!.href : "#consult"} hoverLabel="Get a Video"
+                >{hero.cta(1) ? hero.cta(1)!.label : "Free Virtual Consult"}</Button
               >
-              <div class="ratings">
+              {hero.showRatings && <div class="ratings">
                 <span class="stars" aria-hidden="true">★★★★★</span>
                 <span>5.0 · 300+ reviews</span>
-              </div>
+              </div>}
             </div>
           </div>
           <div class="hero-stack">

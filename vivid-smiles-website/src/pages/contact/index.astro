@@ -25,7 +25,7 @@ import "../../styles/pages/contact.css";
 import { getPageContent } from '../../lib/page-content';
 import PageBlocks from '../../blocks/PageBlocks.astro';
 // Section copy is edited in WordPress (Pages -> this page -> Section copy).
-const { blocks, hasBlocks, section, seo } = await getPageContent(Astro.url.pathname);
+const { hero, blocks, hasBlocks, section, seo } = await getPageContent(Astro.url.pathname);
 
 /**
  * THE MIGRATION SWITCH (docs/PAGE-BLOCKS.md 2.3) — documented here and nowhere
@@ -222,15 +222,15 @@ const contactOptions = [
     <header class="hero" id="contact-form">
       <div class="hero-inner">
         <div class="hero-copy" data-vs-reveal-batch>
-          <span class="eyebrow">Get in touch · Parker, CO</span>
-          <h1>We'd love to <em>meet you.</em></h1>
-          <p class="hero-sub">
+          {hero.eyebrow ? <span class="eyebrow">{hero.eyebrow}</span> : <span class="eyebrow">Get in touch · Parker, CO</span>}
+          {hero.h1 ? <h1 set:html={hero.h1} /> : <h1>We'd love to <em>meet you.</em></h1>}
+          {hero.sub ? <p class="hero-sub">{hero.sub}</p> : <p class="hero-sub">
             Send us a message in the form, or reach us another way — book online, call our
             front desk, or drop us an email. Every message lands on a real person.
-          </p>
+          </p>}
           <div class="hero-actions">
-            <Button variant="sage" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button>
-            <Button variant="ghost" href={phoneHref} hoverLabel="Tap to Dial">Call {phoneLabel}</Button>
+            <Button variant="sage" href={hero.cta(0) ? hero.cta(0)!.href : bookNowHref} hoverLabel="Let's Talk">{hero.cta(0) ? hero.cta(0)!.label : "Book Online"}</Button>
+            <Button variant="ghost" href={hero.cta(1) ? hero.cta(1)!.href : phoneHref} hoverLabel="Tap to Dial">{hero.cta(1) ? hero.cta(1)!.label : <>Call {phoneLabel}</>}</Button>
             <span class="reply-note">
               <span class="dot" aria-hidden="true"></span>
               <span>Replies within one business day</span>

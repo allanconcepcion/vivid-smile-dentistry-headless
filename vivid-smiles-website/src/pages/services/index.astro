@@ -19,7 +19,7 @@ import PageBlocks from '../../blocks/PageBlocks.astro';
 // faqs is edited in WordPress (Pages -> Services in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { blocks, hasBlocks, faqs, section, seo, image } = await getPageContent(Astro.url.pathname);
+const { hero, blocks, hasBlocks, faqs, section, seo, image } = await getPageContent(Astro.url.pathname);
 
 /**
  * THE MIGRATION SWITCH (docs/PAGE-BLOCKS.md 2.3), and the two bands it does
@@ -224,7 +224,7 @@ const allServices = await Promise.all(
         /* H1 lives off-screen because the page has no hero band — visible category
         headings stay as h2 so the SR/SEO outline still has a single H1. */
       }
-      <h1 class="visually-hidden">Services in Parker, CO — Vivid Smiles Dentistry</h1>
+      {hero.h1 ? <h1 class="visually-hidden" set:html={hero.h1} /> : <h1 class="visually-hidden">Services in Parker, CO — Vivid Smiles Dentistry</h1>}
 
       {hasBlocks ? <PageBlocks blocks={blocks} /> : <section class="section alt" id="cosmetic" data-vs-reveal-batch>
         <div class="wrap">

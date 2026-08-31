@@ -30,7 +30,7 @@ import PageBlocks from '../../blocks/PageBlocks.astro';
 // faqs is edited in WordPress (Pages -> Our Office in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { blocks, hasBlocks, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+const { hero, blocks, hasBlocks, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
 
 /**
  * THE MIGRATION SWITCH (docs/PAGE-BLOCKS.md 2.3), documented HERE and nowhere
@@ -168,22 +168,22 @@ const faqEntities: { q: string; a: string }[] = hasBlocks
       <div class="wrap hero-inner">
 
         <div class="hero-copy">
-          <span class="eyebrow">Our Office · Parker, CO</span>
-          <h1 data-vs-reveal-lines>
+          {hero.eyebrow ? <span class="eyebrow">{hero.eyebrow}</span> : <span class="eyebrow">Our Office · Parker, CO</span>}
+          {hero.h1 ? <h1 data-vs-reveal-lines set:html={hero.h1} /> : <h1 data-vs-reveal-lines>
             Step inside our <em>Parker office.</em>
-          </h1>
-          <p class="hero-sub">
+          </h1>}
+          {hero.sub ? <p class="hero-sub">{hero.sub}</p> : <p class="hero-sub">
             Our practice is on Cedar Gulch Parkway in Parker — a calm, modern interior
             designed to feel more like a wellness studio than a dental clinic, with
             free parking right out front and a ground-floor entrance.
-          </p>
+          </p>}
           <div class="hero-actions">
-            <Button variant="sage" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button>
-            <Button variant="ghost" href={directionsHref} hoverLabel="Open Map">Get Directions</Button>
-            <div class="ratings">
+            <Button variant="sage" href={hero.cta(0) ? hero.cta(0)!.href : bookNowHref} hoverLabel="Let's Talk">{hero.cta(0) ? hero.cta(0)!.label : "Book Online"}</Button>
+            <Button variant="ghost" href={hero.cta(1) ? hero.cta(1)!.href : directionsHref} hoverLabel="Open Map">{hero.cta(1) ? hero.cta(1)!.label : "Get Directions"}</Button>
+            {hero.showRatings && <div class="ratings">
               <span class="stars" aria-hidden="true">★★★★★</span>
               <span>5.0 · 300+ reviews</span>
-            </div>
+            </div>}
           </div>
         </div>
 

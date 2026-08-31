@@ -17,7 +17,7 @@ import PageBlocks from '../../blocks/PageBlocks.astro';
 // faqs is edited in WordPress (Pages -> Referral Program).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { blocks, hasBlocks, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+const { hero, blocks, hasBlocks, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
 
 /**
  * THE MIGRATION SWITCH (docs/PAGE-BLOCKS.md 2.3), documented here and nowhere
@@ -132,24 +132,24 @@ const description =
       <div class="wrap hero-inner">
 
         <div class="hero-copy">
-          <span class="eyebrow">Referral Program · Vivid Smiles</span>
-          <h1 data-vs-reveal-lines>
+          {hero.eyebrow ? <span class="eyebrow">{hero.eyebrow}</span> : <span class="eyebrow">Referral Program · Vivid Smiles</span>}
+          {hero.h1 ? <h1 data-vs-reveal-lines set:html={hero.h1} /> : <h1 data-vs-reveal-lines>
             Refer a friend, <em>share a smile.</em>
-          </h1>
-          <p class="hero-sub">
+          </h1>}
+          {hero.sub ? <p class="hero-sub">{hero.sub}</p> : <p class="hero-sub">
             The best compliment you can give us is a referral. When you share your
             positive experience at Vivid Smiles Dentistry, you're helping your
             friends and family receive the same exceptional care — and as a thank
             you, both you and your referral will earn a <b>$50 credit</b> toward
             your next dental visit.
-          </p>
+          </p>}
           <div class="hero-actions">
-            <Button variant="sage" href="#how-it-works" hoverLabel="See How">How It Works</Button>
-            <Button variant="ghost" href={phoneHref} hoverLabel="Tap to Dial">Call {phoneLabel}</Button>
-            <div class="ratings">
+            <Button variant="sage" href={hero.cta(0) ? hero.cta(0)!.href : "#how-it-works"} hoverLabel="See How">{hero.cta(0) ? hero.cta(0)!.label : "How It Works"}</Button>
+            <Button variant="ghost" href={hero.cta(1) ? hero.cta(1)!.href : phoneHref} hoverLabel="Tap to Dial">{hero.cta(1) ? hero.cta(1)!.label : <>Call {phoneLabel}</>}</Button>
+            {hero.showRatings && <div class="ratings">
               <span class="stars" aria-hidden="true">★★★★★</span>
               <span>5.0 · 300+ reviews</span>
-            </div>
+            </div>}
           </div>
         </div>
 

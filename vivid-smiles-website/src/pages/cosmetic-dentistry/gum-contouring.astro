@@ -88,7 +88,7 @@ import { getPageContent, type TocLink } from '../../lib/page-content';
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Laser Gum Contouring in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { blocks, hasBlocks, tocLinks, processSteps, faqs, section, image, seo } =
+const { hero, blocks, hasBlocks, tocLinks, processSteps, faqs, section, image, seo } =
   await getPageContent(Astro.url.pathname);
 
 
@@ -188,22 +188,22 @@ for (const block of blocks) {
     <header class="hero" data-vs-reveal-batch>
       <div class="wrap hero-inner">
         <div class="hero-copy">
-          <span class="eyebrow">Cosmetic Dentistry · Parker, CO</span>
-          <h1 data-vs-reveal-lines>Laser Gum Contouring <em>in Parker, CO</em></h1>
-          <p class="hero-sub">
+          {hero.eyebrow ? <span class="eyebrow">{hero.eyebrow}</span> : <span class="eyebrow">Cosmetic Dentistry · Parker, CO</span>}
+          {hero.h1 ? <h1 data-vs-reveal-lines set:html={hero.h1} /> : <h1 data-vs-reveal-lines>Laser Gum Contouring <em>in Parker, CO</em></h1>}
+          {hero.sub ? <p class="hero-sub">{hero.sub}</p> : <p class="hero-sub">
             Gum contouring is a cosmetic dental procedure that reshapes excess or uneven gum tissue to reveal more
             of the natural tooth structure underneath. Laser technology makes the process precise and minimally
             invasive, with most patients experiencing little to no downtime. Here is who benefits, what the
             procedure involves, and how Dr. Bryce Richardson at Vivid Smiles Dentistry approaches gum reshaping
             as part of a complete smile design plan.
-          </p>
+          </p>}
           <div class="hero-actions">
-            <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button>
-            <Button variant="ghost-light" href="#consult" hoverLabel="Get a Video">Free Virtual Consult</Button>
-            <div class="ratings">
+            <Button variant="light" href={hero.cta(0) ? hero.cta(0)!.href : bookNowHref} hoverLabel="Let's Talk">{hero.cta(0) ? hero.cta(0)!.label : "Book Online"}</Button>
+            <Button variant="ghost-light" href={hero.cta(1) ? hero.cta(1)!.href : "#consult"} hoverLabel="Get a Video">{hero.cta(1) ? hero.cta(1)!.label : "Free Virtual Consult"}</Button>
+            {hero.showRatings && <div class="ratings">
               <span class="stars" aria-hidden="true">★★★★★</span>
               <span>5.0 · 300+ reviews</span>
-            </div>
+            </div>}
           </div>
         </div>
         <div class="hero-img" data-vs-parallax data-parallax="-30">

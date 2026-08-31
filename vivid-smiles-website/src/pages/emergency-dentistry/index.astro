@@ -89,7 +89,7 @@ import PageBlocks from '../../blocks/PageBlocks.astro';
 // tocLinks is edited in WordPress (Pages -> Emergency Dental Care in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { blocks, hasBlocks, tocLinks, section, image, seo } =
+const { hero, blocks, hasBlocks, tocLinks, section, image, seo } =
   await getPageContent(Astro.url.pathname);
 
 /**
@@ -213,6 +213,7 @@ const faqs = [
 // Hero lede — also used (HTML-stripped) as the JSON-LD MedicalProcedure
 // description.
 const heroLede =
+  hero.sub ||
   "Dental emergencies don't follow business hours, and knowing where to go in Parker can be the difference between saving a tooth and losing one. Vivid Smiles Dentistry offers same-day emergency appointments, 3D diagnostic imaging, and in-house surgical expertise to resolve most cases on the first visit. The following is how to recognize a dental emergency, what to do before you arrive, and why Vivid Smiles is equipped to handle it.";
 
 /**
@@ -356,16 +357,16 @@ const blockFaqItems: Array<{ q: string; a: string }> = hasBlocks
     <header class="hero" data-vs-reveal-batch>
       <div class="hero-inner">
         <div class="hero-copy">
-          <span class="eyebrow">Emergency Dentistry · Parker, CO</span>
-          <h1 data-vs-reveal-lines>Emergency dental care <em>in Parker, Colorado.</em></h1>
+          {hero.eyebrow ? <span class="eyebrow">{hero.eyebrow}</span> : <span class="eyebrow">Emergency Dentistry · Parker, CO</span>}
+          {hero.h1 ? <h1 data-vs-reveal-lines set:html={hero.h1} /> : <h1 data-vs-reveal-lines>Emergency dental care <em>in Parker, Colorado.</em></h1>}
           <p class="hero-sub">{heroLede}</p>
           <div class="hero-actions">
-            <Button variant="sage" href={phoneHref} hoverLabel="Tap to Dial">Call {phoneLabel}</Button>
-            <Button variant="ghost" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button>
-            <div class="ratings">
+            <Button variant="sage" href={hero.cta(0) ? hero.cta(0)!.href : phoneHref} hoverLabel="Tap to Dial">{hero.cta(0) ? hero.cta(0)!.label : <>Call {phoneLabel}</>}</Button>
+            <Button variant="ghost" href={hero.cta(1) ? hero.cta(1)!.href : bookNowHref} hoverLabel="Let's Talk">{hero.cta(1) ? hero.cta(1)!.label : "Book Online"}</Button>
+            {hero.showRatings && <div class="ratings">
               <span class="stars" aria-hidden="true">★★★★★</span>
               <span>5.0 · 300+ reviews</span>
-            </div>
+            </div>}
           </div>
         </div>
         <div class="hero-stack">

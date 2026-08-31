@@ -16,7 +16,7 @@ import PageBlocks from '../../blocks/PageBlocks.astro';
 // faqs is edited in WordPress (Pages -> New Patients in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { blocks, hasBlocks, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+const { hero, blocks, hasBlocks, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
 
 /**
  * THE MIGRATION SWITCH (docs/PAGE-BLOCKS.md 2.3), documented here and nowhere
@@ -199,22 +199,22 @@ const description =
       <div class="wrap hero-inner">
 
         <div class="hero-copy">
-          <span class="eyebrow">New Patients · Welcome to Vivid Smiles</span>
-          <h1 data-vs-reveal-lines>
+          {hero.eyebrow ? <span class="eyebrow">{hero.eyebrow}</span> : <span class="eyebrow">New Patients · Welcome to Vivid Smiles</span>}
+          {hero.h1 ? <h1 data-vs-reveal-lines set:html={hero.h1} /> : <h1 data-vs-reveal-lines>
             Your first visit, <em class="vs-italic-word">thoughtfully planned.</em>
-          </h1>
-          <p class="hero-sub">
+          </h1>}
+          {hero.sub ? <p class="hero-sub">{hero.sub}</p> : <p class="hero-sub">
             We take new patients seriously — and unhurriedly. Plan on a thorough,
             conversation-first appointment at our Parker, CO office, tailored to where
             your smile is today and where you'd like it to go.
-          </p>
+          </p>}
           <div class="hero-actions">
-            <Button variant="sage" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button>
-            <Button variant="ghost" href={phoneHref} hoverLabel="Tap to Dial">Call {phoneLabel}</Button>
-            <div class="ratings">
+            <Button variant="sage" href={hero.cta(0) ? hero.cta(0)!.href : bookNowHref} hoverLabel="Let's Talk">{hero.cta(0) ? hero.cta(0)!.label : "Book Online"}</Button>
+            <Button variant="ghost" href={hero.cta(1) ? hero.cta(1)!.href : phoneHref} hoverLabel="Tap to Dial">{hero.cta(1) ? hero.cta(1)!.label : <>Call {phoneLabel}</>}</Button>
+            {hero.showRatings && <div class="ratings">
               <span class="stars" aria-hidden="true">★★★★★</span>
               <span>5.0 · 300+ reviews</span>
-            </div>
+            </div>}
           </div>
         </div>
 
