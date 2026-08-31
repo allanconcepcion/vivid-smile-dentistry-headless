@@ -23,9 +23,63 @@ import {
 import { officeHours, openingHoursSpecification, hoursCopyShort } from "../../data/hours";
 import "../../styles/pages/contact.css";
 import { getPageContent } from '../../lib/page-content';
+import PageBlocks from '../../blocks/PageBlocks.astro';
 // Section copy is edited in WordPress (Pages -> this page -> Section copy).
-const { section, seo } = await getPageContent(Astro.url.pathname);
+const { hero, blocks, hasBlocks, section, seo } = await getPageContent(Astro.url.pathname);
 
+/**
+ * THE MIGRATION SWITCH (docs/PAGE-BLOCKS.md 2.3) — documented here and nowhere
+ * in the markup below.
+ *
+ * `hasBlocks` means "this build can draw this page from its blocks", not
+ * "WordPress sent rows" (src/lib/page-content.ts). When it is true PageBlocks
+ * draws the block run at the position `#visit` used to start; when it is false
+ * — every build until this route is back-filled, and again the moment an editor
+ * empties the field — every band renders exactly as it always has.
+ *
+ * NO ASTRO COMMENT EXPRESSIONS ON THE GUARDS, and the existing `{/* … *\/}`
+ * comments above each band are left exactly where they were. Astro preserves
+ * whitespace between expressions, so moving or adding one leaves newline-and-
+ * indent TEXT NODES that survive into the built HTML on BOTH branches; that
+ * mistake has already put stray bytes into a live page on this project. Each
+ * guard is therefore written flush where its `<section>` sat — `hasBlocks ? …
+ * : <section` on the opening line, `</section>}` on the closing one.
+ *
+ * TWO BANDS ARE BLOCKS, and each has exactly one row in
+ * cms/import/routes/contact.json:
+ *
+ *   #visit -> map_visit  (charcoal; contact.css:162)
+ *   #faq   -> faq        (paper;    contact.css:160 + global.css:25)
+ *
+ * EVERYTHING ELSE IS UNGUARDED, in two different senses.
+ *
+ *   `.crumbs`, the `.hero` (which carries the on-page Typeform, id
+ *   `#contact-form`) and <FinalBand> are CHROME — never blocks (spec 7). The
+ *   Typeform is inside the hero rather than a band of its own, which is why
+ *   this page needs no form `code_section` at all.
+ *
+ *   `#reach` is page copy no registered layout can express. Its four
+ *   `.contact-card`s carry FontAwesome icons and an <ArrowBadge>, and three of
+ *   the four card TITLES are site data (`phoneLabel`, `emailAddress`) — storing
+ *   those in a field is the exact thing the href policy forbids, because it
+ *   gives one page its own copy of the practice's phone number. So the band
+ *   stays template markup and keeps reading `sections.reach` LIVE: nothing
+ *   about it freezes. That is ORDER-SAFE because it LEADS — it sits above the
+ *   whole block run, so PageBlocks starting at `#visit` reproduces DOM order
+ *   exactly. The mirror-image hazard is the LocalTrust fault: a band left out
+ *   of the list that should have been in it comes out at the bottom of the
+ *   page.
+ *
+ * A band guarded with no row VANISHES on backfill; a band with a row and no
+ * guard renders TWICE at the bottom carrying a duplicate id. Both have happened
+ * on this project. There is no third outcome.
+ *
+ * NO "ON THIS PAGE" RAIL ON THIS ROUTE — there is no `.toc` nav in the markup
+ * below and `pageFields.tocLinks` comes back null for /contact/ (verified
+ * against the endpoint, 2026-08-29). So there is deliberately no
+ * `derivedTocLinks` loop here: a loop feeding nothing is a loop the next reader
+ * has to disprove.
+ */
 
 // Google Maps embed — `output=embed` avoids needing an API key.
 const mapEmbedSrc = `https://maps.google.com/maps?q=${encodeURIComponent(addressLine)}&output=embed`;
@@ -57,6 +111,57 @@ const faqs = [
     a: 'A photo ID, your insurance card if you have one, and a list of any medications you take. <a href="/new-patients/">Our new-patients page</a> has the full first-visit guide, including what to expect during the consultation.',
   },
 ];
+
+/**
+ * THE FAQPage JSON-LD HAS TO FOLLOW THE BLOCK, not the array above.
+ *
+ * `faqs` is template copy on this page — /contact/ has no `faqs` repeater in
+ * WordPress (endpoint returns null, 2026-08-29), so the six questions are
+ * transcribed into cms/import/routes/contact.json as literal `items` rows. The
+ * day this route is back-filled those rows become the editable source of truth
+ * and this array stops being rendered. Left pointing at `faqs`, the structured
+ * data would keep describing the pre-migration content the first time anyone
+ * edits a question in wp-admin — silently, because schema is invisible on the
+ * page. FaqBlock.astro's own header says the same thing: structured data lives
+ * on the page, so it cannot move into the band.
+ *
+ * Read defensively and over EVERY faq block rather than the first: `PageBlock`
+ * is deliberately open (src/lib/page-content.ts:57) and an editor can add a
+ * second accordion.
+ */
+/** One stored `items` row, read defensively off an open block. */
+type FaqSchemaRow = { question?: string | null; answer?: string | null };
+/**
+ * Annotated rather than inferred, for the same reason general-dentistry's
+ * `derivedTocLinks` is: the ternary below would otherwise produce a UNION of
+ * two array types, and TypeScript refuses `.map()` on one of those.
+ */
+type FaqSchemaEntry = { q: string; a: string };
+
+const faqsFromBlocks = blocks
+  .filter((b) => b.__typename === 'PageFieldsBlocksFaqLayout')
+  .flatMap((b) => {
+    const rows = (b as { items?: unknown }).items;
+    return Array.isArray(rows) ? (rows as FaqSchemaRow[]) : [];
+  })
+  .map((r) => ({ q: r?.question ?? '', a: r?.answer ?? '' }));
+
+/**
+ * `{phone}` / `{phone_href}` are filled here because a stored answer carries
+ * the TOKEN, not the number — a `tel:` URL in a field is a phone number with a
+ * second home, and answer 5 of this list links the practice's number inline.
+ * src/blocks/site-tokens.ts owns this substitution for the block components;
+ * this page does not import it because that file is created in a sibling commit
+ * and a static import of a file that does not exist yet fails `astro check` and
+ * every concurrent build. Switch this to `fillSiteTokens` once it lands —
+ * recorded as a known gap on this route in cms/import/block-map.json.
+ */
+const faqSchemaSource: FaqSchemaEntry[] = hasBlocks
+  ? faqsFromBlocks.map((f) => ({
+      q: f.q,
+      a: f.a.split('{phone_href}').join(phoneHref).split('{phone}').join(phoneLabel),
+    }))
+  : faqs;
 
 const contactOptions = [
   {
@@ -117,15 +222,15 @@ const contactOptions = [
     <header class="hero" id="contact-form">
       <div class="hero-inner">
         <div class="hero-copy" data-vs-reveal-batch>
-          <span class="eyebrow">Get in touch · Parker, CO</span>
-          <h1>We'd love to <em>meet you.</em></h1>
-          <p class="hero-sub">
+          {hero.eyebrow ? <span class="eyebrow">{hero.eyebrow}</span> : <span class="eyebrow">Get in touch · Parker, CO</span>}
+          {hero.h1 ? <h1 set:html={hero.h1} /> : <h1>We'd love to <em>meet you.</em></h1>}
+          {hero.sub ? <p class="hero-sub">{hero.sub}</p> : <p class="hero-sub">
             Send us a message in the form, or reach us another way — book online, call our
             front desk, or drop us an email. Every message lands on a real person.
-          </p>
+          </p>}
           <div class="hero-actions">
-            <Button variant="sage" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button>
-            <Button variant="ghost" href={phoneHref} hoverLabel="Tap to Dial">Call {phoneLabel}</Button>
+            <Button variant="sage" href={hero.cta(0) ? hero.cta(0)!.href : bookNowHref} hoverLabel="Let's Talk">{hero.cta(0) ? hero.cta(0)!.label : "Book Online"}</Button>
+            <Button variant="ghost" href={hero.cta(1) ? hero.cta(1)!.href : phoneHref} hoverLabel="Tap to Dial">{hero.cta(1) ? hero.cta(1)!.label : <>Call {phoneLabel}</>}</Button>
             <span class="reply-note">
               <span class="dot" aria-hidden="true"></span>
               <span>Replies within one business day</span>
@@ -180,7 +285,7 @@ const contactOptions = [
     {/* ---------- LOCATION + HOURS (charcoal-green) ----------
          Facelift: full-bleed `--vs-sage` → `--vs-charcoal-green`
          via the canonical `.section.alt` band class. Mirrors our-office #visit. */}
-    <section class="section alt" id="visit" aria-label="Visit our practice">
+    {hasBlocks ? <PageBlocks blocks={blocks} /> : <section class="section alt" id="visit" aria-label="Visit our practice">
       <div class="wrap">
         <div class="location-grid">
           <div class="location-copy" data-vs-reveal-batch>
@@ -249,10 +354,10 @@ const contactOptions = [
           </div>
         </div>
       </div>
-    </section>
+    </section>}
 
     {/* ---------- FAQ (paper) — native details/summary, zero JS ---------- */}
-    <section class="section" id="faq" data-vs-reveal-batch>
+    {hasBlocks ? null : <section class="section" id="faq" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow">{section("faq").eyebrow}</span>
@@ -269,7 +374,7 @@ const contactOptions = [
           ))}
         </div>
       </div>
-    </section>
+    </section>}
 
     {/* ---------- FINAL BAND (paper) ----------
          Dropped the cream-warm background; paper is the component
@@ -319,7 +424,7 @@ const contactOptions = [
     <script type="application/ld+json" is:inline set:html={JSON.stringify({
       "@context": "https://schema.org",
       "@type": "FAQPage",
-      "mainEntity": faqs.map((f) => ({
+      "mainEntity": faqSchemaSource.map((f) => ({
         "@type": "Question",
         "name": f.q,
         "acceptedAnswer": {

@@ -12,10 +12,87 @@ import { phoneHref, phoneLabel, bookNowHref } from "../../data/contact";
 import "../../styles/pages/new-patients.css";
 
 import { getPageContent } from '../../lib/page-content';
+import PageBlocks from '../../blocks/PageBlocks.astro';
 // faqs is edited in WordPress (Pages -> New Patients in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+const { hero, closing, blocks, hasBlocks, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+
+/**
+ * THE MIGRATION SWITCH (docs/PAGE-BLOCKS.md 2.3), documented here and nowhere
+ * in the markup below — deliberately.
+ *
+ * `hasBlocks` means "this build can draw this page from its blocks", not
+ * "WordPress sent rows" (src/lib/page-content.ts:244-253). When it is true,
+ * PageBlocks draws the four bands in the order an editor arranged them, at the
+ * position #first-visit used to start; when it is false — every build until
+ * this route is back-filled, and again the moment an editor empties the field —
+ * every band renders exactly as it always has.
+ *
+ * WHY THE GUARDS ARE WRITTEN FLUSH. Astro preserves the whitespace between two
+ * expressions as a text node, and compressHTML collapses it into the built
+ * page. A guard broken onto its own line therefore adds bytes to BOTH branches,
+ * and the else-branch of this file is verified byte-for-byte against the
+ * pre-migration build. So every guard below sits exactly where its `<section>`
+ * sat: `hasBlocks ? … : <section` on the opening line, `</section>}` on the
+ * closing one, neither on a line of its own. The four `{/* … *\/}` banner
+ * comments already in this file are untouched for the same reason — they are
+ * expressions too, and their surrounding text nodes are part of the baseline.
+ *
+ * WHICH BANDS ARE GUARDED, and why the rest are not. Four bands are blocks and
+ * each has exactly one row in cms/import/routes/new-patients.json:
+ * #first-visit, #services, #reviews (a code_section), #faq. Everything else
+ * stays unguarded, in two different senses:
+ *
+ *   `.crumbs`, `.hero` and <VirtualConsult> are CHROME — never blocks
+ *   (spec 7: "Not a band, even though it is a band").
+ *
+ *   `#membership` (.np-mship) is page copy no registered layout can express:
+ *   a two-column gradient plate whose right-hand column is a single Button.
+ *   card_grid draws a grid of cards, media_split needs a picture, and
+ *   stat_callout's plate has no button. Guarding it with no row would DELETE it
+ *   from a live page, so it stays unguarded — and that is ORDER-SAFE only
+ *   because it is the LAST content band: it follows #faq, the last block, so
+ *   the block run ending there leaves it exactly where it was. Add a block
+ *   after it and this becomes the LocalTrust fault (a band left outside the
+ *   switch that came out at the bottom of the page). Recorded as a known gap on
+ *   this route in the block map.
+ *
+ * A band guarded with no row VANISHES on backfill; a band with a row and no
+ * guard renders TWICE and lands at the bottom carrying a duplicate id. Both
+ * have happened on this project. There is no third outcome.
+ *
+ * NO RAIL ON THIS PAGE, so no derived-TOC loop. The template has no `.toc` nav
+ * and pageFields.tocLinks is null for /new-patients/ on the live endpoint, so
+ * `nav_label` resolves blank on all four rows (the map's own default) and there
+ * is nothing for a derivedTocLinks list to feed. Carrying the loop anyway would
+ * be dead code that reads as a rail this page does not have.
+ */
+
+/**
+ * FAQPage structured data follows the RENDERED band, not the repeater.
+ *
+ * `faqs` is what the template's own #faq band reads, and the backfill
+ * deliberately leaves that repeater intact (cms/import/backfill-blocks.php:14-21)
+ * so that "empty `blocks` in wp-admin" stays a complete rollback. That is
+ * exactly why this cannot keep reading `faqs` once the page renders from
+ * blocks: an editor who adds, removes or reorders a question inside the faq
+ * BLOCK changes the visible accordion and leaves the old repeater — and
+ * therefore this JSON-LD — describing the pre-migration content. Structured
+ * data that disagrees with the page is a rich-result problem, not a cosmetic
+ * drift, and it would fail silently because nothing renders it.
+ *
+ * Both branches produce the same shape, so the `.map()` below is unchanged and
+ * the un-migrated build emits byte-identical JSON.
+ */
+type FaqBlockItem = { question?: string | null; answer?: string | null };
+
+const faqEntries = hasBlocks
+  ? blocks
+      .filter((b) => b.__typename === "PageFieldsBlocksFaqLayout")
+      .flatMap((b) => (Array.isArray(b.items) ? (b.items as FaqBlockItem[]) : []))
+      .map((i) => ({ q: i.question ?? "", a: i.answer ?? "" }))
+  : faqs.map((f) => ({ q: f.q, a: f.a }));
 
 
 
@@ -122,22 +199,22 @@ const description =
       <div class="wrap hero-inner">
 
         <div class="hero-copy">
-          <span class="eyebrow">New Patients · Welcome to Vivid Smiles</span>
-          <h1 data-vs-reveal-lines>
+          {hero.eyebrow ? <span class="eyebrow">{hero.eyebrow}</span> : <span class="eyebrow">New Patients · Welcome to Vivid Smiles</span>}
+          {hero.h1 ? <h1 data-vs-reveal-lines set:html={hero.h1} /> : <h1 data-vs-reveal-lines>
             Your first visit, <em class="vs-italic-word">thoughtfully planned.</em>
-          </h1>
-          <p class="hero-sub">
+          </h1>}
+          {hero.sub ? <p class="hero-sub">{hero.sub}</p> : <p class="hero-sub">
             We take new patients seriously — and unhurriedly. Plan on a thorough,
             conversation-first appointment at our Parker, CO office, tailored to where
             your smile is today and where you'd like it to go.
-          </p>
+          </p>}
           <div class="hero-actions">
-            <Button variant="sage" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button>
-            <Button variant="ghost" href={phoneHref} hoverLabel="Tap to Dial">Call {phoneLabel}</Button>
-            <div class="ratings">
+            <Button variant="sage" href={hero.cta(0) ? hero.cta(0)!.href : bookNowHref} hoverLabel="Let's Talk">{hero.cta(0) ? hero.cta(0)!.label : "Book Online"}</Button>
+            <Button variant="ghost" href={hero.cta(1) ? hero.cta(1)!.href : phoneHref} hoverLabel="Tap to Dial">{hero.cta(1) ? hero.cta(1)!.label : <>Call {phoneLabel}</>}</Button>
+            {hero.showRatings && <div class="ratings">
               <span class="stars" aria-hidden="true">★★★★★</span>
               <span>5.0 · 300+ reviews</span>
-            </div>
+            </div>}
           </div>
         </div>
 
@@ -154,7 +231,7 @@ const description =
     </header>
 
     {/* ---------- WHAT TO EXPECT — sage (dark) — .process-card grid ---------- */}
-    <section class="section dark" id="first-visit" data-vs-reveal-batch>
+    {hasBlocks ? <PageBlocks blocks={blocks} /> : <section class="section dark" id="first-visit" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head center">
           <span class="eyebrow light">What to Expect</span>
@@ -173,10 +250,10 @@ const description =
           ))}
         </div>
       </div>
-    </section>
+    </section>}
 
     {/* ---------- SERVICES — cream — .svc-card.compact grid ---------- */}
-    <section class="section alt" id="services" data-vs-reveal-batch>
+    {hasBlocks ? null : <section class="section alt" id="services" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head">
           <span class="eyebrow">{section("services").eyebrow}</span>
@@ -207,11 +284,11 @@ const description =
           ))}
         </div>
       </div>
-    </section>
+    </section>}
 
     {/* ---------- TESTIMONIALS — paper — <ReviewMarquee> from collection ----------
          Same shared component that powers the testimonial bands on home + about. */}
-    <section class="section" id="reviews" data-vs-reveal-batch>
+    {hasBlocks ? null : <section class="section" id="reviews" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head center">
           <span class="eyebrow">{section("reviews").eyebrow}</span>
@@ -227,10 +304,10 @@ const description =
           <Button variant="ghost" href="/patient-testimonials/" hoverLabel="See All">Read all reviews</Button>
         </div>
       </div>
-    </section>
+    </section>}
 
     {/* ---------- FAQ — cream — established .faq-list native details/summary ---------- */}
-    <section class="section alt" id="faq" data-vs-reveal-batch>
+    {hasBlocks ? null : <section class="section alt" id="faq" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head center">
           <span class="eyebrow">{section("faq").eyebrow}</span>
@@ -246,7 +323,7 @@ const description =
           ))}
         </div>
       </div>
-    </section>
+    </section>}
 
     {/* ---------- MEMBERSHIP CROSS-LINK — paper — bespoke compact card ---------- */}
     <section class="section" id="membership" data-vs-reveal-batch>
@@ -263,12 +340,12 @@ const description =
     </section>
 
     {/* ---------- CLOSING CTA — uses <VirtualConsult>, same as service pages ---------- */}
-    <VirtualConsult id="consult" eyebrow="Ready when you are">
-      <Fragment slot="headline">Let's get you <em>scheduled.</em></Fragment>
-      <Fragment slot="body">
+    <VirtualConsult id="consult" eyebrow={closing.consultEyebrow || "Ready when you are"}>
+      <Fragment slot="headline">{closing.consultHeadline ? <Fragment set:html={closing.consultHeadline} /> : <>Let's get you <em>scheduled.</em></>}</Fragment>
+      <Fragment slot="body">{closing.consultBody ? closing.consultBody : <>
         Book online, give us a call, or send a quick virtual consult with a photo or
         two — whatever's easiest. We'll take it from there.
-      </Fragment>
+      </>}</Fragment>
     </VirtualConsult>
 
     </main>
@@ -286,7 +363,7 @@ const description =
     <script type="application/ld+json" is:inline set:html={JSON.stringify({
       "@context": "https://schema.org",
       "@type": "FAQPage",
-      "mainEntity": faqs.map((f) => ({
+      "mainEntity": faqEntries.map((f) => ({
         "@type": "Question",
         "name": f.q,
         "acceptedAnswer": { "@type": "Answer", "text": f.a.replace(/<[^>]+>/g, "") },

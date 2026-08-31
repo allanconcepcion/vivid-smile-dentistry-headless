@@ -15,10 +15,76 @@ import '../../styles/pages/services.css';
 
 
 import { getPageContent, schemaImageUrl } from '../../lib/page-content';
+import PageBlocks from '../../blocks/PageBlocks.astro';
 // faqs is edited in WordPress (Pages -> Services in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { faqs, section, seo, image } = await getPageContent(Astro.url.pathname);
+const { hero, closing, blocks, hasBlocks, faqs, section, seo, image } = await getPageContent(Astro.url.pathname);
+
+/**
+ * THE MIGRATION SWITCH (docs/PAGE-BLOCKS.md 2.3), and the two bands it does
+ * NOT cover.
+ *
+ * `hasBlocks` means "this build can draw this page from its blocks" — not
+ * "WordPress sent rows" (src/lib/page-content.ts). When it is true PageBlocks
+ * draws the block run where `#cosmetic` starts; when it is false — every build
+ * until the backfill runs, and again the moment an editor empties the field —
+ * every band below renders exactly as it always has.
+ *
+ * THREE OF THE FIVE CONTENT BANDS MOVE: #cosmetic, #implants and #everyday are
+ * all `service_cards`. #process and #faq DELIBERATELY DO NOT, and they are left
+ * unguarded rather than guarded-with-no-row, because a guarded band with no row
+ * in cms/import/routes/services.json vanishes on backfill.
+ *
+ * WHY THOSE TWO STAY, and why staying is safe:
+ *
+ *   #process cannot be drawn by any registered layout today. The band is
+ *   ProcessStepGrid + ProcessStep (src/components/ProcessStep.astro) — a
+ *   `.vs-process-card` > `.vs-process-grid` > `.vs-pstep` shape whose step
+ *   prints num, TAGLINE, title, body, LABEL in that order. The `process_steps`
+ *   layout is the shape this band would have to use, and ProcessStepsBlock.astro
+ *   draws only the `grid` shape (`.process-grid` > `.process-card`, its own
+ *   header says so at :47-52 and :94): its `divided` branch does not exist, it
+ *   has no `tagline` prop (the sub-field IS deployed and IS queried —
+ *   manifest.ts:442 selects `steps { tag num tagline title body }` — the
+ *   component never reads it), and it emits `.step-tag` BEFORE the numeral
+ *   where this band emits its label last. Migrating it would drop three
+ *   taglines ("Listen first.", "Calibrated to you.", "Quiet, careful
+ *   delivery.") and reorder three labels, which is exactly the word-level loss
+ *   this phase is measured for. So the band stays in the template until
+ *   ProcessStepsBlock grows the divided shape.
+ *
+ *   #faq COULD move — the `faq` layout is deployed and FaqBlock draws this
+ *   exact list. It stays anyway because ORDER, not capability, decides here.
+ *   An unguarded band renders at its literal position in this file, which is
+ *   after the whole block run. That is only harmless while the un-migrated
+ *   bands are a contiguous TAIL. #process is band 4 and #faq is band 5, so
+ *   holding both back keeps the page in its original order; migrating #faq
+ *   alone would put it above #process and move a live band — the same failure
+ *   that put LocalTrust at the bottom of clear-aligners (block-map.json, that
+ *   route's notes). #faq moves in the same change that closes #process, not
+ *   before it.
+ *
+ * NO "ON THIS PAGE" RAIL ON THIS ROUTE. The other three hubs derive one from
+ * the blocks; this page has never had one — there is no `.toc` nav in the
+ * markup below, and `pageFields.tocLinks` comes back null from the endpoint for
+ * /services/. So there is no derivedTocLinks loop here: a loop feeding nothing
+ * is a loop the next reader has to disprove.
+ *
+ * WHAT services.css:121 DOES, AND WHY THE BLOCK RUN KEEPS DOING IT.
+ * `.services main > .section:first-of-type { padding-top: 56px }` is POSITIONAL
+ * — it trims the first <section> child of <main> from the 110px every other
+ * band gets (services.css:117), because this page has no hero and band one sits
+ * directly under the breadcrumb. PageBlocks emits each block's <section> as a
+ * direct child of <main> with no wrapper of its own (PageBlocks.astro:18-21),
+ * so the selector still matches, and it still matches the SAME element:
+ * `#cosmetic` is row 1 of the route file and the run is mounted at `#cosmetic`'s
+ * position. It also still WINS: the rule is (0,3,1), while the padding it has
+ * to beat is ServiceCardsBlock's own scoped `.section` (:769-773), which Astro
+ * compiles to `.section[data-astro-cid-…]` at (0,2,0). Both facts have to hold
+ * — mounting the run lower, or listing a different block first, would move the
+ * 56px onto a band that has 110px today.
+ */
 
 
 
@@ -158,9 +224,9 @@ const allServices = await Promise.all(
         /* H1 lives off-screen because the page has no hero band — visible category
         headings stay as h2 so the SR/SEO outline still has a single H1. */
       }
-      <h1 class="visually-hidden">Services in Parker, CO — Vivid Smiles Dentistry</h1>
+      {hero.h1 ? <h1 class="visually-hidden" set:html={hero.h1} /> : <h1 class="visually-hidden">Services in Parker, CO — Vivid Smiles Dentistry</h1>}
 
-      <section class="section alt" id="cosmetic" data-vs-reveal-batch>
+      {hasBlocks ? <PageBlocks blocks={blocks} /> : <section class="section alt" id="cosmetic" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("cosmetic").eyebrow}</span>
@@ -202,9 +268,9 @@ const allServices = await Promise.all(
             }
           </div>
         </div>
-      </section>
+      </section>}
 
-      <section class="section dark" id="implants" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section dark" id="implants" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow light">Implant Dentistry · Yomi-Certified</span>
@@ -247,9 +313,9 @@ const allServices = await Promise.all(
             }
           </div>
         </div>
-      </section>
+      </section>}
 
-      <section class="section" id="everyday" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section" id="everyday" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("everyday").eyebrow}</span>
@@ -283,7 +349,7 @@ const allServices = await Promise.all(
             }
           </div>
         </div>
-      </section>
+      </section>}
 
       <section class="section alt" id="process" data-vs-reveal-batch>
         <div class="wrap">
@@ -366,13 +432,13 @@ const allServices = await Promise.all(
         /* VirtualConsult mounts id="virtualConsult" — keeps the global footer
         "Free Virtual Consult" link resolving here. */
       }
-      <VirtualConsult eyebrow="Free virtual consultation">
-        <Fragment slot="headline">Free virtual <em>consultation.</em></Fragment>
-        <Fragment slot="body">
+      <VirtualConsult eyebrow={closing.consultEyebrow || "Free virtual consultation"}>
+        <Fragment slot="headline">{closing.consultHeadline ? <Fragment set:html={closing.consultHeadline} /> : <>Free virtual <em>consultation.</em></>}</Fragment>
+        <Fragment slot="body">{closing.consultBody ? closing.consultBody : <>
           Taking the first step toward your smile has never been easier. Nothing to schedule — Dr.
           Richardson personally records a custom video response for every consultation request.
           Photos in, video out.
-        </Fragment>
+        </>}</Fragment>
       </VirtualConsult>
     </main>
 

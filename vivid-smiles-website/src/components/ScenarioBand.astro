@@ -1,0 +1,333 @@
+---
+/**
+ * /emergency-dentistry/ `#protocol` — the first-aid band.
+ *
+ * A code_section band, registered as `emergency_dentistry_protocol` in
+ * src/blocks/CodeSectionBlock.astro. Its copy is frozen in that table rather
+ * than editable in wp-admin, and the freeze is the heaviest in Wave B:
+ * `sections[protocol]`'s eyebrow, heading and body, plus four `cards[scenarios]`
+ * rows. Taken knowingly, for the reason recorded on the registration —
+ *
+ * WHY THIS IS NOT `card_grid`. The two tag strings are CONSTANTS: the same five
+ * words on four cards and one on the fifth. That is furniture this component
+ * owns, not per-card content an editor should retype four times. And the fifth
+ * card is the same class with a modifier, drawn OUTSIDE the grid; card_grid's
+ * only below-the-grid shape is `.candidacy-sub`, a different element with a
+ * `<span class="label">` in it. Reaching this through card_grid would mean a
+ * skin switch on the layout sixteen live pages and 187 saved rows depend on, to
+ * serve one page's four rows.
+ *
+ * UN-FREEZE PATH: if a second page ever ships this shape it earns a real
+ * layout, and this key is retired by leaving it registered and pointing the row
+ * at the layout instead. Nothing here has to be deleted for that to happen.
+ *
+ * SPECIFICITY, THE RULE THIS FILE IS BUILT AROUND. Astro compiles scoped styles
+ * with ATTRIBUTE scoping, not `:where()`, so a single-compound selector like
+ * `.scenario-card` becomes `.scenario-card[data-astro-cid-…]` at (0,2,0) — an
+ * exact TIE with the page sheet's `.emerg .scenario-card`, decided by bundle
+ * order, which is not something to build a live client page on. Every selector
+ * below is therefore rooted at `.section`, putting it at (0,4,0) or deeper so
+ * it wins outright. Source for every value: emergency-dentistry.css:533-651,
+ * cited per block.
+ */
+import { fillSiteTokens } from "../blocks/site-tokens";
+
+export interface Scenario {
+  title?: string | null;
+  body?: string | null;
+}
+
+interface Props {
+  /** The DOM id. CodeSectionBlock overrides it with the row's deduped anchor. */
+  id?: string;
+  eyebrow?: string | null;
+  /** May carry inline markup (`<em>`); blank draws no `<h2>`. */
+  heading?: string | null;
+  body?: string | null;
+  /** The four parallel cards. Empty draws no grid at all — not an empty one. */
+  scenarios?: (Scenario | null | undefined)[] | null;
+  /** The fifth card, drawn outside the grid with the `--always` modifier. */
+  alwaysTitle?: string | null;
+  /**
+   * Rendered with `set:html` AND through `fillSiteTokens`: it carries an inline
+   * `<a class="vs-link" href="{phone_href}">{phone}</a>`. The number is
+   * substituted here rather than stored, because a stored phone number is a
+   * second place for it to go stale — the rule src/blocks/cta.ts states.
+   */
+  alwaysBody?: string | null;
+}
+
+const {
+  id = "protocol",
+  eyebrow,
+  heading,
+  body,
+  scenarios,
+  alwaysTitle,
+  alwaysBody,
+} = Astro.props;
+
+const text = (v?: string | null) => (typeof v === "string" ? v.trim() : "");
+
+const eyebrowText = text(eyebrow);
+const headingHtml = text(heading);
+const bodyText = text(body);
+const hasHead = eyebrowText !== "" || headingHtml !== "" || bodyText !== "";
+
+/* A row with neither a title nor a body is an abandoned card, and drawing it
+   would ship an empty bordered box. */
+const cards = (Array.isArray(scenarios) ? scenarios : [])
+  .filter((s): s is Scenario => Boolean(s))
+  .map((s) => ({ title: text(s.title), body: text(s.body) }))
+  .filter((s) => s.title !== "" || s.body !== "");
+
+const alwaysTitleText = text(alwaysTitle);
+const alwaysBodyHtml = fillSiteTokens(alwaysBody);
+const hasAlways = alwaysTitleText !== "" || alwaysBodyHtml !== "";
+---
+
+<section class="section" id={id} data-vs-reveal-batch>
+  <div class="wrap">
+    {
+      hasHead && (
+        <div class="section-head">
+          {eyebrowText !== "" && <span class="eyebrow">{eyebrowText}</span>}
+          {headingHtml !== "" && (
+            <h2>
+              <Fragment set:html={headingHtml} />
+            </h2>
+          )}
+          {bodyText !== "" && <p>{bodyText}</p>}
+        </div>
+      )
+    }
+
+    {
+      cards.length > 0 && (
+        <div class="scenario-grid">
+          {cards.map((s) => (
+            <article class="scenario-card">
+              {/* The tag is a constant, not a field — see the header. */}
+              <span class="scenario-tag">In case of</span>
+              {s.title !== "" && <h3>{s.title}</h3>}
+              {s.body !== "" && <p>{s.body}</p>}
+            </article>
+          ))}
+        </div>
+      )
+    }
+
+    {
+      hasAlways && (
+        <article class="scenario-card scenario-card--always">
+          <span class="scenario-tag">In every case</span>
+          {alwaysTitleText !== "" && <h3>{alwaysTitleText}</h3>}
+          {alwaysBodyHtml !== "" && <p set:html={alwaysBodyHtml} />}
+        </article>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  /* emergency-dentistry.css:324-326 and :65-69. The band is paper: `.section`
+     carries padding only, and the page sheet gives it no background. */
+  .section {
+    padding: 110px 0;
+  }
+  .section .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  /* emergency-dentistry.css:385-401. Carried rather than left to the page sheet
+     because the values below are rooted at `.section` and would outrank it
+     anyway; stating them keeps the band self-owning and identical. */
+  .section .section-head {
+    max-width: 760px;
+    margin: 0 auto 64px;
+    text-align: center;
+  }
+  .section .section-head .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .section .section-head .eyebrow::before,
+  .section .section-head .eyebrow::after {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+
+  /* ── The 2×2 grid of parallel scenarios ─────────────────────────────────
+     emergency-dentistry.css:533-539. Four INDEPENDENT situations, which is why
+     this is a grid of equals and not a numbered sequence. */
+  .section .scenario-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 18px;
+    max-width: 980px;
+    margin: 0 auto;
+  }
+
+  /* emergency-dentistry.css:540-560. */
+  .section .scenario-card {
+    padding: 32px 32px 30px;
+    background: var(--vs-paper);
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-lg);
+    box-shadow: var(--vs-shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    transition:
+      transform 0.35s ease,
+      box-shadow 0.35s ease,
+      border-color 0.3s ease;
+  }
+  .section .scenario-card:hover {
+    transform: translateY(-3px);
+    box-shadow:
+      0 30px 60px -25px rgba(40, 40, 30, 0.28),
+      0 12px 24px -12px rgba(40, 40, 30, 0.1);
+    border-color: color-mix(in srgb, var(--vs-sage) 22%, var(--vs-line));
+  }
+
+  /* emergency-dentistry.css:561-577. */
+  .section .scenario-tag {
+    font-family: var(--vs-font-body);
+    font-size: 11px;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section .scenario-tag::before {
+    content: "";
+    width: 18px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+
+  /* emergency-dentistry.css:578-593. */
+  .section .scenario-card h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: clamp(20px, 2vw, 24px);
+    color: var(--vs-ink);
+    letter-spacing: -0.005em;
+    margin: 4px 0 2px;
+    line-height: 1.18;
+  }
+  .section .scenario-card p {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--vs-ink-soft);
+    margin: 0;
+  }
+
+  /* ── The universal action ───────────────────────────────────────────────
+     emergency-dentistry.css:597-651. Sage-filled and outside the grid, so the
+     relationship reads "AND in every case, also do this". */
+  .section .scenario-card--always {
+    margin: 24px auto 0;
+    max-width: 980px;
+    background: var(--vs-sage);
+    color: #fff;
+    border-color: var(--vs-sage);
+    box-shadow: 0 24px 60px -28px rgba(40, 50, 30, 0.32);
+    position: relative;
+    overflow: hidden;
+    padding: 36px 40px 34px;
+  }
+  .section .scenario-card--always::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(
+      ellipse 420px 240px at 88% 18%,
+      rgba(255, 255, 255, 0.1),
+      transparent 60%
+    );
+    pointer-events: none;
+  }
+  .section .scenario-card--always > * {
+    position: relative;
+    z-index: 1;
+  }
+  .section .scenario-card--always:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 30px 70px -28px rgba(40, 50, 30, 0.4);
+    border-color: var(--vs-sage);
+  }
+  .section .scenario-card--always .scenario-tag {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .section .scenario-card--always .scenario-tag::before {
+    background: rgba(255, 255, 255, 0.55);
+  }
+  .section .scenario-card--always h3 {
+    color: #fff;
+  }
+  .section .scenario-card--always p {
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 15.5px;
+    max-width: 60ch;
+  }
+
+  /* The inline phone link inside the sage card, matching the global
+     `.vs-band-sage .vs-link` pattern. emergency-dentistry.css:641-651.
+     `:global()` because the anchor arrives through `set:html` and therefore
+     never carries this component's scoping attribute. */
+  .section .scenario-card--always :global(.vs-link) {
+    color: var(--vs-paper);
+    text-decoration-color: rgba(255, 255, 255, 0.55);
+  }
+  .section .scenario-card--always :global(.vs-link:hover),
+  .section .scenario-card--always :global(.vs-link:focus-visible) {
+    color: var(--vs-cream);
+    text-decoration-color: var(--vs-cream);
+  }
+
+  /* emergency-dentistry.css:1199,1240-1249 — the 780 block. */
+  @media (max-width: 780px) {
+    .section {
+      padding: 70px 0;
+    }
+    .section .wrap {
+      padding: 0 22px;
+    }
+    .section .section-head {
+      margin-bottom: 44px;
+    }
+    .section .scenario-grid {
+      gap: 14px;
+    }
+    .section .scenario-card {
+      padding: 26px 24px 24px;
+    }
+    .section .scenario-card--always {
+      padding: 28px 26px 26px;
+      margin-top: 18px;
+    }
+  }
+
+  /* emergency-dentistry.css:1252-1259. */
+  @media (max-width: 640px) {
+    .section .scenario-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .section .scenario-card {
+      transition: none;
+    }
+  }
+</style>

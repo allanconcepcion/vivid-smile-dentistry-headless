@@ -1,0 +1,686 @@
+---
+/**
+ * PricingTiersBlock — the `pricing_tiers` layout: a band whose content is a
+ * priced comparison table.
+ *
+ * This is a band of its own, not a sub-part of another one. Five templates
+ * already render `<PricingTiers>` as the body of a whole section:
+ *
+ *   cosmetic-dentistry/porcelain-veneers.astro:370      #cost   (paper, 1 tier)
+ *   implant-dentistry/single-tooth-dental-implants:418  #cost   (alt,   1 tier)
+ *   implant-dentistry/all-on-4-single-arch.astro:551    #cost   (alt,   1 tier)
+ *   implant-dentistry/full-mouth-dental-implants:513    #cost   (alt,   1 tier)
+ *   implant-dentistry/index.astro:335                   #solutions (alt, 3 tiers)
+ *
+ * Those five are the reason the layout exists, so nothing here is shaped around
+ * any one of them: the anchor is a field (four say `cost`, the hub says
+ * `solutions`), the band is a field (one paper, four cream), and the plan count
+ * is however many rows the editor added (one on four pages, three on the hub).
+ * A block that hard-coded `#cost` or a single tier would serve one page and need
+ * reopening for the next.
+ *
+ * ── Why this WRAPS PricingTiers instead of redrawing its markup ─────────────
+ * The table renders on five live pages today and those pages are backfilled one
+ * at a time over this phase. For the whole of that stretch the component's
+ * output and this block's output sit side by side on the site, and the phase is
+ * verified by diffing built HTML (docs/PAGE-BLOCKS.md 3.3). A reimplementation
+ * would have to stay character-identical to a file it does not import, through
+ * every future edit to either — and the first divergence would surface as a
+ * visual diff on a page nobody touched. Importing it makes that impossible by
+ * construction, which is the same reason CodeSectionBlock.astro:61 imports
+ * LocalTrust rather than restating it.
+ *
+ * The price of wrapping is that the component's props are a data contract, and
+ * a CMS row is not: every field can arrive missing, blank, or the wrong type.
+ * That contract is honoured in one place — `tiers` below — so the component is
+ * never handed a row it would draw as an empty card. In particular it renders
+ * `name` and `price` unguarded (PricingTiers.astro:49,54), so a row carrying
+ * neither is dropped here rather than emitted as a blank heading above a blank
+ * 60px price.
+ *
+ * ── Two shapes, one layout: `nested` ────────────────────────────────────────
+ * With `nested` set, this block stops being a band and becomes the last child
+ * of the block before it, drawn through that block's <slot/>. That is the shape
+ * teeth-whitening already has in code: `.lasting-cost-wrap` sits INSIDE
+ * `#lasting` as a sibling of `.lasting-card` in the same `.wrap`
+ * (teeth-whitening.astro:623-686), separated from the card by a 56px margin
+ * (teeth-whitening.css:601).
+ *
+ * The obvious alternative — give the price table a `<section id="cost">` of its
+ * own — was measured and rejected. A `.section` carries 110px of padding top
+ * AND bottom (the rule in <style> below), so un-nesting trades a 56px gap for
+ * ~220px and the page visibly moves. WordPress is here to change the words, not
+ * the design, so the migration has to be able to produce the shape the template
+ * already has.
+ *
+ * What nesting changes, and nothing else here changes:
+ *   - no `<section>` and no `.wrap`: both belong to the host block;
+ *   - no `id` and no `data-vs-reveal-batch`. A nested block is not a band, so
+ *     it is not an anchor target and must not surface in the derived "On this
+ *     page" rail; the host's own section already carries the reveal batch that
+ *     its children ride on, which is why `.lasting-cost-wrap` carries no reveal
+ *     attribute in the template either. `id` is still ACCEPTED and deliberately
+ *     unread — PageBlocks spreads every field and dedupes anchors before it
+ *     knows which rows are nested, so refusing the prop would be a type error
+ *     over a value this branch simply does not emit.
+ *   - `band` is ignored: the band is the host's to decide, and this block is
+ *     inside it rather than beside it;
+ *   - `.section-head` becomes `.section-head sub` and the `<h2>` becomes an
+ *     `<h3>`, because the host's `<h2>` is already this band's heading and two
+ *     `<h2>`s in one section is a document-outline error, not a style choice.
+ *
+ * The wrapper class and the heading level are CONSEQUENCES of nesting, not
+ * independent settings — no page wants `.lasting-cost-wrap` with an `<h2>`, and
+ * no band wants an `<h3>` — so neither is exposed as a field. `eyebrow`,
+ * `heading` and `body` are reused verbatim as the sub-head, so the nested shape
+ * needs no copy fields of its own either. One flag, no companions.
+ *
+ * `nested` is read for TRUTH, never `=== false`. An ACF true_false that no
+ * editor has saved comes back null, and an importer may write `1` rather than
+ * `true`; truthiness answers both correctly, while `=== true` would silently
+ * un-nest a row imported as `1` and `=== false` would read "never saved" as
+ * "explicitly a band". Eleven routes have rows against this layout today and
+ * not one sets the flag, so every one of them takes the standalone branch.
+ *
+ * ── The one field the layout does not have ──────────────────────────────────
+ * `meta` is the plan's secondary line and lands in the component's `tagline`
+ * slot — the sentence under the plan name — matching the content model's own
+ * definition of the name ("Secondary line — a price, a stat value, a label.",
+ * vs-content-model.php:1164).
+ *
+ * All three slots are carried: `meta` is the tagline, `price_note` the qualifier
+ * ("Starting at") and `price_suffix` the caption ("per arch"). An earlier cut
+ * carried only the tagline, which would have dropped part of the price from
+ * every one of the five pages this layout serves. Previously noted here:
+ * it left `priceQualifier` ("Starting at", "All-inclusive") and `priceSuffix`
+ * ("per arch", "per tooth", "implant + crown") with no field behind them. All
+ * five call sites above use at least one of the two, and on the implant pages
+ * they are the words that make $19,995 a starting figure rather than a quoted
+ * one — so this is a pricing-accuracy gap, not a typographic one, and it is
+ * recorded for the contract rather than papered over with a delimiter
+ * convention inside `meta`. Until it closes, those four bands stay in code.
+ *
+ * NOTHING HERE THROWS. An editor triggers deploys and never sees the output
+ * (cms/mu-plugins/vs-deploy.php:142-158), so every field is read as if it might
+ * be missing, blank or the wrong type. Same rule as PageBlocks.astro.
+ *
+ * Spec: docs/PAGE-BLOCKS.md 1.2, 1.3, 2.5, 3.3.
+ */
+import Button from "../components/Button.astro";
+import PricingTiers from "../components/PricingTiers.astro";
+import { resolveCta } from "./cta";
+
+/**
+ * The five bands, mapped to the modifier this block writes on its own section.
+ *
+ * Read this map, not an ancestor class. `.section.alt` is charcoal green on
+ * clear-aligners.css:240 and cream on teeth-whitening.css:237 — Fact 4 — so a
+ * block that inherits its band is wrong on at least one page the moment a
+ * section is reordered (R2).
+ *
+ * `alt` and `dark` survive as modifier *names* because the acceptance test for
+ * this phase is that the block's markup matches the band it replaces, class
+ * attribute included. Their meaning now comes from the rules in <style> below,
+ * which travel with the block, not from any page sheet.
+ *
+ * `paper` maps to no modifier at all — a paper band is a bare
+ * `class="section"` on every page in the family, so adding one would be the
+ * diff.
+ */
+const BAND_MODIFIER: Record<string, string | null> = {
+  paper: null,
+  cream: "cream",
+  "sage-pale": "dark",
+  sage: "sage",
+  charcoal: "alt",
+};
+
+/**
+ * One line of a plan's feature list. ACF has no list-of-strings, so it is a
+ * repeater with a single `item` sub-field — the same shape
+ * `comparison_cards.tiers.bullets` uses (vs-content-model.php:299-315).
+ *
+ * The repeater is named `features`, not `bullets`/`items`/`points`: wpgraphql-acf
+ * mints one type per repeater NAME across the whole flexible-content field, so
+ * two repeaters sharing a name merge into one type and one side's sub-fields
+ * disappear from the schema without an error anywhere. `plans` and `features`
+ * are both unused elsewhere in vs-content-model.php — verified, not assumed.
+ */
+interface FeatureRow {
+  item?: string | null;
+}
+
+interface PlanRow {
+  name?: string | null;
+  price?: string | null;
+  /** The secondary line under the plan name — PricingTiers' `tagline`. */
+  meta?: string | null;
+  /** Above the figure — "Starting at", "From". PricingTiers' `priceQualifier`. */
+  priceNote?: string | null;
+  /** Below the figure — "per tooth", "per arch". PricingTiers' `priceSuffix`. */
+  priceSuffix?: string | null;
+  ribbon?: string | null;
+  /** ACF true_false, so it can arrive as null on a row saved before the field
+   *  existed — compared against `true` rather than coerced. */
+  highlighted?: boolean | null;
+  features?: FeatureRow[] | null;
+}
+
+/**
+ * The subset of the component's `Tier` this block fills
+ * (PricingTiers.astro:15-32).
+ *
+ * Restated rather than imported: a type export lives in another `.astro` file's
+ * frontmatter, and reaching across that boundary resolves in the editor's
+ * language service but is not a dependency worth taking for six property names.
+ * It is NO LONGER a subset — `priceQualifier` and `priceSuffix` are carried; the
+ * note below described the earlier cut, where they were absent
+ * because the layout has no field for them, and a type that claimed otherwise
+ * would hide the gap the header documents.
+ */
+interface Tier {
+  name: string;
+  price: string;
+  tagline?: string;
+  priceQualifier?: string;
+  priceSuffix?: string;
+  bullets: string[];
+  ribbon?: string;
+  highlight?: boolean;
+}
+
+interface Props {
+  /** The DOM id, already deduplicated by PageBlocks.astro. Absent when blank. */
+  id?: string;
+  /** The same value as `id`. Accepted so the spread in PageBlocks is lossless. */
+  anchor?: string | null;
+  /** Rail label. Read by the page that builds the rail, not by this band. */
+  navLabel?: string | null;
+  band?: string | null;
+  eyebrow?: string | null;
+  /** May contain `<em>` and nothing else (Fact 3), so it is rendered set:html. */
+  heading?: string | null;
+  body?: string | null;
+  /**
+   * Draw as a child of the block above instead of as a band of its own.
+   *
+   * Declared here, after the preamble fields and ahead of `plans`, in the order
+   * the fragment selects it (manifest.ts) — which is itself the order the PHP
+   * declares it — because it reframes what `id`/`anchor`/`navLabel`/`band` mean
+   * on the same row rather than adding content beside them.
+   *
+   * `boolean | null`: an ACF true_false that has never been saved on a row
+   * returns null, not false.
+   */
+  nested?: boolean | null;
+  plans?: PlanRow[] | null;
+  /** The financing / insurance line under the table. */
+  note?: string | null;
+  /** The optional closing CTA row after the table — all-on-4's #cost ships
+   *  "Free Virtual Consult / Get Directions" plus the address note there
+   *  (all-on-4-single-arch.astro:809-820). All seven blank = today's markup
+   *  byte-for-byte. NEVER drawn in nested mode: a price table tucked inside a
+   *  host band closes with the HOST's content, and no page ships a CTA row
+   *  inside .lasting-cost-wrap. */
+  ctaLabel?: string | null;
+  ctaHref?: string | null;
+  ctaHover?: string | null;
+  ctaLabel2?: string | null;
+  ctaHref2?: string | null;
+  ctaHover2?: string | null;
+  ctaNote?: string | null;
+}
+
+const { id, band, eyebrow, heading, body, nested, plans, note, ctaLabel,
+  ctaHref, ctaHover, ctaLabel2, ctaHref2, ctaHover2, ctaNote } = Astro.props;
+
+/**
+ * The mode switch. Truthy, not `=== true` — see the header: null means "never
+ * saved" (a band) and `1` from an importer means "nested", and only truthiness
+ * reads both the way the editor meant them.
+ *
+ * Every row saved today leaves this undefined, which is falsy, so the eleven
+ * back-filled routes take the standalone branch unchanged.
+ */
+const isNested = Boolean(nested);
+
+/* The token map, hover table and resolvers live in ./cta.ts — ONE copy for
+   every block that draws a CTA row, extracted the day the fifth copy appeared.
+   The tables only work because the blocks agree, and five copies is five
+   places for the next hover-label edit to miss. */
+const cta1 = resolveCta(ctaHref, ctaHover);
+const cta2 = resolveCta(ctaHref2, ctaHover2);
+const hasCta = typeof ctaLabel === "string" && ctaLabel.trim() !== "";
+const hasCta2 = typeof ctaLabel2 === "string" && ctaLabel2.trim() !== "";
+/* Standalone only. A nested table must not grow a row the host band never
+   had — the fields can still be saved on a nested row, and they are ignored
+   the way the nested mode already ignores anchor and band. */
+const hasCtaRow = (hasCta || hasCta2) && !isNested;
+const ctaNoteText = typeof ctaNote === "string" ? ctaNote.trim() : "";
+/* Variants follow the band, same pairing as CardGridBlock: the only page
+   shipping this row today is all-on-4's charcoal #cost, which uses
+   light + ghost-light (all-on-4-single-arch.astro:811-816). */
+const isDarkBand = band === "charcoal" || band === "sage";
+const primaryVariant = isDarkBand ? "light" : "sage";
+const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
+
+// `?? null` rather than a default: an unknown band from a future PHP choice
+// falls through to the paper shell rather than emitting a class with no rule.
+// Unread when nested — the host owns the band there — but computed either way
+// so the two branches share one prop-reading pass.
+const bandModifier = BAND_MODIFIER[band ?? "paper"] ?? null;
+
+/** Trim once, here, so every guard below tests for real content rather than for
+ *  a field an editor left as a single space. */
+const text = (input: unknown): string =>
+  typeof input === "string" ? input.trim() : "";
+
+const eyebrowText = text(eyebrow);
+const headingHtml = text(heading);
+const bodyText = text(body);
+const noteText = text(note);
+
+/**
+ * CMS rows → the component's `Tier[]`.
+ *
+ * Optional properties are omitted rather than set to `""`. The component guards
+ * each of them with `{t.x && …}` so either would render the same today, but an
+ * absent property says "this plan has no ribbon" while an empty string says
+ * "this plan's ribbon is blank" — and the first is the fact.
+ *
+ * The filter drops a row with neither a name nor a price. That is an abandoned
+ * repeater row, and it is the one input the component cannot render safely: it
+ * would emit an empty `<h3>` above an empty 60px price. A row that has one of
+ * the two is kept — the missing half is content the editor still owes, and
+ * hiding the whole plan would lose the half they did write.
+ */
+const tiers: Tier[] = (Array.isArray(plans) ? plans : [])
+  .map((row) => {
+    const name = text(row?.name);
+    const price = text(row?.price);
+    const tagline = text(row?.meta);
+    // The three slots PricingTiers draws around the figure. The first cut of
+    // this block carried only the tagline, which meant every one of the five
+    // pages it exists to serve would have come back missing "Starting at" or
+    // "per arch" — the qualifier and suffix are part of the price, not decoration.
+    const priceQualifier = text(row?.priceNote);
+    const priceSuffix = text(row?.priceSuffix);
+    const ribbon = text(row?.ribbon);
+    const bullets = (Array.isArray(row?.features) ? row.features : [])
+      .map((feature) => text(feature?.item))
+      .filter((line) => line !== "");
+
+    return {
+      name,
+      price,
+      bullets,
+      ...(tagline !== "" ? { tagline } : {}),
+      ...(priceQualifier !== "" ? { priceQualifier } : {}),
+      ...(priceSuffix !== "" ? { priceSuffix } : {}),
+      ...(ribbon !== "" ? { ribbon } : {}),
+      ...(row?.highlighted === true ? { highlight: true } : {}),
+    };
+  })
+  .filter((tier) => tier.name !== "" || tier.price !== "");
+
+/**
+ * No plans, no table.
+ *
+ * The component sizes its grid from `tiers.length`
+ * (PricingTiers.astro:44,79-82), so handing it an empty array draws an empty
+ * `.vs-pricing-tiers` wrapper carrying a `--0` modifier no rule answers. A band
+ * whose table is still unwritten renders as its heading and nothing else.
+ *
+ * The same line is the reason a five-plan band is worth flagging rather than
+ * silently clamping: the grid has rules for one through four columns and none
+ * for five, so a fifth plan falls back to a single full-width column. That
+ * reads, so it is not an error — but it is not what the editor pictured, and
+ * the fix is a rule in the component, not a truncation here.
+ */
+const hasTable = tiers.length > 0;
+---
+
+{isNested ? null : <section class:list={["section", bandModifier]} id={id} data-vs-reveal-batch>
+  <div class="wrap">
+    <div class="section-head">
+      {eyebrowText && <span class="eyebrow">{eyebrowText}</span>}
+      {headingHtml && <h2><Fragment set:html={headingHtml} /></h2>}
+      {bodyText && <p>{bodyText}</p>}
+    </div>
+
+    {
+      hasTable && (
+        <PricingTiers tiers={tiers} financingNote={noteText || undefined} />
+      )
+    }{
+      /* all-on-4-single-arch.astro:809-820 — the closing row sits after the
+         table (whose component draws the financing note), inside .wrap.
+         Flushed `}{` so the three routes with standalone rows saved before
+         these fields existed render byte-for-byte. */
+      hasCtaRow && (
+        <div class="cta-row">
+          <div class="cta-buttons">
+            {hasCta && (
+              <Button variant={primaryVariant} href={cta1.href} hoverLabel={cta1.hover}>
+                {ctaLabel}
+              </Button>
+            )}{
+              hasCta2 && (
+              <Button variant={secondaryVariant} href={cta2.href} hoverLabel={cta2.hover}>
+                {ctaLabel2}
+              </Button>
+            )}
+          </div>{
+            ctaNoteText !== "" && <span class="cta-note">{ctaNoteText}</span>
+          }
+        </div>
+      )
+    }
+  </div>
+</section>}{/* `}{` flush against the standalone branch's closing brace, with
+    NOTHING between the two expressions — the idiom StatCalloutBlock.astro:224
+    and CardGridBlock.astro:180 already use. Astro preserves whitespace between
+    expressions, so a second expression on a line of its own would put a
+    newline-and-indent TEXT NODE either side of it, and that node survives into
+    the HTML even when the condition is false. Eleven back-filled routes render
+    this block today and none of them is nested, so a line of its own here would
+    append a whitespace node to every one of them: a diff on eleven pages that
+    gained nothing. Flush, the false branch contributes not one byte.
+
+    The `{` of the standalone branch is likewise flush against its `<section`
+    and its `}` against `</section>`, for the same reason in the other
+    direction: today the section is the template's first node, and wrapping it
+    in an expression must not move the whitespace around it. Same construction
+    as the page templates' own `{hasBlocks ? null : <section …>…</section>}`
+    guard (teeth-whitening.astro:588).
+
+    Inside `.lasting-cost-wrap` the markup is a copy of
+    teeth-whitening.astro:623-686 — wrapper class, `.section-head sub`, the
+    `<h3>`, then the table — with the hard-coded copy replaced by the same three
+    section-head fields the standalone branch reads and the same `tiers`. The
+    eyebrow is kept because the template has one ("Investment"); the heading is
+    an `<h3>` because the host section's `<h2>` is already this band's heading.
+    No `id` and no `data-vs-reveal-batch`: not an anchor target, not a rail
+    entry, and the reveal batch belongs to the host's section, exactly as in the
+    template. */
+  isNested && <div class="lasting-cost-wrap">
+    <div class="section-head sub">
+      {eyebrowText && <span class="eyebrow">{eyebrowText}</span>}
+      {headingHtml && <h3><Fragment set:html={headingHtml} /></h3>}
+      {bodyText && <p>{bodyText}</p>}
+    </div>
+
+    {
+      hasTable && (
+        <PricingTiers tiers={tiers} financingNote={noteText || undefined} />
+      )
+    }
+  </div>}
+
+<style>
+  /* ── Band shell ───────────────────────────────────────────────────────────
+     Lifted from src/styles/pages/clear-aligners.css:228-283 with the
+     `.caligners` prefix stripped and the page's local `--sage` / `--ink` / …
+     aliases resolved back to the `--vs-*` tokens they alias one-for-one
+     (clear-aligners.css:24-42). Rendered values are unchanged, and they are the
+     same values the five pricing pages' own sheets carry — this shell is the
+     family's, not one page's.
+
+     Repeated per block rather than shared: a shared sheet is an ancestor by
+     another name, and the property that makes a block safe to drop on any page
+     is that nothing outside it decides how it looks (R3).
+
+     The table itself has no rules here at all. It arrives with PricingTiers'
+     own scoped stylesheet, which is the entire point of importing it. */
+  .section {
+    padding: 110px 0;
+    background: var(--vs-paper);
+  }
+  .section.cream { background: var(--vs-cream); }
+  .section.dark { background: var(--vs-sage-pale); }
+  .section.sage { background: var(--vs-sage); }
+  .section.alt { background: var(--vs-charcoal-green); }
+
+  /* Keep the heading clear of the stacked global Nav + sticky TOC when a rail
+     chip is clicked. Both custom properties are written onto the page wrapper
+     at runtime and inherit down; the fallbacks are the desktop measurements. */
+  .section[id] {
+    scroll-margin-top: calc(var(--nav-h, 77px) + var(--toc-h, 68px) + 12px);
+  }
+
+  .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  .section-head {
+    max-width: 760px;
+    margin: 0 auto 64px;
+    text-align: center;
+  }
+  /* h2 is ink, not sage: the page sheet sets sage in its base rule and flips h2
+     to ink in its end-of-file override (clear-aligners.css:766). Collapsed to
+     the value that actually renders. */
+  .section-head h2 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    font-size: clamp(32px, 4.2vw, 54px);
+    letter-spacing: -0.022em;
+    line-height: 1.1;
+    color: var(--vs-ink);
+    margin: 22px 0 22px;
+  }
+  /* :global because the `<em>` arrives through set:html and carries no scope
+     attribute — the same reason FinalBand.astro:87 reaches for it. The scope
+     stays on `h2`, so this cannot leak off the block. */
+  .section-head h2 :global(em) {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+  .section-head p {
+    font-size: 17px;
+    line-height: 1.7;
+    max-width: 60ch;
+    margin: 0 auto;
+    color: var(--vs-ink-soft);
+  }
+
+  .eyebrow {
+    font-family: var(--vs-font-body);
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+  }
+  .section-head .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .section-head .eyebrow::before,
+  .section-head .eyebrow::after {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+
+  /* Band-conditional text, computed from this block's own modifier. */
+  .section.alt h2 { color: #fff; }
+  .section.alt h2 :global(em) { color: var(--vs-eyebrow-on-sage); }
+  .section.alt p { color: rgba(255, 255, 255, 0.85); }
+  .section.alt .eyebrow { color: var(--vs-eyebrow-on-sage); }
+  .section.alt .section-head .eyebrow::before,
+  .section.alt .section-head .eyebrow::after {
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  .section.dark h2 { color: var(--vs-ink); }
+  .section.dark h2 :global(em) { color: var(--vs-sage); }
+  .section.dark p { color: var(--vs-ink-soft); }
+  .section.dark .eyebrow { color: var(--vs-ink-soft); }
+  .section.dark .section-head .eyebrow::before,
+  .section.dark .section-head .eyebrow::after {
+    background: var(--vs-ink-soft);
+  }
+
+  .section.sage h2 { color: #fff; }
+  .section.sage h2 :global(em) { color: var(--vs-eyebrow-on-sage); }
+  .section.sage p { color: rgba(255, 255, 255, 0.85); }
+  .section.sage .eyebrow { color: var(--vs-eyebrow-on-sage); }
+  .section.sage .section-head .eyebrow::before,
+  .section.sage .section-head .eyebrow::after {
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  /* ── Nested shape ─────────────────────────────────────────────────────────
+     Copied from src/styles/pages/teeth-whitening.css:601-616 with the
+     `.twhitening` prefix stripped and the page's local aliases resolved back to
+     the tokens they alias one-for-one (`--f-display` → `--vs-font-display`,
+     `--ink` → `--vs-ink`; teeth-whitening.css:38,53). Rendered values unchanged.
+
+     These rules live here so the nested shape is PORTABLE — a price table can
+     be tucked into a section on a page whose sheet carries no
+     `.lasting-cost-wrap` rules at all.
+
+     BE PRECISE ABOUT WHICH SIDE WINS, because both simplifications are wrong.
+     Astro 6.1.9 with no `scopedStyleStrategy` set compiles to an ATTRIBUTE
+     selector, not `:where()` — read it out of the built CSS
+     (`.compare-card[data-astro-cid-...]`), do not assume. So for a compound
+     like `.lasting-cost-wrap .section-head.sub h3` the scoped form picks up an
+     attribute per element and comfortably outranks the page sheet. But for the
+     WRAPPER ALONE the two are tied: `.lasting-cost-wrap[data-astro-cid-...]`
+     and `.twhitening .lasting-cost-wrap` are both (0,2,0), and a tie is
+     resolved by bundle order. Do not build anything on that tie; if a page
+     needs to win, give it a rule one level more specific. The block owning its own
+     appearance is also what lets a nested price table be dropped into a section
+     on any page, not just the one whose sheet happens to carry these rules (R3).
+
+     The 56px top margin is the whole reason `nested` exists: it is the gap
+     between the stat card and the price table inside `#lasting`. A `.section`
+     of its own would put ~220px there instead (110px top and bottom, the rule
+     above), which is a visible design change made by a content migration. */
+  .lasting-cost-wrap {
+    margin-top: 56px;
+  }
+  /* Overrides the 64px bottom margin in `.section-head` above — the same
+     override, at the same specificity relationship, that the page sheet makes
+     against its own `.twhitening .section-head`. */
+  .lasting-cost-wrap .section-head.sub {
+    margin-bottom: 36px;
+  }
+  .lasting-cost-wrap .section-head.sub h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: clamp(22px, 2.4vw, 30px);
+    color: var(--vs-ink);
+    letter-spacing: -0.005em;
+    line-height: 1.18;
+    margin: 0 0 14px;
+  }
+  /* `.section-head p` above still supplies the colour; only the size drops. */
+  .lasting-cost-wrap .section-head.sub p {
+    font-size: 16px;
+    line-height: 1.7;
+    max-width: 60ch;
+    margin: 0 auto;
+  }
+  /* The page has no `h3 em` rule of its own — an `<em>` in the sub-heading is
+     caught by its blanket `.twhitening em` (teeth-whitening.css:77), which
+     carries these three declarations exactly. Restated against the `<h3>` here
+     because a block cannot rely on a page-wide rule, and :global for the same
+     reason as the `<h2>` above: the `<em>` arrives through set:html and carries
+     no scope attribute. The scope stays on `h3`, so it cannot leak.
+
+     No responsive rules: the page sheet gives `.lasting-cost-wrap` none (its
+     breakpoints at teeth-whitening.css:727,747,774 never mention it), and the
+     shell's own 780px rule below belongs to the `.section` this branch does not
+     emit. */
+  .lasting-cost-wrap .section-head.sub h3 :global(em) {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+
+  /* ── The one thing the table cannot colour for itself ────────────────────
+     Every text element inside a plan card sits on the card's own paper
+     background and is coloured explicitly by the component, so the cards read
+     on any band. The financing note does not: it sits directly on the band, in
+     `--vs-ink-soft`, which is unreadable on charcoal and on sage.
+
+     The site patches this today with page-namespaced rules in global.css:220-,
+     which reach `.pveneers .section.alt …` and therefore reach no block at all.
+     Owning it here is the same fix made where the band is actually decided (R2).
+
+     :global because the element belongs to the imported component and carries
+     its scope, not this one's; the `.section.alt` / `.section.sage` ancestor is
+     this block's own, so the rule cannot apply anywhere else.
+
+     WHICH IS ALSO THE LIMIT WHEN NESTED. A nested table draws no `.section` of
+     its own, so neither rule can match and the financing note keeps
+     `--vs-ink-soft`. That is correct for the only host that exists — `#lasting`
+     on teeth-whitening is a paper band — but it means nesting this block inside
+     a charcoal or sage host would leave the note grey-on-dark. The fix then is
+     a rule on the HOST, where the band is actually decided (R2); it is NOT a
+     `band` field on the nested row, which would let an editor paint text for a
+     background the section does not have. */
+  .section.alt :global(.vs-pricing-tiers__financing),
+  .section.sage :global(.vs-pricing-tiers__financing) {
+    color: rgba(255, 255, 255, 0.78);
+    border-top-color: rgba(255, 255, 255, 0.22);
+  }
+
+  /* ── Responsive ─────────────────────────────────────────────────────────
+     Only the shell needs a breakpoint; the table brings its own
+     (PricingTiers.astro:247-263). The two values are the same two every other
+     block narrows at 780 (StatCalloutBlock.astro:380), and the section-head
+     margin is deliberately not among them — no page sheet in the family
+     narrows it, so changing it here would be this block disagreeing with the
+     five bands it replaces. */
+  /* ── CTA row ────────────────────────────────────────────────────────────
+     Copied from .aos4 .cta-row (all-on-4-single-arch.css:602-618), the page
+     whose #cost this reproduces, normalised to the block token set the way
+     CardGridBlock's copy of the same shape was. In the BLOCK's own scoped
+     style because a page sheet cannot restyle a compound a block draws. */
+  .cta-row {
+    margin-top: 56px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+  }
+  .cta-row .cta-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+    justify-content: center;
+  }
+  .cta-row .cta-note {
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--vs-muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section.dark .cta-row .cta-note {
+    color: var(--vs-ink-soft);
+  }
+  .section.alt .cta-row .cta-note,
+  .section.sage .cta-row .cta-note {
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  @media (max-width: 780px) {
+    .section { padding: 70px 0; }
+    .wrap { padding: 0 22px; }
+    /* all-on-4-single-arch.css:851 — the row's top gap collapses on small
+       screens. */
+    .cta-row { margin-top: 36px; }
+  }
+</style>

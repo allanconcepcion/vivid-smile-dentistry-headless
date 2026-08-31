@@ -1,0 +1,273 @@
+---
+/**
+ * PageBlocks — renders `pageFields.blocks` in array order.
+ *
+ * This is the whole consumption side of the block system: take the ordered list
+ * the CMS returned, look each row up in the registry, render it. Order is the
+ * array's order and nothing else. That is safe because the repeater order
+ * already IS the DOM order on all 27 pages that have sections — measured, 27 of
+ * 27, zero exceptions (docs/PAGE-BLOCKS.md §0, Fact 1) — so swapping
+ * page-content.ts's `find()` for iteration is provably a no-op against current
+ * content.
+ *
+ * PHASE 1: nothing invokes this. `blocks` is empty on all 33 pages, and the
+ * per-page switch (§2.3) is `blocks.length > 0`, so every page still renders
+ * its existing template body. An empty list renders exactly nothing here — no
+ * wrapper, no marker element — which is what keeps the site byte-identical.
+ *
+ * There is deliberately no wrapper element even when blocks are present. Each
+ * block owns its own <section>, its own band and its own padding (§2.5,
+ * modelled on FinalBand.astro), so a wrapper here would only reintroduce the
+ * inter-section rhythm that blocks exist to remove.
+ *
+ * NOTHING IN HERE THROWS. An editor triggers deploys and never sees the output
+ * (cms/mu-plugins/vs-deploy.php:142-158), so every degenerate input an editor
+ * can produce — an unknown layout, two sections with the same anchor, a blank
+ * anchor, a missing list, a nested row with nothing above it — degrades to
+ * something renderable and a console warning in the build log. Same rule as
+ * src/loaders/blog.ts and src/integrations/yoast-sitemap.ts.
+ *
+ * ── NESTING ────────────────────────────────────────────────────────────────
+ *
+ * The list is flat; the DOM is not, on exactly one shape. teeth-whitening's
+ * four-tier price table lives INSIDE `#lasting` as `.lasting-cost-wrap`, a
+ * sibling of `.lasting-card` in the same `.wrap`, held there by a 56px
+ * `margin-top` (src/styles/pages/teeth-whitening.css:601). Promoting it to its
+ * own `<section class="section">` would swap that 56px for ~110px of padding
+ * top AND bottom, which moves a live page — so the row stays a row and a flag
+ * says where it is drawn.
+ *
+ * A row whose `nested` is true is rendered as a CHILD of the row above it,
+ * through that component's `<slot />`, instead of as a band of its own. This
+ * file is the only place that knows the difference: the host component learns
+ * it is a host by being handed children, and the guest component learns it is a
+ * guest from its own `nested` prop.
+ *
+ * Three consequences, each of which is a bug if it is not honoured here:
+ *
+ *   1. A nested row gets NO `id` and NO `anchor`. It is not a band, so it is
+ *      not a scroll target; and `anchor` is passed back alongside `id` for
+ *      blocks that build their own links (ComparisonCardsBlock:286), so leaving
+ *      the raw value in the spread would hand one of them a name that no
+ *      element on the page carries. Both are overridden to `undefined` on the
+ *      way in rather than trusted to be blank, because
+ *      `fill_blank_row_id()` (cms/mu-plugins/vs-content-model.php:3011) fires
+ *      per sub-field, cannot see a sibling `nested`, and so keeps generating an
+ *      anchor for a box the editor has been told is ignored.
+ *
+ *   2. A nested row does NOT advance the duplicate-anchor counter below. It
+ *      claims no id, so it cannot collide with one, and counting it would
+ *      rename an innocent later band to `#faq-2` and warn about a duplicate
+ *      that does not exist.
+ *
+ *   3. A nested row must not reach the "On this page" rail. THAT PART IS NOT
+ *      IN THIS FILE — each page derives its rail itself from `anchor` +
+ *      `navLabel` (e.g. teeth-whitening.astro:152-172), and those loops skip a
+ *      row only when its `nav_label` is blank. They also count every non-blank
+ *      anchor, to stay in lockstep with the dedup pass here. Both facts now
+ *      need one line in each of those loops — `if (block?.nested) continue;`
+ *      ahead of the counting — or a nested row with a copied-in nav_label will
+ *      link the rail to an id nothing emits, and its counted anchor will drift
+ *      the rail's `-2` suffixes away from the ids actually rendered.
+ *
+ * Spec: docs/PAGE-BLOCKS.md §2.2.
+ */
+import { lookupBlock, type BlockDefinition, type BlockNode } from "./registry";
+import UnknownBlock from "./UnknownBlock.astro";
+
+interface Props {
+  /**
+   * `pageFields.blocks`. Optional and nullable on purpose: a page that has
+   * never been touched returns null for a flexible-content field with no rows,
+   * and a caller that guards with `blocks.length > 0` should not also have to
+   * guard the type.
+   */
+  blocks?: BlockNode[] | null;
+  /** Route, for warnings. Defaults to the page being built. */
+  route?: string;
+}
+
+const { blocks, route = Astro.url.pathname } = Astro.props;
+
+const rows = Array.isArray(blocks) ? blocks : [];
+
+/** A row that is drawn inside another one. Carries no anchor, by design. */
+interface GuestRow {
+  block: BlockNode;
+  definition: BlockDefinition | undefined;
+  /** Position in `pageFields.blocks`, kept so warnings name the wp-admin row. */
+  index: number;
+}
+
+/** A row that is drawn as a band, plus whatever rows nest into it. */
+interface HostRow extends GuestRow {
+  /**
+   * What actually gets spread into the component.
+   *
+   * The same object as `block` for every row an editor can save today, which is
+   * what keeps the eleven back-filled routes on the identical code path. It
+   * differs only for a demoted orphan (below), where `nested` has to be forced
+   * false so the component draws its band shell rather than its guest shell.
+   */
+  props: BlockNode;
+  children: GuestRow[];
+  /**
+   * Whether a following nested row may attach here.
+   *
+   * False for a row with no component: in production UnknownBlock renders
+   * nothing at all, so a child handed to it would be silently and permanently
+   * invisible — worse than the band the child can still be. False for a demoted
+   * orphan too, so that a run of nested rows at the top of a page degrades to a
+   * run of bands rather than one band swallowing the rest.
+   */
+  canHost: boolean;
+}
+
+/**
+ * PASS 1 — group the flat list.
+ *
+ * One walk, in order, because a row only learns it is a host from the row that
+ * follows it. Consecutive nested rows all attach to the same host, in order,
+ * and land in its one default slot in that order.
+ *
+ * AN ORPHAN IS DEMOTED, NOT DROPPED. A nested row with nothing above it to sit
+ * in is rendered as its own band — exactly as it would render with the flag
+ * off — and warned about. Dropping it was the alternative and it is the wrong
+ * one twice over: the content at stake is a price table, and the person who
+ * ticked the box triggers the deploy without ever seeing its log
+ * (vs-deploy.php:142-158), so a silent drop is ~200 words of real money figures
+ * disappearing with no signal anyone will read. Rendering the guest shell
+ * standalone was the other alternative and is worse still — `.lasting-cost-wrap`
+ * carries no `.wrap`, so it would run full-bleed across a live client page.
+ * Demotion loses nothing and cannot look broken.
+ */
+const groups: HostRow[] = [];
+
+for (let index = 0; index < rows.length; index += 1) {
+  const block = rows[index];
+  const definition = lookupBlock(block?.__typename);
+  // Truthiness, never `=== false`: an unsaved true_false comes back null, and a
+  // layout that does not offer the field sends nothing at all.
+  const wantsNesting = Boolean(block?.nested);
+  const host = groups[groups.length - 1];
+
+  if (wantsNesting && host?.canHost) {
+    host.children.push({ block, definition, index });
+    continue;
+  }
+
+  if (wantsNesting) {
+    console.warn(
+      `[blocks] nested block "${block?.__typename ?? "(missing __typename)"}" on ${route} ` +
+        `at position ${index + 1} has no section above it to sit inside — rendering it as its own band`,
+    );
+  }
+
+  groups.push({
+    block,
+    definition,
+    index,
+    props: wantsNesting ? { ...block, nested: false } : block,
+    children: [],
+    // `definition !== undefined` is NOT the question — eight of the nine
+    // registered layouts have no <slot /> and would swallow the guest whole.
+    // Only a layout that declares `hosts` can take one.
+    canHost: !wantsNesting && definition?.hosts === true,
+  });
+}
+
+/**
+ * PASS 2 — resolve anchors before rendering, because deduplication needs to see
+ * the whole list.
+ *
+ * Over `groups`, not over `rows`: a nested row is not a band, takes no id, and
+ * must not move the counter (see §NESTING note 2 in the header). On a page with
+ * no nested row `groups` is `rows` one-for-one, in the same order, so this is
+ * the same pass it has always been.
+ *
+ * Duplicate anchors are deduplicated, not fatal. Two bands with id="faq" is
+ * invalid HTML, and it sends `scroll-margin-top` (61 declarations across 16
+ * files) and every "On this page" link to whichever element the browser happens
+ * to find first. It is worth a loud warning. It is not worth failing a build an
+ * editor triggered — so the second #faq becomes #faq-2 and the deploy goes out.
+ *
+ * The deduped value is passed back as `anchor` as well as `id`, so a block that
+ * builds its own rail entry cannot link to a name the dedup pass just renamed.
+ */
+const seen = new Map<string, number>();
+
+const resolved = groups.map((group) => {
+  const raw = group.block?.anchor;
+  let anchor = typeof raw === "string" ? raw.trim() : "";
+
+  if (anchor !== "") {
+    const nth = (seen.get(anchor) ?? 0) + 1;
+    seen.set(anchor, nth);
+    if (nth > 1) {
+      const deduped = `${anchor}-${nth}`;
+      console.warn(
+        `[blocks] duplicate anchor "${anchor}" on ${route} at position ${group.index + 1} — rendering as "${deduped}"`,
+      );
+      anchor = deduped;
+    }
+  }
+
+  return { ...group, anchor };
+});
+---
+
+{
+  resolved.map(({ block, props, definition, anchor, index, children }) => {
+    // Capitalised so the Astro compiler treats it as a component rather than an
+    // HTML tag name.
+    const Block = definition?.component;
+
+    // No entry in the registry: a layout deployed to WordPress before this
+    // build shipped, or an Astro rollback. Never a hard failure — see §2.4.
+    // Unchanged by nesting: `canHost` is false for such a row, so it is never
+    // handed children to lose.
+    if (!Block) {
+      return <UnknownBlock block={block} index={index} route={route} />;
+    }
+
+    // THE NO-CHILDREN PATH IS THE OLD PATH, and it is written as its own branch
+    // for exactly that reason. Every row on the eleven back-filled routes takes
+    // it, and takes it with the identical argument: none of them is flagged, so
+    // `children` is empty and `props` IS `block` — the same object, not a copy
+    // (pass 1 only substitutes one for a demoted orphan). Rendering the
+    // children branch with an empty list instead would open a default slot on
+    // the component even so — enough to change what `Astro.slots.has("default")`
+    // answers, and enough to drop the newline between the tags into the host's
+    // `.wrap`.
+    //
+    // `id={anchor || undefined}` is exactly the pattern [...slug].astro:271
+    // already ships: never emit id="" for a section whose anchor is blank.
+    if (children.length === 0) {
+      return <Block {...props} anchor={anchor || undefined} id={anchor || undefined} />;
+    }
+
+    // WHITESPACE IS LOAD-BEARING HERE. The `>` of the open tag is flush against
+    // the `{` of the children expression and the closing `}` is flush against
+    // `</Block>`, the same `}{` idiom StatCalloutBlock:224 uses, because Astro
+    // keeps whitespace between expressions: a newline in either gap becomes a
+    // text node inside the host's `.wrap`, immediately after `.lasting-card`,
+    // where `.lasting-cost-wrap`'s margin then collapses against nothing and the
+    // gap reads as a stray blank line. Line breaks INSIDE the arrow body are
+    // free — they are JavaScript, not markup.
+    return (
+      <Block {...props} anchor={anchor || undefined} id={anchor || undefined}>{children.map((child) => {
+        const Nested = child.definition?.component;
+
+        if (!Nested) {
+          return <UnknownBlock block={child.block} index={child.index} route={route} />;
+        }
+
+        // `anchor` and `id` are overridden AFTER the spread, not omitted: the
+        // spread carries whatever anchor WordPress generated for this row, and
+        // a guest that keeps it claims an id no rail links to and that a later
+        // band may legitimately want.
+        return <Nested {...child.block} anchor={undefined} id={undefined} />;
+      })}</Block>
+    );
+  })
+}

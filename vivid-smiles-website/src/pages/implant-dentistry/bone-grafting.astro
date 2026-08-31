@@ -13,6 +13,31 @@
  * .what-causes block in the same right column as the definition prose, separated by a hairline
  * rule, so the causes content doesn't float as a centered orphan below the cream split.
  * No new images were added — assets reused from src/assets/images/procedures/ and people/.
+ *
+ * MIGRATED TO BLOCKS (docs/PAGE-BLOCKS.md 2.3). Eight top-level content bands —
+ * why, what, implants, process, types, candidacy, gallery, faq — each guarded
+ * with `hasBlocks ? null : …` and each carrying a row in
+ * cms/import/block-map.json under /implant-dentistry/bone-grafting/. No
+ * `code_section` row: this page mounts no <LocalTrust> and no other bespoke
+ * component band, so there is nothing for the escape hatch to hold a place for.
+ *
+ * THREE THINGS ON THIS PAGE THAT THE MIGRATED COSMETIC PAGES DO NOT HAVE, all
+ * three recorded as known_gaps on their blocks in the map:
+ *   1. `#implants` is a centred .implants-intro stacked over a sage-tinted
+ *      .implants-band card. No registered layout draws that shape; the closest
+ *      is media_split, which returns the band as a .what-grid split — the very
+ *      shape the note at :271 restructured it away from.
+ *   2. `#types` carries a .materials-block <dl> after its .alternatives-grid,
+ *      and `#what` and `#candidacy` each carry a bespoke sub-block
+ *      (.what-causes, .candidacy-sub). None of the nine layouts draws a
+ *      definition list or either sub-block.
+ *   3. `.why-grid` is FOUR across here, so this is the first route to store
+ *      card_grid `columns: "4"` and the first to emit `.why-grid.cols-4`. That
+ *      compound outranks this sheet's own 1240px collapse — see the map.
+ *
+ * The bands ABOVE the switch — breadcrumb, hero, .keys and the rail — are not
+ * blocks by spec 7 and stay unguarded, as do <VirtualConsult> and <FinalBand>
+ * below the run.
  */
 import { Image } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -29,11 +54,13 @@ import '../../styles/pages/bone-grafting.css';
 // the previous AI-generated yomi-robotic-implant-procedure.webp which read as
 // "photo of a computer" because it was dominated by planning screens.
 // Candidacy section — lifestyle patient portrait.
-import { getPageContent } from '../../lib/page-content';
+import { getPageContent, type TocLink } from '../../lib/page-content';
+import PageBlocks from '../../blocks/PageBlocks.astro';
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Bone Grafting in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, processSteps, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+const { blocks, hasBlocks, tocLinks, processSteps, faqs, hero, closing, section, image, seo } =
+  await getPageContent(Astro.url.pathname);
 
 
 // Track doubled for seamless marquee loop.
@@ -106,6 +133,70 @@ const keyStats: [string, string][] = [
   ['5.0★ · 300+', 'Google Reviews'],
 ];
 
+/**
+ * The "On this page" rail, derived from the blocks themselves (docs/PAGE-BLOCKS.md 1.2).
+ *
+ * Used only when this page renders from `blocks`. The `toc_links` repeater is
+ * seven rows that restate the order of the eight bands below it, so a reorder in
+ * wp-admin moves a band and leaves its rail entry pointing at the old
+ * neighbour — the single largest way a reorder breaks a link. Reading the
+ * anchors off the blocks makes that unrepresentable: there is one ordering and
+ * the rail is a projection of it.
+ *
+ * Three rules, in the order they bite:
+ *
+ * 1. A blank anchor is skipped. Not tidiness — src/scripts/toc-spy.ts:24 feeds
+ *    each rendered href straight to document.querySelector(), and
+ *    querySelector("") throws a SyntaxError that kills the whole spy, not just
+ *    the one entry. PageBlocks.astro emits no id at all for a blank anchor
+ *    (`id={anchor || undefined}`), so there is nothing to link to either.
+ * 2. An anchor that is not a valid id selector is skipped for the same reason —
+ *    "#3-reasons" is legal HTML and an illegal CSS selector. Dropping one rail
+ *    entry costs one link; letting it through costs every link on the page,
+ *    plus the mobile pill auto-centering.
+ * 3. Duplicate anchors follow PageBlocks.astro's dedup exactly, second
+ *    occurrence onward suffixed `-2`, `-3`. The counter has to advance on every
+ *    non-blank anchor, including blocks with no nav_label, or the rail's idea
+ *    of "the second #faq" drifts from the id the renderer actually emitted.
+ *
+ * A blank nav_label means "leave this block out of the rail" (1.2), which is
+ * how a band that should not be navigable opts out — `gallery` on this page,
+ * which has no toc_links row and never appeared in the rail.
+ */
+const ANCHOR_IS_ID_SELECTOR = /^[A-Za-z_][A-Za-z0-9_-]*$/;
+
+const anchorsSeen = new Map<string, number>();
+// Typed as TocLink[] rather than an equivalent inline shape so the ternary in
+// the rail below collapses to one type instead of a union of two array types,
+// which TypeScript will not let you call .map() on.
+const derivedTocLinks: TocLink[] = [];
+
+for (const block of blocks) {
+  // A nested block is drawn INSIDE the band above it, not as a band of its own,
+  // so it has no id to link to. Without this the rail emits an entry pointing at
+  // an anchor nothing renders — a dead link in the "On this page" list.
+  if (block?.nested) continue;
+
+  const anchor = typeof block.anchor === 'string' ? block.anchor.trim() : '';
+  if (anchor === '') continue;
+
+  const nth = (anchorsSeen.get(anchor) ?? 0) + 1;
+  anchorsSeen.set(anchor, nth);
+
+  const label = typeof block.navLabel === 'string' ? block.navLabel.trim() : '';
+  if (label === '') continue;
+
+  if (!ANCHOR_IS_ID_SELECTOR.test(anchor)) {
+    console.warn(
+      `[blocks] anchor "${anchor}" on ${Astro.url.pathname} cannot be used as a selector — ` +
+        `omitting "${label}" from the On this page rail so toc-spy keeps working`,
+    );
+    continue;
+  }
+
+  derivedTocLinks.push({ href: `#${nth > 1 ? `${anchor}-${nth}` : anchor}`, label });
+}
+
 
 ---
 
@@ -132,25 +223,25 @@ const keyStats: [string, string][] = [
       <header class="hero" data-vs-reveal-batch>
         <div class="wrap hero-inner">
           <div class="hero-copy">
-            <span class="eyebrow">Implant Dentistry · Parker, CO</span>
-            <h1 data-vs-reveal-lines>Bone Grafting <em>in Parker, CO</em></h1>
-            <p class="hero-sub">
+            {hero.eyebrow ? <span class="eyebrow">{hero.eyebrow}</span> : <span class="eyebrow">Implant Dentistry · Parker, CO</span>}
+            {hero.h1 ? <h1 data-vs-reveal-lines set:html={hero.h1} /> : <h1 data-vs-reveal-lines>Bone Grafting <em>in Parker, CO</em></h1>}
+            {hero.sub ? <p class="hero-sub">{hero.sub}</p> : <p class="hero-sub">
               Bone grafting rebuilds jawbone lost after tooth extraction or gum disease, creating
               the foundation needed for dental implants. Without adequate bone volume, implants
               cannot anchor securely, which is why Dr. Richardson evaluates every patient with CBCT
               3D imaging before recommending treatment. Here is what bone grafting involves, who
               needs it, and what to expect at Vivid Smiles Dentistry in Parker.
-            </p>
+            </p>}
             <div class="hero-actions">
-              <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button
+              <Button variant="light" href={hero.cta(0) ? hero.cta(0)!.href : bookNowHref} hoverLabel="Let's Talk">{hero.cta(0) ? hero.cta(0)!.label : "Book Online"}</Button
               >
-              <Button variant="ghost-light" href="#consult" hoverLabel="Get a Video"
-                >Free Virtual Consult</Button
+              <Button variant="ghost-light" href={hero.cta(1) ? hero.cta(1)!.href : "#consult"} hoverLabel="Get a Video"
+                >{hero.cta(1) ? hero.cta(1)!.label : "Free Virtual Consult"}</Button
               >
-              <div class="ratings">
+              {hero.showRatings && <div class="ratings">
                 <span class="stars" aria-hidden="true">★★★★★</span>
                 <span>5.0 · 300+ reviews</span>
-              </div>
+              </div>}
             </div>
           </div>
           <div class="hero-img" data-vs-parallax data-parallax="-30">
@@ -181,20 +272,56 @@ const keyStats: [string, string][] = [
         </div>
       </section>
 
-      {/* ---------- ON-THIS-PAGE TOC ---------- */}
+      {
+        /* ---------- ON-THIS-PAGE TOC ----------
+         The rail itself is never a block (spec 7: "Not a block, even though it
+         is a band") — only its contents move. Derived from the blocks when
+         they are drawing the page, read from the `toc_links` repeater when the
+         template is. Same markup either way, which is what lets
+         src/scripts/toc-spy.ts go on reading its section list off the rendered
+         links without knowing which source produced them. */
+      }
       <nav class="toc" id="toc" aria-label="On this page">
         <div class="toc-inner">
           <span class="toc-label">On this page</span>
           <div class="toc-scroll">
             <div class="toc-list">
-              {tocLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+              {(hasBlocks ? derivedTocLinks : tocLinks).map((l) => <a href={l.href}>{l.label}</a>)}
             </div>
           </div>
         </div>
       </nav>
 
-      {/* ---------- WHY ---------- */}
-      <section class="section" id="why" data-vs-reveal-batch>
+      {
+        /* ---------- WHY (paper) ----------
+
+         THE MIGRATION SWITCH (docs/PAGE-BLOCKS.md 2.3) starts here. `hasBlocks`
+         means "this build can draw this page from its blocks" — not "WordPress
+         sent rows" (src/lib/page-content.ts). When it is true PageBlocks draws
+         the eight bands in the order an editor arranged them; when it is false —
+         which is every build until the backfill has run, and again the moment
+         an editor empties the field — every band below renders exactly as it
+         always has.
+
+         Written as one guard per band rather than one guard around all eight on
+         purpose, and it is not a style choice. Astro's compressHTML pass treats
+         an Astro comment expression differently inside a component slot than at
+         element level: wrapping these bands in a Fragment silently drops one
+         space at every comment boundary below, and scripts/vr-html.mjs compares
+         exact bytes and calls that a difference. A guard sitting exactly where
+         its section sat emits byte-identical HTML.
+
+         EVERY top-level band between here and <VirtualConsult> is guarded, and
+         every one of them has a row in cms/import/block-map.json. Those two
+         facts have to move together: a band that is neither blocked nor guarded
+         renders in ADDITION to the block run and lands at the bottom of the
+         page, and a band that is guarded with no map row disappears on backfill
+         with nothing in the log. There is no third outcome. The bands ABOVE
+         this line — the breadcrumb, the hero, `.keys` and the rail — are not
+         blocks by spec 7 and are deliberately unguarded, as are <VirtualConsult>
+         and <FinalBand> below the run. */
+      }
+      {hasBlocks ? <PageBlocks blocks={blocks} /> : <section class="section" id="why" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("why").eyebrow}</span>
@@ -213,10 +340,16 @@ const keyStats: [string, string][] = [
             }
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* ---------- WHAT (cream split + Why Jawbone Loss Happens sub) ---------- */}
-      <section class="section alt" id="what" data-vs-reveal-batch>
+      {/* ---------- WHAT (charcoal) — `.section.alt` is var(--vs-charcoal-green)
+       on THIS page (bone-grafting.css:227), with h2/h3/h4 #fff at :228-231 and
+       p rgba(255,255,255,.85) at :235. The band comment this replaced called it
+       a "cream split", which the sheet contradicts; the map's band value is read
+       off the rule, not off the class name and not off the comment. The
+       .what-causes sub-block inside .what-text has no field on media_split — see
+       the known_gap on this block. ---------- */}
+      {hasBlocks ? null : <section class="section alt" id="what" data-vs-reveal-batch>
         <div class="wrap">
           <div class="what-grid">
             <div class="what-img" data-vs-parallax data-parallax="-25">
@@ -263,7 +396,7 @@ const keyStats: [string, string][] = [
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       {
         /* ---------- IMPLANTS (centered intro + compact highlight band — distinct from WHAT) ---------- */
@@ -273,9 +406,21 @@ const keyStats: [string, string][] = [
         same-shape split and read as a duplicate layout. Restructured here as a vertical
         stack: centered intro (max-width 760px) on top, then a sage-tinted .implants-band
         below with a smaller framed image flanked by the callout content — same content,
-        very different rhythm from the section above. */
+        very different rhythm from the section above.
+
+         ---------- IMPLANTS (paper) — <section class="section">, no background
+         rule on .bgraft .section (bone-grafting.css:226).
+
+         THE BAND WITH THE LARGEST SHAPE LOSS ON THIS ROUTE. Its map row is a
+         media_split, which is the only registered layout that keeps the photo —
+         and media_split draws a .what-grid, which is exactly the 50/50 split the
+         restructure note above moved this band away from. The .implants-band
+         card's own eyebrow, <h3> and paragraph (with its two internal
+         <a class="vs-link"> to the single-tooth and full-mouth implant pages)
+         have no field and are quoted verbatim in the block's known_gaps so they
+         are recoverable from the map alone. */
       }
-      <section class="section" id="implants" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section" id="implants" data-vs-reveal-batch>
         <div class="wrap">
           <div class="implants-intro">
             <span class="eyebrow">{section("implants").eyebrow}</span>
@@ -309,10 +454,15 @@ const keyStats: [string, string][] = [
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* ---------- PROCESS (sage, 5-step + Recovery Timeline inline-cta) ---------- */}
-      <section class="section dark" id="process" data-vs-reveal-batch>
+      {/* ---------- PROCESS (sage-pale) — `.section.dark` is var(--vs-sage-pale)
+       here (bone-grafting.css:237), with h2/h3/h4 var(--vs-ink) at :238-241.
+       `sage` and `sage-pale` are two separate BLOCK_BANDS choices painting two
+       different tokens, so the map says sage-pale and the band comment this
+       replaced — which said "sage" — was reading the class name, not the rule.
+       Five steps across a repeat(5, 1fr) grid (bone-grafting.css:433). --------- */}
+      {hasBlocks ? null : <section class="section dark" id="process" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow light">The Procedure</span>
@@ -349,7 +499,7 @@ const keyStats: [string, string][] = [
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       {
         /* ---------- TYPES (reuses COMPARE slot — 3 procedure cards + materials glossary) ---------- */
@@ -357,9 +507,21 @@ const keyStats: [string, string][] = [
       {
         /* Two distinct patterns: .alternatives-grid for procedures (3 prominent cards), then a
         2-col .materials-block (head + .materials-list) for material sources — keeps the eye
-        from reading two identical 3-card rows back-to-back. */
+        from reading two identical 3-card rows back-to-back.
+
+         ---------- TYPES (paper) — <section class="section">, no background rule
+         (bone-grafting.css:226).
+
+         Mapped to comparison_cards, which draws the three procedure cards from
+         the CMS `cards` group `procedures` — but into `.compare` / `.compare-card`
+         / <h3>, not this page's `.alternatives-grid` / `.config-card` / <h4>.
+         The .materials-block <dl> below has no field on any registered layout,
+         and its three rows are live CMS content (`cards` group `materials`), so
+         they are listed in `exempt.cards` in the map rather than silently
+         dropped by the leftover check. Both losses are on the block's
+         known_gaps. */
       }
-      <section class="section" id="types" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section" id="types" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("types").eyebrow}</span>
@@ -414,10 +576,15 @@ const keyStats: [string, string][] = [
             <span class="cta-note">No commitment · Personal video reply</span>
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* ---------- CANDIDACY (cream, image+text + bottom-line sub) ---------- */}
-      <section class="section alt" id="candidacy" data-vs-reveal-batch>
+      {/* ---------- CANDIDACY (charcoal) — the same `.section.alt` rule as `what`
+       above, bone-grafting.css:227. The band comment this replaced said "cream";
+       the sheet says var(--vs-charcoal-green), and the map follows the sheet.
+       The .candidate-list here is the markup media_split.checklist was built
+       from — lead, item, markers derived from row position. The .candidacy-sub
+       card below the grid is not expressible and is a known_gap. ---------- */}
+      {hasBlocks ? null : <section class="section alt" id="candidacy" data-vs-reveal-batch>
         <div class="wrap">
           <div class="natural-grid">
             <div class="natural-text">
@@ -475,10 +642,14 @@ const keyStats: [string, string][] = [
             <p>{section("candidacy").body}</p>
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* ---------- GALLERY ---------- */}
-      <section class="section dark" id="gallery">
+      {/* ---------- GALLERY (sage-pale) — the same `.section.dark` rule as
+       `process`, bone-grafting.css:237. Marquee, doubled track. Out of the rail
+       on both sides of the switch: this page has no `toc_links` row for
+       #gallery, so the derived rail leaves it out exactly as the repeater does.
+       ---------- */}
+      {hasBlocks ? null : <section class="section dark" id="gallery">
         <div class="wrap">
           <div class="section-head" data-vs-reveal>
             <span class="eyebrow light">Smile Gallery</span>
@@ -505,10 +676,10 @@ const keyStats: [string, string][] = [
             }
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* ---------- FAQ (paper, 5 accordion items) ---------- */}
-      <section class="section" id="faq" data-vs-reveal-batch>
+      {/* ---------- FAQ (paper) — native details/summary, zero JS ---------- */}
+      {hasBlocks ? null : <section class="section" id="faq" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("faq").eyebrow}</span>
@@ -544,12 +715,19 @@ const keyStats: [string, string][] = [
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* ---------- VIRTUAL CONSULT ---------- */}
-      <VirtualConsult id="consult" eyebrow="Free bone grafting consultation">
-        <Fragment slot="headline">Free bone grafting <em>consultation.</em></Fragment>
-        <Fragment slot="body">
+      {
+        /* ---------- VIRTUAL CONSULT — primary closing conversion.
+         NOT a block and deliberately unguarded, like the breadcrumb, hero,
+         `.keys` strip and the rail above: it renders on both sides of the
+         switch and has no row in the map. It sits after the block run in
+         template order and PageBlocks draws at the `why` position, so the
+         closing pair still comes last. */
+      }
+      <VirtualConsult id="consult" eyebrow={closing.consultEyebrow || "Free bone grafting consultation"}>
+        <Fragment slot="headline">{closing.consultHeadline ? <Fragment set:html={closing.consultHeadline} /> : <>Free bone grafting <em>consultation.</em></>}</Fragment>
+        <Fragment slot="body">{closing.consultBody ? closing.consultBody : <>
           Vivid Smiles Dentistry serves patients across Parker, Douglas County, and the surrounding
           communities. Schedule a free consultation <a
             href={bookNowHref}
@@ -557,16 +735,16 @@ const keyStats: [string, string][] = [
             rel="noopener noreferrer">online</a
           > or call
           {' '}{phoneLabel} to find out whether bone grafting is the right next step for you.
-        </Fragment>
+        </>}</Fragment>
       </VirtualConsult>
 
       {/* ---------- CLOSING BAND ---------- */}
       <FinalBand>
-        <p>
+        <p>{closing.note ? closing.note : <>
           Dr. Bryce Richardson combines CBCT-guided planning with 600-plus hours of advanced
           surgical training to deliver bone grafting outcomes built to support implants for the long
           term.
-        </p>
+        </>}</p>
       </FinalBand>
     </main>
 

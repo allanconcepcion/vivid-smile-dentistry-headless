@@ -24,9 +24,16 @@
  *   </VirtualConsult>
  */
 
+import { consultTypeformId } from "../data/contact";
+
 interface Props {
   id?: string;
   eyebrow?: string;
+  /**
+   * Overrides the practice-wide id for one band. Left undefined by every caller
+   * today; kept because a campaign landing page is exactly the case that would
+   * want its own form without changing the setting for the whole site.
+   */
   typeformId?: string;
   background?: "cream" | "paper";
 }
@@ -34,9 +41,31 @@ interface Props {
 const {
   id = "virtualConsult",
   eyebrow = "Free virtual consultation",
-  typeformId = "01KPCQ9D4Z4000Y0Z4A3VGGTHD",
+  typeformId,
   background = "paper",
 } = Astro.props;
+
+/**
+ * THE FORM ID NOW COMES FROM PRACTICE SETTINGS, and the literal below is a
+ * fallback rather than the source.
+ *
+ * This is the site's PRIMARY lead form and it was the only one that was not
+ * editable: `contactTypeformId` has been a setting since the settings page was
+ * built (src/lib/settings.ts), while this band carried its id as a default
+ * value here — so swapping the main consult form meant a code change and a
+ * deploy, and swapping the secondary one meant typing in wp-admin.
+ *
+ * THREE-STEP FALLBACK, and the last step is deliberate. `consultTypeformId` is
+ * nullable: the field was added to Practice Settings after that page shipped,
+ * so an install that has never saved it returns null. An empty box must be a
+ * no-op on the site's main lead capture, not a blank iframe — so the literal
+ * that shipped for the life of this component stays as the floor. Remove it
+ * only once the setting is known to be populated everywhere it matters.
+ */
+const resolvedTypeformId =
+  (typeof typeformId === "string" && typeformId.trim() !== "" && typeformId) ||
+  (typeof consultTypeformId === "string" && consultTypeformId.trim() !== "" && consultTypeformId) ||
+  "01KPCQ9D4Z4000Y0Z4A3VGGTHD";
 ---
 
 <section class:list={["vs-vc", `vs-vc--${background}`]} id={id}>
@@ -95,7 +124,7 @@ const {
             loading just stole bandwidth from the hero on mobile (Lighthouse:
             LCP 15s → fixed). Popup CTAs are unaffected — they only load the
             renderer on click. */}
-        <div data-tf-live={typeformId} data-tf-lazy></div>
+        <div data-tf-live={resolvedTypeformId} data-tf-lazy></div>
         <script is:inline defer src="https://embed.typeform.com/next/embed.js"></script>
       </div>
     </div>

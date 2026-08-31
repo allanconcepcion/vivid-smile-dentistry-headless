@@ -13,10 +13,73 @@ import { phoneHref, phoneLabel } from "../../data/contact";
 import "../../styles/pages/referral-program.css";
 
 import { getPageContent } from '../../lib/page-content';
+import PageBlocks from '../../blocks/PageBlocks.astro';
 // faqs is edited in WordPress (Pages -> Referral Program).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+const { hero, closing, blocks, hasBlocks, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+
+/**
+ * THE MIGRATION SWITCH (docs/PAGE-BLOCKS.md 2.3), documented here and nowhere
+ * in the markup below.
+ *
+ * `hasBlocks` means "this build can draw this page from its blocks", not
+ * "WordPress sent rows" (src/lib/page-content.ts). True: PageBlocks draws the
+ * two block bands at the position `#how-it-works` used to start. False — every
+ * build until this route is back-filled, and again the moment an editor empties
+ * the field — every band renders exactly as it always has.
+ *
+ * TWO BANDS ARE BLOCKS, each with exactly one row in
+ * cms/import/routes/referral-program.json: #how-it-works (process_steps) and
+ * #faq (faq). Everything else stays unguarded, in two senses:
+ *
+ *   `.crumbs`, `.hero` and <FinalBand> are CHROME — never blocks
+ *   (docs/PAGE-BLOCKS.md 7, "Not a block, even though it is a band").
+ *
+ *   `#program` is page copy no registered layout expresses: `.story-grid` plus
+ *   the bespoke `aside.reward-card` ($50 + $50 stack, `.reward-meta`, jump
+ *   link). `pricing_tiers` draws plan cards with name/price/features and this
+ *   is neither. It stays unguarded, which is ORDER-SAFE only because it LEADS —
+ *   it sits above #how-it-works, the first block, so the block run starting
+ *   there leaves it exactly where it was. Put a block before it and this
+ *   becomes the LocalTrust fault. Its `sections[program]` row keeps feeding the
+ *   template and is listed under `exempt.sections` on the route.
+ *
+ * A band guarded with no row VANISHES on backfill; a band with a row and no
+ * guard renders TWICE at the bottom carrying a duplicate id. Both have happened
+ * on this project. There is no third outcome.
+ *
+ * NO RAIL ON THIS PAGE. `tocLinks` is null on the live endpoint and the
+ * template draws no `.toc` nav, so there is no derived-TOC loop here — carrying
+ * one would be a loop feeding nothing.
+ *
+ * THE GUARDS CARRY NO COMMENT EXPRESSIONS. Astro preserves whitespace between
+ * expressions, so a comment on its own line leaves newline-and-indent TEXT
+ * NODES either side of itself on BOTH branches. Every guard below is written
+ * flush where its `<section>` sat: `hasBlocks ? … : <section` on the opening
+ * line, `</section>}` on the closing one.
+ */
+
+/**
+ * The FAQPage entities, taken from whatever actually renders.
+ *
+ * Structured data lives on the page, not in the band. Left reading the legacy
+ * `faqs` repeater it would keep describing the pre-migration content the moment
+ * an editor edits the block's rows in wp-admin — a rich result that disagrees
+ * with the page. The two sources are identical today by construction: the
+ * block's `items` are MOVED from this same repeater, so the false branch below
+ * serialises byte-for-byte what it always has.
+ */
+const faqEntities = (
+  hasBlocks
+    ? (
+        (blocks.find((b) => b.__typename === 'PageFieldsBlocksFaqLayout')?.items ?? []) as {
+          question?: string | null;
+          answer?: string | null;
+        }[]
+      ).map((i) => ({ q: i.question ?? '', a: i.answer ?? '' }))
+    : faqs.map((f) => ({ q: f.q, a: f.a }))
+);
 
 
 const steps = [
@@ -69,24 +132,24 @@ const description =
       <div class="wrap hero-inner">
 
         <div class="hero-copy">
-          <span class="eyebrow">Referral Program · Vivid Smiles</span>
-          <h1 data-vs-reveal-lines>
+          {hero.eyebrow ? <span class="eyebrow">{hero.eyebrow}</span> : <span class="eyebrow">Referral Program · Vivid Smiles</span>}
+          {hero.h1 ? <h1 data-vs-reveal-lines set:html={hero.h1} /> : <h1 data-vs-reveal-lines>
             Refer a friend, <em>share a smile.</em>
-          </h1>
-          <p class="hero-sub">
+          </h1>}
+          {hero.sub ? <p class="hero-sub">{hero.sub}</p> : <p class="hero-sub">
             The best compliment you can give us is a referral. When you share your
             positive experience at Vivid Smiles Dentistry, you're helping your
             friends and family receive the same exceptional care — and as a thank
             you, both you and your referral will earn a <b>$50 credit</b> toward
             your next dental visit.
-          </p>
+          </p>}
           <div class="hero-actions">
-            <Button variant="sage" href="#how-it-works" hoverLabel="See How">How It Works</Button>
-            <Button variant="ghost" href={phoneHref} hoverLabel="Tap to Dial">Call {phoneLabel}</Button>
-            <div class="ratings">
+            <Button variant="sage" href={hero.cta(0) ? hero.cta(0)!.href : "#how-it-works"} hoverLabel="See How">{hero.cta(0) ? hero.cta(0)!.label : "How It Works"}</Button>
+            <Button variant="ghost" href={hero.cta(1) ? hero.cta(1)!.href : phoneHref} hoverLabel="Tap to Dial">{hero.cta(1) ? hero.cta(1)!.label : <>Call {phoneLabel}</>}</Button>
+            {hero.showRatings && <div class="ratings">
               <span class="stars" aria-hidden="true">★★★★★</span>
               <span>5.0 · 300+ reviews</span>
-            </div>
+            </div>}
           </div>
         </div>
 
@@ -162,7 +225,7 @@ const description =
     </section>
 
     {/* ---------- HOW IT WORKS — sage (dark) — 3 .process-card ---------- */}
-    <section class="section dark" id="how-it-works" data-vs-reveal-batch>
+    {hasBlocks ? <PageBlocks blocks={blocks} /> : <section class="section dark" id="how-it-works" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head center">
           <span class="eyebrow light">How It Works</span>
@@ -187,10 +250,10 @@ const description =
           your next visit.
         </p>
       </div>
-    </section>
+    </section>}
 
     {/* ---------- FAQ (paper) ---------- */}
-    <section class="section" id="faq" data-vs-reveal-batch>
+    {hasBlocks ? null : <section class="section" id="faq" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head center">
           <span class="eyebrow">{section("faq").eyebrow}</span>
@@ -209,15 +272,15 @@ const description =
           ))}
         </div>
       </div>
-    </section>
+    </section>}
 
     {/* ---------- FINAL BAND ---------- */}
     <FinalBand eyebrow="Ready to refer?" background="cream-warm">
-      <p>
+      <p>{closing.note ? closing.note : <>
         Sharing a smile has never been easier. If you'd like to refer a friend or
         have a question about the program, give us a call at
         <a class="vs-link" href={phoneHref}>{phoneLabel}</a> — we'll take it from there.
-      </p>
+      </>}</p>
     </FinalBand>
 
     </main>
@@ -236,7 +299,7 @@ const description =
     <script type="application/ld+json" is:inline set:html={JSON.stringify({
       "@context": "https://schema.org",
       "@type": "FAQPage",
-      "mainEntity": faqs.map((f) => ({
+      "mainEntity": faqEntities.map((f) => ({
         "@type": "Question",
         "name": f.q,
         "acceptedAnswer": { "@type": "Answer", "text": f.a },

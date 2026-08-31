@@ -680,49 +680,6 @@
   max-width: 70ch;
 }
 
-/* ---------- CLOSING BAND ---------- */
-.twhitening .final-band {
-  padding: 90px 40px;
-  background: var(--paper);
-  border-top: 1px solid var(--line);
-}
-.twhitening .final-band .wrap {
-  max-width: 1100px;
-  margin: 0 auto;
-}
-.twhitening .final-band-inner {
-  display: grid;
-  grid-template-columns: 1.2fr auto;
-  align-items: center;
-  gap: 40px;
-}
-.twhitening .final-band-text .eyebrow {
-  display: inline-flex; align-items: center; gap: 14px;
-  color: var(--sage);
-}
-.twhitening .final-band-text .eyebrow::before {
-  content: ""; width: 28px; height: 1px; background: var(--sage);
-}
-.twhitening .final-band-text p {
-  margin: 14px 0 0;
-  font-size: 16px;
-  color: var(--ink-soft);
-  max-width: 50ch;
-}
-.twhitening .final-band-phone {
-  margin-top: 12px;
-  font-family: var(--f-display);
-  font-size: 22px;
-  color: var(--sage);
-  letter-spacing: -0.01em;
-}
-.twhitening .final-band-actions {
-  display: inline-flex;
-  gap: 14px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
 /* ---------- RESPONSIVE ---------- */
 @media (max-width: 991px) {
   .twhitening .hero-inner { grid-template-columns: 1fr; gap: 50px; }
@@ -760,13 +717,6 @@
   .twhitening .cta-row { margin-top: 36px; }
   .twhitening .faq summary { padding: 22px 24px; }
   .twhitening .faq .answer { padding: 0 24px 22px; }
-  .twhitening .final-band { padding: 60px 22px; }
-  .twhitening .final-band-inner {
-    grid-template-columns: 1fr;
-    gap: 28px;
-    text-align: left;
-  }
-  .twhitening .final-band-actions { justify-content: flex-start; }
   .twhitening .safety-callout { padding: 28px 24px; }
   .twhitening .veneers-callout { padding: 22px 22px; }
 }
@@ -774,7 +724,6 @@
 @media (max-width: 480px) {
   .twhitening .hero h1 { max-width: none; }
   .twhitening .smile-tile { width: 280px; height: 210px; }
-  .twhitening .final-band-phone { font-size: 18px; }
 }
 
 /* ---------- Reduced-motion safety ---------- */

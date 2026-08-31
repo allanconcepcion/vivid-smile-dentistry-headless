@@ -1,0 +1,727 @@
+---
+/**
+ * MapVisitBlock — the `map_visit` layout: the "visit us" band. A copy column
+ * with the practice's address card beside an embedded Google Map.
+ *
+ * EXTRACTED, NOT DESIGNED. Two live pages ship this shape and this component is
+ * their union, element for element:
+ *
+ *   src/pages/contact/index.astro:183-252     `#visit`
+ *   src/pages/our-office/index.astro:238-304  `#visit`
+ *
+ * `.location-grid` / `.location-copy` / `.location-card` / `.hours-table` /
+ * `.location-map-wrap` are the pages' own class names on purpose, the same
+ * reason FaqBlock keeps `.faq-list`: both page stylesheets still carry rules for
+ * them and keep carrying them until the stylesheet pass removes their copies, so
+ * renaming anything here to `vs-map-visit__*` would unstyle the band the moment
+ * an editor's backfill flipped `blocks` from empty to populated — on a live
+ * client page, between deploys, with nobody watching.
+ *
+ * FOUR COPY FIELDS AND NOTHING ELSE, BECAUSE EVERYTHING ELSE IS SITE DATA.
+ * Street, city, state, zip, phone, email, opening hours, both buttons and the
+ * map embed all resolve from src/data/contact.ts and src/data/hours.ts inside
+ * this file — the same rule AreaBand and LocalTrust already follow, and the
+ * reason this layout has no cta fields at all. A `tel:` URL or a maps URL in a
+ * CMS field is a phone number with a second home, and the second one goes stale.
+ *
+ * THE ADDRESS LINE IS ONE EXPRESSION. `${addressCity}, ${addressState}
+ * ${addressZip}` is built in the frontmatter and printed once. Written the
+ * template's way — `{addressCity}, {addressState} {addressZip}` — the single
+ * space between the last two expressions is a whitespace TEXT NODE, and that is
+ * how "Parker, CO 80134" shipped as "Parker, CO80134" on three pages of this
+ * project. It survives on these two today (verified in
+ * dist/contact/index.html and dist/our-office/index.html), because the
+ * compiler keeps a same-line space between two expressions and drops it only
+ * across a line break. Same output either way; one expression cannot regress.
+ *
+ * `ariaLabel` IS A FIELD BECAUSE THE TWO PAGES DISAGREE — "Visit our practice"
+ * against "Visit our office". Blank emits NO attribute rather than an empty
+ * one: `aria-label=""` strips a landmark's accessible name instead of leaving
+ * it to the heading.
+ *
+ * ── THE TWO SKINS, AND THE ONE THEY CONVERGE ON ──────────────────────────────
+ *
+ * This band exists twice on the live site with two different card treatments,
+ * and a single component cannot ship both on the same band value:
+ *
+ *   contact.css:288-350   glass card — rgba(255,255,255,.06) ground,
+ *                         translucent hairlines, #fff type. Written FOR the
+ *                         charcoal band ("LOCATION + HOURS (charcoal-green)").
+ *   our-office.css:341-400  white card — #fff ground, --line hairlines, --ink
+ *                         type. Written for a CREAM band ("Mirrors /contact/
+ *                         but on a cream band instead of sage dark"), and left
+ *                         unchanged when the band itself was flipped to
+ *                         charcoal. Only `.lede` was re-asserted for the flip
+ *                         (:338-339) — the card was not.
+ *
+ * Both rows in the Wave-B contract are `band: charcoal`. So BOTH treatments are
+ * carried below, keyed on this block's own band modifier: the dark bands (`alt`,
+ * `sage`) get contact's glass card, the light bands (paper, cream, sage-pale)
+ * get our-office's white one. That keeps each source treatment alive on the band
+ * it was drawn for, and it means /our-office/ #visit changes from a white card
+ * on charcoal to a glass card on charcoal. THAT IS A DELIBERATE, VISIBLE,
+ * ONE-BAND CORRECTION — the same class of change as `Parker, CO80134` ->
+ * `Parker, CO 80134` on the hub bands, and it must be recorded in the block-map,
+ * not left for the diff to find. It is invisible to a word-level diff and
+ * invisible to a section-class diff; only a screenshot shows it.
+ *
+ * The geometry below is contact.css's throughout, for the same reason: that
+ * sheet was written for this band on THIS band colour. /our-office/'s numbers
+ * differ in seven small places and each divergence is named at the rule that
+ * supersedes it, so the stylesheet pass can see what it is deleting.
+ *
+ * WHAT /contact/ LOSES: one `light` class token on the eyebrow. The house rule
+ * every other block follows is `light` on the sage-pale and sage bands only
+ * (FaqBlock:139), and this block owns the charcoal eyebrow colour in its own
+ * scoped CSS, so nothing moves visually. Recorded in manifest.ts:1067-1073.
+ *
+ * FIRST BLOCK TO SHIP FONTAWESOME MARKUP. The four `<i class="fa-solid …">`
+ * glyphs are the component's, not fields — address, phone, email and hours are
+ * a fixed four-row card, not a repeater. `fontawesome.css` + `solid.css` are
+ * imported once in BaseLayout.astro:11-12, so they are on every route this
+ * block can land on; nothing extra ships.
+ *
+ * NOTHING HERE THROWS. An editor triggers deploys and never sees the output
+ * (cms/mu-plugins/vs-deploy.php:142-158), so every field is read as if it might
+ * be missing, blank, or the wrong type.
+ *
+ * Styles are co-located per docs/PAGE-BLOCKS.md 2.5. Every rule below names the
+ * sheet and line it was lifted from; the page sheets' local `--sage` / `--ink` /
+ * `--line` / `--f-display` aliases are resolved back to the `--vs-*` tokens they
+ * alias one-for-one (contact.css:14-36, our-office.css:20-40), so rendered
+ * values are unchanged.
+ *
+ * Spec: docs/PAGE-BLOCKS.md 1.2, 2.5, 3.3.
+ */
+
+import Button from "../components/Button.astro";
+import {
+  addressCity,
+  addressLine,
+  addressState,
+  addressStreet,
+  addressZip,
+  emailAddress,
+  emailHref,
+  phoneHref,
+  phoneLabel,
+} from "../data/contact";
+import { officeHours } from "../data/hours";
+import { resolveCta } from "./cta";
+
+/**
+ * band value -> the modifier class this block writes on its own section.
+ *
+ * Read this map, never an ancestor class. `.section.alt` is charcoal green on
+ * these two pages and cream on teeth-whitening.css:237 (Fact 4), so a block that
+ * inherited its band would be wrong on one of them the moment a section moved.
+ * `paper` maps to nothing at all because a paper band is a bare
+ * `class="section"` on every page in the corpus — adding a modifier would be the
+ * diff.
+ */
+const BAND_MODIFIER: Record<string, string | null> = {
+  paper: null,
+  cream: "cream",
+  "sage-pale": "dark",
+  sage: "sage",
+  charcoal: "alt",
+};
+
+interface Props {
+  /** DOM id, already deduplicated by PageBlocks.astro. Absent when blank. */
+  id?: string;
+  /** The same value as `id`. Accepted so the spread in PageBlocks is lossless. */
+  anchor?: string | null;
+  /** Rail label. Read by the page that builds the rail, not by this band. */
+  navLabel?: string | null;
+  band?: string | null;
+  eyebrow?: string | null;
+  /** May contain `<em>`, and nothing else (docs/PAGE-BLOCKS.md, Fact 3). */
+  heading?: string | null;
+  /** The `p.lede` under the heading. */
+  body?: string | null;
+  /**
+   * The section's accessible name. A field because the two pages disagree.
+   * Blank emits no attribute at all — see the header.
+   */
+  ariaLabel?: string | null;
+}
+
+const { id, band, eyebrow, heading, body, ariaLabel } = Astro.props;
+
+/* `?? null` rather than a default: an unknown band from a future PHP choice
+   falls through to the paper shell rather than emitting a class with no rule. */
+const bandModifier = BAND_MODIFIER[band ?? "paper"] ?? null;
+const bandKey = typeof band === "string" && band !== "" ? band : "paper";
+
+/** Trim once, here, so every guard below tests for real content rather than for
+ *  a field an editor left as a single space. */
+const text = (input: unknown): string =>
+  typeof input === "string" ? input.trim() : "";
+
+const eyebrowText = text(eyebrow);
+const headingHtml = text(heading);
+const bodyText = text(body);
+const ariaLabelText = text(ariaLabel);
+
+/**
+ * `light` on the two light-on-dark-ish bands only — the house rule FaqBlock:139
+ * states and every block follows. /contact/ writes it on its charcoal band and
+ * /our-office/ does not; the block picks the rule, not the page, and the
+ * charcoal eyebrow colour is owned below either way.
+ */
+const eyebrowLight = bandKey === "sage-pale" || bandKey === "sage";
+
+/** Solid button on a dark band has to be the light variant, not the sage one. */
+const isDarkBand = bandKey === "charcoal" || bandKey === "sage";
+
+/**
+ * The two buttons resolve through the ONE shared token map and hover table in
+ * ./cta.ts, even though neither is an editor field: `map` -> directionsHref +
+ * "Open Map", `phone` -> phoneHref + "Tap to Dial", which is byte-for-byte what
+ * both templates hardcode. Going through the resolver rather than importing
+ * `directionsHref` and retyping the labels keeps this from becoming the sixth
+ * copy of a table that gets edited — the reason cta.ts exists at all.
+ */
+const directionsCta = resolveCta("map", "");
+const phoneCta = resolveCta("phone", "");
+
+/**
+ * City/state/zip as ONE expression. See the header: three spliced expressions
+ * are how "Parker, CO80134" reached three live pages.
+ */
+const cityStateZip = `${addressCity}, ${addressState} ${addressZip}`;
+
+/* `output=embed` avoids needing a Google Maps API key — contact/index.astro:31,
+   our-office/index.astro:37, character for character. */
+const mapEmbedSrc = `https://maps.google.com/maps?q=${encodeURIComponent(addressLine)}&output=embed`;
+const mapTitle = `Map showing Vivid Smiles Dentistry at ${addressLine}`;
+---
+
+<section
+  class:list={["section", bandModifier]}
+  id={id}
+  aria-label={ariaLabelText || undefined}
+>
+  <div class="wrap">
+    <div class="location-grid">
+      {/* The reveal hooks sit on the two columns, NOT on the <section> — that is
+          where both templates put them, and animations.js batches the copy
+          column's children off `data-vs-reveal-batch` while the map fades as one
+          element. Moving either up to the section would restage the whole band. */}
+      <div class="location-copy" data-vs-reveal-batch>
+        {eyebrowText && <span class:list={["eyebrow", eyebrowLight && "light"]}>{eyebrowText}</span>}
+        {
+          /* One line, `<Fragment>` inside the `<h2>` rather than indented: a
+             line break inside the tag becomes a space either side of the
+             heading. Same one-line form as CopyPlusStatsBlock:361.
+
+             These three conditionals stay on SEPARATE lines and deliberately do
+             not use the flush `}{` idiom. The idiom exists to stop a blank field
+             adding a space inside running prose; here the three elements are
+             separated by a single space in the built pages today
+             (`</span> <h2>`, verified in dist/our-office/index.html), so joining
+             them flush would itself be the diff. A blank field leaves one
+             collapsed space between block-level children, which renders as
+             nothing. */
+          headingHtml && <h2><Fragment set:html={headingHtml} /></h2>
+        }
+        {bodyText && <p class="lede">{bodyText}</p>}
+
+        {/* Address, phone, email and hours are site data, so the card draws
+            whatever the four copy fields say — including when all four are
+            blank. That is the opposite of CopyPlusStatsBlock's empty-row rule
+            and it is right here: an "empty" row of this layout still carries
+            the practice's address and a map, so drawing nothing would delete
+            real content rather than avoid an empty band. */}
+        <div class="location-card">
+          <div class="row">
+            <span class="ic" aria-hidden="true"><i class="fa-solid fa-location-dot"></i></span>
+            <div>
+              <span class="label">Address</span>
+              <span class="val">{addressStreet}<br>{cityStateZip}</span>
+            </div>
+          </div>
+
+          <div class="row">
+            <span class="ic" aria-hidden="true"><i class="fa-solid fa-phone"></i></span>
+            <div>
+              <span class="label">Phone</span>
+              <a href={phoneHref}>{phoneLabel}</a>
+            </div>
+          </div>
+
+          <div class="row">
+            <span class="ic" aria-hidden="true"><i class="fa-solid fa-envelope"></i></span>
+            <div>
+              <span class="label">Email</span>
+              <a href={emailHref}>{emailAddress}</a>
+            </div>
+          </div>
+
+          <div class="row">
+            <span class="ic" aria-hidden="true"><i class="fa-solid fa-clock"></i></span>
+            <div>
+              <span class="label">Hours</span>
+              <div class="hours-table">
+                {officeHours.map((r) => (
+                  <div class:list={["day-row", !r.opens && "closed"]}>
+                    <span class="day">{r.label}</span>
+                    <span class="hrs">{r.hoursLong}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="location-actions">
+          <Button variant={isDarkBand ? "light" : "sage"} href={directionsCta.href} hoverLabel={directionsCta.hover}>Get Directions</Button>
+          <Button variant={isDarkBand ? "ghost-light" : "ghost"} href={phoneCta.href} hoverLabel={phoneCta.hover}>Call {phoneLabel}</Button>
+        </div>
+      </div>
+
+      {/* Embedded Google Map — lazy-loaded so it does not block first paint.
+          The aspect ratio is fixed in CSS so the band height stays stable. */}
+      <div class="location-map-wrap" data-vs-reveal>
+        <iframe
+          class="location-map"
+          src={mapEmbedSrc}
+          loading="lazy"
+          referrerpolicy="no-referrer-when-downgrade"
+          title={mapTitle}
+        ></iframe>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* ── CSS REACHABILITY, the rule this file is written against ──────────────
+     Astro 6.1.9 compiles ATTRIBUTE scoping and applies the attribute to EVERY
+     compound in a selector, so a two-part scoped selector lands at (0,4,0) and
+     beats the page sheets' (0,2,0)/(0,3,0) rules outright — but a ONE-part
+     selector, `.location-card[cid]`, lands at (0,2,0) and merely TIES
+     `.contact .location-card`, leaving bundle order to decide. Nothing below is
+     written as a single compound for that reason: every rule a page sheet also
+     writes is nested at least one level deeper than the page's own copy of it.
+     The only exceptions are the band shell rules, where both sides declare the
+     identical value and no bundle order can render them differently — the same
+     tie CopyPlusStatsBlock:477 lives with. */
+
+  /* ── Band shell ──────────────────────────────────────────────────────────
+     contact.css:161 (padding), :162 (the alt background). cream, dark and sage
+     complete the five-band map and are StatCalloutBlock's, unchanged.
+
+     `background` on the base rule is this block's own: `.contact .section` sets
+     none because the page body is already paper. A block that can be dropped on
+     any page has to paint its own ground (R3).
+
+     DIVERGENCE, RECORDED: our-office.css:97 uses `clamp(80px, 9vw, 120px)` for
+     the same band. The block set has one rhythm — 110px/70px on all fourteen
+     deployed layouts — so /our-office/ #visit adopts it and its remaining
+     template-side bands keep the clamp. Vertical rhythm only; no words move.
+
+     WHICH IS WHY THE SELECTOR IS DOUBLED, and why this block's shell differs
+     from its thirteen siblings. `.section[cid]` is (0,2,0) and TIES
+     `.vs-office .section` — and unlike every earlier block, the two sides do
+     NOT declare the same padding here, so the tie is decided by bundle order
+     and nothing else. It happens to resolve the block's way today (the built
+     pages load `PageBlocks.<hash>.css` after `index_astro.<hash>.css` —
+     verified in dist/general-dentistry/index.html), and that is precisely the
+     kind of argument this project has agreed not to build on. `.section.section`
+     compiles to `.section[cid].section` at (0,3,0), clears `.vs-office .section`
+     outright, and ties nothing: no page sheet in the corpus writes padding on
+     `.section.alt`. Same doubled-class trick global.css:272 uses, for the same
+     reason.
+
+     ONLY the padding is doubled. `background` stays on the single compound the
+     thirteen siblings write, deliberately: at (0,3,0) it would tie
+     `.vs-office .section.alt` — paper against charcoal, decided by bundle
+     order — and there is no reason to buy that fight to win one this block
+     does not have. At (0,2,0) the band modifier below settles the background
+     on either side of the tie, and both sides say charcoal. */
+  .section {
+    /* Zero margin so this band cannot collapse into whichever band an editor
+       drags above or below it — the rule FaqBlock.astro states and every block
+       in the set follows. Inert against both page sheets today (neither writes
+       a margin on `.section`, and `<section>` has no UA margin), which is why
+       it can sit on the single compound. */
+    margin: 0;
+    background: var(--vs-paper);
+  }
+  .section.section {
+    padding: 110px 0;
+  }
+  .section.cream { background: var(--vs-cream); }
+  .section.dark { background: var(--vs-sage-pale); }
+  .section.sage { background: var(--vs-sage); }
+  .section.alt { background: var(--vs-charcoal-green); }
+
+  /* Keep the heading clear of the global nav when the band is jumped to —
+     contact.css:62-63, our-office.css:93-94, identical on both. No `--toc-h`
+     term: neither page ships an "On this page" rail. */
+  .section[id] {
+    scroll-margin-top: calc(var(--nav-h, 77px) + 12px);
+  }
+
+  /* contact.css:39, our-office.css:44 — identical. */
+  .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  /* ── The split ───────────────────────────────────────────────────────────
+     contact.css:270-273; our-office.css:326-329 is the same rule under its own
+     prefix. Nested under `.wrap` to clear the tie described at the top. */
+  .wrap .location-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: stretch;
+  }
+
+  /* ── The copy column ─────────────────────────────────────────────────────
+     DIVERGENCE, RECORDED: our-office.css:330 adds `padding: 8px 0` here.
+     contact has none, and contact is the anchor — see the header. */
+
+  /* The page eyebrow primitive (contact.css:41-45) plus this band's own
+     inline-flex rule (:274-276). Base colour is the light-band one; the dark
+     bands repaint it below. Nested three deep so it clears
+     `.contact .section.alt .eyebrow`-class rules on either page.
+
+     DIVERGENCE, RECORDED: our-office.css:53-56 sizes its eyebrow 11.5px and
+     spaces it with `margin-bottom: 18px` (:331); contact carries 12px and puts
+     the gap in the `<h2>` margin instead. Contact's values are taken. */
+  .location-grid .location-copy .eyebrow {
+    font-family: var(--vs-font-body);
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+  /* contact.css:278-280. One hairline, BEFORE only — this band's eyebrow is not
+     the centred `.section-head` one, which has a rule on both sides (:190-193).
+     No `content` is declared for `::after`, so no second pseudo-element is
+     generated at all. */
+  .location-grid .location-copy .eyebrow::before {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+
+  /* contact.css:48-52 (family, weight, margin, line-height), :54 (size and
+     letter-spacing), :281 (this band's margin and 14ch measure). Both pages
+     compute sage for this heading on a light band (contact.css:49,
+     our-office.css:78).
+
+     DIVERGENCE, RECORDED: our-office.css:332 uses `margin-bottom: 22px` and
+     carries no top margin, because its 18px sits on the eyebrow instead. */
+  .location-grid .location-copy h2 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    font-size: clamp(32px, 4.2vw, 54px);
+    line-height: 1.1;
+    letter-spacing: -0.022em;
+    color: var(--vs-sage);
+    margin: 22px 0 24px;
+    max-width: 14ch;
+  }
+  /* `:global` because the `<em>` arrives through `set:html` and carries no scope
+     attribute — a plain `h2 em` compiles to `em[cid]` and silently misses it,
+     dropping the accent colour on every heading this block draws. The scope
+     stays on `h2`, so it cannot leak off the block. contact.css:56. */
+  .location-grid .location-copy h2 :global(em) {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+
+  /* contact.css:283-287, with the light-band colour as the base.
+     DIVERGENCE, RECORDED: our-office.css:333-337 uses `line-height: 1.7`. */
+  .location-grid .location-copy .lede {
+    font-size: 16.5px;
+    line-height: 1.75;
+    max-width: 50ch;
+    color: var(--vs-ink-soft);
+  }
+
+  /* ── The address card, LIGHT bands ───────────────────────────────────────
+     our-office.css:341-400 — the white-card treatment, kept alive here for the
+     paper, cream and sage-pale bands it was drawn for. The dark-band block
+     below supersedes every colour in it. */
+  .location-copy .location-card {
+    margin-top: 32px;
+    background: var(--vs-paper);
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-lg);
+    padding: 32px 32px 28px;
+    display: grid;
+    gap: 26px;
+  }
+  /* Geometry is identical on both sheets — contact.css:296-299,
+     our-office.css:349-352. */
+  .location-copy .location-card .row {
+    display: grid;
+    grid-template-columns: 36px 1fr;
+    gap: 20px;
+    align-items: start;
+  }
+  .location-copy .location-card .row + .row {
+    padding-top: 22px;
+    border-top: 1px solid var(--vs-line);
+  }
+  .location-copy .location-card .ic {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--vs-line);
+    color: var(--vs-sage);
+    background: var(--vs-cream);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    line-height: 1;
+    margin-top: 1px;
+  }
+  /* our-office.css:366 / contact.css:312. FontAwesome's own rules set the glyph;
+     this only stops the icon font's default line-height from off-centring it. */
+  .location-copy .location-card .ic i {
+    line-height: 1;
+  }
+  .location-copy .location-card .row > div .label {
+    display: block;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--vs-muted);
+    font-weight: 500;
+    margin-bottom: 6px;
+  }
+  .location-copy .location-card .row > div .val,
+  .location-copy .location-card .row > div a {
+    font-family: var(--vs-font-display);
+    font-size: 18.5px;
+    color: var(--vs-ink);
+    letter-spacing: -0.005em;
+    text-decoration: none;
+    line-height: 1.4;
+  }
+  .location-copy .location-card .row > div a {
+    transition: color 0.2s ease;
+  }
+  .location-copy .location-card .row > div a:hover {
+    color: var(--vs-sage);
+  }
+
+  /* Hours table — body font, body sizing. our-office.css:381-400.
+     contact.css:330-350 is the same rule with the dark-band colours, applied in
+     the dark-band block below. */
+  .location-card .hours-table {
+    display: grid;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .location-card .hours-table .day-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 16px;
+    font-family: var(--vs-font-body);
+    font-size: 15.5px;
+    color: var(--vs-ink);
+    letter-spacing: 0;
+    font-weight: 400;
+  }
+  .location-card .hours-table .day-row .day {
+    font-family: var(--vs-font-body);
+    font-size: 14px;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--vs-muted);
+    font-weight: 500;
+  }
+  .location-card .hours-table .day-row.closed .hrs {
+    color: var(--vs-muted);
+  }
+
+  /* contact.css:352-355, our-office.css:402-405 — identical. */
+  .location-copy .location-actions {
+    margin-top: 28px;
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  /* ── The address card, DARK bands ────────────────────────────────────────
+     contact.css:274-350 — the glass treatment, written for the charcoal band
+     and applied here to `alt` and `sage`.
+
+     THIS IS THE BLOCK THAT CHANGES /our-office/. Its sheet leaves the white card
+     in place on a charcoal band; every selector here starts at `.section.<mod>`
+     and so lands at (0,8,0) or better, well clear of `.vs-office
+     .location-card`'s (0,4,0). See the header — the change is deliberate and
+     belongs in the block-map. */
+  .section.alt .location-copy .eyebrow,
+  .section.sage .location-copy .eyebrow {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .section.alt .location-copy .eyebrow::before,
+  .section.sage .location-copy .eyebrow::before {
+    background: rgba(255, 255, 255, 0.6);
+  }
+  .section.alt .location-copy h2,
+  .section.sage .location-copy h2 {
+    color: #fff;
+  }
+  .section.alt .location-copy h2 :global(em),
+  .section.sage .location-copy h2 :global(em) {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .section.alt .location-copy .lede,
+  .section.sage .location-copy .lede {
+    color: rgba(255, 255, 255, 0.86);
+  }
+
+  .section.alt .location-copy .location-card,
+  .section.sage .location-copy .location-card {
+    background: rgba(255, 255, 255, 0.06);
+    border-color: rgba(255, 255, 255, 0.18);
+  }
+  .section.alt .location-copy .location-card .row + .row,
+  .section.sage .location-copy .location-card .row + .row {
+    border-top-color: rgba(255, 255, 255, 0.14);
+  }
+  .section.alt .location-copy .location-card .ic,
+  .section.sage .location-copy .location-card .ic {
+    border-color: rgba(255, 255, 255, 0.32);
+    color: rgba(255, 255, 255, 0.92);
+    background: transparent;
+  }
+  .section.alt .location-copy .location-card .row > div .label,
+  .section.sage .location-copy .location-card .row > div .label {
+    color: rgba(255, 255, 255, 0.6);
+  }
+  .section.alt .location-copy .location-card .row > div .val,
+  .section.alt .location-copy .location-card .row > div a,
+  .section.sage .location-copy .location-card .row > div .val,
+  .section.sage .location-copy .location-card .row > div a {
+    color: #fff;
+  }
+  .section.alt .location-copy .location-card .row > div a:hover,
+  .section.sage .location-copy .location-card .row > div a:hover {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .section.alt .location-card .hours-table .day-row,
+  .section.sage .location-card .hours-table .day-row {
+    color: rgba(255, 255, 255, 0.92);
+  }
+  .section.alt .location-card .hours-table .day-row .day,
+  .section.sage .location-card .hours-table .day-row .day {
+    color: rgba(255, 255, 255, 0.68);
+  }
+  .section.alt .location-card .hours-table .day-row.closed .hrs,
+  .section.sage .location-card .hours-table .day-row.closed .hrs {
+    color: rgba(255, 255, 255, 0.4);
+  }
+
+  /* ── Sage-pale band ──────────────────────────────────────────────────────
+     A LIGHT band with a `light` eyebrow on it — the same back-compat pairing
+     our-office.css:61-63 and contact.css:180-182 both spell out: `.light` reads
+     as ink-soft, not white, because sage-pale is a light ground. The card keeps
+     the white treatment above. No page in the corpus puts this band under this
+     layout yet; the rule is here so that the day one does, it is not white on
+     white. */
+  .section.dark .location-copy .eyebrow {
+    color: var(--vs-ink-soft);
+  }
+  .section.dark .location-copy .eyebrow::before {
+    background: var(--vs-ink-soft);
+  }
+  .section.dark .location-copy h2 {
+    color: var(--vs-ink);
+  }
+  .section.dark .location-copy h2 :global(em) {
+    color: var(--vs-sage);
+  }
+
+  /* ── The map ─────────────────────────────────────────────────────────────
+     contact.css:361-372, our-office.css:407-418 — identical on both. The iframe
+     has its own internal styling we cannot override, so it is framed with the
+     token radius and shadow. The aspect ratio keeps the band height stable
+     while the embed loads. */
+  .location-grid .location-map-wrap {
+    border-radius: var(--vs-r-xl);
+    overflow: hidden;
+    box-shadow: var(--vs-shadow-lg);
+    background: var(--vs-ink);
+    aspect-ratio: 4 / 5;
+    width: 100%;
+  }
+  .location-grid .location-map {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
+
+  /* ── Breakpoints ─────────────────────────────────────────────────────────
+     Base and breakpoint rules live together, unlike the page sheets where a
+     trailing "responsive" section is physically separated from what it
+     modifies. contact.css:430-467; our-office.css:478-486 and :505-517 carry
+     the same three rules.
+
+     DIVERGENCE, RECORDED: our-office.css:534 also drops the map to `aspect-ratio:
+     1 / 1` under 640px. contact has no such rule and contact is the anchor, so
+     /our-office/'s map stays 4/5 on a phone. */
+  @media (max-width: 1100px) {
+    .wrap .location-grid {
+      grid-template-columns: 1fr;
+      gap: 50px;
+    }
+    .location-grid .location-copy h2 {
+      max-width: none;
+    }
+    .location-grid .location-map-wrap {
+      max-width: 600px;
+    }
+  }
+
+  @media (max-width: 780px) {
+    /* Doubled for the same reason as the base rule: our-office.css:508 puts
+       `clamp(64px, 11vw, 96px)` on `.vs-office .section` inside this same
+       breakpoint, and a single compound would only tie it. */
+    .section.section {
+      padding: 70px 0;
+    }
+    .wrap {
+      padding: 0 22px;
+    }
+    .location-copy .location-card {
+      padding: 26px 22px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .location-copy .location-card .row {
+      grid-template-columns: 32px 1fr;
+      gap: 14px;
+    }
+    .location-copy .location-card .ic {
+      width: 32px;
+      height: 32px;
+      font-size: 13px;
+    }
+    .location-copy .location-card .row > div .val,
+    .location-copy .location-card .row > div a {
+      font-size: 16.5px;
+    }
+  }
+</style>

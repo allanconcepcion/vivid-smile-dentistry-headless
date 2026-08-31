@@ -1,0 +1,304 @@
+/*
+ * The blocks branch of src/pages/[...slug].astro — a WordPress page composed
+ * entirely from `blocks`, with no page stylesheet of its own.
+ *
+ * Everything here exists because a designed page's namespace element supplies
+ * it and a blank page has no namespace. Loaded ONLY by [...slug].astro, which
+ * builds zero routes today — measured, not assumed: the current build emits 48
+ * HTML files and `grep -rl 'class="wp-page"' dist` matches 0 of them, so
+ * wp-page.css compiles to an orphan chunk (dist/_assets/_..DxlX8GDj.css)
+ * referenced by no page. This file lands in that same orphan position, which is
+ * why it can be added without moving any built page's <link href>.
+ *
+ * NEW FILE, and it edits none of its neighbours. Nothing globs this directory
+ * (checked: no import.meta.glob, and no reference to styles/pages in
+ * astro.config.mjs or scripts/), so an unimported sheet here would be inert and
+ * an imported one reaches exactly the routes that import it.
+ */
+
+/* ── The container the block run does NOT get from .wp-page ───────────
+   The blocks branch drops `class="wp-page"` for `class="wp-blocks"` so that
+   `.wp-page .wrap` (src/styles/pages/wp-page.css:12-16, specificity (0,2,0))
+   cannot reach block markup. That rule TIES with every block's own scoped
+   `.wrap[data-astro-cid-…]`, also (0,2,0) — 14 blocks declare it — and a tie
+   is decided by bundle order, which this project has already paid for twice.
+   The values differ on both properties: 1280px vs 1240px (--vs-container-max,
+   src/styles/tokens.css:64) and clamp(20px,5vw,48px) vs 0 40px.
+
+   The hero then needs a container of its own, and it is the BLOCKS' geometry
+   rather than wp-page's, so the H1 aligns with the bands beneath it. Values
+   copied from src/blocks/FaqBlock.astro:346-350 and its 780px rule at :618-624,
+   which all 14 share. */
+.wp-blocks-wrap {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+@media (max-width: 780px) {
+  .wp-blocks-wrap {
+    padding: 0 22px;
+  }
+}
+
+/* ── The rail height that does not exist ──────────────────────────────
+   NINE blocks write `scroll-margin-top: calc(var(--nav-h,77px) +
+   var(--toc-h,68px) + 12px)` — CalloutList:284, CandidacyLedger:527,
+   ComparisonCards:687, CopyPlusStats:515, DoctorProfiles:565,
+   GalleryMarquee:403, PricingTiers:448, StatCallout:347, TechGrid:371.
+   (Counted, because the number was given to me as ten with FaqBlock among
+   them: FaqBlock declares no scroll-margin-top at all. Nine is the measurement;
+   the conclusion is the same either way.)
+
+   `--toc-h` is declared only in the 16 page sheets that have a rail, on the
+   page-namespace element — never globally, and not in wp-page.css. This page
+   has no rail (contract §4), so without this every anchor jump over-scrolls by
+   68px. ServiceCardsBlock.astro:864 already writes `var(--toc-h, 0px)` and
+   MapVisitBlock.astro:365 omits the term; both are unaffected either way.
+
+   `--nav-h` is left to its fallback: 77px matches all the sheets that set it,
+   and a second copy of that number is a second copy to drift. */
+.wp-blocks {
+  --toc-h: 0px;
+}
+
+/* ── Charcoal-band contrast, which is page-root-gated everywhere else ──
+   Button.astro:349-393 repaints `ghost` white inside a charcoal band, and
+   src/styles/global.css:68-109 does the same for `.vs-link` — both through a
+   hand-maintained `:is(.services .section.alt, .gdent .section.alt, …)` list of
+   PAGE-ROOT classes. `.wp-blocks` is in neither list and cannot be added to
+   either: both files are on all 48 routes, so editing them moves 48 hashes.
+
+   MediaSplitBlock.astro:1239-1257 and CalloutListBlock.astro:481-494 already
+   state this problem and close it for themselves. CopyPlusStatsBlock is the one
+   block that cannot: its header at :94-101 argues the derived variant "would
+   buy nothing but a diff" BECAUSE Button.astro already handles charcoal — true
+   under a page root, false here — and :412 ships a literal
+   <Button variant="ghost">. On a charcoal band with no page root that button is
+   ink on --vs-charcoal-green. Invisible. (`charcoal` is the band value that maps
+   to the `alt` modifier: BAND_MODIFIER, CopyPlusStatsBlock.astro:135-141.)
+
+   Values are transcribed from Button.astro:390-393 and :436-442, and
+   global.css:107-108, unchanged.
+
+   SPECIFICITY, COUNTED RATHER THAN QUOTED. This selector is (0,4,0) —
+   `.wp-blocks` + `.section` + `.alt` + `.vs-btn-ghost` — not the (0,3,0) I was
+   handed; `.section.alt` is two classes. Button.astro's page-gated rule is also
+   (0,4,0), since `:is()` takes its most specific argument and
+   `.services .section.alt` is (0,3,0). So the two TIE — and the tie is
+   unreachable, because that rule needs a page-root class this page does not
+   carry and this rule needs `.wp-blocks`, which no designed page carries. Both
+   sit above the (0,1,0) base each overrides (Button.astro:205), so bundle order
+   decides nothing here.
+
+   The blocks that self-heal `.vs-link` reach (0,6,0), not (0,4,0): Astro
+   compiles ATTRIBUTE scoping, so `.section.alt .prose :global(.vs-link)`
+   becomes `.section.alt[cid] .prose[cid] .vs-link`. They keep winning over the
+   (0,3,0) rules below, and they resolve to the same colour. */
+.wp-blocks .section.alt .vs-btn-ghost {
+  --btn-fg: #fff;
+  --btn-border: rgba(255, 255, 255, 0.7);
+  --btn-ripple: rgba(255, 255, 255, 0.5);
+}
+
+.wp-blocks .section.alt .vs-btn-ghost .vs-arrow {
+  --vs-arrow-bg: rgba(255, 255, 255, 0.1);
+  --vs-arrow-fg: #fff;
+  --vs-arrow-border: rgba(255, 255, 255, 0.55);
+  --vs-arrow-hover-bg: #fff;
+  --vs-arrow-hover-fg: var(--vs-ink);
+  --vs-arrow-hover-border: #fff;
+}
+
+/* Mirror for the sage-pale band: `ghost-light` / `outline-light` default to
+   white (Button.astro:251-256) and are flipped to ink under a page root by
+   Button.astro:280-306. Same gap, same fix. Reachable from this route: six
+   blocks pick `ghost-light`/`outline-light` off `isDarkBand` — CardGrid:435,
+   ComparisonCards:651, Faq:310, MapVisit:280, MediaSplit:1077,
+   ProcessSteps:464 — and `sage-pale` is the band value that maps to `dark`. */
+.wp-blocks .section.dark :is(.vs-btn-outline-light, .vs-btn-ghost-light) {
+  --btn-fg: var(--vs-ink);
+  --btn-border: var(--vs-ink);
+  --btn-ripple: rgba(42, 42, 40, 0.18);
+}
+
+.wp-blocks .section.alt .vs-link,
+.wp-blocks .section.sage .vs-link {
+  color: var(--vs-eyebrow-on-sage);
+  text-decoration-color: rgba(232, 234, 216, 0.5);
+}
+
+.wp-blocks .section.alt .vs-link:hover,
+.wp-blocks .section.alt .vs-link:focus-visible,
+.wp-blocks .section.sage .vs-link:hover,
+.wp-blocks .section.sage .vs-link:focus-visible {
+  color: #fff;
+  text-decoration-color: #fff;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   THE FIVE DEFECTS AN ADVERSARIAL REVIEW MEASURED IN A BROWSER
+   ══════════════════════════════════════════════════════════════════════
+   Everything above closed the gaps a designed page's NAMESPACE supplies.
+   These close the gaps a designed page's PAGE SHEET supplies, which the
+   first pass missed because it reasoned about the cascade instead of
+   measuring it. Every number below was read off a rendered page. */
+
+/* ── 1. THE WHITE-CARD RESCUE, WITHOUT WHICH THE OVERRIDE ABOVE IS A BUG ──
+   src/styles/global.css:276-278 states the rule this file broke, in as many
+   words: "Outer band-host :is list MIRRORS the charcoal .vs-link override
+   (lines 67-104). Any host listed there can also wrap a white-card class —
+   so each must rescue too. KEEP THESE LISTS IN LOCKSTEP."
+
+   The `.vs-link` override further up added `.wp-blocks` as a new band host
+   and did NOT add the matching rescue. Measured on /implant-dentistry/#faq
+   and /general-dentistry/#faq with no page sheet: the link went from
+   rgb(42,42,40) on #fff at 14.38:1 to rgb(232,234,216) on #fff at 1.22:1 —
+   invisible — and the hover rule took it to #fff on #fff, 1:1. `.faq-list`
+   sets `background:#fff` (src/blocks/FaqBlock.astro:505-509), so the card is
+   white whatever colour the band behind it is.
+
+   The card list is global.css:320-333 transcribed, doubled-class trick and
+   all. (0,6,0) — .wp-blocks + .section.alt + the doubled card + .vs-link —
+   against the (0,4,0) override it rescues from, so it cannot tie. */
+.wp-blocks :is(.section.alt, .section.sage) :is(
+  .stat-card.stat-card,
+  .tech-card.tech-card,
+  .pgrid-card.pgrid-card,
+  .faq-list.faq-list,
+  .why-card.why-card,
+  .why-4up-card.why-4up-card,
+  .candidacy-sub.candidacy-sub,
+  .config-card.config-card,
+  .cause-card.cause-card,
+  .robotics-callout.robotics-callout,
+  .reward-card.reward-card,
+  .vs-cred-badge.vs-cred-badge,
+  .compare-card.compare-card.featured,
+  .vs-pricing-tier.vs-pricing-tier:not(.vs-pricing-tier--highlight)
+) :is(.vs-link, .vs-link:hover, .vs-link:focus-visible) {
+  color: var(--vs-ink);
+  text-decoration-color: color-mix(in oklab, var(--vs-sage) 60%, transparent);
+}
+
+/* ── 2. ANCHORS THAT LAND BEHIND THE STICKY NAV ────────────────────────
+   `--toc-h: 0px` above fixes the NINE blocks that write a
+   scroll-margin-top. Eleven components that render an anchored `.section`
+   declare none at all and take it from the page sheet — CardGrid,
+   CodeSection, Faq, MediaSplit, ProcessSteps, AreaBand, ScenarioBand,
+   PreventBand, ReviewsBand, LocalTrust, PaymentBand.
+
+   Measured across eight fixtures: 61 anchored bands, 38 landed at viewport
+   top 0px under an 83px sticky `.vs-nav-shell` — the whole band header
+   behind the nav, including the FAQ band on every page. §4's "in-page
+   anchors work" was true of the id and false of the scroll.
+
+   (0,2,1), which outranks the nine blocks' own `.section[cid]` (0,2,0) — so
+   this deliberately writes the IDENTICAL expression rather than a number of
+   its own. With `--toc-h: 0px` set above, both evaluate to 89px, so taking
+   over their value changes nothing. A different constant here would silently
+   retune nine blocks that were already correct.
+
+   `--nav-h` keeps its 77px fallback, and that fallback is EXACT here. The
+   review that found this bug measured the nav at 83px in a hand-built
+   fixture and concluded the clearance would be 6px rather than 12px; on the
+   real built page it is not. Measured on a route this branch actually
+   rendered (/implant-dentistry/, template moved aside so the catch-all
+   claimed it): `.vs-nav-shell` is 77px, every `.section[id]` computes 89px,
+   and #faq and #what both land at viewport top 89px — 12px of clearance,
+   exactly as intended. The variable stays on its fallback rather than being
+   restated: it is written at runtime only by src/scripts/toc-spy.ts:36,
+   which a rail-less page never loads, and a second hard-coded nav height is
+   a second number to drift. */
+.wp-blocks .section[id] {
+  scroll-margin-top: calc(var(--nav-h, 77px) + var(--toc-h, 0px) + 12px);
+}
+
+/* ── 3. THE SAGE-PALE ARROW, THE OTHER HALF OF THE BUTTON FLIP ─────────
+   The `ghost-light`/`outline-light` rule above mirrors
+   src/components/Button.astro:279-308 and stopped there. Its companion at
+   :309-341 flips the six arrow tokens, and ArrowBadge is unconditional
+   (Button.astro:64 defaults `arrow`), so every one of those buttons has one.
+
+   Measured on a real `.section.dark` band (/implant-dentistry/#candidacy,
+   ground rgb(222,227,210)): the label and border flipped to ink correctly
+   while the glyph stayed rgb(255,255,255) in a rgba(255,255,255,0.1) circle
+   — about 1.3:1, a white arrow in a near-white disc. The charcoal case above
+   did get its arrow mirror, so this was an oversight, not a decision.
+
+   Values transcribed from Button.astro:335-341, unchanged. */
+.wp-blocks .section.dark :is(.vs-btn-outline-light, .vs-btn-ghost-light) .vs-arrow {
+  --vs-arrow-bg: transparent;
+  --vs-arrow-fg: var(--vs-ink);
+  --vs-arrow-border: var(--vs-ink);
+  --vs-arrow-hover-bg: var(--vs-ink);
+  --vs-arrow-hover-fg: #fff;
+  --vs-arrow-hover-border: var(--vs-ink);
+}
+
+/* ── 4. THE TWO BANDS THAT NEVER PAINTED THEIR OWN GROUND ──────────────
+   Fifteen block layouts declare all four band backgrounds themselves, and
+   they are UNANIMOUS — checked, not assumed: `.section.alt` is
+   var(--vs-charcoal-green) in 15 of 15 files, `.dark` var(--vs-sage-pale) in
+   16, `.sage` var(--vs-sage) in 15, `.cream` var(--vs-cream) in 15.
+
+   Two band components do not. AreaBand.astro:303-307 paints
+   `section.section { background: var(--vs-paper) }` and emits the `alt`
+   modifier at :200, healing its TEXT to white/cream at :370-393 but never
+   its ground — it lifted the emergency sheet's text rules and not its
+   background. PaymentBand.astro declares no `.section` rule at all, despite
+   its own header at :16-17 claiming it "owns its own <section>, its band
+   background and its padding"; every selector in it is `.section .pay-*`.
+   Both are reachable from a blank page: CodeSectionBlock registers
+   `emergency_dentistry_area` and `general_dentistry_payment`, and every
+   band key is offered on every page.
+
+   Measured on /emergency-dentistry/#area with no page sheet: white text on
+   white, 14 elements at 1.0-1.22:1 — the band rendered completely blank.
+
+   (0,3,0), which beats AreaBand's `section.section` (0,2,1) and TIES the
+   fifteen blocks' own `.section.alt[cid]` (0,3,0). The tie is deliberate and
+   harmless because the values are identical — the same call this project
+   made for AreaBand's address-line <b>. A tie cannot be observed when both
+   sides paint the same colour. */
+.wp-blocks .section.alt {
+  background: var(--vs-charcoal-green);
+}
+.wp-blocks .section.dark {
+  background: var(--vs-sage-pale);
+}
+.wp-blocks .section.sage {
+  background: var(--vs-sage);
+}
+.wp-blocks .section.cream {
+  background: var(--vs-cream);
+}
+
+/* PaymentBand needs the box as well as the ground, and it is the only band
+   that does. `:where()` contributes ZERO specificity, so these land at
+   (0,1,0) — a FLOOR that every block's own `.section[cid]` / `.wrap[cid]`
+   (0,2,0) beats outright. That is the point: this must reach the component
+   with no rule and none of the fifteen with one. Values from
+   FaqBlock.astro:346-350, which all fourteen wrap-declaring blocks share. */
+.wp-blocks :where(.section) {
+  padding: 110px 0;
+}
+.wp-blocks :where(.wrap) {
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: 0 40px;
+}
+
+/* ── 5. THE h3 MediaSplitBlock FORGOT ──────────────────────────────────
+   MediaSplitBlock.astro:1213-1234 heals h2, p, .eyebrow and .natural-quote
+   on charcoal and sage bands, and :1249-1257 heals .vs-link. No h3 — so an
+   <h3> an editor writes into a media_split body goes ink-on-charcoal.
+   Measured at /implant-dentistry/single-tooth-dental-implants/#what:
+   rgb(255,255,255) at 14.18:1 became rgb(74,74,71) at 1.59:1.
+
+   Scoped to `.prose`, NOT to the band, deliberately: a blanket h3 heal would
+   also repaint the h3 inside every white card on the same band, which is the
+   defect fixed in 1 above, in reverse. */
+.wp-blocks :is(.section.alt, .section.sage) .prose h3 {
+  color: #fff;
+}

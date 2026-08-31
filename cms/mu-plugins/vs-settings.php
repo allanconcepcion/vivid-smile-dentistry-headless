@@ -290,6 +290,24 @@ function register_fields(): void {
 					'type'         => 'text',
 					'instructions' => 'The front-desk contact form embedded on /contact/ and /emergency-dentistry/.',
 				],
+				[
+					'key'          => 'field_vs_consult_typeform',
+					'label'        => 'Virtual Consult Typeform ID',
+					'name'         => 'consult_typeform_id',
+					'type'         => 'text',
+					/*
+					 * The site's PRIMARY lead form, and until now the only one that was not
+					 * a setting: VirtualConsult.astro:37 carried the id as a literal default
+					 * while its sibling above has been editable since the settings page was
+					 * built. Swapping the main consult form meant a developer and a deploy.
+					 *
+					 * Blank is safe. VirtualConsult keeps the id it has always shipped as a
+					 * last-resort fallback, so an empty box changes nothing — see the
+					 * comment on `typeformId` in that file.
+					 */
+					'instructions' => 'The free virtual-consult form in the closing band on the service pages. '
+						. 'Leave it alone unless Typeform has given you a new form ID.',
+				],
 			],
 		]
 	);

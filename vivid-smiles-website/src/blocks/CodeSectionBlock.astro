@@ -1,0 +1,668 @@
+---
+/**
+ * CodeSectionBlock — the `code_section` layout: a row that holds a POSITION in
+ * the ordered list for a band this build draws in code.
+ *
+ * ── The regression this exists to fix ─────────────────────────────────────
+ * "Stays in code" and "cannot be positioned by an editor" are different facts.
+ * Conflating them moved a band on a live page. The pilot's LocalTrust band sits
+ * between `lasting` and `gallery` (clear-aligners.astro:505-510), and the
+ * template renders it OUTSIDE the migration switch — so the moment PageBlocks
+ * started drawing the eight blocks, the bespoke band fell to wherever the
+ * template happens to put it:
+ *
+ *   before   why what process compare natural lasting LOCAL gallery faq
+ *   after    why what process compare natural lasting gallery faq LOCAL
+ *
+ * A `code_section` row at position 7 puts it back, and puts it back under the
+ * same editor control every other band has. An editor can move this row and
+ * delete it; there is nothing in it to author, and that is the whole design
+ * (docs/PAGE-BLOCKS.md 1.3 "The escape hatch", 7 "What not to do").
+ *
+ * ── What it emits ─────────────────────────────────────────────────────────
+ * The named component and NOTHING ELSE. No <section>, no wrapper div, no
+ * marker element. Every band registered below already owns its own <section>,
+ * its own band background and its own padding — LocalTrust.astro:80 is a
+ * `<section class="vs-lt …">` — so a wrapper here would nest two sections
+ * inside one another and change the markup this block exists to preserve.
+ * Same rule PageBlocks.astro follows for the list as a whole (2.5).
+ *
+ * Because the band keeps its place inside `<main>` inside `.caligners`, the
+ * page-scoped sheet still cascades into it exactly as it did from the template.
+ *
+ * ── Why there is no <style> block ─────────────────────────────────────────
+ * This component authors no markup of its own in production, so it has nothing
+ * to style. The dev placeholder below therefore uses inline `style` attributes
+ * rather than a co-located <style>: Astro extracts a <style> block statically
+ * and ships it wherever the component is in the module graph, which would put
+ * diagnostic CSS into the stylesheet of every page that renders any block, for
+ * markup no visitor can ever reach. This is the one block where §2.5's
+ * co-location rule buys nothing and costs bytes.
+ *
+ * ── The CSS this DOES pull in ─────────────────────────────────────────────
+ * Importing LocalTrust here puts its scoped CSS in the module graph of every
+ * page that renders blocks, whether or not that page's blocks include a
+ * `code_section` row. Currently free: the pilot is the only page importing
+ * PageBlocks and it already imports LocalTrust directly. It stops being free
+ * when a page that has no LocalTrust band adopts blocks. If that ever shows up
+ * in a build diff, the fix is a dynamic import here, not a new indirection in
+ * manifest.ts — the manifest must keep importing zero .astro files.
+ *
+ * ── Do not let the band render twice ──────────────────────────────────────
+ * A page whose template still calls the component directly AND carries a
+ * `code_section` row for it renders the band twice. The template's bespoke
+ * invocation has to sit behind the same `hasBlocks` guard every other migrated
+ * band sits behind.
+ *
+ * Spec: docs/PAGE-BLOCKS.md 1.3, 2.2, 2.4, 7.
+ */
+import type { AstroComponentFactory } from "astro/runtime/server/index.js";
+
+import LocalTrust from "../components/LocalTrust.astro";
+// Wave A (Phase 4, hub pages). These three are NEW components, created by the
+// build agents in the same wave as this registration — the imports fail the
+// build loudly until they exist, which is the correct failure mode: the quiet
+// alternative (registering the keys later) is a select choice in wp-admin that
+// saves fine and renders a blank band. Their contract:
+//   AreaBand    — the hubs' `#area` band: `.area` grid of `.area-copy` (eyebrow,
+//                 <h2> via set:html, the paragraphs below, then the
+//                 `.area-address-line`, and the sage "Get Directions" (hover
+//                 "Open Maps", href directionsHref) + ghost "Contact Us" (hover
+//                 "Reach Us", href /contact/) pair) beside the `.area-map`
+//                 Google iframe. Address line, phone link, buttons and iframe
+//                 all come from src/data/contact.ts INSIDE the component; the
+//                 literal tokens {street} and {city} in a paragraph prop are
+//                 replaced with addressStreet/addressCity so the copy keeps
+//                 tracking Practice Settings exactly as the template
+//                 interpolation it replaces — bake the address in and the next
+//                 address change strands three pages.
+//   TrustBand   — general-dentistry's `#trust`: the centred `.trust-quote` on
+//                 the sage-pale band (eyebrow light, <h2> set:html, two
+//                 `.trust-body` paragraphs — the second html-bearing — and the
+//                 `.trust-attr` line of aria-hidden stars + text).
+//   PaymentBand — general-dentistry's `#payment` on the charcoal band:
+//                 `.pay-grid` of `.pay-copy` (eyebrow, <h2> set:html, two
+//                 paragraphs, light "Book Online" (hover "Let's Talk", href
+//                 bookNowHref) + ghost-light "Call {phoneLabel}" (hover "Tap to
+//                 Dial", href phoneHref)) beside the `.pay-card` aside
+//                 (`.pay-card-eyebrow`, <h3> set:html, `.pay-list` of
+//                 html-bearing lines, ghost "See Membership Plan" →
+//                 /dental-membership-plan/, hover "See Plan").
+import AreaBand from "../components/AreaBand.astro";
+import TrustBand from "../components/TrustBand.astro";
+import PaymentBand from "../components/PaymentBand.astro";
+import ScenarioBand from "../components/ScenarioBand.astro";
+import PreventBand from "../components/PreventBand.astro";
+import ReviewsBand from "../components/ReviewsBand.astro";
+
+/** One registered bespoke band. */
+interface CodeBand {
+  /** The component that has always drawn this band. */
+  component: AstroComponentFactory;
+  /**
+   * Its props, verbatim from the template that used to invoke it. This is the
+   * band's content, and it is code-owned on purpose: the editor moves the row,
+   * the developer owns what is in it.
+   */
+  props?: Record<string, unknown>;
+  /**
+   * Which prop the row's (already deduplicated) anchor feeds. Defaults to `id`,
+   * which is what every band component in this codebase calls it. Set to `null`
+   * for a component that takes no DOM id — passing one would be inert in Astro,
+   * but saying so is cheaper than rediscovering it.
+   */
+  anchorProp?: string | null;
+}
+
+/**
+ * band key → the band it names.
+ *
+ * ADDING THE NEXT BAND IS ONE ENTRY HERE AND ONE CHOICE IN THE PHP. Nothing
+ * else changes: `code_section` is already in manifest.ts and registry.ts, and
+ * its selection set never grows, because the layout has no per-band fields to
+ * ask for.
+ *
+ * KEYS ARE PER BAND INSTANCE, NOT PER COMPONENT. The heading below says "for
+ * Clear Aligners"; the same component draws a differently-worded band on nine
+ * other pages. So the key is `<page>_<anchor>` — mechanical, collision-free,
+ * and it reads correctly in the wp-admin select next to the anchor an editor
+ * can already see. `map_visit` (Wave B, Phase 4) is what eventually turns these
+ * into one editable layout; until then each instance is its own key.
+ */
+const BANDS: Record<string, CodeBand> = {
+  /**
+   * The pilot's "Parker, CO" trust band — map embed, review summary, address,
+   * two CTAs. Reproduced verbatim from clear-aligners.astro:505-510, including
+   * the omitted `background` (LocalTrust defaults to cream, which is the band
+   * this has always drawn) and the omitted `eyebrow` (defaults to "Our
+   * Practice"). Both are left omitted rather than restated: a default that is
+   * spelled out here and changed there is a difference nobody would look for.
+   */
+  local_trust: {
+    component: LocalTrust,
+    props: {
+      heading: "Why Patients Choose Vivid Smiles",
+      headingItalic: "for Clear Aligners",
+      intro:
+        "Dr. Bryce Richardson is a Parker resident who built Vivid Smiles Dentistry on the values of his hometown — and that shows in every visit, whether patients drive across town or fly in for treatment.",
+      body: "With 300+ five-star Google reviews and a welcoming office at 17167 Cedar Gulch Pkwy Ste 102, patients receive individual attention that larger groups cannot replicate. Many patients discover additional smile possibilities during treatment.",
+    },
+  },
+
+  /**
+   * The same component on teeth-whitening, with that page's own copy —
+   * reproduced verbatim from teeth-whitening.astro:708-713.
+   *
+   * Keyed per PAGE rather than per component on purpose. The band is the same
+   * LocalTrust in both places, but its heading, intro and body are page copy,
+   * so one shared key would put "for Clear Aligners" on the whitening page.
+   * That is why the key is <page>_<anchor> and why adding a page means adding
+   * an entry here AND a choice in BLOCK_CODE_BANDS — miss either and the row
+   * writes fine, resolves to nothing, and the band disappears from a live page
+   * with only a console warning.
+   */
+  teeth_whitening_local: {
+    component: LocalTrust,
+    props: {
+      heading: "Whitening Designed",
+      headingItalic: "in Parker, Colorado",
+      intro:
+        "Patients come for KOR whitening locally and from out of state — every appointment starts with the same shade-and-staining consultation, regardless of how far you travel for it.",
+      body: "Vivid Smiles Dentistry is located at 17167 Cedar Gulch Pkwy in Parker, welcoming new patients under the care of Dr. Bryce Richardson.",
+    },
+  },
+
+  /**
+   * The same component again on porcelain-veneers, with that page's copy —
+   * reproduced verbatim from porcelain-veneers.astro:496-501.
+   *
+   * Third instance, same reason the second one exists: the wording is page
+   * content, so reusing `local_trust` here would put "for Clear Aligners" under
+   * a veneers heading. Key stays <page>_<anchor>; the anchor is `local` because
+   * that is what LocalTrust's `id` defaults to and what this page has always
+   * rendered.
+   *
+   * This page passes the SAME four props as the other two and no others — no
+   * `background`, `eyebrow`, `note`, `ctas` or `id`. The band it draws is
+   * therefore the cream default, which is what belongs between `lasting` and
+   * the paper `cost` section; restating the defaults here would create a second
+   * place they could drift from LocalTrust.astro.
+   *
+   * Registered in BLOCK_CODE_BANDS in the same commit. Only one of the two and
+   * the row saves cleanly, resolves to nothing, and the band is simply gone
+   * from a live page with a console warning nobody reads.
+   */
+  porcelain_veneers_local: {
+    component: LocalTrust,
+    props: {
+      heading: "Veneers Designed",
+      headingItalic: "in Parker, Colorado",
+      intro:
+        "Dr. Richardson is a Parker resident who built Vivid Smiles Dentistry to bring high-level cosmetic care to patients locally and from across the country.",
+      body: "Located on Cedar Gulch Parkway, the practice welcomes patients locally and from out of state — many travel in for their veneer treatment. With 300+ five-star reviews, it has a reputation for consistent results and genuine attention to every patient.",
+    },
+  },
+
+  /**
+   * ── Phase 4 Wave A — the hub pages' bespoke bands ─────────────────────────
+   *
+   * Five keys, three components, same `<page>_<anchor>` rule as above. THE
+   * EYEBROW/HEADING/BODY STRINGS BELOW ARE FROZEN FROM THE LIVE `sections`
+   * REPEATER — copied out of the GraphQL endpoint on 2026-08-28, not from the
+   * templates, because on the hubs those values are already CMS-backed and the
+   * template merely echoes them. Freezing them here is the code_section trade
+   * the three LocalTrust entries already made: the row becomes movable and
+   * removable but not editable, the sections rows stay in WordPress but stop
+   * feeding the render, and a wording change is a developer edit HERE. The
+   * wave's block-map records that as a known gap on each of these bands.
+   *
+   * The one thing deliberately NOT frozen is the practice address: paragraphs
+   * carry {street}/{city} tokens where the templates interpolate
+   * addressStreet/addressCity, and AreaBand substitutes them from
+   * src/data/contact.ts at render — those values come from Practice Settings
+   * at build time, so baking today's street into a prop would strand three
+   * pages on the old address after the next move. Cosmetic's paragraph says
+   * literal "Parker" because its template does; matching the template beats
+   * consistency between entries.
+   */
+  implant_dentistry_area: {
+    component: AreaBand,
+    props: {
+      eyebrow: "Service area",
+      heading: "Serving Parker, <em>Castle Rock & Douglas County.</em>",
+      paragraphs: [
+        "Vivid Smiles Dentistry is located at {street}, in {city}, with consultation, surgical placement, and final restoration all happening under one roof with one provider.",
+        "Dr. Richardson is a Parker resident serving patients from Parker, Castle Rock, Highlands Ranch, Lone Tree, and across Douglas County. The full implant workflow — CBCT planning, robotic placement, digital scanning, and in-house milling — runs entirely from this office.",
+      ],
+    },
+  },
+
+  cosmetic_dentistry_area: {
+    component: AreaBand,
+    props: {
+      eyebrow: "Service area",
+      heading: "Serving Parker, Stonegate, <em>The Pinery & Douglas County.</em>",
+      paragraphs: [
+        "Vivid Smiles Dentistry is located at {street}, in Parker, and serves patients throughout Douglas County and the Denver metro.",
+        "Cosmetic patients visit us from Stonegate, The Pinery, Lone Tree, Castle Rock, and Highlands Ranch, and from across Colorado to receive specialized care that most general practices don't offer. Dr. Richardson is a Parker resident, which means the community he serves is the one he lives in.",
+      ],
+    },
+  },
+
+  general_dentistry_area: {
+    component: AreaBand,
+    props: {
+      eyebrow: "Service area",
+      heading: "Serving Parker & <em>Douglas County.</em>",
+      paragraphs: [
+        "Vivid Smiles Dentistry is located at {street}, in {city}. Our practice is accepting new patients for cleanings, exams, and same-day emergency appointments.",
+        "We see clients locally and from out of state who travel in for specialized care that most general practices don't offer. Dr. Richardson is a Parker resident — the community he serves is the one he lives in.",
+      ],
+    },
+  },
+
+  /**
+   * The `#trust` pull-quote band between `#gateway` and `#doctors` on
+   * general-dentistry — the eyebrow is the template's own literal (the CMS
+   * row stores none), the heading and first paragraph are the frozen CMS
+   * values, `body2` is the template's html-bearing second paragraph, and
+   * `attr` is the review line beside the component-drawn stars.
+   */
+  general_dentistry_trust: {
+    component: TrustBand,
+    props: {
+      eyebrow: "Why Parker trusts us",
+      heading: "Why Parker residents <em>trust Vivid Smiles Dentistry.</em>",
+      body: "Vivid Smiles has earned over 300 five-star Google reviews built on consistent themes: welcoming environment, advanced technology, clear explanations, and care that feels personal. Dr. Richardson is a Parker resident who is invested in the community long-term.",
+      body2:
+        "Patients describe treatment as <em>comfortable, unhurried, and honest</em> — straightforward care recommendations from a practice that treats neighbors, not just patients.",
+      attr: "5.0 · 300+ Google reviews",
+    },
+  },
+
+  /**
+   * The `#payment` band on general-dentistry: copy column (eyebrow, heading
+   * and first paragraph frozen from the CMS row; `body2` is the template
+   * literal) beside the membership-plan card, whose eyebrow, heading and
+   * three html-bearing lines are the template's own. The three buttons and
+   * the phone label are site data drawn inside PaymentBand from contact.ts.
+   */
+  general_dentistry_payment: {
+    component: PaymentBand,
+    props: {
+      eyebrow: "Payment & plans",
+      heading: "Flexible payment options <em>and dental membership plan.</em>",
+      body: "Vivid Smiles works with most major dental insurance plans to help patients make the most of their benefits. Patients without insurance can take advantage of our in-house dental membership plan, which covers preventive care and discounts on additional treatment for an annual fee.",
+      body2:
+        "Financing is also available for larger restorative or cosmetic cases. Our team will clarify every option before treatment begins.",
+      asideEyebrow: "Membership plan",
+      asideHeading: "No insurance? Use our <em>in-house plan.</em>",
+      asideItems: [
+        "<b>Preventive care covered</b> — cleanings, exams, and routine X-rays for the year.",
+        "<b>Discounted treatment</b> on restorative, cosmetic, and emergency work.",
+        "<b>Single annual fee</b> — no claims, no waiting periods, no exclusions.",
+      ],
+      asideCtaLabel: "See Membership Plan",
+    },
+  },
+
+  /**
+   * ── Phase 4 Wave B — /emergency-dentistry/ and /new-patients/ ─────────────
+   *
+   * Five keys. TWO ARE LIVE BELOW; THREE ARE WRITTEN OUT AND COMMENTED, and
+   * the split is deliberate rather than unfinished.
+   *
+   * The two live ones name components that already exist — TrustBand and
+   * AreaBand, the same two general-dentistry and the three hubs already use —
+   * so registering them costs nothing and breaks nothing.
+   *
+   * The three commented ones name components that DO NOT EXIST YET. A static
+   * import of a missing file fails `astro check` and every build in the
+   * repository, including the ones sibling agents are running right now, so
+   * the import and the entry land in the SAME commit as the component file,
+   * which is also the order Wave A shipped in (components first, registrations
+   * second). Each block below is the finished entry: create the named file,
+   * add its import beside the three at the top of this file, uncomment the
+   * entry, and nothing else changes. The PHP select already carries all five
+   * keys — a key registered there and not here renders nothing and warns,
+   * which is safe only because no page holds a row for any of them yet
+   * (checked against the live endpoint, not assumed).
+   *
+   * EVERY STRING BELOW IS FROZEN COPY, and on four of the five bands part of
+   * it is a live `sections` row today. That is the code_section trade, taken
+   * band by band and recorded in the wave's block-map: the row stays movable
+   * and removable in wp-admin, the words become a developer edit HERE, and the
+   * `sections` rows stay in WordPress but stop feeding the render. Site data
+   * is NOT frozen — paragraphs carry `{street}` / `{city}` / `{phone}` /
+   * `{phone_href}` tokens where the templates interpolate src/data/contact.ts,
+   * and the component substitutes them at render, so an address or a phone
+   * change is still one field in Practice Settings.
+   */
+
+  /**
+   * /emergency-dentistry/ `#why-us` — the centred pull-quote band, and the
+   * SAME COMPONENT general-dentistry's `general_dentistry_trust` names.
+   * `.section.dark` on both pages, `.trust-quote` > eyebrow.light, h2,
+   * `p.trust-body` ×2, `p.trust-attr` with the aria-hidden stars — TrustBand
+   * draws exactly that and hardcodes the band, so there is nothing to add.
+   *
+   * Keyed per PAGE, not per component, for the reason the three LocalTrust
+   * entries above state: heading, body and body2 are page copy.
+   *
+   * FROZEN FROM THE CMS: `sections[why-us]` heading and body. The eyebrow,
+   * `body2` (html-bearing) and `attr` are the template's own literals
+   * (emergency-dentistry/index.astro:377-390) and were never editable.
+   */
+  emergency_dentistry_trust: {
+    component: TrustBand,
+    props: {
+      eyebrow: "Why choose Vivid Smiles",
+      heading: "Why choose Vivid Smiles <em>for emergency dental care.</em>",
+      body: "Vivid Smiles offers emergency care that goes beyond availability. Dr. Richardson graduated at the top of his class from Indiana University School of Dentistry, completed 600+ hours of advanced surgical training, and served as team dentist for the Indiana University basketball team. Dr. Westermeier's advanced residency adds capability for patients managing complex health conditions.",
+      body2:
+        "With over 300 five-star reviews highlighting a calm, welcoming environment, patients who arrive anxious leave <em>relieved.</em>",
+      attr: "5.0 · 300+ Google reviews",
+    },
+  },
+
+  /**
+   * /emergency-dentistry/ `#area` — the fourth AreaBand instance, and the
+   * first that is not the paper band with the Directions/Contact pair.
+   *
+   * AreaBand.astro MUST GAIN TWO PROPS IN THE SAME COMMIT THAT MAKES THIS ROW
+   * RENDERABLE, and both are named here because a prop this table passes and
+   * the component ignores is a band that draws the wrong thing with no error:
+   *
+   *   `band`    — "paper" (today's behaviour and the default, so the three hub
+   *               bands are untouched) | "charcoal". This page's band is
+   *               `<section class="section alt">`
+   *               (emergency-dentistry/index.astro:398), and AreaBand emits a
+   *               bare `class="section"`. The component also needs the charcoal
+   *               text colours for `.area-copy`, lifted from
+   *               emergency-dentistry.css:327-349 with the citation.
+   *   `actions` — "directions-contact" (today's sage "Get Directions" hover
+   *               "Open Maps" + ghost "Contact Us" hover "Reach Us", the
+   *               default) | "call-directions" (this page's light
+   *               "Call {phoneLabel}" hover "Tap to Dial" + ghost-light
+   *               "Get Directions" hover "Open Maps",
+   *               emergency-dentistry/index.astro:415-418). A NAMED PAIR, not
+   *               an array of hrefs: both pairs are site data resolved inside
+   *               the component, and an href in a prop is an href that can go
+   *               stale.
+   *
+   * FROZEN FROM THE CMS: `sections[area]` eyebrow and heading. The two
+   * paragraphs are template literals; `{street}` and `{city}` are AreaBand's
+   * existing tokens.
+   *
+   * ONE DELIBERATE ONE-WORD GAIN. The template writes the address line as
+   * `{addressCity}, {addressState} {addressZip}` — three expressions with
+   * literal spaces between them — and compressHTML collapses the space before
+   * the zip, so the built page ships "Parker, CO80134" today. AreaBand builds
+   * that string as ONE expression and ships "Parker, CO 80134". The same
+   * correction was taken and recorded on the three hub bands; the census must
+   * expect it here too rather than read it as a diff.
+   */
+  emergency_dentistry_area: {
+    component: AreaBand,
+    props: {
+      band: "charcoal",
+      actions: "call-directions",
+      eyebrow: "Visit the office",
+      heading: "Same-day emergencies <em>in Parker.</em>",
+      paragraphs: [
+        "Vivid Smiles Dentistry is located at {street}, in {city}. Same-day emergency appointments are accepted; call ahead so we can prep the operatory and get you seen as quickly as possible.",
+        "After-hours? Leave a voicemail and follow the first-aid steps above while waiting for a return call from Dr. Richardson or Dr. Westermeier.",
+      ],
+    },
+  },
+
+  /*
+   * ── The three below landed with their component files ────────────────────
+   * Their imports are at the top of this file. An entry and its import move
+   * together, always; either half alone is a broken build for everyone.
+   */
+
+  /*
+   * /emergency-dentistry/ `#protocol` — the first-aid band.
+   *
+   * COMPONENT: src/components/ScenarioBand.astro. It draws
+   * `<section class="section" id={id} data-vs-reveal-batch>` (paper) >
+   * `.wrap` > `.section-head` (eyebrow, h2 via set:html, p) >
+   * `.scenario-grid` of four `<article class="scenario-card">`, each a
+   * `<span class="scenario-tag">In case of</span>`, an `<h3>` and a `<p>`,
+   * then ONE `<article class="scenario-card scenario-card--always">` OUTSIDE
+   * that grid with `<span class="scenario-tag">In every case</span>`, an
+   * `<h3>` and a `<p>` printed with set:html. CSS lifted from
+   * emergency-dentistry.css:533-612 with the citation; write every selector
+   * at least two compounds deep, because a single scoped compound ties the
+   * page sheet's `.emerg .scenario-card` at (0,2,0) and bundle order decides.
+   *
+   * WHY THIS IS NOT card_grid. The two tag strings are CONSTANTS — the same
+   * five words on four cards and one on the fifth — so they are furniture the
+   * component owns, not per-card content an editor should retype four times.
+   * And the fifth card is the same class with a modifier, drawn OUTSIDE the
+   * grid; card_grid's only below-the-grid shape is `.candidacy-sub`, a
+   * different element with a `<span class="label">` in it. Reaching this
+   * through card_grid would mean a skin switch on the layout sixteen live
+   * pages and 187 saved rows depend on, to save one page's four card rows.
+   *
+   * FROZEN FROM THE CMS: `sections[protocol]` eyebrow, heading and body, and
+   * the four `cards[scenarios]` rows. The heaviest freeze in the wave, taken
+   * knowingly. UN-FREEZE PATH: if a second page ever ships this shape, it
+   * earns a layout and this key is retired by leaving it registered and
+   * pointing the row at the layout instead.
+   */
+  emergency_dentistry_protocol: {
+    component: ScenarioBand,
+    props: {
+      eyebrow: "First aid",
+      heading: "What to do <em>before you reach our office.</em>",
+      body: "The right first-aid response depends on what happened. Find your scenario below and follow the steps for that situation — these are independent, not sequential.",
+      scenarios: [
+        {
+          title: "Knocked-out tooth",
+          body: "Handle by the crown, rinse gently without scrubbing, and store in milk or saliva. Get to our office within an hour.",
+        },
+        {
+          title: "Severe pain",
+          body: "Rinse with warm salt water and apply a cold compress to the outside of your face; over-the-counter pain relief is appropriate.",
+        },
+        {
+          title: "Broken tooth",
+          body: "Save all pieces, rinse your mouth, and apply gauze if bleeding.",
+        },
+        {
+          title: "Lost crown or filling",
+          body: "Retrieve the crown if possible; temporary dental cement from a pharmacy can protect the exposed tooth until you arrive.",
+        },
+      ],
+      alwaysTitle: "And always — call ahead",
+      // `{phone_href}` and `{phone}` are substituted inside the component from
+      // src/data/contact.ts, the same way AreaBand substitutes {street}. A
+      // tel: URL in a prop is a phone number with a second home.
+      alwaysBody:
+        "By calling <a class=\"vs-link\" href=\"{phone_href}\">{phone}</a> before you arrive, our team can prepare and get you seen as quickly as possible.",
+    },
+  },
+
+  /*
+   * /emergency-dentistry/ `#prevent` — the centred prose plate.
+   *
+   * COMPONENT: src/components/PreventBand.astro. It draws
+   * `<section class="section" id={id} data-vs-reveal-batch>` (paper) >
+   * `.wrap` > `.section-head` (eyebrow, h2 via set:html — NO paragraph) >
+   * `.prevent-prose` holding two `<p>` printed with set:html and a
+   * `.prevent-actions` div with ONE ghost `<Button href="/general-dentistry/"
+   * hoverLabel="See Care">Explore General Dentistry</Button>`. CSS from
+   * emergency-dentistry.css:888-909.
+   *
+   * WHY NOT A LAYOUT. Nothing in the model draws a centred 720px prose column
+   * with the button inside it: card_grid's foot row is a `.cta-row` sibling of
+   * the grid, faq's row forces a second, hardcoded phone button this band does
+   * not have, and media_split cannot render without a picture. The shape is on
+   * one page, so by the method it is the escape hatch, not a new layout.
+   *
+   * FROZEN FROM THE CMS: `sections[prevent]` eyebrow, heading and body — three
+   * scalars, no repeater rows. The second paragraph is a template literal.
+   */
+  emergency_dentistry_prevent: {
+    component: PreventBand,
+    props: {
+      eyebrow: "Prevention",
+      heading: "Preventing <em>dental emergencies.</em>",
+      paragraphs: [
+        "Most dental emergencies are preventable. Regular checkups catch cracked fillings, early decay, and gum disease before they become urgent. Custom mouthguards, a natural extension of Dr. Richardson's team dentist background, protect teeth during contact sports; a nightguard addresses grinding that erodes enamel. Avoiding ice, hard candy, and using teeth as tools eliminates common fracture causes.",
+        "Consistent <a class=\"vs-link\" href=\"/general-dentistry/\">general dentistry care</a> is the best prevention strategy.",
+      ],
+    },
+  },
+
+  /*
+   * /new-patients/ `#reviews` — the draggable testimonial marquee.
+   *
+   * COMPONENT: src/components/ReviewsBand.astro. It draws
+   * `<section class="section" id={id} data-vs-reveal-batch>` (paper) >
+   * `.wrap` > `.section-head.center` (eyebrow, h2 via set:html, p), then
+   * `<ReviewMarquee reviews={reviews} ariaLabel="Patient reviews"
+   * class="np-reviews" />` OUTSIDE the wrap, then a second `.wrap` holding
+   * `.reviews-foot` with one ghost `<Button href="/patient-testimonials/"
+   * hoverLabel="See All">Read all reviews</Button>`
+   * (new-patients/index.astro:250-268).
+   *
+   * THE REVIEWS ARE NOT PROPS. The component calls
+   * `getCollection("reviews")` and sorts newest-first itself, exactly as the
+   * template does — that is a content collection, not page fields, so it is
+   * reachable from a component and nothing about it is frozen.
+   *
+   * WHY NOT gallery_marquee. That layout draws the SMILE GALLERY strip from
+   * Practice Settings; this is a different component over different data that
+   * happens to scroll. One name, two bands, no relation.
+   *
+   * FROZEN FROM THE CMS: `sections[reviews]` eyebrow, heading and body.
+   */
+  new_patients_reviews: {
+    component: ReviewsBand,
+    props: {
+      eyebrow: "Patient Stories · 300+ Five-Star Reviews",
+      heading: "Why Parker keeps <em>coming back</em>.",
+      body: "We don't push five-star reviews — they happen on their own. Drag through a few, in our patients' own words.",
+    },
+  },
+};
+
+interface Props {
+  /** The DOM id, already deduplicated by PageBlocks.astro. Absent when blank. */
+  id?: string;
+  /**
+   * Passed by PageBlocks alongside `id`, and `navLabel`/`band` arrive from the
+   * spread of the whole row. Declared so they have somewhere to land, not
+   * because this component reads them — see the note on `band` below.
+   */
+  anchor?: string;
+  navLabel?: string | null;
+  /**
+   * The registered band this row names.
+   *
+   * A LIST, despite the ACF select being single-value. WPGraphQL for ACF
+   * exposes a select as a list of its choices regardless of `multiple`, so
+   * the live CMS returns ["local_trust"] where the field holds one value.
+   * Typed for both because a `typeof === "string"` check silently produced
+   * an empty key against real data, and an empty key renders nothing — a
+   * blank band on a live page with no error anywhere.
+   */
+  bandKey?: string | string[] | null;
+}
+
+const { id, bandKey } = Astro.props;
+
+// `band` is deliberately NOT forwarded to the component. On this layout it is a
+// readonly label, so the wp-admin row and the "on this page" preview can show
+// what colour the band is — it is not a control. The band a code-owned
+// component paints is part of that band's definition, which lives in BANDS
+// above. Forwarding it would let a stale readonly value repaint a live band on
+// a save nobody reviewed, which is exactly the editability this layout exists
+// to withhold.
+
+/**
+ * Normalised so a dash/underscore drift between the PHP choice and the key
+ * above is not a missing band. The value crosses a system boundary as a bare
+ * string and nothing validates it on the way — `local-trust` and `local_trust`
+ * would otherwise be a silently blank band on a live page.
+ */
+const rawKey = Array.isArray(bandKey) ? bandKey[0] : bandKey;
+
+const key =
+  typeof rawKey === "string" ? rawKey.trim().toLowerCase().replace(/-/g, "_") : "";
+
+const entry = key !== "" && Object.hasOwn(BANDS, key) ? BANDS[key] : undefined;
+
+// Capitalised so the Astro compiler treats it as a component, not a tag name.
+const Band = entry?.component;
+
+// The anchor is honoured rather than left to the component's default because
+// the "on this page" rail is derived from `blocks[].anchor` — including
+// PageBlocks' duplicate-anchor rename. A band that keeps its own default id
+// while the rail links the deduped one is a rail entry that scrolls nowhere.
+const anchorProp = entry?.anchorProp === undefined ? "id" : entry.anchorProp;
+const bandProps: Record<string, unknown> = {
+  ...(entry?.props ?? {}),
+  ...(anchorProp && id ? { [anchorProp]: id } : {}),
+};
+
+/**
+ * An unregistered key is the same class of event as an unknown layout (2.4) and
+ * gets the same treatment: warn everywhere, render nothing in production,
+ * render something visible in dev. NEVER THROW. An editor picks the key from a
+ * select, triggers a deploy, and never sees the log
+ * (cms/mu-plugins/vs-deploy.php:142-158) — so a key this build has not heard of
+ * yet, or one left behind by an Astro rollback, must cost one missing band and
+ * not the whole deploy.
+ *
+ * Position is not reported the way UnknownBlock reports it: PageBlocks passes a
+ * row's fields, not its index. The anchor identifies the row at least as well
+ * for someone about to open wp-admin.
+ */
+const route = Astro.url.pathname;
+
+if (!Band) {
+  const named = key !== "" ? `"${key}"` : "(no band key set)";
+  console.warn(
+    `[blocks] code_section names ${named} on ${route}${id ? ` at #${id}` : ""} — no such band is registered in src/blocks/CodeSectionBlock.astro`,
+  );
+}
+
+// Same switch UnknownBlock.astro runs on, and for the same reasons: Vite
+// replaces both reads with literals at transform time, so the placeholder is
+// eliminated outright from a production build. PUBLIC_VS_BLOCK_DEBUG=1 turns it
+// on for a Vercel preview, which is a production build like any other.
+const showPlaceholder =
+  import.meta.env.DEV || import.meta.env.PUBLIC_VS_BLOCK_DEBUG === "1";
+---
+
+{Band && <Band {...bandProps} />}
+
+{
+  !Band && showPlaceholder && (
+    <aside
+      role="note"
+      style="margin:0;padding:40px;background:var(--vs-cream);border:2px dashed var(--vs-sage);border-radius:var(--vs-r-md);font-family:var(--vs-font-body);color:var(--vs-ink)"
+    >
+      <p style="margin:0;font-size:12px;letter-spacing:0.28em;text-transform:uppercase;font-weight:500;color:var(--vs-sage)">
+        Unregistered code section
+      </p>
+      <p style="margin:10px 0 0;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:18px;font-weight:600;word-break:break-all">
+        {key !== "" ? key : "(no band key set)"}
+      </p>
+      <p style="margin:6px 0 0;font-size:14px;color:var(--vs-ink-soft)">
+        {route}
+        {id && <> · #{id}</>}
+      </p>
+      <p style="margin:14px 0 0;font-size:14px;line-height:1.6;color:var(--vs-muted);max-width:60ch">
+        A code_section row names a band this build does not register. Add it to
+        BANDS in src/blocks/CodeSectionBlock.astro, or remove the section in
+        wp-admin. This box does not render in production — the band is simply
+        absent there.
+      </p>
+    </aside>
+  )
+}

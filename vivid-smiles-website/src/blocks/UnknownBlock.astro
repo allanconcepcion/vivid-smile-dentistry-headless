@@ -1,0 +1,163 @@
+---
+/**
+ * UnknownBlock — what renders when the CMS sends a layout this build has never
+ * heard of.
+ *
+ * This happens for two ordinary reasons, neither of them a bug:
+ *   - a layout added in PHP and hand-deployed to the host before the Astro side
+ *     ships (cms/bin/deploy-mu-plugins.sh is a separate, manual step), or
+ *   - a rollback of the Astro side alone, leaving WordPress ahead of the code.
+ *
+ * IT MUST NEVER FAIL A BUILD. Editors trigger deploys and never see the output
+ * (cms/mu-plugins/vs-deploy.php:142-158), so an editor picking "Add a section"
+ * and choosing something new must not be able to break a deploy — the same rule
+ * src/loaders/blog.ts:280-284 and src/integrations/yoast-sitemap.ts:18-20
+ * already run on. So this component reads nothing off the block but its
+ * `__typename` and its declared `band`, and both reads are defensive.
+ *
+ * Two behaviours, per docs/PAGE-BLOCKS.md §2.4:
+ *
+ *   Production  renders nothing at all, and console.warns naming the layout,
+ *               the route and the position. The warning lands in the build log,
+ *               where an engineer reading a deploy will find it. A visitor sees
+ *               a page with one band missing, which is the correct failure: a
+ *               missing band is recoverable, a broken deploy is not.
+ *
+ *   Dev/preview renders a visible dashed placeholder naming the layout. The
+ *               person who can fix it is the one who sees it, and a silent gap
+ *               in `astro dev` reads as "I forgot to write that band" rather
+ *               than "the registry is missing an entry".
+ *
+ * HOW THE TWO ENVIRONMENTS ARE TOLD APART — `import.meta.env.DEV`.
+ *
+ * Vite (and therefore Astro) replaces `import.meta.env.DEV` with a literal
+ * `true` under `astro dev` and a literal `false` under `astro build`, at
+ * transform time. It is a compile-time constant, not a runtime lookup, so in a
+ * production build the placeholder branch and its markup are eliminated
+ * outright — there is no code path by which a dashed box can reach a page a
+ * patient loads, even if the check were somehow wrong.
+ *
+ * `astro preview` serves an already-built site, so DEV is false there and a
+ * Vercel preview deployment is a production build like any other. For those,
+ * set PUBLIC_VS_BLOCK_DEBUG=1 in the environment — Astro exposes PUBLIC_-
+ * prefixed variables through import.meta.env at build time, so a preview
+ * deployment can be switched into placeholder mode from Vercel's project
+ * settings with no code change. Unset it is the default, and the default is the
+ * safe direction: render nothing.
+ *
+ * Styles are co-located per §2.5 and follow FinalBand.astro — BEM with no page
+ * namespace, --vs-* tokens directly, self-owned padding and zero margin so it
+ * cannot collapse into a neighbour's rhythm.
+ *
+ * `band` is a prop on every real block. It deliberately is not one here: this
+ * is a diagnostic, not a band, and dressing it in the page's palette would let
+ * it read as intended design at a glance. It shows the band the block *asked*
+ * for as text instead, which is the part a developer actually needs.
+ */
+import type { BlockNode } from "./registry";
+
+interface Props {
+  /** The raw block row. Typed loosely, and read as if it might be anything. */
+  block: BlockNode | null | undefined;
+  /** Zero-based index in `pageFields.blocks`, as PageBlocks.astro iterates it. */
+  index: number;
+  /** The route being built, for the warning. */
+  route: string;
+}
+
+const { block, index, route } = Astro.props;
+
+// Everything below tolerates a malformed row. `blocks` is an editor-facing
+// field and this component is the last thing standing between it and the build.
+const rawLayout = block?.__typename;
+const layout =
+  typeof rawLayout === "string" && rawLayout !== ""
+    ? rawLayout
+    : "(missing __typename)";
+
+const rawBand = block?.band;
+const band = typeof rawBand === "string" && rawBand !== "" ? rawBand : null;
+
+// Position is reported one-based: it is the count the editor sees in wp-admin,
+// and the warning exists to be acted on there.
+const position = index + 1;
+
+// Warned in every environment, including production — the build log is the only
+// place this shows up on a real deploy. Exact wording is specified in §2.4.
+console.warn(
+  `[blocks] unknown layout "${layout}" on ${route} at position ${position}`,
+);
+
+const showPlaceholder =
+  import.meta.env.DEV || import.meta.env.PUBLIC_VS_BLOCK_DEBUG === "1";
+---
+
+{
+  showPlaceholder && (
+    <aside class="vs-unknown-block" role="note">
+      <p class="vs-unknown-block__label">Unrendered section</p>
+      <p class="vs-unknown-block__layout">{layout}</p>
+      <p class="vs-unknown-block__meta">
+        Position {position} on {route}
+        {band && <> · band “{band}”</>}
+      </p>
+      <p class="vs-unknown-block__fix">
+        WordPress is sending a layout this build does not render. Add it to
+        src/blocks/manifest.ts and src/blocks/registry.ts, or remove the section in
+        wp-admin. This box does
+        not render in production — the band is simply absent there.
+      </p>
+    </aside>
+  )
+}
+
+<style>
+  /* Self-owned padding, zero margin: it can sit between any two bands without
+     collapsing into either one's rhythm. Same rule as FinalBand.astro:49. */
+  .vs-unknown-block {
+    margin: 0;
+    padding: 40px;
+    background: var(--vs-cream);
+    border: 2px dashed var(--vs-sage);
+    border-radius: var(--vs-r-md);
+    font-family: var(--vs-font-body);
+    color: var(--vs-ink);
+  }
+
+  .vs-unknown-block__label {
+    margin: 0;
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    font-weight: 500;
+    color: var(--vs-sage);
+  }
+
+  .vs-unknown-block__layout {
+    margin: 10px 0 0;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 18px;
+    font-weight: 600;
+    word-break: break-all;
+  }
+
+  .vs-unknown-block__meta {
+    margin: 6px 0 0;
+    font-size: 14px;
+    color: var(--vs-ink-soft);
+  }
+
+  .vs-unknown-block__fix {
+    margin: 14px 0 0;
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--vs-muted);
+    max-width: 60ch;
+  }
+
+  @media (max-width: 780px) {
+    .vs-unknown-block {
+      padding: 24px 22px;
+    }
+  }
+</style>

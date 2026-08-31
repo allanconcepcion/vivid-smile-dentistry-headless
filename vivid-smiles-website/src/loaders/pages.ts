@@ -11,9 +11,23 @@
  * which is WordPress's own `uri` for the page, so a template looks up its own
  * content with getPageContent(Astro.url.pathname).
  *
- * The design is deliberately conservative: WordPress changes the words, not the
- * layout. There is no section ordering and no free-form block list, because the
- * per-page CSS assumes a fixed structure.
+ * Two shapes of BODY content live side by side here, and every page uses
+ * exactly one of them. The six repeaters (sections, cards, images, faqs,
+ * processSteps, tocLinks) are what all 33 pages use today: WordPress supplies
+ * the words, the template owns the order. `blocks` is the ordered
+ * flexible-content field that replaces them one page at a time — an empty
+ * `blocks` means "this page has not been migrated", which is the whole rollback
+ * story (docs/PAGE-BLOCKS.md 2.3). Both are read on every build; nothing here
+ * decides which one renders.
+ *
+ * `hero` sits outside that choice. It is the band above both of them, and a
+ * page has exactly one — which is why the CMS models it as a group and not as
+ * a section an editor can add twice or delete (vs-content-model.php:1444). It
+ * is read on every build for every page, migrated or not, and every field in
+ * it is an override: blank means "the template keeps what it has".
+ *
+ * `blocks` is also the one field this loader cannot simply ask for — see
+ * cmsSupportsBlocks below.
  *
  * Failure policy for images: a picture the build cannot place fails the build,
  * it is never dropped. Dropping it would remove a photo from a live page with
@@ -25,10 +39,108 @@
  * deploy, not an outage: the previous deployment carries on serving.
  */
 
-import type { Loader } from "astro/loaders";
-import { wpQueryAll, WordPressError } from "../lib/wp";
+import type { Loader, LoaderContext } from "astro/loaders";
+import { blockSelectionSet, hasRegisteredBlocks, type BlockNode } from "../blocks/manifest";
+import { wpQuery, wpQueryAll, WordPressError } from "../lib/wp";
 
-const PAGES_QUERY = /* GraphQL */ `
+/**
+ * The `blocks` selection, indented to sit inside `pageFields { … }`.
+ *
+ * Assembled by src/blocks/manifest.ts rather than written here. That file is
+ * the one place a layout's GraphQL type, its selection set and its component
+ * are bound together, so they cannot drift (docs/PAGE-BLOCKS.md 2.1); a loader
+ * holding its own copy of the field list would be the drift. It holds no
+ * layouts in this phase, which yields `blocks { __typename }` — a well-formed
+ * query for a field nothing renders yet.
+ *
+ * The registry offers `hasRegisteredBlocks` so a caller can leave `blocks` out
+ * of the query entirely until a layout exists. Not taken, deliberately: it
+ * would mean the capability check below never runs until the day the pilot
+ * page is migrated, and the whole point of shipping this phase inert is that
+ * the machinery is exercised on every build before anything depends on it. The
+ * build log says which side of the transition it is on from today.
+ *
+ * A wrong field name in the registry is not a local mistake. GraphQL validates
+ * a document before executing any of it, so a fragment naming a field its
+ * layout does not have fails every page at once — which the probe below reads
+ * as "no blocks" and turns into a site-wide fallback to the existing content.
+ * That is the safe direction to fail in, but it is a quiet one: the log line is
+ * the only thing that says so.
+ *
+ * The same string goes into the probe and into the real query, because the
+ * probe's only job is to find out whether the server will accept exactly what
+ * the real query is about to send.
+ */
+const BLOCKS_SELECTION = blockSelectionSet("          ");
+
+/**
+ * The `hero` selection, indented to sit inside `pageFields { … }`.
+ *
+ * Gated on the same probe answer as BLOCKS_SELECTION, and for a structural
+ * reason rather than a stylistic one: `hero` and `blocks` are siblings in one
+ * 'fields' array of one acf_add_local_field_group() call
+ * (cms/mu-plugins/vs-content-model.php:1070 -> 1094; the hero group at :1444,
+ * the sections tab at :1558). There is no deployment that has one and not the
+ * other, so one probe answers for both — and a CMS predating the mu-plugin
+ * omits both, which is the same safe fallback the blocks docblock describes.
+ *
+ * MEASURED against the live CMS while writing this, over /our-office/:
+ *
+ *   HTTP 200
+ *   hero: { eyebrow: null, h1: null, sub: null, ctas: null, ratings: false }
+ *
+ * Two things worth keeping from that. The schema really does carry all five,
+ * so the selection below is valid today. And `ratings` answers `false` on a
+ * page nobody has touched, because the field declares no default_value and
+ * says why at vs-content-model.php:1509-1516 — indistinguishable from a
+ * deliberate "off". Nothing may read it until a headline exists; that rule
+ * lives once, in src/lib/page-content.ts, so 25 templates cannot each get it
+ * wrong. `ctas` comes back null rather than [], which is why the assembly
+ * below coalesces before it filters.
+ *
+ * `image`, `imageAlt` and `mediaShape` are deliberately NOT selected. A field
+ * this loader fetches and no template reads is this project's most-repeated
+ * defect — commit 07c027d shipped a card_grid `5` column choice whose class
+ * was never emitted, and the band drew two across. The hero photo is not
+ * missing by leaving `image` out: 26 of the 33 heroes already take it from the
+ * `images` repeater through page-content.ts's image(slot), so a second control
+ * for one photo is worse than none — and image() throws on a missing slot
+ * (page-content.ts:262-268), which would put a live build dependency on a row
+ * nobody maintains.
+ */
+const HERO_SELECTION = `          hero {
+            eyebrow
+            h1
+            sub
+            ctas {
+              label
+              href
+            }
+            ratings
+          }`;
+
+/**
+ * The `closing` selection, indented to sit inside `pageFields { … }`.
+ *
+ * The two bands under everything else on the page — the consultation invite
+ * (VirtualConsult's eyebrow, headline and body) and the booking-strip sentence
+ * above the footer (FinalBand's one <p>). Like `hero`, they are chrome rather
+ * than sections: an editor can change their words but cannot reorder or delete
+ * them, which is why the CMS models the copy as a group and not as a `blocks`
+ * layout an editor could add twice.
+ *
+ * NOT gated on the blocks/hero probe, unlike HERO_SELECTION directly above —
+ * see cmsSupportsClosing below for why this field must carry its own.
+ */
+const CLOSING_SELECTION = `          closing {
+            consultEyebrow
+            consultHeadline
+            consultBody
+            note
+          }`;
+
+function pagesQuery(includeBlocks: boolean, includeClosing: boolean): string {
+  return /* GraphQL */ `
   query Pages($first: Int!, $after: String) {
     pages(first: $first, after: $after, where: { status: PUBLISH }) {
       pageInfo {
@@ -48,6 +160,9 @@ const PAGES_QUERY = /* GraphQL */ `
           ogImage
         }
         pageFields {
+${includeBlocks ? BLOCKS_SELECTION : ""}
+${includeBlocks ? HERO_SELECTION : ""}
+${includeClosing ? CLOSING_SELECTION : ""}
           tocLinks {
             label
             anchor
@@ -96,6 +211,284 @@ const PAGES_QUERY = /* GraphQL */ `
     }
   }
 `;
+}
+
+/**
+ * The probe's answer, kept for the life of the process.
+ *
+ * The loader runs once per build, so this exists for a dev server that reloads
+ * the collection repeatedly: re-asking a rate-limited CMS the same settled
+ * question is a good way to earn a 429 on the query that matters. Only a real
+ * answer is remembered — a transport failure leaves it unset (see below).
+ * A dev server started before the mu-plugin was deployed needs a restart.
+ */
+let blocksSupport: boolean | undefined;
+
+/**
+ * Ask the CMS whether its schema carries `blocks` and `hero` yet, and never
+ * fail doing so.
+ *
+ * One probe for both, because they cannot arrive separately: they are siblings
+ * in one field group (see HERO_SELECTION above). Sending both is the invariant
+ * BLOCKS_SELECTION's docblock already states — the same string goes into the
+ * probe and into the real query. Asking for `hero` in the query alone would
+ * break it: a CMS predating the mu-plugin would pass the probe and then fail
+ * every page, which is the one failure this whole function exists to prevent.
+ *
+ * The mu-plugin that adds the field is hand-deployed to the host (see
+ * cms/bin/deploy-mu-plugins.sh); this code ships on the next build. The two
+ * events are days or weeks apart and nobody coordinates them, so for an unknown
+ * stretch the front end is querying a WordPress that has never heard of the
+ * field. GraphQL offers no way to ask for a field "if it exists": naming one
+ * the schema lacks is a validation error that kills the whole document before a
+ * row is read. Verified against the live CMS while writing this:
+ *
+ *   { pages(first: 1) { nodes { pageFields { blocks { __typename } } } } }
+ *   -> HTTP 200, no `data`, errors: [{ message:
+ *      'Cannot query field "blocks" on type "PageFields".' }]
+ *
+ * Introspection cannot answer the question either — re-verified rather than
+ * assumed: `{ __schema { queryType { name } } }` comes back "GraphQL
+ * introspection is not allowed for public requests by default", and src/lib/wp.ts
+ * sends no credentials, so the build is one of those public requests.
+ *
+ * So the build asks the cheapest question there is. It sends the selection set
+ * the real query is about to use, over a single page, and looks at whether the
+ * server accepted it. Validation runs before execution, so a schema without the
+ * field rejects this having touched no data at all. Cost: one POST, ~0.4s and
+ * 272 bytes measured against the hosted CMS, on a build that takes ~3 minutes.
+ *
+ * ANY failure means "no blocks". The probe is not allowed to have an opinion
+ * about why it failed, because every reason lands in the same safe place — a
+ * build that renders all 33 pages exactly the way it renders them today. The
+ * message is read only to choose between an ordinary log line and a warning, so
+ * if a future WPGraphQL release rewords it the log tone changes and the
+ * behaviour does not.
+ *
+ * What this does NOT cover: a `blocks` row naming a layout the PHP no longer
+ * registers. That resolves at execution, not validation, so the probe cannot
+ * see it and the build fails. Only a developer deleting a layout can cause it —
+ * an editor cannot author a row for a layout that is not offered — which is why
+ * it is left to fail loudly instead of being guessed around.
+ */
+async function cmsSupportsBlocks(logger: LoaderContext["logger"]): Promise<boolean> {
+  if (blocksSupport !== undefined) return blocksSupport;
+
+  const query = /* GraphQL */ `
+  query PageBlocksProbe {
+    pages(first: 1) {
+      nodes {
+        pageFields {
+${BLOCKS_SELECTION}
+${HERO_SELECTION}
+        }
+      }
+    }
+  }
+`;
+
+  try {
+    await wpQuery(query, {}, "page-blocks probe");
+    logger.info("Page sections: available in WordPress.");
+    blocksSupport = true;
+    return blocksSupport;
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+
+    // graphql-php's own wording for a field that is not on the type. Its only
+    // consequence is which of the two messages below gets logged.
+    // "Cannot query field \"blocks\"" — or \"hero\", the other field this probe
+    // sends — means the mu-plugin is not deployed yet.
+    // "Cannot query field \"tag\" on type \"PageFieldsBlocksCards\"" means the
+    // mu-plugin IS deployed and one of OUR fragments asks for something that
+    // does not exist — a typo, or two layouts colliding on a repeater name so
+    // that one of them silently lost its sub-fields.
+    //
+    // graphql-php words both the same way, and treating the second as the first
+    // is how the whole feature switches itself off and reports a friendly
+    // message: that is exactly what happened the first time this ran against a
+    // deployed host. Only an error naming one of the two top-level page fields
+    // is the benign one — a wrong sub-field of `hero` (say `subhead` for `sub`)
+    // is our mistake and must fail loudly, exactly as a wrong block sub-field
+    // does.
+    const missingPageFields = /Cannot query field ["'](blocks|hero)["']/i.test(detail);
+
+    if (!missingPageFields && /Cannot query field/i.test(detail)) {
+      throw new Error(
+        "WordPress has the page-content fields, but this build asked it for something " +
+          "it does not have. That is a mismatch between what this build selects and " +
+          "what cms/mu-plugins/vs-content-model.php declares. The message below names " +
+          "the field; the two places that could have asked for it are the layout " +
+          "selection sets in src/blocks/manifest.ts — most often two layouts sharing a " +
+          "repeater name, which makes WPGraphQL merge their types and drop one side's " +
+          "fields — and HERO_SELECTION at the top of this file.\n\n" +
+          detail,
+      );
+    }
+
+    if (missingPageFields) {
+      logger.info(
+        "Page sections: not in WordPress yet, so every page is built from its " +
+          "existing content. Run cms/bin/deploy-mu-plugins.sh to add them.",
+      );
+      blocksSupport = false;
+      return blocksSupport;
+    }
+
+    // Everything else is "I could not ask", which is a different answer from
+    // "the field is not there" and stops being harmless the moment any page is
+    // actually migrated. Omitting `blocks` after a 429 or a timeout would build
+    // every migrated page from markup its editor has already replaced, and
+    // report success — a whole-site content regression caused by a network
+    // blip, with nothing in the log an editor would ever see.
+    //
+    // Which of those two worlds we are in is not a flag anyone has to remember:
+    // an empty registry means no page CAN be migrated, so guessing "no blocks"
+    // is provably safe. A non-empty one means it is not, and a failed build is
+    // the better outcome — the previous deployment keeps serving, unchanged,
+    // instead of being replaced by a wrong one.
+    if (hasRegisteredBlocks) {
+      throw new Error(
+        "Could not determine whether WordPress has page sections, and this build " +
+          "renders sections on at least one page. Refusing to build every page from " +
+          "its pre-migration markup on a guess. " +
+          `Reason: ${detail}`,
+      );
+    }
+
+    // Not remembered: this is an accident, not an answer, and the next build
+    // (or the next dev-server sync) should ask again rather than inherit it.
+    logger.warn(
+      "Could not tell whether WordPress has page sections yet, so this build leaves " +
+        "them out and every page is built from its existing content. No page renders " +
+        `sections yet, so the site is unaffected. Reason: ${detail}`,
+    );
+    return false;
+  }
+}
+
+/**
+ * The closing probe's answer, kept for the life of the process — same
+ * lifetime and same reasoning as blocksSupport above.
+ */
+let closingSupport: boolean | undefined;
+
+/**
+ * Ask the CMS whether its schema carries `closing` yet.
+ *
+ * A SECOND probe, not a third field in the blocks/hero one, and the difference
+ * is structural, not stylistic. That probe answers for `blocks` and `hero`
+ * together because they cannot arrive separately — one 'fields' array, one
+ * deployment. `closing` is the first field that BY DEFINITION arrives
+ * separately: this code lands first and the mu-plugin that adds the field is
+ * hand-deployed after it, so for a window of unknown length the schema has
+ * blocks and hero and no closing. Put `closing` into the shared probe and that
+ * window has exactly two endings, both wrong. Teach the benign regex the word
+ * "closing" and the shared probe answers false for all three — BLOCKS_SELECTION
+ * and HERO_SELECTION are dropped too, and every migrated page and every
+ * backfilled hero silently renders from template literals until the PHP lands;
+ * an edit made in wp-admin during the window is reverted by the next
+ * editor-triggered deploy, with nothing in the log an editor would ever see.
+ * Don't teach it, and the failure lands in the mismatch branch instead and
+ * every build throws until the PHP is deployed. A probe of its own is the
+ * identical pattern at the identical cost — one POST, ~0.4s, cached per
+ * process — and degrades only `closing`.
+ */
+async function cmsSupportsClosing(logger: LoaderContext["logger"]): Promise<boolean> {
+  if (closingSupport !== undefined) return closingSupport;
+
+  const query = /* GraphQL */ `
+  query PageClosingProbe {
+    pages(first: 1) {
+      nodes {
+        pageFields {
+${CLOSING_SELECTION}
+        }
+      }
+    }
+  }
+`;
+
+  try {
+    await wpQuery(query, {}, "closing-bands probe");
+    logger.info("Closing bands: available in WordPress.");
+    closingSupport = true;
+    return closingSupport;
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+
+    // The one benign answer: the mu-plugin on the host predates the field.
+    if (/Cannot query field ["']closing["']/i.test(detail)) {
+      logger.info(
+        "Closing bands: not in WordPress yet, so every page keeps its built-in " +
+          "closing copy. Deploy cms/mu-plugins/vs-content-model.php to add them.",
+      );
+      closingSupport = false;
+      return closingSupport;
+    }
+
+    // A wrong SUB-field (say consultHeadlin) is our mistake — fail loudly,
+    // exactly as the blocks probe does for a wrong hero sub-field.
+    if (/Cannot query field/i.test(detail)) {
+      throw new Error(
+        "WordPress has the closing fields, but this build asked for a sub-field " +
+          "it does not have — a mismatch between CLOSING_SELECTION in " +
+          "src/loaders/pages.ts and cms/mu-plugins/vs-content-model.php.\n\n" +
+          detail,
+      );
+    }
+
+    // Transport-class failure: the templates ship wired to this field, so once
+    // the CMS holds real closing copy a guessed "false" would silently revert
+    // it site-wide. Refuse to guess — same policy as the migrated-blocks branch
+    // of cmsSupportsBlocks. In practice unreachable unless the network died
+    // between the two probes: cmsSupportsBlocks has already thrown for
+    // transport failures by the time this runs.
+    throw new Error(
+      "Could not determine whether WordPress has the closing-band fields. " +
+        "Refusing to build every page from its built-in closing copy on a guess. " +
+        `Reason: ${detail}`,
+    );
+  }
+}
+
+/**
+ * Rows are carried in the registry's own BlockNode shape — `__typename` plus
+ * whatever else the selection set asked for.
+ *
+ * Deliberately open. If this loader named the fields of each layout, a layout
+ * it had not been taught would arrive stripped to nothing, and the whole point
+ * of the unknown-layout path (docs/PAGE-BLOCKS.md 2.4) is that the renderer can
+ * name what it could not draw. Whatever the query asked for is carried through
+ * verbatim; the permissive Zod member in src/content.config.ts keeps it that
+ * way through validation.
+ */
+
+/**
+ * Rows worth handing to the schema.
+ *
+ * A row that is not an object with a layout name cannot be rendered by anything
+ * and would fail validation for the entire page, taking the build down over a
+ * single malformed row. Editors trigger these builds and never see the output
+ * (cms/mu-plugins/vs-deploy.php), so it is skipped and reported instead.
+ */
+function usableBlocks(
+  rows: Array<BlockNode | null> | null | undefined,
+  where: string,
+  logger: LoaderContext["logger"],
+): BlockNode[] {
+  const usable: BlockNode[] = [];
+
+  (rows ?? []).forEach((row, i) => {
+    if (row && typeof row === "object" && typeof row.__typename === "string" && row.__typename) {
+      usable.push(row);
+      return;
+    }
+    logger.warn(`${where}: section ${i + 1} arrived without a layout name — skipping it.`);
+  });
+
+  return usable;
+}
 
 type PageNode = {
   /** Canonical Astro route from the importer — see vs-content-model.php. */
@@ -111,6 +504,41 @@ type PageNode = {
     ogImage: string | null;
   } | null;
   pageFields: {
+    /**
+     * Optional rather than nullable, and the difference matters: it is absent
+     * from the response entirely on a CMS whose schema predates the field, and
+     * null on one that has it but where the page has no sections.
+     */
+    blocks?: Array<BlockNode | null> | null;
+    /**
+     * Optional for the same reason `blocks` is, and absent under exactly the
+     * same condition — the two are queried together or not at all.
+     *
+     * Every member is nullable inside it because ACF answers an untouched
+     * group with nulls, measured: /our-office/ returns
+     * { eyebrow: null, h1: null, sub: null, ctas: null, ratings: false }.
+     * `ctas` is null, not [], so it is coalesced before it is filtered.
+     */
+    hero?: {
+      eyebrow: string | null;
+      h1: string | null;
+      sub: string | null;
+      ctas: Array<{ label: string | null; href: string | null }> | null;
+      ratings: boolean | null;
+    } | null;
+    /**
+     * Optional for the same reason hero is — absent when the deployed
+     * mu-plugin predates the field — but gated on its OWN probe: unlike hero,
+     * closing can arrive separately from blocks (its PHP ships after the
+     * Astro side), and riding the shared probe would switch blocks and hero
+     * off site-wide for the length of that window. See cmsSupportsClosing.
+     */
+    closing?: {
+      consultEyebrow: string | null;
+      consultHeadline: string | null;
+      consultBody: string | null;
+      note: string | null;
+    } | null;
     tocLinks: Array<{ label: string | null; anchor: string | null }> | null;
     processSteps: Array<{ tag: string | null; title: string | null; body: string | null }> | null;
     faqs: Array<{ question: string | null; answer: string | null; open: boolean | null }> | null;
@@ -197,7 +625,16 @@ export function pagesLoader(): Loader {
     async load({ store, logger, parseData }) {
       logger.info("Fetching pages from WordPress");
 
-      const nodes = await wpQueryAll<PageNode>(PAGES_QUERY, (data) => data.pages, "pages");
+      const includeBlocks = await cmsSupportsBlocks(logger);
+      // The closing group lives in the same mu-plugin as blocks and hero:
+      // without them its field cannot exist, so don't spend a POST asking.
+      const includeClosing = includeBlocks && (await cmsSupportsClosing(logger));
+
+      const nodes = await wpQueryAll<PageNode>(
+        pagesQuery(includeBlocks, includeClosing),
+        (data) => data.pages,
+        "pages",
+      );
 
       if (nodes.length === 0) {
         throw new WordPressError(
@@ -308,6 +745,53 @@ export function pagesLoader(): Loader {
                 noindex: Boolean(node.vsSeo?.noindex),
                 ogImage: node.vsSeo?.ogImage?.trim() ?? "",
               },
+              // The hero, above every band on the page — the headline, kicker,
+              // intro paragraph and buttons that were written into each
+              // template until now.
+              //
+              // Normalized to empty strings the way `seo` directly above is,
+              // not left nullable. "" is falsy, so every template gate reads
+              // the same, and 25 templates do not each have to spell out the
+              // difference between null and blank. Nothing here can throw, and
+              // nothing is added to badImages/badPages: a half-typed hero is an
+              // edit in progress, never a failed build.
+              //
+              // A CTA row counts only when BOTH label and href are filled. A
+              // half-typed row that kept the template's href under a new label
+              // would point a renamed button at the old place — a wrong link is
+              // worse than the template's own correct one.
+              hero: {
+                eyebrow: f?.hero?.eyebrow?.trim() ?? "",
+                h1: f?.hero?.h1?.trim() ?? "",
+                sub: f?.hero?.sub?.trim() ?? "",
+                ratings: Boolean(f?.hero?.ratings),
+                ctas: (f?.hero?.ctas ?? [])
+                  .filter((c) => c?.label?.trim() && c?.href?.trim())
+                  // ACF caps the repeater at 2 (vs-content-model.php:1484) and
+                  // no hero has a third button designed for it. Sliced rather
+                  // than rejected: a third row should be dropped, not take the
+                  // page down.
+                  .slice(0, 2)
+                  .map((c) => ({ label: c.label!.trim(), href: c.href!.trim() })),
+              },
+              // The two closing bands, normalized to "" exactly as `hero`
+              // above: blank means "the template keeps its own words", and
+              // nothing here can throw. The consult gate — the headline is the
+              // switch for the trio — is NOT applied here; it lives once, in
+              // src/lib/page-content.ts, next to the hero gate it mirrors.
+              closing: {
+                consultEyebrow: f?.closing?.consultEyebrow?.trim() ?? "",
+                consultHeadline: f?.closing?.consultHeadline?.trim() ?? "",
+                consultBody: f?.closing?.consultBody?.trim() ?? "",
+                note: f?.closing?.note?.trim() ?? "",
+              },
+              // Passed through exactly as WordPress sent it, unlike everything
+              // below. The fields of a block belong to its layout, and a loader
+              // that reshaped them would have to know every layout — which is
+              // the one thing that must stay untrue if an unrecognised layout is
+              // to survive the build. Empty until a page is migrated, and empty
+              // again the moment an editor clears the field.
+              blocks: usableBlocks(f?.blocks, where, logger),
               // Normalized to the shape the templates already use, so a template
               // swaps `const faqs = [...]` for a lookup and changes nothing else.
               tocLinks: (f?.tocLinks ?? [])

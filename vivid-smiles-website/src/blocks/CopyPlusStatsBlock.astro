@@ -1,0 +1,752 @@
+---
+/**
+ * CopyPlusStatsBlock — the `copy_plus_stats` layout: the hubs' opening "why"
+ * band. Copy in the left column, a stack of stat cards in the right.
+ *
+ * EXTRACTED, NOT DESIGNED. Three live hub pages ship this exact shape and this
+ * component is their union, element for element:
+ *
+ *   src/pages/implant-dentistry/index.astro:276-310   `#why`
+ *   src/pages/cosmetic-dentistry/index.astro:236-279  `#why`
+ *   src/pages/general-dentistry/index.astro:202-251   `#why`
+ *
+ * `.why-grid` / `.why-copy` / `.why-stats` / `.stat-card` are the pages' own
+ * class names on purpose, the same reason CardGridBlock keeps `.why-card`: the
+ * three page stylesheets still carry rules for them and keep carrying them
+ * until the stylesheet pass removes their copies, so renaming anything here to
+ * `vs-copy-stats__*` would unstyle the band the moment an editor's backfill
+ * filled `blocks`.
+ *
+ * BEWARE THE NAME COLLISION. `.why-grid` here is NOT CardGridBlock's
+ * `.why-grid`. That one is a grid OF CARDS (`article.why-card`, 2-4 columns);
+ * this one is the two-column copy-beside-stats split (`1.15fr 1fr`). Same
+ * class, two unrelated layouts, on sixteen and three pages respectively — which
+ * is exactly why each block states its own geometry in its own scoped <style>
+ * instead of leaning on a shared sheet. Do not "unify" them.
+ *
+ * THE THREE PAGES ARE NOT UNIFORM, and the differences are what the fields are:
+ *
+ *   - implant and general open the second half of the copy with an `<h3>`
+ *     ("Robotic-precision implant placement", "Advanced technology for
+ *     accurate, comfortable care"); cosmetic has a second paragraph and NO
+ *     heading. So `body2Heading` and `body2` are independent — filling one
+ *     never conditions the other, and cosmetic's row must keep emitting a bare
+ *     second `<p>`.
+ *   - implant's third card is `<div class="stat-num">0</div>` with no `<em>`;
+ *     the others carry `600<em>+</em>`, `300<em>+</em>`, `1<em>st</em>`. So
+ *     `unit` is optional and renders no `<em>` when blank rather than an empty
+ *     one, set tight against the figure with no space — the same rule
+ *     StatCalloutBlock applies to `.lasting-stat .big`.
+ *   - exactly one card per page — the 300+ reviews card — opens its detail with
+ *     a decorative star run. So `stars` is per-row, and rows that do not set it
+ *     emit no `<span>`, no space and no `&nbsp;`.
+ *
+ * THE STAR RUN, byte for byte. All three pages ship
+ *
+ *     <span class="stars" aria-hidden="true">★★★★★</span> &nbsp;Consistent…
+ *
+ * — an `aria-hidden` span (the rating is already stated in words by
+ * `.stat-label`, so a screen reader that also read five black stars would say
+ * it twice), then a PLAIN SPACE, then a NON-BREAKING SPACE, then the detail. The
+ * `&nbsp;` is the visible gap between the stars and the sentence; the plain
+ * space in front of it is the source's own and survives into the build
+ * (dist/implant-dentistry/index.html, verified). Both are carried. `&nbsp;` is
+ * emitted as the entity rather than as a literal U+00A0 through an expression,
+ * so the bytes match the pages this replaces and not merely the words.
+ *
+ * `stars` IS A FLAG, NOT COPY — and reading it as copy is the defect this
+ * revision closes. `stats.stars` is registered as a `true_false`
+ * (cms/mu-plugins/vs-content-model.php, `field_vs_blk_cstats_stat_stars`), so
+ * wpgraphql-acf returns a BOOLEAN. This file used to run it through `text()`,
+ * which returns "" for anything that is not a string — so `stars: true` fell to
+ * the blank branch and the span, the plain space and the `&nbsp;` all drew
+ * NOTHING, on every one of the three hubs. Nobody caught it because the
+ * word-level diff that grades this migration cannot see it: five glyphs in an
+ * `aria-hidden` span are decoration, not words, so a band that loses the entire
+ * run still measures lossless. Only a class-level diff shows `span.stars`
+ * missing. Rendered, not reasoned about: harness cases 01-10 in the scratchpad.
+ *
+ * THE GLYPHS ARE THE COMPONENT'S, NOT THE FIELD'S. The editor says whether the
+ * run appears; this template owns what it is. That is deliberate and it is
+ * MediaSplitBlock's contract for `creds.stars` already (:156-162, :822) — the
+ * run is `aria-hidden` presentation, so storing ★★★★★ in a text field would put
+ * it somewhere a retype can mangle it into four stars, or into an accessible
+ * name that reads "black star black star black star…". Printing the field's
+ * value would also re-open exactly that door.
+ *
+ * WHICH IS WHY `flag()` ACCEPTS MORE THAN A BOOLEAN. The route maps written
+ * against the old broken behaviour put the five literal glyphs in this field as
+ * a STRING (cms/import/routes/general-dentistry.json), and the sibling maps put
+ * `true`. The data is being corrected, but this component must be right under
+ * either, and under the "0"/"1" strings ACF stores a true_false as natively —
+ * because "0" is a non-empty string, and a truthiness test that only asked
+ * `Boolean(value)` would turn the OFF toggle ON. Named failure mode, guarded
+ * below.
+ *
+ * ONE BUTTON, NOT TWO. Each of the three pages ships a single ghost button at
+ * the foot of `.why-copy` — `#doctors`, `#doctors`, `/about-us/` — with no
+ * `.cta-row` wrapper of any kind: the button is a direct child of `.why-copy`
+ * and the 28px gap above it comes from `.why-copy p:last-of-type`. A second
+ * pair of CTA fields is deliberately NOT offered. Adding one would need a
+ * wrapper that no page in this family has, which is designing, and this phase
+ * does not design.
+ *
+ * THE VARIANT IS THE LITERAL `ghost`, not derived from the band the way
+ * CardGridBlock derives `sage`/`light`. Two reasons, both measurable: all three
+ * pages spell `variant="ghost"` on a charcoal band, so deriving would emit
+ * `vs-btn-ghost-light` and change the class attribute on all three; and
+ * Button.astro:342 already carries a charcoal-band override that repaints
+ * `ghost` white inside `.section.alt`, so the derived variant would buy nothing
+ * but a diff. If this layout is ever put on a `sage` band — no page in the
+ * corpus does — the variant question reopens as a designed change, here, not as
+ * a guess today.
+ *
+ * HREF POLICY: `ctaHref` stores an anchor ("#doctors"), a site path
+ * ("/about-us/") or one of the tokens book|phone|map, resolved through the ONE
+ * shared copy of the token map and hover table in ./cta.ts. Never a pasted
+ * booking/tel/maps URL — those live in src/data/contact.ts so they cannot go
+ * stale in a CMS field.
+ *
+ * NOTHING HERE THROWS. An editor triggers deploys and never sees the output
+ * (cms/mu-plugins/vs-deploy.php:142-158), so every field is read as if it might
+ * be missing, blank, or the wrong type.
+ *
+ * Styles are co-located per docs/PAGE-BLOCKS.md 2.5. Every rule below names the
+ * sheet and line it was lifted from; the page sheets' local `--sage` / `--ink` /
+ * `--f-display` aliases are resolved back to the `--vs-*` tokens they alias
+ * one-for-one (implant-dentistry.css:28-44), so rendered values are unchanged.
+ *
+ * Spec: docs/PAGE-BLOCKS.md 1.2, 2.5, 3.3.
+ */
+
+import Button from "../components/Button.astro";
+import { resolveCta } from "./cta";
+
+/**
+ * band value -> the modifier class this block writes on its own section.
+ *
+ * Read this map, never an ancestor class. `.section.alt` is charcoal green on
+ * these three hubs and cream on teeth-whitening.css:237 (Fact 4), so a block
+ * that inherited its band would be wrong on one of them the moment a section
+ * moved. `paper` maps to nothing at all because a paper band is a bare
+ * `class="section"` on every page in the corpus — adding a modifier would be
+ * the diff.
+ */
+const BAND_MODIFIER: Record<string, string | null> = {
+  paper: null,
+  cream: "cream",
+  "sage-pale": "dark",
+  sage: "sage",
+  charcoal: "alt",
+};
+
+/** One row of the layout's `stats` repeater — one `.stat-card`. */
+export interface CopyPlusStatsRow {
+  /** The figure, as written: "600", "300", "1", "0". Text, not a number. */
+  value?: string | null;
+  /** The `<em>` set tight against the figure: "+", "st". Blank emits no tag. */
+  unit?: string | null;
+  /** The uppercase line under the figure. */
+  label?: string | null;
+  /** The sentence under that line. */
+  detail?: string | null;
+  /**
+   * ON/OFF for the decorative star run in front of `detail` — set on the one
+   * card per page that carries it. A `true_false` in the schema, so the wire
+   * type is `boolean`; the string and number forms are accepted only so the
+   * component survives the maps written against the old broken behaviour and
+   * ACF's own "0"/"1" storage. See the header, and `flag()` below.
+   *
+   * The glyphs themselves are NOT stored here — the template owns them, and
+   * marks them `aria-hidden` because `label` already says "Five-Star Google
+   * Reviews" in words. See the header for the two spaces that follow the span.
+   */
+  stars?: boolean | string | number | null;
+}
+
+interface Props {
+  /** DOM id, already deduplicated by PageBlocks.astro. Absent when blank. */
+  id?: string;
+  /** The same value as `id`. Accepted so the spread in PageBlocks is lossless. */
+  anchor?: string | null;
+  /** Rail label. Read by the page that builds the rail, not by this band. */
+  navLabel?: string | null;
+  band?: string | null;
+  eyebrow?: string | null;
+  /** May contain `<em>`, and nothing else (docs/PAGE-BLOCKS.md, Fact 3). */
+  heading?: string | null;
+  /** The first paragraph, under the heading. */
+  body?: string | null;
+  /**
+   * The `<h3>` that opens the second half of the copy. Independent of `body2`:
+   * cosmetic ships the paragraph without the heading, so a blank value here
+   * must emit no element rather than an empty `<h3>`.
+   */
+  body2Heading?: string | null;
+  /**
+   * The paragraph under that heading — or under `body`, when there is no
+   * heading. A field of its own and not a longer `body`, per the house rule
+   * already applied to media_split's `body_2`: two paragraphs folded into one
+   * `<p>` are the same words in the wrong markup.
+   */
+  body2?: string | null;
+  /**
+   * The `<h3>` opening the THIRD block of copy, and its paragraph. Same
+   * independence rule as the pair above: /emergency-dentistry/ `#when` fills
+   * both, every other saved row fills neither, and a blank value must emit no
+   * element. Without these the band drops a real `<h3>` and ~50 words.
+   */
+  body3Heading?: string | null;
+  /** Mirrors `body2` exactly, including the escaping — see the render. */
+  body3?: string | null;
+  stats?: (CopyPlusStatsRow | null)[] | null;
+  /** The single ghost button. See the header for why there is only one. */
+  ctaLabel?: string | null;
+  ctaHref?: string | null;
+  /** Hover override. Blank falls back to the destination table in ./cta.ts. */
+  ctaHover?: string | null;
+}
+
+const {
+  id,
+  band,
+  eyebrow,
+  heading,
+  body,
+  body2Heading,
+  body2,
+  body3Heading,
+  body3,
+  stats,
+  ctaLabel,
+  ctaHref,
+  ctaHover,
+} = Astro.props;
+
+/* `?? null` rather than a default: an unknown band from a future PHP choice
+   falls through to the paper shell rather than emitting a class with no rule. */
+const bandModifier = BAND_MODIFIER[band ?? "paper"] ?? null;
+
+/** Trim once, here, so every guard below tests for real content rather than
+ *  for a field an editor left as a single space. */
+const text = (input: unknown): string =>
+  typeof input === "string" ? input.trim() : "";
+
+/**
+ * Read an ACF `true_false` as the on/off it is, whatever shape it arrives in.
+ *
+ * `text()` is the wrong reader for this field and was the defect: it returns ""
+ * for a boolean, so `stars: true` — the ONLY value the live schema can send —
+ * silently meant "off". This is the whole of the fix.
+ *
+ * The two string cases are the ones that bite, and neither is hypothetical:
+ *
+ *   - "★★★★★". The route maps drafted against the broken component wrote the
+ *     literal glyphs into this boolean field to force the run to appear
+ *     (cms/import/routes/general-dentistry.json). Any non-empty word means ON,
+ *     so those rows keep working while the data is corrected — and they render
+ *     the template's glyph run, not the pasted value, so a map that typed four
+ *     stars still gets five.
+ *   - "0". ACF stores a true_false as the STRINGS "0" and "1", and a raw REST
+ *     or wp-json read returns them that way. `Boolean("0")` is `true`, so a
+ *     naive truthiness test would turn every OFF toggle ON — the loudest
+ *     possible failure, five stars on all three cards of all three hubs. "0"
+ *     and "false" are therefore spelled out as off.
+ *
+ * Everything that is not a boolean, a number or a string — `null` from a
+ * toggle an editor never touched, `undefined` from a field nobody queried —
+ * is off. `null` must mean "no stars", not "maybe"; MediaSplitBlock:645-647
+ * says the same thing about the same field on the same grounds.
+ */
+const flag = (input: unknown): boolean => {
+  if (typeof input === "boolean") return input;
+  if (typeof input === "number") return input !== 0;
+  if (typeof input !== "string") return false;
+  const value = input.trim().toLowerCase();
+  return value !== "" && value !== "0" && value !== "false";
+};
+
+const eyebrowText = text(eyebrow);
+const headingHtml = text(heading);
+const bodyText = text(body);
+const body2HeadingText = text(body2Heading);
+const body2Text = text(body2);
+const body3HeadingText = text(body3Heading);
+const body3Text = text(body3);
+
+/* The entity, not the character. `set:html` inserts this string raw, so the
+   build emits `&nbsp;` exactly as the three templates wrote it; interpolating
+   " " through a normal expression would emit the raw byte pair instead —
+   the same word to a reader, a different byte to the diff that grades this. */
+const NBSP_HTML = "&nbsp;";
+
+/**
+ * `Array.isArray` first because an unqueried repeater arrives `undefined` and
+ * one an editor never opened arrives `null`, and `.map` on either throws
+ * during the build of whatever page the band sits on.
+ *
+ * The filter drops only the wholly blank row ACF leaves behind after an
+ * abandoned "Add a stat" — a row with ANY part filled is a row an editor
+ * meant, and drawing a card with a label and no figure is better than silently
+ * deleting the label.
+ *
+ * `stars` is deliberately NOT one of the fields that keeps a row alive, and it
+ * is the one exception to "any part filled". It is a toggle, not content: a
+ * row whose only mark is a clicked toggle is the leftover of an abandoned "Add
+ * a stat", and honouring it would put a card on a live hub containing nothing
+ * but a floating star run — five sage glyphs over empty space, with no figure
+ * and no label to say what was rated. MediaSplitBlock:643-647 drops its
+ * stars-only cred row for exactly this reason, and dropping it here also keeps
+ * the fix additive: a stars-only row renders nothing today (because `text()`
+ * blanked the flag) and must still render nothing.
+ */
+const rows = (Array.isArray(stats) ? stats : [])
+  .map((row) => ({
+    value: text(row?.value),
+    unit: text(row?.unit),
+    label: text(row?.label),
+    detail: text(row?.detail),
+    stars: flag(row?.stars),
+  }))
+  .filter(
+    (row) =>
+      row.value !== "" ||
+      row.unit !== "" ||
+      row.label !== "" ||
+      row.detail !== "",
+  );
+
+/* The token map, hover table and resolvers live in ./cta.ts — ONE copy for
+   every block that draws a CTA button, extracted the day the fifth copy
+   appeared. The tables only work because the blocks agree about what "book"
+   resolves to, and a sixth copy here is a sixth place for the next hover-label
+   edit to miss. */
+const cta = resolveCta(ctaHref, ctaHover);
+const ctaLabelText = text(ctaLabel);
+const hasCta = ctaLabelText !== "";
+
+const hasCopy =
+  eyebrowText !== "" ||
+  headingHtml !== "" ||
+  bodyText !== "" ||
+  body2HeadingText !== "" ||
+  body2Text !== "" ||
+  body3HeadingText !== "" ||
+  body3Text !== "" ||
+  hasCta;
+const hasStats = rows.length > 0;
+
+/**
+ * A block with nothing in it draws NOTHING — no `<section>`, no `.why-grid`,
+ * not one empty div.
+ *
+ * This is stricter than StatCalloutBlock, which always draws its shell, and the
+ * asymmetry is deliberate: that block's shell is a `.section` with 110px of
+ * padding top and bottom, and an all-blank row of THIS layout would put 220px
+ * of coloured band on a live client page with not a word inside it. An editor
+ * who adds a row and saves before filling it in would publish that gap without
+ * ever seeing the build log (vs-deploy.php:142-158). Nothing is the only
+ * rendering of nothing that cannot look broken.
+ */
+const hasAnything = hasCopy || hasStats;
+/* WHY THE SHELL DRAWS EVEN WHEN EVERY FIELD IS BLANK, though drawing nothing
+   reads as the safer choice: the eight registered blocks all emit
+   `<section><div class="wrap"></div></section>` for an empty row, and two of
+   the four blocks added alongside this one do too. A block that emits NOTHING
+   while its row still carries an anchor and a nav_label puts a chip in the
+   "On this page" rail pointing at an id nothing rendered — and worse, the rail
+   loops count every non-blank anchor, so the missing id drifts the `-2`
+   dedupe suffixes of every anchor after it. One inconsistent block is a whole
+   page's rail. Consistency with the siblings is the correctness argument here,
+   not tidiness. */
+
+---
+
+<section class:list={["section", bandModifier]} id={id} data-vs-reveal-batch>{
+  hasAnything && (
+      <div class="why-grid">
+        {hasCopy && (
+          <div class="why-copy">
+            {eyebrowText && <span class="eyebrow">{eyebrowText}</span>}
+            {
+              /* The `<Fragment>` stays on the `<h2>`'s own line rather than
+                 being indented inside it, and this comment stays INSIDE the
+                 braces: all three templates write the tag as one line, and a
+                 line break inside it becomes a space on either side of the
+                 heading — invisible to a reader, a byte either side of every
+                 heading this block draws. Same one-line form as
+                 StatCalloutBlock:283. A comment on its own line would be a
+                 second pair of whitespace text nodes, which is the same
+                 mistake in a different place (MediaSplitBlock:1046). */
+              headingHtml && <h2><Fragment set:html={headingHtml} /></h2>
+            }
+            {bodyText && <p>{bodyText}</p>}{
+              /* Flush against the previous conditional, no newline between the
+                 two braces. Astro preserves whitespace between expressions and
+                 compressHTML collapses it to a single space rather than
+                 removing it, so a conditional on its own line adds a permanent
+                 space to EVERY row where the field is blank — including
+                 cosmetic's, which has no `<h3>` at all. Same idiom as
+                 StatCalloutBlock:224 and CardGridBlock:369. */
+              body2HeadingText && <h3>{body2HeadingText}</h3>
+            }{
+              /* Same flush idiom, same reason: implant and general fill this,
+                 and a row that fills neither must render byte-for-byte as its
+                 template does today. */
+              body2Text && <p>{body2Text}</p>
+            }{
+              /* Third pair, same flush idiom and the same reason. ESCAPED, not
+                 `set:html`, because that is what `body2` two lines up does:
+                 giving siblings different escaping is a trap for whoever fills
+                 them next. All four saved body_3 values are markup-free prose,
+                 so nothing is lost today; rich text here is a change to BOTH. */
+              body3HeadingText && <h3>{body3HeadingText}</h3>
+            }{
+              body3Text && <p>{body3Text}</p>
+            }{
+              /* And again for the button. No `.cta-row` and no `.cta-buttons`
+                 wrapper: the three pages put `<Button>` straight into
+                 `.why-copy` (implant-dentistry/index.astro:288) and the gap
+                 above it is `.why-copy p:last-of-type`, not a row's margin. */
+              hasCta && (
+                <Button variant="ghost" href={cta.href} hoverLabel={cta.hover}>
+                  {ctaLabelText}
+                </Button>
+              )
+            }
+          </div>
+        )}
+        {hasStats && (
+          <div class="why-stats">
+            {rows.map((row) => (
+              <div class="stat-card">
+                {(row.value !== "" || row.unit !== "") && (
+                  <div class="stat-num">{row.value}{row.unit && <em>{row.unit}</em>}</div>
+                )}
+                {row.label && <div class="stat-label">{row.label}</div>}
+                {(row.detail !== "" || row.stars) && (
+                  /* The star run, its plain space and its `&nbsp;` all sit on
+                     ONE line inside the paragraph. Breaking them across lines
+                     would put a newline between `</span>` and the entity, and
+                     another between the entity and the detail — two extra
+                     spaces in the only card per page that carries stars, and
+                     one leading space in every card that does not.
+
+                     The glyphs are a LITERAL text node in this template, the
+                     same way MediaSplitBlock:822 writes them, not `{row.stars}`
+                     — the field is a flag and printing it would put whatever an
+                     editor or a route map happened to type on the page. The
+                     space between `</span>` and the `<Fragment set:html>` is
+                     load-bearing and it survives BECAUSE both sides are
+                     elements: MediaSplitBlock:812 records that the compiler
+                     collapses a bare space between an EXPRESSION and an element
+                     on one line, which is why the run is built from elements
+                     rather than from `{" "}`. Verified in the rendered output,
+                     `</span> &nbsp;Consistent…`, not assumed.
+
+                     A card with `stars` on and `detail` blank therefore ends on
+                     the `&nbsp;` — seen and left, not missed. It is an
+                     invisible trailing space inside a `<p>`, no page in the
+                     corpus ships that shape, and splitting the run into two
+                     conditionals to avoid it would put a second expression
+                     boundary in the one place whose whitespace this whole
+                     comment exists to protect. Cheap to change if a page ever
+                     wants it; not worth the risk today. */
+                  <p class="stat-detail">{row.stars && <Fragment><span class="stars" aria-hidden="true">★★★★★</span> <Fragment set:html={NBSP_HTML} /></Fragment>}{row.detail}</p>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+  )
+}</section>
+
+<style>
+  /* ── CSS REACHABILITY, the rule this file is written against ──────────────
+     Astro 6.1.9 compiles ATTRIBUTE scoping and applies the attribute to EVERY
+     compound in a selector (verified in dist/_assets/PageBlocks.*.css:
+     `.compare-card[data-astro-cid-…] ul[data-astro-cid-…] li[data-astro-cid-…]`).
+     So a two-part scoped selector lands at (0,4,0) and beats the page sheets'
+     (0,2,0)/(0,3,0) rules outright — but a ONE-part selector, `.why-grid[cid]`,
+     lands at (0,2,0) and merely TIES `.impd .why-grid`, leaving bundle order to
+     decide. Nothing below is written as a single compound for that reason:
+     every rule that a page sheet also writes is nested at least one level
+     deeper than the page's own copy of it.
+
+     Two page rules are higher than they look and were measured, not guessed:
+     `.impd .section.alt h3` is (0,3,1) — `.section.alt` is TWO classes — which
+     is why the charcoal band, not `.impd .why-copy h3`, is what actually paints
+     that heading white on the live page (Chrome DevTools Protocol
+     CSS.getMatchedStylesForNode against dist/implant-dentistry/index.html). And
+     global.css:281-330's white-card rescue is (0,4,1) on `.stat-card p`, so the
+     card's own rules below are written three levels deep to clear it. Every
+     colour in this file is the value the built page actually computes, not the
+     value its stylesheet appears to declare. */
+
+  /* ── Band shell ──────────────────────────────────────────────────────────
+     implant-dentistry.css:307-308 (padding), :310-311 and :333-334 (the alt and
+     dark backgrounds); cream and sage complete the five-band map and are
+     StatCalloutBlock's, unchanged.
+
+     `background` on the base rule is this block's own: `.impd .section` sets
+     none because the page body is already paper. A block that can be dropped on
+     any page has to paint its own ground (R3).
+
+     `.section[cid]` ties `.impd .section` at (0,2,0), and `.section[cid].alt`
+     ties `.impd .section.alt` at (0,3,0). Both ties are harmless BECAUSE the
+     values are identical on both sides — 110px 0, and --vs-charcoal-green — so
+     no bundle order can render them differently. That is the only kind of tie
+     this file allows, and it is the same one StatCalloutBlock:352 lives with. */
+  .section {
+    padding: 110px 0;
+    background: var(--vs-paper);
+  }
+  .section.cream { background: var(--vs-cream); }
+  .section.dark { background: var(--vs-sage-pale); }
+  .section.sage { background: var(--vs-sage); }
+  .section.alt { background: var(--vs-charcoal-green); }
+
+  /* Keep the heading clear of the stacked global Nav + sticky TOC when a rail
+     chip is clicked — implant-dentistry.css:300-303. Both custom properties are
+     written onto the page wrapper at runtime and inherit down; the fallbacks
+     are the desktop measurements. */
+  .section[id] {
+    scroll-margin-top: calc(var(--nav-h, 77px) + var(--toc-h, 68px) + 12px);
+  }
+
+  /* ── The split ───────────────────────────────────────────────────────────
+     implant-dentistry.css:420-428, character for character (general:438-446,
+     cosmetic:274-278 are the same rule under their own prefixes).
+
+     `.why-grid` IS the constrained container here — there is no `.wrap` inside
+     this band on any of the three pages, so the 1240px cap and the 40px gutter
+     live on the grid itself. Nested under `.section` to clear the tie described
+     at the top of this block. */
+  .section .why-grid {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 64px;
+    align-items: center;
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  /* ── The copy column ─────────────────────────────────────────────────────
+     The eyebrow is the page primitive (implant-dentistry.css:54-61) plus this
+     band's own inline-flex rule (:429-433). Nested three deep so it clears
+     `.impd .section.alt .eyebrow` (0,4,0), which is what actually colours it on
+     the live page. */
+  .why-grid .why-copy .eyebrow {
+    font-family: var(--vs-font-body);
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+  /* implant-dentistry.css:434-439. One hairline, BEFORE only — this band's
+     eyebrow is not the centred `.section-head` one, which has a rule on both
+     sides (:379-384). No `content` is ever declared for `::after` here, so no
+     second pseudo-element is generated at all. */
+  .why-grid .why-copy .eyebrow::before {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+
+  /* implant-dentistry.css:67-73 (family, weight, line-height, zero margin),
+     :87-91 (size, letter-spacing), :1545-1547 (the ink colour that lands on h2
+     only), :440-443 (this band's margin and 18ch measure). Collapsed to the
+     values the page computes. */
+  .why-grid .why-copy h2 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    font-size: clamp(32px, 4.2vw, 54px);
+    line-height: 1.1;
+    letter-spacing: -0.022em;
+    color: var(--vs-ink);
+    margin: 18px 0 22px;
+    max-width: 18ch;
+  }
+  /* `:global` because the `<em>` arrives through set:html and carries no scope
+     attribute — the same reason StatCalloutBlock:377 reaches for it. The scope
+     stays on `h2`, so this cannot leak off the block.
+     implant-dentistry.css:106-110. */
+  .why-grid .why-copy h2 :global(em) {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+
+  /* implant-dentistry.css:444-451, plus the 1.1 line-height from the :67-73
+     heading group. general-dentistry.css:462-469 is the same rule; cosmetic has
+     no copy of it because that page ships no `<h3>` in this band — which is
+     precisely why the field had to exist for the other two. */
+  .why-grid .why-copy h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: clamp(18px, 1.8vw, 22px);
+    line-height: 1.1;
+    letter-spacing: -0.005em;
+    color: var(--vs-ink);
+    margin: 24px 0 10px;
+  }
+
+  /* implant-dentistry.css:452-461. `p:last-of-type` is what puts the 28px above
+     the button — there is no `.cta-row` in this band to carry a margin. */
+  .why-grid .why-copy p {
+    font-size: 16.5px;
+    line-height: 1.75;
+    color: var(--vs-ink-soft);
+    margin: 0 0 18px;
+    max-width: 56ch;
+  }
+  .why-grid .why-copy p:last-of-type {
+    margin-bottom: 28px;
+  }
+
+  /* ── Band-conditional copy colour ────────────────────────────────────────
+     Computed from this block's OWN modifier, never inherited.
+     alt: implant-dentistry.css:314-332. dark: :336-354. sage has no copy in
+     these three sheets — none of them ships a sage band — so it takes
+     StatCalloutBlock's pairing, which is the site's for every other block.
+
+     Every selector here starts at `.section.<mod>` and so lands at (0,7,0) or
+     better, well clear of the page's (0,3,1) band rules. That matters most for
+     `h3`: `.impd .section.alt h3` is what paints it #fff today, and a block
+     that only reproduced `.impd .why-copy h3` would ship an ink heading on a
+     charcoal band — dark on dark, invisible. Measured against the built page
+     before it was written. */
+  .section.alt .why-grid .why-copy h2,
+  .section.alt .why-grid .why-copy h3 { color: #fff; }
+  .section.alt .why-grid .why-copy h2 :global(em) { color: var(--vs-eyebrow-on-sage); }
+  .section.alt .why-grid .why-copy p { color: rgba(255, 255, 255, 0.85); }
+  .section.alt .why-grid .why-copy .eyebrow { color: var(--vs-eyebrow-on-sage); }
+  .section.alt .why-grid .why-copy .eyebrow::before { background: rgba(255, 255, 255, 0.6); }
+
+  .section.dark .why-grid .why-copy h2,
+  .section.dark .why-grid .why-copy h3 { color: var(--vs-ink); }
+  .section.dark .why-grid .why-copy h2 :global(em) { color: var(--vs-sage); }
+  .section.dark .why-grid .why-copy p { color: var(--vs-ink-soft); }
+  .section.dark .why-grid .why-copy .eyebrow { color: var(--vs-ink-soft); }
+  .section.dark .why-grid .why-copy .eyebrow::before { background: var(--vs-ink-soft); }
+
+  .section.sage .why-grid .why-copy h2,
+  .section.sage .why-grid .why-copy h3 { color: #fff; }
+  .section.sage .why-grid .why-copy h2 :global(em) { color: var(--vs-eyebrow-on-sage); }
+  .section.sage .why-grid .why-copy p { color: rgba(255, 255, 255, 0.85); }
+  .section.sage .why-grid .why-copy .eyebrow { color: var(--vs-eyebrow-on-sage); }
+  .section.sage .why-grid .why-copy .eyebrow::before { background: rgba(255, 255, 255, 0.6); }
+
+  /* ── The stat stack ──────────────────────────────────────────────────────
+     implant-dentistry.css:462-508.
+
+     THE SHADOW IS A LITERAL, not `var(--vs-shadow)`. All three page sheets
+     redefine `--shadow` locally to a two-layer value that is NOT the global
+     token (implant-dentistry.css:37, general:55, cosmetic:47 — identical in all
+     three), and the built page computes it: `rgba(40,40,30,.25) 0 24px 60px
+     -30px, …`. Substituting the global token here would quietly change the card
+     on all three hubs.
+
+     The card is white on every band — that is what makes it read as a card — so
+     nothing inside it is band-conditional. Its text colours are stated flat
+     rather than left to cascade, for the reason StatCalloutBlock:414 states:
+     an inherited colour would follow `.section.alt`'s white text onto a white
+     surface. global.css:281-330 is the site's rescue for exactly that
+     regression at (0,4,1); the rules below sit at (0,6,0) and above, so this
+     block is correct with or without it. */
+  .why-grid .why-stats {
+    display: grid;
+    gap: 18px;
+  }
+  .why-stats .stat-card {
+    background: var(--vs-paper);
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-lg);
+    padding: 32px 32px 28px;
+    box-shadow:
+      0 24px 60px -30px rgba(40, 40, 30, 0.25),
+      0 8px 20px -10px rgba(40, 40, 30, 0.08);
+    display: grid;
+    gap: 6px;
+  }
+  .why-stats .stat-card .stat-num {
+    font-family: var(--vs-font-display);
+    font-weight: 300;
+    font-size: clamp(48px, 5vw, 64px);
+    line-height: 1;
+    color: var(--vs-sage);
+    letter-spacing: -0.02em;
+  }
+  /* Authored in this template, so it carries the scope attribute and needs no
+     `:global` — unlike the heading's `<em>`, which arrives through set:html.
+     Four levels deep to clear global.css's white-card `em` rescue at (0,4,1),
+     which sets this same colour by a different route. */
+  .why-stats .stat-card .stat-num em {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+    font-size: 0.55em;
+    margin-left: 4px;
+  }
+  .why-stats .stat-card .stat-label {
+    font-family: var(--vs-font-body);
+    font-size: 12.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--vs-muted);
+    font-weight: 500;
+    margin-top: 8px;
+  }
+  .why-stats .stat-card .stat-detail {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--vs-ink-soft);
+    margin: 6px 0 0;
+  }
+  /* implant-dentistry.css:505-508, general-dentistry.css:523-526,
+     cosmetic-dentistry.css:317 — the same two declarations in all three, with
+     the sheets' local `--sage` alias resolved back to `--vs-sage`.
+     Already lifted, and until this revision UNREACHABLE: nothing ever emitted
+     `span.stars`, so the rule had no element to paint. No new CSS was needed to
+     make the run appear, which is the tell that the defect was in the reader
+     and not in the styles.
+     Not band-conditional, and must not become so: `.stat-card` is white on
+     every band (see the block comment above), so sage-on-white is the computed
+     colour on charcoal, cream and sage alike. Three levels deep at (0,6,0),
+     clear of the pages' (0,3,0). */
+  .why-stats .stat-card .stars {
+    color: var(--vs-sage);
+    letter-spacing: 0.06em;
+  }
+
+  /* ── Responsive ──────────────────────────────────────────────────────────
+     implant-dentistry.css:1359-1363 and :1444-1447; general:1240-1243 and
+     :1305-1307; cosmetic:922 and :954 — the same two breakpoints in all three.
+
+     1100 is NOT normalised to the block set's 991 the way StatCalloutBlock's
+     were. All three sheets collapse this grid at 1100 and nothing else in the
+     family disagrees, so moving it would reflow the band between 992px and
+     1100px on three live pages to buy tidiness. */
+  @media (max-width: 1100px) {
+    .section .why-grid {
+      grid-template-columns: 1fr;
+      gap: 48px;
+    }
+  }
+
+  @media (max-width: 780px) {
+    .section {
+      padding: 70px 0;
+    }
+    .section .why-grid {
+      padding: 0 22px;
+    }
+  }
+</style>

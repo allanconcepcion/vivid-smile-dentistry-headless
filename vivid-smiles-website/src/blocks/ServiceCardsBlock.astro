@@ -1,0 +1,1526 @@
+---
+/**
+ * ServiceCardsBlock — the `service_cards` layout: the service-tile grids that
+ * carry the four hub pages.
+ *
+ * EXTRACTED, NOT DESIGNED. Five live bands, read element for element:
+ *
+ *   src/pages/cosmetic-dentistry/index.astro:282-317  `#services`, paper,
+ *       `.svc-grid` three across, six linked tiles, closing `.svc-outro`.
+ *   src/pages/general-dentistry/index.astro:251-280   `#services`, paper,
+ *       `.svc-grid-4` four across of `<article class="svc-feat">` — the
+ *       FEATURES shape: no link, no arrow, no hover-reveal, and a body that
+ *       carries an inline `<a class="vs-link">` to /emergency-dentistry/.
+ *   src/pages/services/index.astro:163-204   `#cosmetic`, charcoal
+ *       (`class="section alt"`), `.svc-grid.svc-grid-6` three across, with the
+ *       CTA pair INSIDE the section head.
+ *   src/pages/services/index.astro:207-249   `#implants`, sage-pale
+ *       (`class="section dark"`), `.svc-grid.svc-grid-5` — five tiles centred
+ *       by a six-column grid — CTA pair in the head, second button the phone.
+ *   src/pages/services/index.astro:252-286   `#everyday`, paper,
+ *       `.svc-grid.svc-grid-2`, the only band whose tiles carry a `.svc-tag`.
+ *   src/pages/implant-dentistry/index.astro:346-366  the tile grid inside
+ *       `#solutions`, NESTED — see below.
+ *
+ * Two card SHAPES and two PLACEMENTS, which is why one layout is this long.
+ *
+ * ── TILES vs FEATURES ────────────────────────────────────────────────────
+ * A tile is `<a class="svc-card compact" data-vs-arrow>`: a photograph with a
+ * dark gradient over it, the title and an <ArrowBadge> along the bottom, and a
+ * description that slides open on hover. A feature is `<article class="svc-feat">`:
+ * a white card, picture on top, sage title and always-visible body under it,
+ * and NO link at all. general-dentistry's four are features precisely because
+ * one of their bodies contains a link of its own — a link inside a link is
+ * invalid, and a description that only appears on hover would hide it.
+ *
+ * They are one layout and not two because they are one editorial idea ("the
+ * services in this category") and because `cardStyle` is the only field that
+ * differs: every other field means the same thing in both shapes. `href` and
+ * `tag` have no rendering in the features shape and are ignored there, which is
+ * recorded rather than hidden — see `cardStyle` in Props.
+ *
+ * ── `href` blank means the tile is not a link ────────────────────────────
+ * An `<a>` with no href is not a link, and an arrow badge on something that
+ * goes nowhere advertises a destination that does not exist. So a tile with a
+ * blank `href` is drawn as `<article class="svc-card compact">` with neither
+ * `data-vs-arrow` nor the badge: the card, its picture and its words survive;
+ * only the affordance goes. Every tile on all five live bands has an href, so
+ * no band in the corpus takes this path today.
+ *
+ * ── `body` is html-bearing, `subFoot` too ───────────────────────────────
+ * general-dentistry's Emergency card and cosmetic-dentistry's `.svc-outro`
+ * both carry an inline `<a class="vs-link">` mid-sentence, so both render
+ * `set:html`. The tiles' plain-prose descriptions render byte-identically
+ * either way — `set:html` is the shape the CMS field has, not a widening.
+ *
+ * NO `.vs-link` RULE LIVES HERE, for the reason ComparisonCardsBlock:922 and
+ * TechGridBlock record: a link arriving through `set:html` is already styled by
+ * global.css:39-49, and the hub sheets tint it for their own ground. A local
+ * rule would be a compound this block authors — it would outrank both and take
+ * the site's own link treatment away from a band that had it right.
+ *
+ * ── The CTA pair sits in the HEAD, not at the foot ──────────────────────
+ * services/index.astro:168-177 puts `.cta-row.in-head` inside `.section-head`,
+ * under the intro paragraph, and that is the only placement this family ships.
+ * It is not the foot row card_grid and pricing_tiers draw; a band with both
+ * would be a shape no page has. Hence one row, in the head, and none when the
+ * block is nested (a guest must not grow a row its host band never had — the
+ * rule PricingTiersBlock:255 states for the same reason).
+ *
+ * THE PHONE RULE. `#implants`' second button is `Call {phoneLabel}` built from
+ * src/data/contact.ts (services/index.astro:216-218). When a cta href stores
+ * the token "phone" the visible label is rebuilt here from that same constant
+ * and the STORED label is only the on/off switch. A phone number typed into a
+ * WordPress field is a phone number that goes stale in a WordPress field, and
+ * this site already has one place to change it — Practice Settings.
+ *
+ * ── NESTED: the grid as a guest ─────────────────────────────────────────
+ * implant-dentistry.astro:346 draws its tile grid INSIDE `#solutions`, after
+ * the price table, as a sibling in the same `.wrap`. With `nested` truthy this
+ * block therefore emits no `<section>`, no `.wrap`, no `id` and no
+ * `data-vs-reveal-batch` — the band, the anchor and the reveal batch are the
+ * host's — and reaches the page through the host's `<slot />`. Same contract as
+ * PricingTiersBlock's nested mode, read from that file; the difference is that
+ * teeth-whitening's template ships a sub-head there and implant-dentistry's
+ * grid has none, so the head here is drawn only if an editor actually fills it
+ * (as an `<h3>`: the host's `<h2>` is already the band's heading).
+ *
+ * `nested` is read for TRUTH, never `=== true`: an ACF true_false nobody has
+ * saved comes back null and an importer may write `1`.
+ *
+ * The 56px gap between the price table and the grid is the whole reason the
+ * flag exists. A `<section>` of its own would put 220px there (110px top and
+ * bottom) and the page would visibly move — WordPress is here to change the
+ * words, not the design.
+ *
+ * ── OPTIONAL EVERYTHING ─────────────────────────────────────────────────
+ * Every field is optional and a blank one draws NOTHING, never an empty
+ * wrapper: no cards, no grid element; no picture, no `.svc-img`; no title and
+ * no link, no `.svc-row-bot`. Each of those wrappers is a grid or flex child
+ * with a gap, so an empty one is a visible strip, not a collapsed nothing.
+ *
+ * NOTHING HERE THROWS. An editor triggers deploys and never sees the output
+ * (cms/mu-plugins/vs-deploy.php:142-158), so every field is read as if it might
+ * be missing, blank or the wrong type. Same rule as PageBlocks.astro.
+ *
+ * Styles are co-located per docs/PAGE-BLOCKS.md 2.5 — every rule below names
+ * the sheet and line it was copied out of, and the <style> header explains the
+ * three places the four hub sheets disagree and which value won.
+ *
+ * Spec: docs/PAGE-BLOCKS.md Phase 4, Wave A.
+ */
+import { Image } from "astro:assets";
+import ArrowBadge from "../components/ArrowBadge.astro";
+import Button from "../components/Button.astro";
+import { phoneLabel } from "../data/contact";
+import { resolveCta } from "./cta";
+
+/** The card's image sub-field, as wpgraphql-acf returns an ACF image. Same
+    shape as MediaSplitBlock.astro:125-132 and TechGridBlock's, and for the same
+    reason: the manifest selects `image { node { sourceUrl altText mediaDetails
+    { width height } } }`. */
+export interface ServiceCardsImage {
+  node?: {
+    sourceUrl?: string | null;
+    altText?: string | null;
+    mediaDetails?: { width?: number | null; height?: number | null } | null;
+  } | null;
+}
+
+/** One row of the layout's `svc_cards` repeater. Every sub-field is optional at
+    the schema level — ACF returns null for anything an editor never saved. */
+export interface ServiceCard {
+  title?: string | null;
+  /** May carry an inline `<a class="vs-link">`. Drawn `set:html`. */
+  body?: string | null;
+  /** The pill over the picture — `.svc-tag`. Only /services/#everyday has one. */
+  tag?: string | null;
+  /** Where the tile goes. Blank draws the card unlinked — see the header. */
+  href?: string | null;
+  /**
+   * An `object-position` override for the picture, e.g. "center 30%".
+   * services/index.astro:232,275 pass exactly this through to the `<img>` on
+   * the cards whose subject sits off-centre; every other card omits it and gets
+   * the `object-fit: cover` default.
+   */
+  imagePos?: string | null;
+  /** Alt override. Falls back to the alt stored on the file in WordPress. */
+  imageAlt?: string | null;
+  image?: ServiceCardsImage | null;
+}
+
+interface Props {
+  /** DOM id, already deduplicated by PageBlocks.astro. */
+  id?: string;
+  /** The same value as `id`. Accepted so the spread in PageBlocks is lossless. */
+  anchor?: string | null;
+  /** Rail label. Read by the page that builds the rail, not by this band. */
+  navLabel?: string | null;
+  band?: string | null;
+  /**
+   * The heading column's width, as a class the PAGE SHEET hooks.
+   *
+   * "default" (and blank) emits `class="section-head"` — every one of the
+   * fifteen saved rows, byte-identical to today. "center" adds `center`.
+   *
+   * NOT DECORATION, AND NOT REDUNDANT WITH THIS FILE'S OWN CENTRING.
+   * /new-patients/, /our-office/ and /referral-program/ style a bare
+   * `.section-head` as a LEFT-aligned 60ch grid and centre it only through
+   * `.section-head.center`. Dropping the class on backfill left those bands on
+   * this file's own `.section-head` rule — still centred, but 760px instead of
+   * 60ch, so the heading column grew by about a third and re-wrapped. Measured
+   * in a browser against the built pages: 760px against 587.355px. A word diff
+   * and a section-class diff are both blind to it.
+   */
+  headAlign?: string | null;
+  eyebrow?: string | null;
+  /** May contain `<em>`, and nothing else (docs/PAGE-BLOCKS.md, Fact 3). */
+  heading?: string | null;
+  body?: string | null;
+  /**
+   * Guest mode. Truthy, never `=== true` — see the header. Ignored fields in
+   * this mode are `band`, `anchor`/`id` and the CTA seven, exactly as
+   * PricingTiersBlock ignores them: they belong to the host band.
+   */
+  nested?: boolean | null;
+  /**
+   * "tiles" | "features". NULL means tiles: the tile is the shape five of the
+   * six live bands ship, and a row saved by any path that skips the select must
+   * degrade to the common case rather than to the one page's exception.
+   */
+  cardStyle?: string | null;
+  /** "2" | "3" | "4" | "5" — ACF returns a select's value as a string. */
+  columns?: string | number | null;
+  /**
+   * The width at which this grid collapses to a single column: "479", "640"
+   * or "780".
+   *
+   * A FIELD RATHER THAN A CONSTANT BECAUSE THE PAGES GENUINELY DISAGREE, and
+   * no other field can tell them apart. cosmetic-dentistry.css:975,
+   * implant-dentistry.css:1502 and general-dentistry.css:1339 collapse at
+   * 640; services.css:520 collapses at 780 — and /services/ #cosmetic and
+   * /cosmetic-dentistry/ #services are BOTH six tiles at columns=3, identical
+   * in every stored value. Picking one silently would change what a visitor
+   * sees between 640px and 780px on whichever page lost, which is a design
+   * change, and this migration changes the words and not the design.
+   * Blank = "640", the majority.
+   *
+   * "479" IS A LADDER, NOT A SINGLE STOP. /new-patients/ runs four tiles ->
+   * two at 991 -> one at 479 (new-patients.css:188, :339, :348), a full
+   * breakpoint later than any sheet this select was minted from. Left on
+   * "640" that band would stack a column early between 479 and 640px AND
+   * halve from four to two at 1100 instead of 991 — two visible design
+   * changes on a live page, which is what this field exists to prevent.
+   */
+  collapseAt?: string | null;
+  svcCards?: (ServiceCard | null)[] | null;
+  /**
+   * The closing line under the grid — `.svc-outro`. Its own field and not a
+   * second `body` because they are two places in the markup: `body` is the
+   * band's intro above the cards, this is the sentence below them. May carry an
+   * inline link (cosmetic-dentistry.astro:314 does).
+   */
+  subFoot?: string | null;
+  /** The block_cta_fields() seven. See the header for the href policy. */
+  ctaLabel?: string | null;
+  ctaHref?: string | null;
+  /** Hover override. Blank falls back to ./cta.ts's destination table. */
+  ctaHover?: string | null;
+  ctaLabel2?: string | null;
+  ctaHref2?: string | null;
+  ctaHover2?: string | null;
+  /** The small line beside the buttons. */
+  ctaNote?: string | null;
+}
+
+/**
+ * band value -> the modifier class the pages' markup already uses.
+ *
+ * `paper` maps to nothing because a paper band is a bare `class="section"` on
+ * every page in the family. `alt` and `dark` are inherited names and inherited
+ * liabilities — `.section.alt` is charcoal on services.css:126 and cream on
+ * teeth-whitening.css (Fact 4) — which is why every colour in <style> below is
+ * written against the band VALUE and the class is only the hook the
+ * un-migrated hub sheets still need.
+ */
+const BAND_CLASS: Record<string, string | undefined> = {
+  paper: undefined,
+  cream: "cream",
+  "sage-pale": "dark",
+  sage: "sage",
+  charcoal: "alt",
+};
+
+/**
+ * `<Image>` inputs by shape and column count.
+ *
+ * Not one set for the whole layout: a tile in a two-across grid is twice the
+ * rendered width of one in a five-across grid, and handing both the same
+ * `widths` ships either a blurry hero or a 1200px file inside a 273px card.
+ * The three live values are the templates' own — cosmetic-dentistry.astro:298
+ * and implant-dentistry.astro:353 for three across, services.astro:270 for two,
+ * general-dentistry.astro:264 for the features row — and the counts no page
+ * ships take the same widths with the `sizes` this component's own breakpoints
+ * imply (1100px -> two across, 640px -> one).
+ *
+ * The `sizes` strings for three across differ between the hubs and the services
+ * page (`(max-width: 991px) 100vw, 33vw` there); the one below is the one that
+ * matches the breakpoints in <style>, which is the only version of the string
+ * that can be right about this component.
+ */
+const IMAGE_SPEC: Record<string, { widths: number[]; sizes: string }> = {
+  "tiles-2": { widths: [600, 900, 1200], sizes: "(max-width: 991px) 100vw, 50vw" },
+  "tiles-3": {
+    widths: [420, 640, 900],
+    sizes: "(max-width: 640px) 100vw, (max-width: 1100px) 50vw, 33vw",
+  },
+  "tiles-4": {
+    widths: [420, 640, 900],
+    sizes: "(max-width: 640px) 100vw, (max-width: 1100px) 50vw, 25vw",
+  },
+  "tiles-5": {
+    widths: [420, 640, 900],
+    sizes: "(max-width: 640px) 100vw, (max-width: 1100px) 50vw, 33vw",
+  },
+  "features-2": { widths: [300, 480, 640], sizes: "(max-width: 991px) 100vw, 50vw" },
+  "features-3": {
+    widths: [300, 480, 640],
+    sizes: "(max-width: 640px) 100vw, (max-width: 1100px) 50vw, 33vw",
+  },
+  "features-4": {
+    widths: [300, 480, 640],
+    sizes: "(max-width: 640px) 100vw, (max-width: 1100px) 50vw, 280px",
+  },
+  "features-5": {
+    widths: [300, 480, 640],
+    sizes: "(max-width: 640px) 100vw, (max-width: 1100px) 50vw, 25vw",
+  },
+};
+
+const {
+  id,
+  band = "paper",
+  headAlign,
+  eyebrow,
+  heading,
+  body,
+  nested,
+  cardStyle,
+  columns,
+  collapseAt,
+  svcCards,
+  subFoot,
+  ctaLabel,
+  ctaHref,
+  ctaHover,
+  ctaLabel2,
+  ctaHref2,
+  ctaHover2,
+  ctaNote,
+} = Astro.props;
+
+/* See the `headAlign` prop. Unknown values fall back to today's class, never to
+   a band that centres itself by accident. */
+const headKey = String(headAlign ?? "").trim().toLowerCase();
+const headClass = headKey === "center" || headKey === "narrow" ? headKey : undefined;
+
+
+/** Trim once, here, so every guard below tests for real content rather than for
+ *  a field an editor left as a single space. */
+const text = (input: unknown): string => (typeof input === "string" ? input.trim() : "");
+
+const isNested = Boolean(nested);
+
+const bandKey = typeof band === "string" && band !== "" ? band : "paper";
+const bandClass = BAND_CLASS[bandKey];
+
+/**
+ * The eyebrow carries `light` on the two sage bands and only there —
+ * services/index.astro:210 spells `class="eyebrow light"` on the sage-pale
+ * `#implants` head and plain `class="eyebrow"` on the charcoal `#cosmetic` one
+ * (:165). Inert under the current cascade, since `.section.dark .eyebrow`
+ * (0,3,0) already beats `.eyebrow.light` (0,2,0), but it is in the HTML, so it
+ * has to be here or the diff that verifies this phase is not empty.
+ */
+const eyebrowLight = bandKey === "sage-pale" || bandKey === "sage";
+
+const isFeatures = text(cardStyle) === "features";
+
+/* The third tile shape. /new-patients/ writes the <h3> ABOVE the description
+   and closes with an EMPTY `.svc-row-bot > span` — no heading in the bottom
+   row and no arrow badge, even though all four of its cards are links
+   (new-patients/index.astro:199-205). Left to fall through to `tiles` the
+   backfill would move four headings below their descriptions and add four
+   arrow badges the page has never drawn: adding markup to a live band, which
+   is the same failure `ctaHide` was. */
+const isHeadingFirst = text(cardStyle) === "tiles-heading-first";
+
+/**
+ * The column count, and the class that carries it.
+ *
+ * `cols-N` is this component's own modifier, not a page's, and it is emitted
+ * ALWAYS — including for the count each family treats as its default. That is
+ * deliberate and it is the one place this file departs from the hub markup:
+ *
+ *   - the four hubs spell the same three-across grid four different ways
+ *     (`svc-grid` on two pages, `svc-grid svc-grid-6` on a third), and a
+ *     `columns` field cannot honestly write `-6`, which counts CARDS;
+ *   - more importantly, `grid-template-columns` is exactly where the hub sheets
+ *     disagree — `.impd .svc-grid` is six columns where `.cdent .svc-grid` is
+ *     three — and a single-class rule of this component's compiles to
+ *     `.svc-grid[data-astro-cid-…]`, (0,2,0), which TIES with `.impd .svc-grid`
+ *     and leaves bundle order to decide the geometry of a live client page.
+ *     `.svc-grid.cols-3` is (0,3,0) and cannot tie with any of them.
+ *
+ * The family base classes are kept as the pages spell them (`svc-grid`,
+ * `svc-grid-4`) so the un-migrated hub sheets keep styling the band during the
+ * transition, exactly as CardGridBlock keeps `.why-grid`.
+ *
+ * Default 3 for tiles and 4 for features: the count each shape actually ships,
+ * so a row that somehow saved without a `columns` value degrades to the layout
+ * the markup already has rather than to the editor-facing default.
+ */
+const COLUMN_CHOICES = ["2", "3", "4", "5"];
+const rawColumns = String(columns ?? "").trim();
+const cols = COLUMN_CHOICES.includes(rawColumns) ? rawColumns : isFeatures ? "4" : "3";
+const colsClass = `cols-${cols}`;
+
+/* The templates key their grids off the CARD COUNT, not the column count —
+   services/index.astro writes `svc-grid svc-grid-6` for a SIX-tile grid drawn
+   three across. Dropping it changed the class attribute on three live bands and
+   orphaned services.css:235-255 and its breakpoints, so it is emitted here too.
+   It is a hook, not a layout: this component still owns grid-template-columns. */
+const countClass = `svc-grid-${(Array.isArray(svcCards) ? svcCards : []).filter(Boolean).length}`;
+
+/* Blank = 640, which is what three of the four sheets do. */
+const rawCollapse = String(collapseAt ?? "").trim();
+const collapseWidth =
+  rawCollapse === "780" || rawCollapse === "479" ? rawCollapse : "640";
+
+let imageSpec = IMAGE_SPEC[`${isFeatures ? "features" : "tiles"}-${cols}`];
+
+/* THE SIZES HINT TRACKS THE COLLAPSE, because on every page the two agree:
+   a band that goes one-column at 780 (services/index.astro:190,:234) also
+   ships `(max-width: 991px) 100vw, 33vw`, while a band that goes one-column at
+   640 ships the 640/1100 three-stop form. Deriving it from `collapseAt` rather
+   than exposing a second field keeps one decision in wp-admin instead of two
+   that can contradict each other. Wrong `sizes` is not a layout bug — it makes
+   the browser pick the wrong candidate, so the image is soft or wasteful — but
+   it is still a change to a live page, which is why it is not left as a
+   constant. */
+if (collapseWidth === "780" && !isFeatures) {
+  imageSpec = {
+    widths: imageSpec.widths,
+    sizes: cols === "2" ? "(max-width: 991px) 100vw, 50vw" : "(max-width: 991px) 100vw, 33vw",
+  };
+}
+
+/* The 479 ladder overrides BOTH halves, unlike the 780 case above. Its stops
+   are 479/991 rather than 640/1100, so the sizes string has to name them or
+   the browser picks a candidate for a layout this band does not have; and the
+   one page shipping it also ships its own widths, transcribed here so the
+   built `srcset` is the template's and not a near-miss.
+   Source: new-patients/index.astro:194-195. */
+if (collapseWidth === "479" && !isFeatures) {
+  imageSpec = {
+    widths: [320, 520, 720, 960],
+    sizes: "(max-width: 479px) 100vw, (max-width: 991px) 50vw, 25vw",
+  };
+}
+
+/**
+ * CMS rows -> cards.
+ *
+ * The filter drops a row with no title, no body, no tag and no picture. That is
+ * an abandoned "Add a card" and it is the one input that cannot be drawn as
+ * anything: an empty card is a 380px-tall dark rectangle in the middle of a
+ * grid. A row with ANY of the four is kept — the rest is content the editor
+ * still owes, and hiding the card would lose the part they did write.
+ *
+ * `Array.isArray` first because an unqueried repeater arrives `undefined` and
+ * one an editor never opened arrives `null`, and `.map` on either throws during
+ * the build of whatever page the band sits on.
+ */
+const rows = (Array.isArray(svcCards) ? svcCards : [])
+  .map((row) => {
+    const node = row?.image?.node ?? null;
+    const src = typeof node?.sourceUrl === "string" ? node.sourceUrl : "";
+    const width = node?.mediaDetails?.width ?? 0;
+    const height = node?.mediaDetails?.height ?? 0;
+
+    return {
+      title: text(row?.title),
+      body: text(row?.body),
+      tag: text(row?.tag),
+      href: text(row?.href),
+      imagePos: text(row?.imagePos),
+      /* Editor override first, then the alt text stored on the file itself. */
+      alt: text(row?.imageAlt) || text(node?.altText),
+      src,
+      width,
+      height,
+      /* `<Image>` refuses a remote source without explicit intrinsic dimensions,
+         so a media item WordPress recorded no size for — an SVG, or an upload
+         that did not finish — cannot be rendered at all. That degrades to a
+         card with no picture rather than failing a build an editor triggered
+         (the rule MediaSplitBlock:485-506 and UnknownBlock both run on). */
+      hasImage: src !== "" && width > 0 && height > 0,
+    };
+  })
+  .filter((card) => card.title !== "" || card.body !== "" || card.tag !== "" || card.hasImage);
+
+const missingImages = rows.filter((card) => !card.hasImage).length;
+
+if (missingImages > 0) {
+  console.warn(
+    `[blocks] service_cards on ${Astro.url.pathname}${id ? `#${id}` : ""} has ${missingImages} ` +
+      "card(s) with no usable picture — drawing those cards without one",
+  );
+}
+
+const eyebrowText = text(eyebrow);
+const headingHtml = text(heading);
+const bodyText = text(body);
+const subFootHtml = text(subFoot);
+
+/* The token map, hover table and resolvers live in ./cta.ts — ONE copy for
+   every block that draws a CTA row. The tables only work because the blocks
+   agree, and a per-block copy is one more place for the next hover-label edit
+   to miss. */
+const cta1 = resolveCta(ctaHref, ctaHover);
+const cta2 = resolveCta(ctaHref2, ctaHover2);
+
+/**
+ * THE PHONE RULE. A stored destination of "phone" rebuilds the visible label
+ * from src/data/contact.ts, so the number on the button is the number in
+ * Practice Settings and can never be a stale one somebody typed into a page
+ * field. The stored label still decides WHETHER the button is drawn — it is the
+ * on/off switch, not the words.
+ */
+const callLabel = `Call ${phoneLabel}`;
+const isPhone = (rawHref?: string | null) => text(rawHref) === "phone";
+const label1 = isPhone(ctaHref) ? callLabel : text(ctaLabel);
+const label2 = isPhone(ctaHref2) ? callLabel : text(ctaLabel2);
+
+/**
+ * The row draws for EITHER button, not just the first — a band that fills only
+ * the second pair must not silently lose it. Never when nested: the guest draws
+ * no head, and a button row with no head to sit in is a shape no page ships.
+ */
+const hasCta = text(ctaLabel) !== "";
+const hasCta2 = text(ctaLabel2) !== "";
+const hasCtaRow = (hasCta || hasCta2) && !isNested;
+const ctaNoteText = text(ctaNote);
+
+/**
+ * Button variants follow the band, and the pairing is read off the two live
+ * rows rather than derived from how light the ground looks: BOTH bands that
+ * ship this row use light + ghost-light, the charcoal `#cosmetic`
+ * (services.astro:170-175) and the PALE sage `#implants` (:213-218). So sage-pale
+ * takes the dark pairing here even though its ground is pale — that is what the
+ * live page renders. Paper and cream take the family's light-band pairing
+ * (sage + ghost), which is what card_grid and media_split draw on those bands.
+ */
+const isLightGround = bandKey === "paper" || bandKey === "cream";
+const primaryVariant = isLightGround ? "sage" : "light";
+const secondaryVariant = isLightGround ? "ghost" : "ghost-light";
+
+const hasHead = eyebrowText !== "" || headingHtml !== "" || bodyText !== "" || hasCtaRow;
+
+/**
+ * A row with nothing in it draws nothing at all — not even the band.
+ *
+ * This is the one place this block goes further than its siblings, which all
+ * emit their `<section>` unconditionally. It goes further because the shell is
+ * not free: `.section` carries 110px of padding top AND bottom, so an empty
+ * band is a 220px hole in the middle of a live client page, and the person who
+ * added the row and has not filled it yet is the person who triggers the
+ * deploy. An empty wrapper is not a collapsed nothing here, so it is not drawn.
+ */
+const hasContent =
+  eyebrowText !== "" ||
+  headingHtml !== "" ||
+  bodyText !== "" ||
+  hasCtaRow ||
+  rows.length > 0 ||
+  subFootHtml !== "";
+
+/**
+ * The guest's own head.
+ *
+ * No page ships one — implant-dentistry's nested grid follows the price table
+ * with nothing between them — so this draws only when an editor has actually
+ * filled a head field on a nested row. Dropping those words instead would be
+ * the fault this project keeps naming: a field that is queried and never
+ * rendered reads as supported. The one live nested row leaves all three blank
+ * and draws nothing at all.
+ */
+const hasNestedHeadCopy = eyebrowText !== "" || headingHtml !== "" || bodyText !== "";
+const hasNestedHead = isNested && hasNestedHeadCopy;
+---
+
+{
+  /* ONE grid expression, TWO placements. The band and the guest differ only in
+     what wraps the grid, so the grid is written once inside this IIFE and both
+     branches return it — the construction CardGridBlock:355 uses, and for the
+     reason it gives there: inlined copies of a card map are how renderers
+     drift. The whole template is this one expression, so every text node in the
+     output is one written below. */
+  (() => {
+    /* A BLANK GUEST DRAWS NOTHING; A BLANK BAND DRAWS ITS SHELL.
+       The asymmetry is the point. A nested guest has no id and no rail entry,
+       so emitting nothing for it costs nothing. A BAND does have an anchor and
+       a nav_label, and the eight registered blocks all emit
+       `<section><div class="wrap"></div></section>` when empty — a block that
+       emits nothing instead leaves a rail chip pointing at an id nothing
+       rendered, and because the rail loops count every non-blank anchor, the
+       missing id also drifts the `-2` dedupe suffix of every anchor after it.
+       One inconsistent block is a whole page's rail, so the band shell is
+       drawn for consistency with its siblings, not for tidiness. */
+    if (!hasContent && isNested) return null;
+
+    const cards =
+      rows.length > 0 &&
+      (isFeatures ? (
+        /* general-dentistry.astro:261-278. A feature is an article, has no
+           link, no tag and no arrow: the four fields a tile uses for its
+           affordance have no rendering in this shape. */
+        <div class:list={["svc-grid-4", colsClass, isNested && "nested"]}>
+          {rows.map((card) => (
+            <article class="svc-feat">
+              {card.hasImage && (
+                <div class="svc-feat-img">
+                  <Image
+                    src={card.src}
+                    width={card.width}
+                    height={card.height}
+                    alt={card.alt}
+                    widths={imageSpec.widths}
+                    sizes={imageSpec.sizes}
+                    style={card.imagePos ? `object-position: ${card.imagePos}` : undefined}
+                  />
+                </div>
+              )}{
+                /* Flush `}{` against the picture's conditional, no newline
+                   between them: Astro preserves whitespace between expressions,
+                   so a conditional on its own line leaves a whitespace-only
+                   text node in the card even when the picture is missing. Same
+                   idiom as CardGridBlock:365 and StatCalloutBlock:224. */
+                (card.title !== "" || card.body !== "") && (
+                  <div class="svc-feat-body">
+                    {card.title !== "" && <h3>{card.title}</h3>}{
+                      /* Flush again: general-dentistry's four cards all carry
+                         both halves, and a card with only a title must not gain
+                         a 12px gap row for a paragraph that is not there. */
+                      card.body !== "" && <p class="svc-feat-desc" set:html={card.body} />
+                    }
+                  </div>
+                )
+              }
+            </article>
+          ))}
+        </div>
+      ) : (
+        /* cosmetic-dentistry.astro:292-311, services.astro:183-202 and
+           implant-dentistry.astro:347-365 — the same tile to the character,
+           plus the `.svc-tag` services.astro:274 adds on `#everyday`. */
+        <div class:list={["svc-grid", countClass, colsClass, collapseWidth === "780" && "at-780", collapseWidth === "479" && "at-479", isNested && "nested"]}>
+          {rows.map((card) => {
+            /* An `<a>` with no href is not a link — see the header. The badge
+               and `data-vs-arrow` go with it, because both exist to promise a
+               destination. */
+            const linked = card.href !== "";
+            const hasRowBot = card.title !== "" || linked;
+
+            /* The interior is built ONCE and the two elements below are two
+               literal tags rather than one `<Tag>` variable. A dynamic tag name
+               sends every attribute through Astro's runtime serialiser, which
+               writes `data-vs-arrow="true"` and `data-astro-cid-…="true"` where
+               a literal tag writes both bare — five live bands' worth of tiles
+               differing from the template in a byte no page asked to change. */
+            const inner = (
+              <Fragment>
+                {card.hasImage && (
+                  <div class="svc-img">
+                    <Image
+                      src={card.src}
+                      width={card.width}
+                      height={card.height}
+                      alt={card.alt}
+                      widths={imageSpec.widths}
+                      sizes={imageSpec.sizes}
+                      style={card.imagePos ? `object-position: ${card.imagePos}` : undefined}
+                    />
+                  </div>
+                )}{
+                  /* Flush, same rule and the same reason: the tag is absent on
+                     five of the six live bands, and a line of its own would add
+                     a text node to every tile on all five. */
+                  card.tag !== "" && <span class="svc-tag">{card.tag}</span>
+                }{
+                  isHeadingFirst ? (
+                    (card.body !== "" || card.title !== "") && (
+                      <div class="svc-body">
+                        {card.title !== "" && <h3>{card.title}</h3>}{
+                          card.body !== "" && <p class="svc-desc" set:html={card.body} />
+                        }
+                        <div class="svc-row-bot">
+                          <span></span>
+                        </div>
+                      </div>
+                    )
+                  ) : (
+                    (card.body !== "" || hasRowBot) && (
+                    <div class="svc-body">
+                      {card.body !== "" && <p class="svc-desc" set:html={card.body} />}{
+                        hasRowBot && (
+                          <div class="svc-row-bot">
+                            {card.title !== "" && <h3>{card.title}</h3>}{
+                              linked && <ArrowBadge size="xl" variant="ghost-light" />
+                            }
+                          </div>
+                        )
+                      }
+                    </div>
+                    )
+                  )
+                }
+              </Fragment>
+            );
+
+            return linked ? (
+              <a class="svc-card compact" href={card.href} data-vs-arrow>{inner}</a>
+            ) : (
+              <article class="svc-card compact">{inner}</article>
+            );
+          })}
+        </div>
+      ));
+
+    /* cosmetic-dentistry.astro:313-317 and implant-dentistry.astro:368-370 —
+       the closing line, inside the same wrap, after the grid. `nested` rides
+       along so the guest's copy can take its colour from the host's band; see
+       the rule in <style>. */
+    const outro = subFootHtml !== "" && (
+      <p class:list={["svc-outro", isNested && "nested"]} set:html={subFootHtml} />
+    );
+
+    /* THE GUEST. No <section>, no .wrap, no id, no reveal batch — all four
+       belong to the host, whose <slot /> this lands in.
+
+       All three conditionals inside the guest's head are flushed `}{`, unlike
+       the band's head below: that head reproduces a template where all three
+       are always filled, and this one reproduces no template at all, so a guest
+       that fills only the heading must not carry two blank lines around it.
+       This note is a JS comment rather than a curly-brace comment expression
+       for the same family of reason: a comment expression inside the markup
+       leaves the newlines around it in the output, and here that output lands
+       in the HOST's `.wrap`. */
+    if (isNested) {
+      return (
+        <Fragment>
+          {hasNestedHead && (
+            <div class="section-head sub">
+              {eyebrowText !== "" && (
+                <span class:list={["eyebrow", eyebrowLight && "light"]}>{eyebrowText}</span>
+              )}{headingHtml !== "" && <h3><Fragment set:html={headingHtml} /></h3>}{
+                bodyText !== "" && <p>{bodyText}</p>
+              }
+            </div>
+          )}{cards}{outro}
+        </Fragment>
+      );
+    }
+
+    /* THE BAND. `data-vs-reveal-batch` sits on the section exactly as all five
+       templates carry it: animations.js animates the section's DIRECT children,
+       which is the one `.wrap`, so this is a single fade of the whole band and
+       not a per-card stagger. Moving it to the grid would be a different
+       animation. */
+    return (
+      <section class:list={["section", bandClass]} id={id} data-vs-reveal-batch>
+        <div class="wrap">
+          {hasHead && (
+            <div class:list={["section-head", headClass]}>
+              {eyebrowText !== "" && (
+                <span class:list={["eyebrow", eyebrowLight && "light"]}>{eyebrowText}</span>
+              )}
+              {headingHtml !== "" && <h2><Fragment set:html={headingHtml} /></h2>}
+              {bodyText !== "" && <p>{bodyText}</p>}{
+                /* services.astro:168-177 — the buttons live INSIDE the head,
+                   under the intro. Flush against the body paragraph because
+                   three of the six live bands have no CTA at all and must not
+                   gain a text node inside their head. */
+                hasCtaRow && (
+                  <div class="cta-row in-head">
+                    <div class="cta-buttons">
+                      {hasCta && (
+                        <Button variant={primaryVariant} href={cta1.href} hoverLabel={cta1.hover}>
+                          {label1}
+                        </Button>
+                      )}{
+                        hasCta2 && (
+                          <Button
+                            variant={secondaryVariant}
+                            href={cta2.href}
+                            hoverLabel={cta2.hover}
+                          >
+                            {label2}
+                          </Button>
+                        )
+                      }
+                    </div>{ctaNoteText !== "" && <span class="cta-note">{ctaNoteText}</span>}
+                  </div>
+                )
+              }
+            </div>
+          )}
+
+          {cards}{outro}
+        </div>
+      </section>
+    );
+  })()
+}
+
+<style>
+  /* ══ WHERE THESE RULES COME FROM ═══════════════════════════════════════════
+     Copied out of the four hub sheets — services.css, cosmetic-dentistry.css,
+     general-dentistry.css, implant-dentistry.css — with the page prefix
+     stripped and each sheet's local aliases resolved back to the `--vs-*`
+     tokens they alias ONE FOR ONE (`--sage` -> `--vs-sage`, `--r-lg` ->
+     `--vs-r-lg`, and so on: services.css:8-24). Every rendered value is
+     unchanged, with the three exceptions named below.
+
+     `--shadow` is NOT one of the one-for-one aliases. All four sheets define it
+     locally as a two-layer shadow that is not `--vs-shadow`
+     (general-dentistry.css:57), so the feature card's box-shadow is written out
+     literally rather than swapped for the token that looks like it.
+
+     SPECIFICITY, which is the thing to get right here rather than the colours.
+     Astro 6.1.9 compiles scoped rules to an ATTRIBUTE per compound —
+     `.why-card[data-astro-cid-x] h3[data-astro-cid-x]`, read out of
+     dist/_astro/PageBlocks.*.css, not assumed. So a two-compound rule of this
+     block's comfortably outranks a hub sheet's `.services .thing`, but a
+     SINGLE-compound one ties with it at (0,2,0) and bundle order decides. Two
+     defects on this project came from that tie. Every rule below that a hub
+     sheet contradicts is therefore written with at least two compounds, or as
+     `p.svc-outro` / `.svc-grid:not(.nested)`, which lift it clear by one unit.
+     The single-compound rules that remain (`.section`, `.wrap`, `.svc-grid`,
+     `.svc-grid-4`) carry only declarations all four sheets already agree on, so
+     their tie decides nothing.
+
+     THREE PLACES THE HUBS DISAGREE, and what won:
+
+       1. `.svc-outro` max-width — 60ch on cosmetic-dentistry.css:384, 64ch on
+          implant-dentistry.css:677. 60ch wins: it is the measure
+          `.section-head p` already uses for centred prose on every hub. The
+          implant band's closing line re-wraps; not one word moves.
+       2. Where a three-across grid collapses to one column — 640px on
+          cosmetic-dentistry.css:975 and implant-dentistry.css:1502, 780px on
+          services.css:520. 640px wins, two sheets to one; between 640 and 780
+          the /services/ grids now read two across instead of one.
+       3. `.impd .svc-grid`'s 56px top margin (implant-dentistry.css:573) is a
+          consequence of that grid being NESTED under a price table, not of it
+          being a grid. It is written here as `.svc-grid.nested`, and
+          `:not(.nested)` states the zero explicitly so a standalone grid on
+          that page cannot inherit the 56 through a tie.
+
+     Repeated per block rather than shared: a shared sheet is an ancestor by
+     another name, and the property that makes a block safe to drop on any page
+     is that nothing outside it decides how it looks. */
+
+  /* ---------- band shell ----------
+     services.css:116-118 (padding), :126-127 and :153-154 (the two band
+     colours). `margin: 0` is FinalBand.astro's rule: the band owns its rhythm,
+     so it cannot collapse into whichever band an editor drags above it. */
+  .section {
+    margin: 0;
+    padding: 110px 0;
+    background: var(--vs-paper);
+  }
+  .section.cream {
+    background: var(--vs-cream);
+  }
+  .section.dark {
+    background: var(--vs-sage-pale);
+  }
+  .section.sage {
+    background: var(--vs-sage);
+  }
+  .section.alt {
+    background: var(--vs-charcoal-green);
+  }
+
+  /* services.css:112-114 and cosmetic-dentistry.css:195. `--toc-h` falls back
+     to 0, NOT to the 68px the detail-page blocks use: this is the first block
+     to ship on a hub with no sticky rail (/services/ has none), where a 68px
+     fallback would land every anchor jump 68px low. The three hubs that DO have
+     a rail declare `--toc-h: 68px` on their own wrapper
+     (cosmetic-dentistry.css:36, general-dentistry.css:44,
+     implant-dentistry.css:26) and it inherits down, so the fallback is only
+     ever read where there is no rail to clear. */
+  .section[id] {
+    scroll-margin-top: calc(var(--nav-h, 77px) + var(--toc-h, 0px) + 12px);
+  }
+
+  /* services.css:27-31 */
+  .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  /* ---------- section head ----------
+     services.css:33-40, :197-224, :69-78, :578. The h2 is ink, not sage: the
+     sheet sets sage in its `:where(h1,h2,h3,h4)` group and flips h2 to ink in
+     its end-of-file override (:574-580). Collapsed to the value that renders. */
+  .eyebrow {
+    font-family: var(--vs-font-body);
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+  }
+
+  h2,
+  .section-head.sub h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    color: var(--vs-ink);
+    margin: 0;
+    line-height: 1.1;
+    letter-spacing: -0.022em;
+    font-size: clamp(32px, 4.2vw, 54px);
+  }
+  /* `:global()` because the `<em>` arrives through `set:html` and carries no
+     scope attribute — a plain `h2 em` compiles to `em[data-astro-cid]`, misses
+     it, and drops the accent colour from every heading on the site. */
+  h2 :global(em),
+  .section-head.sub h3 :global(em) {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+
+  .section-head {
+    max-width: 760px;
+    margin: 0 auto 64px;
+    text-align: center;
+  }
+
+  /* ---------- the narrow heading column ----------
+     THE CLASS ALONE DOES NOT DELIVER THIS, which is why both rules restate the
+     whole box. The three sheets that use this house style put only the centring
+     in `.section-head.center` and leave the width, the grid and the bottom
+     margin on the bare `.section-head` — which TIES this file's own (0,2,0)
+     rule and loses to bundle order. Measured, not assumed: adding the class
+     moved the class attribute and left the column at 760px.
+
+     Both rules are (0,3,0), so they beat this file's own default outright, and
+     they match only rows that set `head_align` — the fifteen saved rows never
+     do. Values are identical across new-patients.css:88-95,
+     our-office.css:124-127 and referral-program.css:104-110; one pair of rules
+     covers all three pages.
+
+     `narrow` is the sheets' BARE `.section-head`: left-aligned. It is a real
+     value and not a synonym for the default, because on those pages a plain
+     `<div class="section-head">` is left-aligned at 60ch, where this file's
+     default is centred at 760px — a difference no class-level sweep can see. */
+  .section-head.center,
+  .section-head.narrow {
+    display: grid;
+    gap: 18px;
+    max-width: 60ch;
+    margin: 0 0 56px;
+  }
+  .section-head.center {
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+  }
+  .section-head.narrow {
+    text-align: left;
+  }
+  .section-head .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .section-head .eyebrow::before,
+  .section-head .eyebrow::after {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+  .section-head h2 {
+    margin: 22px 0 22px;
+  }
+  .section-head p {
+    font-size: 17px;
+    line-height: 1.7;
+    max-width: 60ch;
+    margin: 0 auto;
+    color: var(--vs-ink-soft);
+  }
+
+  /* The guest's head, on PricingTiersBlock's terms: an `<h3>` because the
+     host's `<h2>` is already the band's heading, and a smaller size and gap
+     because it opens a sub-part of a band rather than a band. Values from
+     teeth-whitening.css:601-616, the one sub-head the corpus ships. */
+  .section-head.sub {
+    margin-bottom: 36px;
+  }
+  .section-head.sub h3 {
+    font-weight: 500;
+    font-size: clamp(22px, 2.4vw, 30px);
+    letter-spacing: -0.005em;
+    line-height: 1.18;
+    margin: 0 0 14px;
+  }
+  .section-head.sub p {
+    font-size: 16px;
+  }
+
+  /* ---------- band inversions ----------
+     services.css:130-149 (charcoal) and :157-175 (sage-pale). Scoped to
+     `.section-head` and to the outro, never written band-wide: the tiles carry
+     their own white-on-photograph palette and the feature cards sit on their
+     own white surface, so a band-wide `p { color: #fff }` — which is what the
+     hub sheets do — paints white body copy onto a white card the first time an
+     editor drags a features grid onto a charcoal band. The sheets get away with
+     it because no hub pairs the two. This block has to survive the pairing,
+     because making it possible is the entire point of the phase. */
+  .section.alt .section-head h2,
+  .section.sage .section-head h2 {
+    color: #fff;
+  }
+  .section.alt .section-head h2 :global(em),
+  .section.sage .section-head h2 :global(em) {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .section.alt .section-head p,
+  .section.sage .section-head p {
+    color: rgba(255, 255, 255, 0.85);
+  }
+  .section.alt .section-head .eyebrow,
+  .section.sage .section-head .eyebrow {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .section.alt .section-head .eyebrow::before,
+  .section.alt .section-head .eyebrow::after,
+  .section.sage .section-head .eyebrow::before,
+  .section.sage .section-head .eyebrow::after {
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  .section.dark .section-head h2 {
+    color: var(--vs-ink);
+  }
+  .section.dark .section-head h2 :global(em) {
+    color: var(--vs-sage);
+  }
+  .section.dark .section-head p,
+  .section.dark .section-head .eyebrow {
+    color: var(--vs-ink-soft);
+  }
+  .section.dark .section-head .eyebrow::before,
+  .section.dark .section-head .eyebrow::after {
+    background: var(--vs-ink-soft);
+  }
+
+  /* ---------- the grids ----------
+     services.css:229-232 for the base; the column patterns from
+     services.css:235-255, cosmetic-dentistry.css:323-326,
+     general-dentistry.css:544-548 and implant-dentistry.css:569-580. Only
+     `display` and `gap` are written single-compound — all four sheets carry
+     those two identically, so the (0,2,0) tie decides nothing. Every
+     `grid-template-columns` is on a `.cols-N` compound, which cannot tie. */
+  .svc-grid,
+  .svc-grid-4 {
+    display: grid;
+    gap: 22px;
+  }
+
+  /* The nested gap: implant-dentistry.css:573. Stated in both directions so a
+     standalone grid on that same page cannot pick the 56 up through the tie
+     between `.svc-grid[cid]` and `.impd .svc-grid`. `:not()` contributes its
+     argument's specificity, so both rules are (0,3,0) and neither ties. */
+  .svc-grid.nested,
+  .svc-grid-4.nested {
+    margin-top: 56px;
+  }
+  .svc-grid:not(.nested),
+  .svc-grid-4:not(.nested) {
+    margin-top: 0;
+  }
+
+  .svc-grid.cols-2,
+  .svc-grid-4.cols-2 {
+    grid-template-columns: 1fr 1fr;
+  }
+  .svc-grid.cols-3,
+  .svc-grid-4.cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .svc-grid.cols-4,
+  .svc-grid-4.cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+  /* Five across is really six columns with each card spanning two, so that the
+     second row reads CENTRED (cols 2-3 and 4-5) rather than left-aligned. The
+     pattern and the `nth-child(4)` placement are services.css:243-251, which
+     implant-dentistry.css:569-580 carries identically. */
+  .svc-grid.cols-5,
+  .svc-grid-4.cols-5 {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  .svc-grid.cols-5 > .svc-card,
+  .svc-grid-4.cols-5 > .svc-feat {
+    grid-column: span 2;
+  }
+  .svc-grid.cols-5 > .svc-card:nth-child(4),
+  .svc-grid-4.cols-5 > .svc-feat:nth-child(4) {
+    grid-column: 2 / span 2;
+  }
+
+  /* ---------- the tile ----------
+     services.css:257-382, identical to cosmetic-dentistry.css:327-380 and
+     implant-dentistry.css:581-671. Written under `.svc-grid` so every rule is
+     at least (0,4,0): the tile's white title has to beat
+     `.services .section.dark h3` (0,3,1), which would otherwise drag it to ink
+     on the sage-pale band — the hub sheet needs its own :180-185 override for
+     exactly this, and a block that relied on the page carrying that override is
+     a block that breaks on the next page it lands on.
+
+     `translateZ(0)` + `will-change` (services.css:267-271) keep the card on its
+     own GPU layer at rest so the border-radius clip does not briefly fail when
+     the hover transform starts. */
+  .svc-grid .svc-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: var(--vs-r-lg);
+    background: var(--vs-ink);
+    text-decoration: none;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    isolation: isolate;
+    transform: translateZ(0);
+    will-change: transform;
+    transition: transform 0.4s ease;
+  }
+  .svc-grid .svc-card:hover {
+    transform: translate3d(0, -3px, 0);
+  }
+  .svc-grid .svc-card .svc-img {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+  /* `<Image>` renders a plain `<img>` authored in this file, so it carries the
+     scope attribute and needs no `:global`. */
+  .svc-grid .svc-card .svc-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transform: scale(1.02);
+    transition: transform 1.4s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .svc-grid .svc-card:hover .svc-img img {
+    transform: scale(1.08);
+  }
+  .svc-grid .svc-card .svc-img::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      rgba(20, 28, 16, 0) 0%,
+      rgba(20, 28, 16, 0.18) 45%,
+      rgba(20, 28, 16, 0.82) 100%
+    );
+  }
+  /* Every tile in the corpus is `.compact` and takes this deeper gradient
+     (services.css:303-310); the rule above is the family's base and stays so a
+     future non-compact tile is not left with a photograph and no scrim. */
+  .svc-grid .svc-card.compact .svc-img::after {
+    background: linear-gradient(
+      180deg,
+      rgba(20, 28, 16, 0) 0%,
+      rgba(20, 28, 16, 0.25) 50%,
+      rgba(20, 28, 16, 0.85) 100%
+    );
+  }
+  /* services.css:311-333 */
+  .svc-grid .svc-card .svc-tag {
+    position: absolute;
+    top: 22px;
+    left: 22px;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(28, 32, 24, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    backdrop-filter: blur(14px) saturate(160%);
+    -webkit-backdrop-filter: blur(14px) saturate(160%);
+    border-radius: 999px;
+    padding: 8px 15px;
+    font-size: 10.5px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: #fff;
+    font-weight: 500;
+    box-shadow:
+      0 2px 14px rgba(0, 0, 0, 0.18),
+      inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  }
+  /* services.css:334-347 */
+  .svc-grid .svc-card .svc-body {
+    position: relative;
+    z-index: 2;
+    margin-top: auto;
+    padding: 26px 28px 26px;
+    display: grid;
+    gap: 14px;
+  }
+  .svc-grid .svc-card .svc-row-bot {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  /* services.css:348-357 */
+  .svc-grid .svc-card .svc-row-bot h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    font-size: 28px;
+    line-height: 1.04;
+    letter-spacing: -0.012em;
+    color: #fff;
+    max-width: 14ch;
+    margin: 0;
+  }
+  /* services.css:358-379. The description is clipped to nothing and opens on
+     hover or keyboard focus — which is why the tile keeps `:focus-visible`
+     even though it is an anchor: the copy has to be reachable without a mouse. */
+  .svc-grid .svc-card .svc-desc {
+    font-size: 15.5px;
+    color: #fff;
+    line-height: 1.55;
+    max-width: 54ch;
+    font-weight: 400;
+    text-shadow: 0 1px 14px rgba(0, 0, 0, 0.4);
+    max-height: 0;
+    opacity: 0;
+    overflow: hidden;
+    margin: 0;
+    transform: translateY(6px);
+    transition:
+      max-height 0.55s cubic-bezier(0.2, 0.7, 0.2, 1),
+      opacity 0.45s ease 0.05s,
+      transform 0.55s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .svc-grid .svc-card:hover .svc-desc,
+  .svc-grid .svc-card:focus-visible .svc-desc {
+    max-height: 140px;
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .svc-grid .svc-card.compact {
+    min-height: 380px;
+  }
+
+  /* ---------- the feature card ----------
+     general-dentistry.css:549-606. Always-visible copy, no hover-reveal: the
+     Emergency card's body carries a link, and a link that only appears on hover
+     is a link a keyboard and a touch screen cannot find. The box-shadow is that
+     sheet's local `--shadow` written out (general-dentistry.css:57) — it is not
+     `--vs-shadow`. */
+  .svc-grid-4 .svc-feat {
+    display: flex;
+    flex-direction: column;
+    background: var(--vs-paper);
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-lg);
+    overflow: hidden;
+    box-shadow:
+      0 24px 60px -30px rgba(40, 40, 30, 0.25),
+      0 8px 20px -10px rgba(40, 40, 30, 0.08);
+    transition:
+      transform 0.35s ease,
+      box-shadow 0.35s ease,
+      border-color 0.3s ease;
+  }
+  .svc-grid-4 .svc-feat:hover {
+    transform: translateY(-3px);
+    box-shadow:
+      0 30px 60px -25px rgba(40, 40, 30, 0.28),
+      0 12px 24px -12px rgba(40, 40, 30, 0.1);
+    border-color: color-mix(in srgb, var(--vs-sage) 22%, var(--vs-line));
+  }
+  .svc-grid-4 .svc-feat-img {
+    position: relative;
+    aspect-ratio: 4/3;
+    overflow: hidden;
+    background: linear-gradient(135deg, var(--vs-cream-warm), var(--vs-cream));
+  }
+  .svc-grid-4 .svc-feat-img img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+  }
+  .svc-grid-4 .svc-feat:hover .svc-feat-img img {
+    transform: scale(1.04);
+  }
+  .svc-grid-4 .svc-feat-body {
+    padding: 26px 26px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+  }
+  .svc-grid-4 .svc-feat-body h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: 21px;
+    color: var(--vs-sage);
+    margin: 0;
+    line-height: 1.18;
+    letter-spacing: -0.005em;
+  }
+  .svc-grid-4 .svc-feat-desc {
+    font-size: 14.5px;
+    line-height: 1.7;
+    color: var(--vs-ink-soft);
+    margin: 0;
+  }
+
+  /* ---------- the closing line ----------
+     cosmetic-dentistry.css:382-386. `p.svc-outro` rather than `.svc-outro`
+     because the two hubs that ship one disagree about its measure and the bare
+     class would tie with both — the type selector lifts this clear at (0,2,1).
+     60ch is the winner; see the header.
+
+     The band inversions are the head's, for the same reason: this line is bare
+     text on the band, not text on a card. On implant-dentistry's charcoal
+     `#solutions` the live page already renders it white, because
+     `.impd .section.alt p` (0,3,1) outranks `.impd .svc-outro` (0,2,0) — so
+     white IS the current appearance, not a change. */
+  p.svc-outro {
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--vs-ink-soft);
+    max-width: 60ch;
+    margin: 48px auto 0;
+    text-align: center;
+  }
+  .section.alt p.svc-outro,
+  .section.sage p.svc-outro {
+    color: rgba(255, 255, 255, 0.85);
+  }
+  /* The guest has no `.section` of this block's to key on — the band element
+     belongs to the host and carries the host's scope attribute — so the nested
+     line takes the band's own inherited colour instead. That resolves to
+     rgba(255,255,255,.85) inside implant-dentistry's charcoal `#solutions`
+     (implant-dentistry.css:310-312) and to `--vs-ink-soft` on any light band,
+     which is `body`'s colour (global.css:24) and the value above. */
+  p.svc-outro.nested {
+    color: inherit;
+  }
+
+  /* ---------- the head's CTA row ----------
+     services.css:384-400. Written under `.section-head` because that is the
+     only place this block draws it — which also lifts it to (0,4,0), clear of
+     the hub sheet's own `.cta-row` rules. 32px and not 56px is the `.in-head`
+     value, and it stays 32px at every width: the sheet's 780px override
+     (:547-549) targets the bare `.cta-row`, which `.cta-row.in-head` (0,3,0)
+     already outranks on the live page. The note's colours follow the band, same
+     policy as the head above (gum-contouring.css:462-478 via CardGridBlock). */
+  .section-head .cta-row {
+    margin-top: 32px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+  }
+  .section-head .cta-row .cta-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+    justify-content: center;
+  }
+  .section-head .cta-row .cta-note {
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--vs-muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section.dark .section-head .cta-row .cta-note {
+    color: var(--vs-ink-soft);
+  }
+  .section.alt .section-head .cta-row .cta-note,
+  .section.sage .section-head .cta-row .cta-note {
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  /* ---------- breakpoints ----------
+     Base and breakpoint rules live together, unlike the hub sheets where four
+     files keep a trailing "responsive" section physically separated from what
+     it modifies. */
+  @media (max-width: 1100px) {
+    /* services.css:489-501, cosmetic-dentistry.css:923,
+       general-dentistry.css:1244-1246, implant-dentistry.css:1380-1386 — three,
+       four and five across all go through two, and the five-across grid drops
+       its span placement so the row flows flat. */
+    .svc-grid.cols-3,
+    .svc-grid.cols-4,
+    .svc-grid.cols-5,
+    .svc-grid-4.cols-3,
+    .svc-grid-4.cols-4,
+    .svc-grid-4.cols-5 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .svc-grid.cols-5 > .svc-card,
+    .svc-grid.cols-5 > .svc-card:nth-child(4),
+    .svc-grid-4.cols-5 > .svc-feat,
+    .svc-grid-4.cols-5 > .svc-feat:nth-child(4) {
+      grid-column: auto;
+    }
+  }
+
+  @media (max-width: 991px) {
+    /* services.css:505-507 — two across is already wide enough to need the
+       whole viewport before the others do. */
+    .svc-grid.cols-2,
+    .svc-grid-4.cols-2 {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 780px) {
+    /* services.css:511-519 */
+    .section {
+      padding: 70px 0;
+    }
+    .wrap {
+      padding: 0 22px;
+    }
+    .section-head {
+      margin-bottom: 44px;
+    }
+    /* services.css:520-525, cosmetic-dentistry.css:960,
+       general-dentistry.css:1324, implant-dentistry.css:1464 — all four agree. */
+    .svc-grid,
+    .svc-grid-4 {
+      gap: 18px;
+    }
+    /* services.css:526-534. On touch, hover-reveal is not reliable and the
+       title alone reads thin, so the description sits open. */
+    .svc-grid .svc-card .svc-desc {
+      max-height: 400px;
+      opacity: 1;
+      font-size: 16px;
+      transform: none;
+      max-width: none;
+    }
+    /* services.css:535-546. Single-column cards go full width while the height
+       stayed pinned, so the card letterboxed to ~2.26:1 and cover-cropped
+       portraits down to mouth-and-chin. `aspect-ratio` ties height to width;
+       `min-height` stays as a floor for the narrowest phones. `width: 100%` is
+       load-bearing — without a definite width, aspect-ratio resolves the OTHER
+       way and inflates the width off `min-height`, which overflows the
+       viewport at 390. */
+    .svc-grid .svc-card.compact {
+      width: 100%;
+      min-height: 320px;
+      aspect-ratio: 16 / 11;
+    }
+  }
+
+  /* TWO COLLAPSE POINTS, SELECTED BY THE BAND, not one picked for it. The
+     `.at-780` class comes from the `collapseAt` field; see the prop's comment
+     for why a constant here would have changed a live page. 640 is
+     cosmetic-dentistry.css:975 / implant-dentistry.css:1502 /
+     general-dentistry.css:1339; 780 is services.css:520. */
+  @media (max-width: 780px) {
+    .svc-grid.at-780.cols-3,
+    .svc-grid.at-780.cols-4,
+    .svc-grid.at-780.cols-5,
+    .svc-grid.at-780.cols-2 {
+      grid-template-columns: 1fr;
+      gap: 18px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .svc-grid.cols-3,
+    .svc-grid.cols-4,
+    .svc-grid.cols-5,
+    .svc-grid-4.cols-3,
+    .svc-grid-4.cols-4,
+    .svc-grid-4.cols-5 {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* ---------- the 479 ladder ----------
+     `.at-479` does not just move the single-column stop; it replaces the whole
+     ladder, because /new-patients/ halves at 991 and stacks at 479 where the
+     generic rules halve at 1100 and stack at 640 (new-patients.css:188, :339,
+     :348).
+
+     WRITTEN AS OVERRIDES, NOT AS `:not(.at-479)` ON THE GENERIC RULES. Adding
+     `:not()` would raise every generic selector by one class and change how
+     each of them ties with the four un-migrated hub sheets — sixteen live
+     bands re-decided to serve one. These are (0,3,0) against the generic
+     (0,2,0), so they win on specificity; and because they are all equally
+     specific to each other, SOURCE ORDER decides between them, which is why
+     they are ordered widest-first. Reordering these four blocks changes the
+     layout. */
+  @media (max-width: 1100px) {
+    /* Hold four across — the generic rule has already halved by here. */
+    .svc-grid.at-479.cols-4 {
+      grid-template-columns: repeat(4, 1fr);
+    }
+  }
+  @media (max-width: 991px) {
+    .svc-grid.at-479.cols-4 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 640px) {
+    /* Hold two across — the generic rule stacks here. */
+    .svc-grid.at-479.cols-4 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 479px) {
+    .svc-grid.at-479.cols-4 {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* services.css:564-572, cosmetic-dentistry.css:988-990,
+     general-dentistry.css:1355-1360. Reveal and parallax are handled in
+     src/scripts/animations.js via gsap.matchMedia; these are the CSS
+     transitions that would otherwise still run. */
+  @media (prefers-reduced-motion: reduce) {
+    .svc-grid .svc-card,
+    .svc-grid .svc-card .svc-img img,
+    .svc-grid .svc-card .svc-desc,
+    .svc-grid-4 .svc-feat,
+    .svc-grid-4 .svc-feat-img img {
+      transition: none !important;
+    }
+  }
+</style>
