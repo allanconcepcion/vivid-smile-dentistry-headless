@@ -21,7 +21,7 @@ const joinHref = "https://app.nexhealth.com/appt/vivid-smiles?gei=SNOCZ9DYI4iz0P
 
 import { getPageContent } from '../../lib/page-content';
 // Section copy is edited in WordPress (Pages -> this page -> Section copy).
-const { section, image, seo } = await getPageContent(Astro.url.pathname);
+const { hero, closing, section, image, seo } = await getPageContent(Astro.url.pathname);
 
 
 
@@ -136,24 +136,24 @@ const faqs = [
     <section class="hero vs-band-paper" data-vs-reveal-batch>
       <div class="hero-inner">
         <div class="hero-copy">
-          <span class="vs-eyebrow">Membership Plan · Parker, CO</span>
-          <h1 class="vs-h1" data-vs-reveal-lines>
+          {hero.eyebrow ? <span class="vs-eyebrow">{hero.eyebrow}</span> : <span class="vs-eyebrow">Membership Plan · Parker, CO</span>}
+          {hero.h1 ? <h1 class="vs-h1" data-vs-reveal-lines set:html={hero.h1} /> : <h1 class="vs-h1" data-vs-reveal-lines>
             Year-round care, without insurance <em class="vs-italic-word">getting in the way.</em>
-          </h1>
-          <p class="vs-lede">
+          </h1>}
+          {hero.sub ? <p class="vs-lede">{hero.sub}</p> : <p class="vs-lede">
             A flat $500 a year. Two cleanings, exams, x-rays — and 15% off everything
             else we do, from Invisalign to implants. No claims to file, no waiting
             periods, no pre-approvals. Built for the patients who'd rather work with
             us directly.
-          </p>
+          </p>}
           <div class="hero-actions">
-            <Button variant="sage" href={joinHref} hoverLabel="Join Today">Join the Plan</Button>
-            <Button variant="ghost" href="#whats-included" hoverLabel="See Details">See What's Included</Button>
+            <Button variant="sage" href={hero.cta(0) ? hero.cta(0)!.href : joinHref} hoverLabel="Join Today">{hero.cta(0) ? hero.cta(0)!.label : "Join the Plan"}</Button>
+            <Button variant="ghost" href={hero.cta(1) ? hero.cta(1)!.href : "#whats-included"} hoverLabel="See Details">{hero.cta(1) ? hero.cta(1)!.label : <>See What's Included</>}</Button>
           </div>
-          <div class="hero-ratings">
+          {hero.showRatings && <div class="hero-ratings">
             <span class="stars" aria-hidden="true">★★★★★</span>
             <span>5.0 · 300+ Google reviews</span>
-          </div>
+          </div>}
         </div>
 
         <div class="hero-stack" data-vs-parallax data-parallax="-25">
@@ -340,7 +340,7 @@ const faqs = [
 
     {/* ---------- FINAL BAND ---------- */}
     <FinalBand eyebrow="Ready when you are" background="cream-warm">
-      <p>Join today and use the benefits this afternoon. No paperwork, no waiting period, no surprises.</p>
+      <p>{closing.note ? closing.note : <>Join today and use the benefits this afternoon. No paperwork, no waiting period, no surprises.</>}</p>
     </FinalBand>
 
     {/* ---------- JSON-LD ---------- */}

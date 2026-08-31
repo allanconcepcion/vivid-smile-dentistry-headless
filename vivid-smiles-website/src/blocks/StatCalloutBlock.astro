@@ -1,0 +1,565 @@
+---
+/**
+ * StatCalloutBlock — the `stat_callout` layout: one large figure beside a
+ * paragraph and a list of habits.
+ *
+ * Extracted from the `lasting` band of
+ * src/pages/cosmetic-dentistry/clear-aligners.astro:361-395, not designed anew.
+ * Same elements, same order, same class names — the phase is verified by
+ * diffing built HTML (docs/PAGE-BLOCKS.md 3.3).
+ *
+ * The `.lasting-card` shell is identical on five pages and has `.cost-card` /
+ * `.insurance-card` as near variants (1.3, Wave C), so the fee pages join it in
+ * a later phase without a redesign.
+ *
+ * FIELD MAPPING, which is the part that is easy to get subtly wrong — the
+ * layout carries `body` AND `intro` and they are two different paragraphs in
+ * two different places (vs-content-model.php:1497-1508):
+ *
+ *   body          the paragraph under the section heading, inside .section-head
+ *   body_heading  the <h3> that opens .lasting-body, above `intro`
+ *   intro         the paragraph inside the card, under that <h3>
+ *   intro_2       the second paragraph inside the card, under `intro`
+ *
+ * `body_heading` is teeth-whitening.astro:607 ("Maintaining Your Whitening
+ * Results"): the card there carries a subject of its own, distinct from the
+ * band's <h2>, and without a field for it that heading is one of the losses
+ * this batch exists to close. The pilot has no such <h3>, so blank renders no
+ * element — not an empty heading, not a wrapper.
+ *
+ * The pilot uses both. Swapping them puts the care copy above the card and the
+ * section intro inside it, which reads almost right and is therefore the kind
+ * of mistake that ships.
+ *
+ * `value` + `unit` are the two halves of one line: `.lasting-stat .big` renders
+ * "20–22" with "hrs" as its `<em>`, set tight against it with no space between.
+ * `unit` is optional — a figure that reads without one omits the `<em>` rather
+ * than rendering an empty tag.
+ *
+ * The colon after each list item's lead belongs to this template, not to the
+ * content: the PHP instruction tells the editor not to type one
+ * (vs-content-model.php:1567).
+ *
+ * THIS BLOCK CAN HOST ANOTHER. `.wrap` carries a `<slot />` immediately after
+ * `.lasting-card`, because that is precisely where the hosted content sits in
+ * the template: `.lasting-cost-wrap` is a sibling of `.lasting-card` inside the
+ * same `.wrap` (teeth-whitening.astro:623, card closes at :621). PageBlocks
+ * renders a row flagged `nested` as a child of the block before it, so
+ * teeth-whitening's four-tier price table — the one thing on that page a dental
+ * client most needs to edit — reaches the page as a PricingTiersBlock passed
+ * into this slot instead of staying hardcoded in the template.
+ *
+ * WHY NOT UN-NEST IT into its own `<section id="cost">`, as an earlier note in
+ * this repo recommended: `.lasting-cost-wrap` is `margin-top: 56px`
+ * (teeth-whitening.css:601), while `.section` above is 110px of padding top AND
+ * bottom. Promoting it would trade a 56px gap for ~220px of padding and visibly
+ * move the page. WordPress changes the words here, not the design.
+ *
+ * THE SLOT SITS OUTSIDE the card's `(hasStat || hasBody)` guard, not inside it.
+ * Inside, a host whose own card fields were all left blank would silently
+ * swallow whatever was nested into it — content loss with no symptom on the
+ * page and no error in the build, which is the exact failure this phase exists
+ * to stop. Outside, an unfinished host still draws its nested child.
+ *
+ * NOTHING HERE THROWS — an editor triggers deploys and never sees the output
+ * (cms/mu-plugins/vs-deploy.php:142-158). Every field is read as if it might be
+ * missing, blank or the wrong type.
+ *
+ * Spec: docs/PAGE-BLOCKS.md 1.2, 1.3 (Wave C), 2.5, 3.3.
+ */
+
+/**
+ * The five bands, mapped to the modifier this block writes on its own section.
+ *
+ * Read this map, not an ancestor class. `.section.alt` is charcoal green on
+ * clear-aligners.css:240 and cream on teeth-whitening.css:237 — Fact 4 — so a
+ * block that inherits its band is wrong on at least one page the moment a
+ * section is reordered (R2).
+ *
+ * `alt` and `dark` survive as modifier *names* because the acceptance test for
+ * this phase is that the block's markup matches the band it replaces, class
+ * attribute included. Their meaning now comes from the rules in <style> below,
+ * which travel with the block, not from any page sheet.
+ *
+ * `paper` maps to no modifier at all — the pilot emits `class="section"` for a
+ * paper band, so adding one would be the diff.
+ */
+const BAND_MODIFIER: Record<string, string | null> = {
+  paper: null,
+  cream: "cream",
+  "sage-pale": "dark",
+  sage: "sage",
+  charcoal: "alt",
+};
+
+interface PointRow {
+  lead?: string | null;
+  body?: string | null;
+}
+
+interface Props {
+  /** The DOM id, already deduplicated by PageBlocks.astro. Absent when blank. */
+  id?: string;
+  /** Passed by PageBlocks alongside `id`; declared so the spread of the whole
+   *  block row has somewhere to land. */
+  anchor?: string;
+  band?: string | null;
+  eyebrow?: string | null;
+  /** May contain `<em>` and nothing else (Fact 3), so it is rendered set:html. */
+  heading?: string | null;
+  /** The paragraph under the heading. NOT the one inside the card. */
+  body?: string | null;
+  /** The big figure, as written — "20–22", "10+". Text, not a number. */
+  value?: string | null;
+  /** The small word set tight against the figure. Optional. */
+  unit?: string | null;
+  /** The single line under the figure saying what it measures. */
+  caption?: string | null;
+  /**
+   * The `<h3>` that opens `.lasting-body`, above `intro`
+   * (teeth-whitening.astro:607). A THIRD heading level in a layout that already
+   * has `heading` and two paragraphs, so the mapping is worth stating outright:
+   *
+   *   heading       the band's <h2>, in .section-head
+   *   body_heading  the card's <h3>, first child of .lasting-body
+   *   body          the paragraph under the <h2>
+   *   intro         the paragraph under the <h3>
+   *   intro_2       the paragraph under `intro`
+   *
+   * The pilot (clear-aligners) has no such <h3> and must keep having none, so
+   * blank renders no element rather than an empty heading.
+   */
+  bodyHeading?: string | null;
+  /** The paragraph inside the card, above the list. NOT the section intro. */
+  intro?: string | null;
+  /**
+   * The SECOND paragraph inside the card, between `intro` and the list.
+   *
+   * A field of its own rather than more text appended to `intro`, because
+   * `intro` renders as a single `<p>`: folding two paragraphs into it runs them
+   * together inside one `<p>`, which is the same words in the wrong markup — the
+   * house rule already applied to media_split's body_2 and comparison_cards'
+   * callout_body.
+   *
+   * It exists because `.lasting-body` on porcelain-veneers is two `<p>` in a
+   * row, then nothing: "No-prep and minimal-prep veneers have an added
+   * advantage: if replacement is needed, more natural structure remains to
+   * support the new set." With one `<p>` slot that sentence has nowhere to land
+   * and is silently dropped on backfill, which is the loss this closes.
+   *
+   * Every row saved before this field existed reads it as blank, and blank
+   * renders no element at all — not an empty `<p>`, not a wrapper — so those
+   * rows keep their current markup byte for byte.
+   */
+  intro2?: string | null;
+  /**
+   * True prints each point's bold lead exactly as stored, with no colon
+   * appended (PHP `points_plain`, vs-content-model.php:3487-3496).
+   *
+   * The colon is template punctuation this component adds, and that is right
+   * for porcelain-veneers' live aftercare list — its saved leads carry no
+   * colon and must keep rendering one. But full-mouth-rehabilitation's #cost
+   * baseline prints its leads bare — `<strong>Implants and restoration
+   * type</strong>`, full-mouth-rehabilitation.astro:513-527 — so appending
+   * ":" there turns "type", "Insurance" and "Financing" into three census
+   * losses. A per-row switch, not a change of default: NULL (every row saved
+   * before the field existed) and false keep the colon byte-for-byte.
+   */
+  pointsPlain?: boolean | null;
+  points?: PointRow[] | null;
+}
+
+const {
+  id,
+  band,
+  eyebrow,
+  heading,
+  body,
+  value,
+  unit,
+  caption,
+  bodyHeading,
+  intro,
+  intro2,
+  pointsPlain,
+  points,
+} = Astro.props;
+
+// `?? null` rather than a default: an unknown band from a future PHP choice
+// falls through to the paper shell rather than emitting a class with no rule.
+const bandModifier = BAND_MODIFIER[band ?? "paper"] ?? null;
+
+/** Trim once, here, so every guard below tests for real content rather than for
+ *  a field an editor left as a single space. */
+const text = (input: unknown): string =>
+  typeof input === "string" ? input.trim() : "";
+
+const eyebrowText = text(eyebrow);
+const headingHtml = text(heading);
+const bodyText = text(body);
+const valueText = text(value);
+const unitText = text(unit);
+const captionText = text(caption);
+const bodyHeadingText = text(bodyHeading);
+const introText = text(intro);
+// Rendered by the conditional jammed hard against the `intro` one below, with
+// no line break between the two `}`…`{`. That formatting is deliberate and
+// fragile: Astro keeps template whitespace verbatim, so a newline placed
+// BETWEEN the two expressions is emitted as a text node on every page — even
+// the pages where this field is blank — and a row saved before today would stop
+// diffing byte-for-byte against its current build. Newlines INSIDE the braces
+// are JavaScript and emit nothing, which is why the expression is broken across
+// lines there instead. If you reformat that block, check the emitted output.
+const intro2Text = text(intro2);
+/* intro2 splits on blank lines into one <p> each — the same convention
+   ComparisonCardsBlock applies to callout_body, and for the same reason: a
+   band can close with TWO paragraphs (full-mouth-rehabilitation's #cost,
+   full-mouth-rehabilitation.astro:526-529), and running them together inside
+   one <p> is the same words in the wrong markup. A value with no blank line
+   is a one-element array, so every previously saved row renders exactly as
+   before. */
+const intro2Paragraphs = intro2Text === "" ? [] : intro2Text.split(/\n\s*\n/).map((part) => part.trim()).filter((part) => part !== "");
+
+// `=== true` rather than truthiness: the field is a boolean or NULL from
+// WPGraphQL, but every field here is read as if it might be the wrong type
+// (see NOTHING HERE THROWS above), and for this one the failure modes are not
+// symmetric — a stray truthy value silently deleting the colon changes
+// porcelain-veneers' live list, while a stray falsy value merely keeps
+// today's rendering. Anything but an explicit `true` therefore keeps the
+// colon. The suffix is interpolated where the literal ":" used to sit, and an
+// empty string emits zero bytes there, so rows with the field off — including
+// every row saved before it existed — still diff byte-for-byte.
+const leadSuffix = pointsPlain === true ? "" : ":";
+
+// A row with neither half is an empty line the editor added and abandoned; it
+// would render as a bare bullet.
+const pointRows = (Array.isArray(points) ? points : [])
+  .map((row) => ({ lead: text(row?.lead), body: text(row?.body) }))
+  .filter((row) => row.lead !== "" || row.body !== "");
+
+// The card is the whole point of the block, but its two halves are independent:
+// a fee page may want the figure with no list, and a care band the list with no
+// figure. Suppress the card entirely only when there is nothing at all to put
+// in it, so an unfinished block leaves a heading rather than an empty white box.
+const hasStat = valueText !== "" || captionText !== "";
+// `bodyHeadingText` counts here so a card that is only a heading still draws
+// its column; leaving it out would let an editor fill the heading and watch it
+// vanish, which is the silent kind of content loss this phase exists to stop.
+// `intro2Text` counts for the same reason `bodyHeadingText` does: a card whose
+// only filled field is the second paragraph must still draw its column. It can
+// never turn this guard on for a row saved before today, because such a row has
+// no value for the field, so no existing card starts appearing.
+const hasBody =
+  bodyHeadingText !== "" ||
+  introText !== "" ||
+  intro2Text !== "" ||
+  pointRows.length > 0;
+
+// The `<slot />` below is written FLUSH against the closing `}` of the card's
+// conditional — `}<slot />`, no newline and no space between them — for exactly
+// the reason `intro2` is jammed against `intro` above. Astro emits template
+// whitespace verbatim, so a newline placed between the two would become a text
+// node in EVERY stat_callout on the site, including the eleven back-filled rows
+// that host nothing and must keep diffing byte-for-byte against their current
+// build. There is no such hazard on the other side of the slot: the `\n  `
+// before `</div>` is the whitespace that already followed the `}` today, so it
+// is carried over rather than added.
+//
+// An empty slot contributes zero bytes, which is a measurement, not a claim:
+// rendering this block through the Astro container with the slot empty produces
+// the same 1484 bytes as the same props rendered before the slot existed, and
+// `cmp` reports no differing byte. Re-run that check if you reformat this file.
+---
+
+<section class:list={["section", bandModifier]} id={id} data-vs-reveal-batch>
+  <div class="wrap">
+    <div class="section-head">
+      {eyebrowText && <span class="eyebrow">{eyebrowText}</span>}
+      {headingHtml && <h2><Fragment set:html={headingHtml} /></h2>}
+      {bodyText && <p>{bodyText}</p>}
+    </div>
+
+    {
+      (hasStat || hasBody) && (
+        <div class="lasting-card">
+          {hasStat && (
+            <div class="lasting-stat">
+              <div class="big">{valueText}{unitText && <em>{unitText}</em>}</div>
+              {captionText && <div class="label">{captionText}</div>}
+            </div>
+          )}
+          {hasBody && (
+            <div class="lasting-body">
+              {bodyHeadingText && <h3>{bodyHeadingText}</h3>}
+              {introText && <p>{introText}</p>}{
+                /* THE LIST DRAWS BEFORE intro2, NOT AFTER — measured, not
+                   styled. intro2 is "the paragraph after the list, or after
+                   intro when there is no list": full-mouth-rehabilitation's
+                   #cost is intro -> three points -> a closing paragraph
+                   (full-mouth-rehabilitation.astro:513-533), and it is the
+                   ONLY row in the map or live WordPress that fills both
+                   fields, so this order changes exactly that band — to the
+                   order its template ships. Every other row has one field or
+                   the other and renders byte-identically either way. Checked
+                   against the live endpoint before reordering, not assumed. */
+                pointRows.length > 0 && (
+                <ul>
+                  {pointRows.map((point) => (
+                    <li>
+                      {point.lead && <strong>{point.lead}{leadSuffix}</strong>} {point.body}
+                    </li>
+                  ))}
+                </ul>
+              )}{
+                intro2Paragraphs.map((para) => <p>{para}</p>)
+              }
+            </div>
+          )}
+        </div>
+      )
+    }<slot />
+  </div>
+</section>
+
+<style>
+  /* ── Band shell ───────────────────────────────────────────────────────────
+     Lifted from src/styles/pages/clear-aligners.css:228-283 with the
+     `.caligners` prefix stripped and the page's local `--sage` / `--ink` / …
+     aliases resolved back to the `--vs-*` tokens they alias one-for-one
+     (clear-aligners.css:24-42). Rendered values are unchanged.
+
+     Repeated per block rather than shared: a shared sheet is an ancestor by
+     another name, and the property that makes a block safe to drop on any page
+     is that nothing outside it decides how it looks (R3). */
+  .section {
+    padding: 110px 0;
+    background: var(--vs-paper);
+  }
+  .section.cream { background: var(--vs-cream); }
+  .section.dark { background: var(--vs-sage-pale); }
+  .section.sage { background: var(--vs-sage); }
+  .section.alt { background: var(--vs-charcoal-green); }
+
+  /* Keep the heading clear of the stacked global Nav + sticky TOC when a rail
+     chip is clicked. Both custom properties are written onto the page wrapper
+     at runtime and inherit down; the fallbacks are the desktop measurements. */
+  .section[id] {
+    scroll-margin-top: calc(var(--nav-h, 77px) + var(--toc-h, 68px) + 12px);
+  }
+
+  .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  .section-head {
+    max-width: 760px;
+    margin: 0 auto 64px;
+    text-align: center;
+  }
+  /* h2 is ink, not sage: the page sheet sets sage in its base rule and flips h2
+     to ink in its end-of-file override (clear-aligners.css:766). Collapsed to
+     the value that actually renders. */
+  .section-head h2 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    font-size: clamp(32px, 4.2vw, 54px);
+    letter-spacing: -0.022em;
+    line-height: 1.1;
+    color: var(--vs-ink);
+    margin: 22px 0 22px;
+  }
+  /* :global because the `<em>` arrives through set:html and carries no scope
+     attribute — the same reason FinalBand.astro:87 reaches for it. The scope
+     stays on `h2`, so this cannot leak off the block. */
+  .section-head h2 :global(em) {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+  .section-head p {
+    font-size: 17px;
+    line-height: 1.7;
+    max-width: 60ch;
+    margin: 0 auto;
+    color: var(--vs-ink-soft);
+  }
+
+  .eyebrow {
+    font-family: var(--vs-font-body);
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+  }
+  .section-head .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .section-head .eyebrow::before,
+  .section-head .eyebrow::after {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+
+  /* Band-conditional text, computed from this block's own modifier. */
+  .section.alt h2 { color: #fff; }
+  .section.alt h2 :global(em) { color: var(--vs-eyebrow-on-sage); }
+  .section.alt p { color: rgba(255, 255, 255, 0.85); }
+  .section.alt .eyebrow { color: var(--vs-eyebrow-on-sage); }
+  .section.alt .section-head .eyebrow::before,
+  .section.alt .section-head .eyebrow::after {
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  .section.dark h2 { color: var(--vs-ink); }
+  .section.dark h2 :global(em) { color: var(--vs-sage); }
+  .section.dark p { color: var(--vs-ink-soft); }
+  .section.dark .eyebrow { color: var(--vs-ink-soft); }
+  .section.dark .section-head .eyebrow::before,
+  .section.dark .section-head .eyebrow::after {
+    background: var(--vs-ink-soft);
+  }
+
+  .section.sage h2 { color: #fff; }
+  .section.sage h2 :global(em) { color: var(--vs-eyebrow-on-sage); }
+  .section.sage p { color: rgba(255, 255, 255, 0.85); }
+  .section.sage .eyebrow { color: var(--vs-eyebrow-on-sage); }
+  .section.sage .section-head .eyebrow::before,
+  .section.sage .section-head .eyebrow::after {
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  /* ── The card ───────────────────────────────────────────────────────────
+     clear-aligners.css:497-549. The card is white on every band it appears on,
+     which is why it reads as a card at all — do not make it inherit the band. */
+  .lasting-card {
+    background: var(--vs-paper);
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-xl);
+    padding: 56px 60px;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 60px;
+    align-items: center;
+    box-shadow: var(--vs-shadow);
+  }
+  .lasting-stat {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding-right: 60px;
+    border-right: 1px solid var(--vs-line);
+  }
+  .lasting-stat .big {
+    font-family: var(--vs-font-display);
+    font-weight: 300;
+    font-size: clamp(48px, 5vw, 68px);
+    color: var(--vs-sage);
+    line-height: 1;
+    letter-spacing: -0.025em;
+  }
+  /* Authored in this template, not injected, so it carries the scope attribute
+     and needs no :global — unlike the heading's `<em>` above. */
+  .lasting-stat .big em {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+    font-size: 0.55em;
+    margin-left: 6px;
+  }
+  .lasting-stat .label {
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--vs-muted);
+    max-width: 18ch;
+  }
+  /* The card's own heading — teeth-whitening.css:571-577, prefix stripped and
+     the page's `--f-display` / `--ink` aliases resolved to the `--vs-*` tokens
+     they alias (teeth-whitening.css:36-54).
+
+     `19px` bottom is not invented: nothing in global.css resets heading margins,
+     so the source rule sets only `margin-top` and leaves the UA's `1em` bottom —
+     1em of a 19px heading. Written out rather than inherited from the UA
+     because a value this template depends on should be visible in it.
+
+     The colour is stated rather than left to cascade: the card is white on
+     every band, so its heading must not follow `.section.alt`'s white text the
+     way an inherited one would (R2). */
+  .lasting-body h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: 19px;
+    letter-spacing: -0.005em;
+    color: var(--vs-ink);
+    margin: 22px 0 19px;
+  }
+
+  .lasting-body p {
+    font-size: 15.5px;
+    line-height: 1.8;
+    color: var(--vs-ink-soft);
+    margin: 0;
+  }
+  .lasting-body p + p { margin-top: 14px; }
+
+  /* The list under that paragraph — small, indented, sage rule for a bullet. */
+  .lasting-body ul {
+    margin: 16px 0 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .lasting-body ul li {
+    position: relative;
+    padding-left: 22px;
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--vs-ink-soft);
+  }
+  .lasting-body ul li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.7em;
+    width: 10px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+  .lasting-body ul li strong {
+    color: var(--vs-ink);
+    font-weight: 600;
+  }
+
+  /* ── Responsive ─────────────────────────────────────────────────────────
+     Re-united with the rules they modify rather than left in a trailing
+     "responsive" section 200 lines away (3.2, step 3). Breakpoints normalised
+     to the block set — 991 / 780 (FinalBand.astro:109,117). */
+  @media (max-width: 991px) {
+    .lasting-card {
+      grid-template-columns: 1fr;
+      gap: 30px;
+      padding: 40px;
+    }
+    .lasting-stat {
+      padding-right: 0;
+      padding-bottom: 30px;
+      border-right: 0;
+      border-bottom: 1px solid var(--vs-line);
+    }
+  }
+
+  @media (max-width: 780px) {
+    .section { padding: 70px 0; }
+    .wrap { padding: 0 22px; }
+    .lasting-card { padding: 32px 26px; }
+  }
+</style>

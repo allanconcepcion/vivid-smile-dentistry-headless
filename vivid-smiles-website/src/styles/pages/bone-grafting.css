@@ -807,49 +807,6 @@
   color: var(--sage); line-height: 1.45; letter-spacing: -0.005em;
 }
 
-/* ---------- CLOSING BAND ---------- */
-.bgraft .final-band {
-  padding: 90px 40px;
-  background: var(--paper);
-  border-top: 1px solid var(--line);
-}
-.bgraft .final-band .wrap {
-  max-width: 1100px;
-  margin: 0 auto;
-}
-.bgraft .final-band-inner {
-  display: grid;
-  grid-template-columns: 1.2fr auto;
-  align-items: center;
-  gap: 40px;
-}
-.bgraft .final-band-text .eyebrow {
-  display: inline-flex; align-items: center; gap: 14px;
-  color: var(--sage);
-}
-.bgraft .final-band-text .eyebrow::before {
-  content: ""; width: 28px; height: 1px; background: var(--sage);
-}
-.bgraft .final-band-text p {
-  margin: 14px 0 0;
-  font-size: 16px;
-  color: var(--ink-soft);
-  max-width: 60ch;
-}
-.bgraft .final-band-phone {
-  margin-top: 12px;
-  font-family: var(--f-display);
-  font-size: 22px;
-  color: var(--sage);
-  letter-spacing: -0.01em;
-}
-.bgraft .final-band-actions {
-  display: inline-flex;
-  gap: 14px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
 /* ---------- RESPONSIVE ---------- */
 @media (max-width: 1240px) {
   .bgraft .why-grid { grid-template-columns: repeat(2, 1fr); }
@@ -877,13 +834,6 @@
   }
 }
 
-@media (max-width: 991px) {
-  .bgraft .final-band-inner {
-    grid-template-columns: 1fr;
-    gap: 28px;
-  }
-  .bgraft .final-band-actions { justify-content: flex-start; }
-}
 
 @media (max-width: 780px) {
   .bgraft .wrap { padding: 0 22px; }
@@ -903,8 +853,6 @@
   .bgraft .cta-row { margin-top: 36px; }
   .bgraft .faq summary { padding: 22px 24px; }
   .bgraft .faq .answer { padding: 0 24px 22px; }
-  .bgraft .final-band { padding: 60px 22px; }
-  .bgraft .final-band-inner { text-align: left; }
   .bgraft .pull { padding: 28px 24px; }
   .bgraft .candidacy-sub { padding: 28px 24px; margin-top: 50px; }
 }
@@ -912,7 +860,6 @@
 @media (max-width: 480px) {
   .bgraft .hero h1 { max-width: none; }
   .bgraft .smile-tile { width: 280px; height: 210px; }
-  .bgraft .final-band-phone { font-size: 18px; }
 }
 
 /* ---------- Reduced-motion safety ---------- */

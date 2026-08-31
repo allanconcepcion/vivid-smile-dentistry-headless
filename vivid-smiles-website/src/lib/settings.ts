@@ -27,6 +27,7 @@ const SETTINGS_QUERY = /* GraphQL */ `
         addressZip
         directionsHref
         contactTypeformId
+        consultTypeformId
         officeHours {
           label
           days
@@ -80,6 +81,8 @@ export type PracticeSettings = {
   addressZip: string;
   directionsHref: string;
   contactTypeformId: string;
+  /** May be null: the field was added after the settings page shipped. */
+  consultTypeformId: string | null;
   officeHours: WpHoursRow[];
   smileGallery: { nodes: WpMedia[] } | null;
   logoLightBg: { node: WpMedia | null } | null;

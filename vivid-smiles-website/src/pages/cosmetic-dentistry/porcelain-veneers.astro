@@ -8,6 +8,25 @@
  *
  * Global <Nav /> + <Footer /> are mounted by BaseLayout — this page renders
  * only its own content, starting with an inline breadcrumb under the global nav.
+ *
+ * MIGRATED TO BLOCKS (docs/PAGE-BLOCKS.md 2.3). Ten top-level bands — why,
+ * what, process, compare, natural, lasting, local, cost, gallery, faq — each
+ * guarded with `hasBlocks ? null : …` and each carrying a row in
+ * cms/import/block-map.json under /cosmetic-dentistry/porcelain-veneers/.
+ * `cost` is the tenth and the reason this page waited: it is a standalone
+ * <section> around a one-tier <PricingTiers>, which is the shape the
+ * `pricing_tiers` layout serves.
+ *
+ * Two things this page owns that the pilot does not:
+ *   1. `process` is FIVE steps in a five-column grid (porcelain-veneers.css:341
+ *      is repeat(5, 1fr)) and the layout's Columns select stops at 4. The
+ *      backfilled band draws four across with the fifth wrapping. Recorded as a
+ *      known_gap on that block in the map — closing it is a `5` choice in the
+ *      PHP select plus a `.process-grid.cols-5` rule in ProcessStepsBlock.
+ *   2. The LocalTrust band's key is `porcelain_veneers_local`, registered in
+ *      BOTH cms/mu-plugins/vs-content-model.php (BLOCK_CODE_BANDS) and
+ *      src/blocks/CodeSectionBlock.astro (BANDS). Keys are per PAGE because the
+ *      props below are page content.
  */
 import { Image } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -18,7 +37,8 @@ import LocalTrust from '../../components/LocalTrust.astro';
 import PricingTiers from '../../components/PricingTiers.astro';
 import { phoneHref, phoneLabel, bookNowHref } from '../../data/contact';
 import { getSmiles } from '../../lib/smiles';
-import { getPageContent } from '../../lib/page-content';
+import { getPageContent, type TocLink } from '../../lib/page-content';
+import PageBlocks from '../../blocks/PageBlocks.astro';
 import '../../styles/pages/porcelain-veneers.css';
 
 // Hero — a patient portrait. replaced a full-face portrait here that
@@ -37,12 +57,77 @@ import '../../styles/pages/porcelain-veneers.css';
 // Table of contents, process steps and FAQs are edited in WordPress
 // (Pages -> Porcelain Veneers). The shapes are identical to the arrays that
 // used to live here, so the markup below is unchanged.
-const { tocLinks, processSteps, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+const { hero, closing, blocks, hasBlocks, tocLinks, processSteps, faqs, section, image, seo } =
+  await getPageContent(Astro.url.pathname);
 
 
 
 const galleryTiles = getSmiles();
 const galleryTrack = [...galleryTiles, ...galleryTiles];
+
+/**
+ * The "On this page" rail, derived from the blocks themselves (docs/PAGE-BLOCKS.md 1.2).
+ *
+ * Used only when this page renders from `blocks`. The `toc_links` repeater is
+ * nine rows that restate the order of the ten bands below it, so a reorder in
+ * wp-admin moves a band and leaves its rail entry pointing at the old
+ * neighbour — the single largest way a reorder breaks a link. Reading the
+ * anchors off the blocks makes that unrepresentable: there is one ordering and
+ * the rail is a projection of it.
+ *
+ * Three rules, in the order they bite:
+ *
+ * 1. A blank anchor is skipped. Not tidiness — src/scripts/toc-spy.ts:24 feeds
+ *    each rendered href straight to document.querySelector(), and
+ *    querySelector("") throws a SyntaxError that kills the whole spy, not just
+ *    the one entry. PageBlocks.astro emits no id at all for a blank anchor
+ *    (`id={anchor || undefined}`), so there is nothing to link to either.
+ * 2. An anchor that is not a valid id selector is skipped for the same reason —
+ *    "#3-reasons" is legal HTML and an illegal CSS selector. Dropping one rail
+ *    entry costs one link; letting it through costs every link on the page,
+ *    plus the mobile pill auto-centering.
+ * 3. Duplicate anchors follow PageBlocks.astro's dedup exactly, second
+ *    occurrence onward suffixed `-2`, `-3`. The counter has to advance on every
+ *    non-blank anchor, including blocks with no nav_label, or the rail's idea
+ *    of "the second #faq" drifts from the id the renderer actually emitted.
+ *
+ * A blank nav_label means "leave this block out of the rail" (1.2), which is
+ * how a band that should not be navigable opts out — `gallery` on this page,
+ * which has no toc_links row and never appeared in the rail.
+ */
+const ANCHOR_IS_ID_SELECTOR = /^[A-Za-z_][A-Za-z0-9_-]*$/;
+
+const anchorsSeen = new Map<string, number>();
+// Typed as TocLink[] rather than an equivalent inline shape so the ternary in
+// the rail below collapses to one type instead of a union of two array types,
+// which TypeScript will not let you call .map() on.
+const derivedTocLinks: TocLink[] = [];
+
+for (const block of blocks) {
+  // A nested block is drawn INSIDE the band above it, not as a band of its own,
+  // so it has no id to link to. Without this the rail emits an entry pointing at
+  // an anchor nothing renders — a dead link in the "On this page" list.
+  if (block?.nested) continue;
+
+  const anchor = typeof block.anchor === 'string' ? block.anchor.trim() : '';
+  if (anchor === '') continue;
+
+  const nth = (anchorsSeen.get(anchor) ?? 0) + 1;
+  anchorsSeen.set(anchor, nth);
+
+  const label = typeof block.navLabel === 'string' ? block.navLabel.trim() : '';
+  if (label === '') continue;
+
+  if (!ANCHOR_IS_ID_SELECTOR.test(anchor)) {
+    console.warn(
+      `[blocks] anchor "${anchor}" on ${Astro.url.pathname} cannot be used as a selector — ` +
+        `omitting "${label}" from the On this page rail so toc-spy keeps working`,
+    );
+    continue;
+  }
+
+  derivedTocLinks.push({ href: `#${nth > 1 ? `${anchor}-${nth}` : anchor}`, label });
+}
 
 ---
 
@@ -69,26 +154,26 @@ const galleryTrack = [...galleryTiles, ...galleryTiles];
       <header class="hero" data-vs-reveal-batch>
         <div class="wrap hero-inner">
           <div class="hero-copy">
-            <span class="eyebrow">Cosmetic Dentistry · Parker, CO</span>
-            <h1 data-vs-reveal-lines>Porcelain Veneers <em>in Parker, CO</em></h1>
-            <p class="hero-sub">
+            {hero.eyebrow ? <span class="eyebrow">{hero.eyebrow}</span> : <span class="eyebrow">Cosmetic Dentistry · Parker, CO</span>}
+            {hero.h1 ? <h1 data-vs-reveal-lines set:html={hero.h1} /> : <h1 data-vs-reveal-lines>Porcelain Veneers <em>in Parker, CO</em></h1>}
+            {hero.sub ? <p class="hero-sub">{hero.sub}</p> : <p class="hero-sub">
               Porcelain veneers are thin shells of dental porcelain bonded to the front of your
               teeth to correct discoloration, chips, gaps, and worn enamel. At Vivid Smiles
               Dentistry, Dr. Bryce Richardson specializes in no-prep and minimal-prep veneers that
               transform smiles while preserving natural tooth structure. Here is what the process
               looks like, how digital technology lets patients preview results first, and what sets
               this Parker practice apart.
-            </p>
+            </p>}
             <div class="hero-actions">
-              <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button
+              <Button variant="light" href={hero.cta(0) ? hero.cta(0)!.href : bookNowHref} hoverLabel="Let's Talk">{hero.cta(0) ? hero.cta(0)!.label : "Book Online"}</Button
               >
-              <Button variant="ghost-light" href="#consult" hoverLabel="Get a Video"
-                >Free Virtual Consult</Button
+              <Button variant="ghost-light" href={hero.cta(1) ? hero.cta(1)!.href : "#consult"} hoverLabel="Get a Video"
+                >{hero.cta(1) ? hero.cta(1)!.label : "Free Virtual Consult"}</Button
               >
-              <div class="ratings">
+              {hero.showRatings && <div class="ratings">
                 <span class="stars" aria-hidden="true">★★★★★</span>
                 <span>5.0 · 300+ reviews</span>
-              </div>
+              </div>}
             </div>
           </div>
           <div class="hero-img" data-vs-parallax data-parallax="-30">
@@ -121,20 +206,56 @@ const galleryTrack = [...galleryTiles, ...galleryTiles];
         </div>
       </section>
 
-      {/* ---------- ON-THIS-PAGE TOC ---------- */}
+      {
+        /* ---------- ON-THIS-PAGE TOC ----------
+         The rail itself is never a block (spec 7: "Not a block, even though it
+         is a band") — only its contents move. Derived from the blocks when
+         they are drawing the page, read from the `toc_links` repeater when the
+         template is. Same markup either way, which is what lets
+         src/scripts/toc-spy.ts go on reading its section list off the rendered
+         links without knowing which source produced them. */
+      }
       <nav class="toc" id="toc" aria-label="On this page">
         <div class="toc-inner">
           <span class="toc-label">On this page</span>
           <div class="toc-scroll">
             <div class="toc-list">
-              {tocLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+              {(hasBlocks ? derivedTocLinks : tocLinks).map((l) => <a href={l.href}>{l.label}</a>)}
             </div>
           </div>
         </div>
       </nav>
 
-      {/* ---------- WHY (paper) ---------- */}
-      <section class="section" id="why" data-vs-reveal-batch>
+      {
+        /* ---------- WHY (paper) ----------
+
+         THE MIGRATION SWITCH (docs/PAGE-BLOCKS.md 2.3) starts here. `hasBlocks`
+         means "this build can draw this page from its blocks" — not "WordPress
+         sent rows" (src/lib/page-content.ts). When it is true PageBlocks draws
+         the ten bands in the order an editor arranged them; when it is false —
+         which is every build until the backfill has run, and again the moment
+         an editor empties the field — every band below renders exactly as it
+         always has.
+
+         Written as one guard per band rather than one guard around all ten on
+         purpose, and it is not a style choice. Astro's compressHTML pass treats
+         an Astro comment expression differently inside a component slot than at
+         element level: wrapping these bands in a Fragment silently drops one
+         space at every comment boundary below, and scripts/vr-html.mjs compares
+         exact bytes and calls that a difference. A guard sitting exactly where
+         its section sat emits byte-identical HTML.
+
+         EVERY top-level band between here and <VirtualConsult> is guarded, and
+         every one of them has a row in cms/import/block-map.json. Those two
+         facts have to move together: a band that is neither blocked nor guarded
+         renders in ADDITION to the block run and lands at the bottom of the
+         page, and a band that is guarded with no map row disappears on backfill
+         with nothing in the log. There is no third outcome. The bands ABOVE
+         this line — the breadcrumb, the hero, `.keys` and the rail — are not
+         blocks by spec 7 and are deliberately unguarded, as are <VirtualConsult>
+         and <FinalBand> below the run. */
+      }
+      {hasBlocks ? <PageBlocks blocks={blocks} /> : <section class="section" id="why" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("why").eyebrow}</span>
@@ -179,10 +300,13 @@ const galleryTrack = [...galleryTiles, ...galleryTiles];
             </article>
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* ---------- WHAT (cream) ---------- */}
-      <section class="section alt" id="what" data-vs-reveal-batch>
+      {/* ---------- WHAT (charcoal) — `.section.alt` is var(--vs-charcoal-green)
+       on THIS page (porcelain-veneers.css:244), not the cream the same class
+       name means on teeth-whitening.css:237. The band value in the map is read
+       off that rule, not off the class. ---------- */}
+      {hasBlocks ? null : <section class="section alt" id="what" data-vs-reveal-batch>
         <div class="wrap">
           <div class="what-grid">
             <div class="what-img" data-vs-parallax data-parallax="-25">
@@ -212,10 +336,13 @@ const galleryTrack = [...galleryTiles, ...galleryTiles];
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* ---------- PROCESS (sage) ---------- */}
-      <section class="section dark" id="process" data-vs-reveal-batch>
+      {/* ---------- PROCESS (sage-pale) — `.section.dark` is var(--vs-sage-pale)
+       here (porcelain-veneers.css:253). `sage` and `sage-pale` are two separate
+       BLOCK_BANDS choices painting two different tokens, so the map says
+       sage-pale. ---------- */}
+      {hasBlocks ? null : <section class="section dark" id="process" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow light">The Process</span>
@@ -249,10 +376,10 @@ const galleryTrack = [...galleryTiles, ...galleryTiles];
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* ---------- COMPARE (paper) ---------- */}
-      <section class="section" id="compare" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section" id="compare" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("compare").eyebrow}</span>
@@ -298,10 +425,11 @@ const galleryTrack = [...galleryTiles, ...galleryTiles];
             <span class="cta-note">No commitment · Personal video reply</span>
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* ---------- NATURAL (cream) ---------- */}
-      <section class="section alt" id="natural" data-vs-reveal-batch>
+      {/* ---------- NATURAL (charcoal) — same `.section.alt` rule as `what`
+       above, porcelain-veneers.css:244. ---------- */}
+      {hasBlocks ? null : <section class="section alt" id="natural" data-vs-reveal-batch>
         <div class="wrap">
           <div class="natural-grid">
             <div class="natural-text">
@@ -324,10 +452,10 @@ const galleryTrack = [...galleryTiles, ...galleryTiles];
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* ---------- LASTING (paper) ---------- */}
-      <section class="section" id="lasting" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section" id="lasting" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("lasting").eyebrow}</span>
@@ -352,22 +480,47 @@ const galleryTrack = [...galleryTiles, ...galleryTiles];
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* ---------- LOCAL (cream) ---------- */}
-      <LocalTrust
-        heading="Veneers Designed"
-        headingItalic="in Parker, Colorado"
-        intro="Dr. Richardson is a Parker resident who built Vivid Smiles Dentistry to bring high-level cosmetic care to patients locally and from across the country."
-        body="Located on Cedar Gulch Parkway, the practice welcomes patients locally and from out of state — many travel in for their veneer treatment. With 300+ five-star reviews, it has a reputation for consistent results and genuine attention to every patient."
-      />
+      {/* ---------- LOCAL (cream) ----------
+       Guarded like every other band on this page. When the page renders from
+       blocks, this band comes back through a `code_section` row whose band_key
+       is `porcelain_veneers_local` — this page's own key, not the pilot's
+       `local_trust`, because the four props below are page CONTENT and a shared
+       key would print "for Clear Aligners" under a veneers heading.
+
+       Leaving it unguarded renders it TWICE: once mid-page from PageBlocks and
+       once here, both carrying id="local", which is invalid and sends the "On
+       this page" rail and every #local link to whichever the browser picks.
+
+       The props stay here; CodeSectionBlock.astro reproduces them verbatim in
+       its BANDS map rather than reading them, so the two copies must be changed
+       together. The band draws LocalTrust's cream default — no `background` is
+       passed on either side. */}
+      {hasBlocks ? null : (
+        <LocalTrust
+          heading="Veneers Designed"
+          headingItalic="in Parker, Colorado"
+          intro="Dr. Richardson is a Parker resident who built Vivid Smiles Dentistry to bring high-level cosmetic care to patients locally and from across the country."
+          body="Located on Cedar Gulch Parkway, the practice welcomes patients locally and from out of state — many travel in for their veneer treatment. With 300+ five-star reviews, it has a reputation for consistent results and genuine attention to every patient."
+        />
+      )}
 
       {
         /* ---------- COST (paper) — Investment + 1-tier PricingTiers.
-         Placed between LocalTrust (cream) and Gallery (sage) so the band
-         rhythm stays cream → paper → sage → paper for the closing run. */
+         Placed between LocalTrust (cream) and Gallery (sage-pale) so the band
+         rhythm stays cream → paper → sage-pale → paper for the closing run.
+
+         This is the band that kept the page out of Phase 3. It is a STANDALONE
+         <section> holding a section-head and a <PricingTiers> — exactly the
+         shape the `pricing_tiers` layout was built for, and the same shape as
+         the four implant pages. (teeth-whitening's price table is nested inside
+         its #lasting band, which is why that one is still a recorded gap.)
+         The tier's every value — the $2,250, the tagline, the "per tooth"
+         suffix, the five bullets and the financing note — is transcribed into
+         the map from the invocation below. */
       }
-      <section class="section" id="cost" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section" id="cost" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("cost").eyebrow}</span>
@@ -395,10 +548,13 @@ const galleryTrack = [...galleryTiles, ...galleryTiles];
             financingNote="Porcelain veneers are cosmetic and aren't covered by most dental insurance plans. Vivid Smiles offers in-house financing and a dental membership plan for uninsured patients — both reviewed during your consultation."
           />
         </div>
-      </section>
+      </section>}
 
-      {/* ---------- GALLERY (sage) — marquee, doubled track ---------- */}
-      <section class="section dark" id="gallery">
+      {/* ---------- GALLERY (sage-pale) — marquee, doubled track.
+       Out of the rail on both sides of the switch: this page has no `toc_links`
+       row for #gallery, so the derived rail leaves it out exactly as the
+       repeater does. ---------- */}
+      {hasBlocks ? null : <section class="section dark" id="gallery">
         <div class="wrap">
           <div class="section-head" data-vs-reveal>
             <span class="eyebrow light">Smile Gallery</span>
@@ -425,10 +581,10 @@ const galleryTrack = [...galleryTiles, ...galleryTiles];
             }
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* ---------- FAQ (paper) — native details/summary, zero JS ---------- */}
-      <section class="section" id="faq" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section" id="faq" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("faq").eyebrow}</span>
@@ -468,27 +624,32 @@ const galleryTrack = [...galleryTiles, ...galleryTiles];
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       {
         /* ---------- VIRTUAL CONSULT — primary closing conversion.
+         NOT a block and deliberately unguarded, like the breadcrumb, hero,
+         `.keys` strip and the rail above: it renders on both sides of the
+         switch and has no row in the map. It sits after the block run in
+         template order and PageBlocks draws at the `why` position, so the
+         closing pair still comes last.
          Anchor #consult is the destination for every mid-page CTA on this
          page; the form delivers users directly to a Typeform that sends
          Dr. Richardson their photo + questions for a personalized video reply.
          Service-specific framing via slot. */
       }
-      <VirtualConsult id="consult" eyebrow="Free veneers consultation">
-        <Fragment slot="headline">Free veneers <em>consultation.</em></Fragment>
-        <Fragment slot="body">
+      <VirtualConsult id="consult" eyebrow={closing.consultEyebrow || "Free veneers consultation"}>
+        <Fragment slot="headline">{closing.consultHeadline ? <Fragment set:html={closing.consultHeadline} /> : <>Free veneers <em>consultation.</em></>}</Fragment>
+        <Fragment slot="body">{closing.consultBody ? closing.consultBody : <>
           Curious about your veneer options? Skip the office visit — Dr. Richardson personally
           records a custom video reviewing your smile, the changes you're imagining, and what's
           possible with no-prep or minimal-prep porcelain veneers, all from photos you submit below.
-        </Fragment>
+        </>}</Fragment>
       </VirtualConsult>
 
       {/* ---------- CLOSING BAND ---------- */}
       <FinalBand>
-        <p>Patients welcome locally and from out of state.</p>
+        <p>{closing.note ? closing.note : <>Patients welcome locally and from out of state.</>}</p>
       </FinalBand>
     </main>
 

@@ -44,7 +44,7 @@ const reviews = (await getCollection("reviews"))
 // Hero image — Vivid Smiles team in the Parker studio.
 import { getPageContent } from '../../lib/page-content';
 // Section copy is edited in WordPress (Pages -> this page -> Section copy).
-const { section, image, seo } = await getPageContent(Astro.url.pathname);
+const { hero, closing, section, image, seo } = await getPageContent(Astro.url.pathname);
 
 
 ---
@@ -72,20 +72,20 @@ const { section, image, seo } = await getPageContent(Astro.url.pathname);
     <header class="hero" data-vs-reveal-batch>
       <div class="hero-inner">
         <div class="hero-copy">
-          <span class="eyebrow">Real stories · Real patients</span>
-          <h1 data-vs-reveal-lines>Real stories, <em>real transformations.</em></h1>
-          <p class="hero-sub">
+          {hero.eyebrow ? <span class="eyebrow">{hero.eyebrow}</span> : <span class="eyebrow">Real stories · Real patients</span>}
+          {hero.h1 ? <h1 data-vs-reveal-lines set:html={hero.h1} /> : <h1 data-vs-reveal-lines>Real stories, <em>real transformations.</em></h1>}
+          {hero.sub ? <p class="hero-sub">{hero.sub}</p> : <p class="hero-sub">
             From life-changing All-On-X full-arch makeovers to cosmetic redesigns,
             our patients share their experiences in their own words — and on their
             own terms. Every story on this page is a real Vivid Smiles patient.
-          </p>
+          </p>}
           <div class="hero-actions">
-            <Button variant="sage" href={bookNowHref} hoverLabel="Let's Talk">Schedule a Consultation</Button>
-            <Button variant="ghost" href="/smile-gallery/" hoverLabel="See Results">View the Gallery</Button>
-            <div class="ratings">
+            <Button variant="sage" href={hero.cta(0) ? hero.cta(0)!.href : bookNowHref} hoverLabel="Let's Talk">{hero.cta(0) ? hero.cta(0)!.label : "Schedule a Consultation"}</Button>
+            <Button variant="ghost" href={hero.cta(1) ? hero.cta(1)!.href : "/smile-gallery/"} hoverLabel="See Results">{hero.cta(1) ? hero.cta(1)!.label : "View the Gallery"}</Button>
+            {hero.showRatings && <div class="ratings">
               <span class="stars" aria-hidden="true">★★★★★</span>
               <span>5.0 · 300+ reviews</span>
-            </div>
+            </div>}
           </div>
         </div>
         <div class="hero-img" data-vs-reveal>
@@ -413,13 +413,13 @@ const { section, image, seo } = await getPageContent(Astro.url.pathname);
     />
 
     {/* ---------- VIRTUAL CONSULT — closing conversion ---------- */}
-    <VirtualConsult id="consult" eyebrow="Free virtual consultation">
-      <Fragment slot="headline">Ready to write <em>your story?</em></Fragment>
-      <Fragment slot="body">
+    <VirtualConsult id="consult" eyebrow={closing.consultEyebrow || "Free virtual consultation"}>
+      <Fragment slot="headline">{closing.consultHeadline ? <Fragment set:html={closing.consultHeadline} /> : <>Ready to write <em>your story?</em></>}</Fragment>
+      <Fragment slot="body">{closing.consultBody ? closing.consultBody : <>
         Every transformation on this page started the same way — a few photos, a few
         questions, and a custom video back from Dr. Richardson. Skip the office visit
         for the first conversation and see what's possible for your smile.
-      </Fragment>
+      </>}</Fragment>
     </VirtualConsult>
 
     </main>

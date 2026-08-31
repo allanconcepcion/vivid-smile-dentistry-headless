@@ -1,0 +1,1051 @@
+---
+/**
+ * CardGridBlock — the `card_grid` layout: a centred head over a grid of cards.
+ *
+ * EXTRACTED, NOT DESIGNED. This is the `#why` band of
+ * src/pages/cosmetic-dentistry/clear-aligners.astro — `.why-grid` wrapping
+ * `<article class="why-card">`, each card a `.num`, an `<h3>`, a `p.lead` and a
+ * `<p>`. The class names are the page's own on purpose: the page stylesheet
+ * still styles them and keeps styling them until the stylesheet pass removes
+ * its copies, so a component that renamed them to `vs-card-grid__card` would
+ * unstyle the band the moment an editor's backfill filled `blocks`.
+ *
+ * `.why-grid` is the family's name for this grid on all sixteen pages that
+ * carry one, including the four implant pages where it holds four cards rather
+ * than two. It is not a name about the word "why".
+ *
+ * CARDS ARE NOT UNIFORM ACROSS THE FAMILY and the emptiness is meaningful:
+ * full-mouth-rehabilitation's cards carry a `.lead` and no `<p>`;
+ * single-tooth-dental-implants' carry a `<p>` and no `.lead`; this page's carry
+ * both. So every part of a card is rendered only when it has content. Emitting
+ * an empty `<p>` instead would add a 14px gap-flex row to two thirds of the
+ * cards on the site.
+ *
+ * THREE PARAGRAPH SLOTS, NOT TWO. A card draws `lead`, then `body`, then
+ * `body2`. The third exists because porcelain-veneers' `why` card 1 carries
+ * three paragraphs of live client copy, and the house rule is that a second
+ * paragraph gets a second field: folding it into `body` would run two
+ * paragraphs together inside one `<p>`, which is the same words in the wrong
+ * markup. Every card saved before this field existed has an empty `body2` and
+ * emits nothing extra, so those cards render byte-for-byte as they do today.
+ *
+ * SUB-FIELD WITH NO RENDERING: `cards[].href`. Nothing in the `.why-card`
+ * family is a link — there is no hover affordance, no arrow, no focus style for
+ * one — so inventing markup for it here would be designing, which this phase
+ * does not do. It is deliberately left out of the selection set as well: a
+ * field that is queried and dropped is worse than one that is not queried,
+ * because it reads as supported. When a link treatment is designed, it arrives
+ * as a PHP change, a registry change and a change here, together.
+ *
+ * Styles are co-located per docs/PAGE-BLOCKS.md 2.5, modelled on
+ * FinalBand.astro: no page namespace, `--vs-*` tokens directly, band as a
+ * prop, self-owned padding, zero margin.
+ *
+ * THE CENSUS BATCH (2026-08) ADDS FOUR SHAPES, each the reproduction of a band
+ * a live page already ships — none of them designed here:
+ *
+ *   - `cards[].stat` -> `.stat-line` at a card's foot
+ *     (all-on-4-single-arch.astro:745, the "Every 3–6 months" line the
+ *     numbered `#living` grid could not draw because `meta` is never read
+ *     when `numbered` is on).
+ *   - `cardsEyebrow` -> the small label directly above the cards
+ *     (sinus-lift.astro:564 "What affects your cost"), wrapped in the page's
+ *     own `.invest-factors` column.
+ *   - the callout panel -> `calloutPlacement` "below" is all-on-4's
+ *     full-width `.candidacy-sub` strip after the grid (:753-763);
+ *     "aside" is sinus-lift's boxed sage `.insurance-card` BESIDE the cards
+ *     (:579-602), and in that mode the CTA buttons and note draw INSIDE the
+ *     panel, because the only aside band in the corpus keeps them there.
+ *     NULL placement means "below" — the select defaults on add, but a row
+ *     saved by any other path must not flip the band's geometry.
+ *   - the `block_cta_fields()` seven -> the centred `.cta-row` at the band's
+ *     foot (gum-contouring.astro:527-532: Book Online / Get Directions / the
+ *     practice address as `.cta-note`).
+ *
+ * HREF POLICY: `ctaHref`/`ctaHref2` store an anchor (#consult), a site path
+ * (/smile-gallery/), or one of the tokens "book" | "phone" | "map" resolved
+ * from src/data/contact.ts. Never a pasted booking/tel/maps URL — those live
+ * in one place in the site precisely so they cannot go stale in a CMS field.
+ * The hover table is keyed by the RAW stored destination for the same reason:
+ * the token is the contract, the resolved URL is an implementation detail
+ * that changes when the practice changes booking vendors.
+ *
+ * Every one of these is emitted only when its field is non-empty, flushed with
+ * the `}{` idiom the card's `body2` already uses, so every row saved before
+ * this batch renders byte-for-byte as it does today.
+ */
+
+import Button from "../components/Button.astro";
+import { resolveCta } from "./cta";
+
+/** One row of the layout's `cards` repeater. */
+export interface CardGridCard {
+  /** Secondary line — a price, a stat value, a label. Drawn in `.num`. */
+  meta?: string | null;
+  title?: string | null;
+  lead?: string | null;
+  body?: string | null;
+  /**
+   * A third paragraph, drawn after `body`. `body2` and not a longer `body`
+   * because two paragraphs inside one `<p>` lose the paragraph break the copy
+   * was written with. Optional like every other part of a card: absent on the
+   * two thirds of cards across the family that carry one paragraph or none.
+   */
+  body2?: string | null;
+  /**
+   * The `.stat-line` at the card's foot — "Every 3–6 months" on all-on-4's
+   * `#living` card four. A field of its own and not a reuse of `meta` because
+   * that band is NUMBERED: with `numbered` on, `meta` is never drawn, so the
+   * stat parked there was words the renderer never read (the 280-word lesson,
+   * again). Drawn after the last paragraph, only when non-empty.
+   */
+  stat?: string | null;
+}
+
+/** One row of the callout panel's `callout_points` repeater. */
+export interface CardGridPoint {
+  /** Optional bold lead-in. Blank draws the line plain, which is all four of
+      sinus-lift's insurance lines. */
+  lead?: string | null;
+  item?: string | null;
+}
+
+interface Props {
+  /** DOM id, already deduplicated by PageBlocks.astro. */
+  id?: string;
+  /** The same value as `id`. Accepted so the spread in PageBlocks is lossless. */
+  anchor?: string | null;
+  /** Rail label. Read by the page that builds the rail, not by this band. */
+  navLabel?: string | null;
+  band?: string | null;
+  eyebrow?: string | null;
+  /** May contain `<em>`, and nothing else (docs/PAGE-BLOCKS.md, Fact 3). */
+  heading?: string | null;
+  body?: string | null;
+  /** "2" | "3" | "4" — ACF returns the select's value as a string. */
+  columns?: string | number | null;
+  numbered?: boolean | null;
+  cards?: CardGridCard[] | null;
+  /**
+   * The SECOND small label — directly above the cards, inside the band
+   * (sinus-lift's "What affects your cost"). Not the preamble's `eyebrow`,
+   * which is the section head's and cannot serve both positions.
+   */
+  cardsEyebrow?: string | null;
+  /** The closing panel's small label — `.label` below, `.eyebrow light` aside. */
+  calloutEyebrow?: string | null;
+  calloutHeading?: string | null;
+  /** May contain inline links; a blank line starts a new paragraph. */
+  calloutBody?: string | null;
+  /** "below" | "aside". NULL means "below" — see the header. */
+  calloutPlacement?: string | null;
+  calloutPoints?: (CardGridPoint | null)[] | null;
+  /** The block_cta_fields() seven. See the header for the href policy. */
+  ctaLabel?: string | null;
+  ctaHref?: string | null;
+  /** Hover override. Blank falls back to the destination table. */
+  ctaHover?: string | null;
+  ctaLabel2?: string | null;
+  ctaHref2?: string | null;
+  ctaHover2?: string | null;
+  /** The small line under the buttons — an address, a reassurance. */
+  ctaNote?: string | null;
+}
+
+/**
+ * band value -> the modifier class the page's markup already uses.
+ *
+ * `paper` maps to nothing because the pilot's paper bands are a bare
+ * `class="section"`. `alt` and `dark` are inherited names and inherited
+ * liabilities — `.section.alt` is charcoal on porcelain-veneers.css and cream
+ * on teeth-whitening.css (Fact 4) — which is why the colour below is written
+ * against the band VALUE and the class is only the hook the un-migrated page
+ * sheet still needs.
+ */
+const BAND_CLASS: Record<string, string | undefined> = {
+  paper: undefined,
+  cream: "cream",
+  "sage-pale": "dark",
+  sage: "sage",
+  charcoal: "alt",
+};
+
+const {
+  id,
+  band = "paper",
+  eyebrow,
+  heading,
+  body,
+  columns,
+  numbered,
+  cards,
+  cardsEyebrow,
+  calloutEyebrow,
+  calloutHeading,
+  calloutBody,
+  calloutPlacement,
+  calloutPoints,
+  ctaLabel,
+  ctaHref,
+  ctaHover,
+  ctaLabel2,
+  ctaHref2,
+  ctaHover2,
+  ctaNote,
+} = Astro.props;
+
+const bandKey = typeof band === "string" && band !== "" ? band : "paper";
+const bandClass = BAND_CLASS[bandKey];
+
+/**
+ * The eyebrow carries `light` on the two bands the page spells `.section.dark`,
+ * and only there. Inert under the current cascade — `.section.dark .eyebrow`
+ * (0,3,0) already beats `.eyebrow.light` (0,2,0) — but it is in the HTML, so it
+ * has to be here or the diff that verifies this phase is not empty.
+ */
+const eyebrowLight = bandKey === "sage-pale" || bandKey === "sage";
+
+/**
+ * Two columns is the base, and the grid carries a modifier only when it is not.
+ *
+ * The default is 2 rather than the PHP field's 3 because a missing value has to
+ * degrade to the layout the markup already has, not to the editor-facing
+ * default. If the backfill ever failed to write `columns` for this band, a
+ * default of 3 would silently reflow a two-card grid into thirds, and the
+ * screenshot diff would be the first thing to notice.
+ *
+ * Emitting nothing at 2 is what keeps `class="why-grid"` the exact string the
+ * page ships today.
+ */
+const cols = String(columns ?? "2");
+
+/*
+ * ENUMERATED, AND `5` HAS TO BE IN THE LIST. The Columns select offers
+ * 2/3/4/5 (vs-content-model.php:1826-1831) and this file carries the
+ * `.why-grid.cols-5` rules, but the commit that landed both left this guard at
+ * 3/4 — so a row storing "5" emitted NO modifier, fell through to the two-column
+ * base above, and drew a five-card band TWO across. Worse than the four it was
+ * meant to replace, on a live page, with nothing to catch it: no live row stores
+ * 5 yet, so the build is green and the CSS is merely unreachable.
+ *
+ * That is this project's most-repeated defect wearing a different hat — a
+ * registered select VALUE with no branch in the component, invisible to query
+ * validation and to scripts/check-block-schema.mjs because it changes no
+ * fragment. ProcessStepsBlock.astro:283 enumerates its own choices for the same
+ * reason; ServiceCardsBlock.astro:383 keeps a COLUMN_CHOICES array.
+ *
+ * Still nothing at 2: see the note above for why the base stays classless.
+ */
+const colsClass =
+  cols === "3" || cols === "4" || cols === "5" ? `cols-${cols}` : undefined;
+
+const rows = Array.isArray(cards) ? cards : [];
+
+const hasHead = Boolean(eyebrow || heading || body);
+
+/**
+ * The figure in `.num`.
+ *
+ * Numbered grids count from 01 — two digits, zero-padded, exactly as the
+ * fifteen hand-written instances in src/pages spell them. When the grid is not
+ * numbered the same slot holds `meta`, which is what the field's own help text
+ * describes it as ("a price, a stat value, a label"): one slot, one rule, and
+ * no card that shows both a number and a label.
+ */
+function figure(card: CardGridCard, index: number): string | null {
+  if (numbered) return String(index + 1).padStart(2, "0");
+  const meta = typeof card.meta === "string" ? card.meta.trim() : "";
+  return meta === "" ? null : meta;
+}
+
+const cardsEyebrowText = typeof cardsEyebrow === "string" ? cardsEyebrow.trim() : "";
+
+/**
+ * The callout panel's copy, on MediaSplitBlock's exact terms: a body that
+ * starts with a block tag is trusted HTML and passed through whole; anything
+ * else is prose, split on blank lines so each paragraph gets its own `<p>`.
+ * Splitting on a bare newline instead would turn every soft wrap in the
+ * textarea into a paragraph break.
+ */
+const calloutEyebrowText = typeof calloutEyebrow === "string" ? calloutEyebrow.trim() : "";
+const calloutHeadingText = typeof calloutHeading === "string" ? calloutHeading.trim() : "";
+const calloutBodyHtml = typeof calloutBody === "string" ? calloutBody.trim() : "";
+const calloutBodyIsBlock = /^<(p|div|ul|ol|blockquote)[\s>]/i.test(calloutBodyHtml);
+const calloutParagraphs = calloutBodyIsBlock
+  ? []
+  : calloutBodyHtml
+      .split(/\n\s*\n/)
+      .map((part) => part.trim())
+      .filter((part) => part !== "");
+
+/**
+ * The panel's list. `Array.isArray` first because an unqueried repeater
+ * arrives `undefined` and one an editor never opened arrives `null`, and
+ * `.map` on either throws during the build of whatever page the band sits on.
+ * The filter drops only the blank row ACF leaves behind after an abandoned
+ * "Add a line" — a row with either half filled is a row an editor meant.
+ */
+const panelPoints = (Array.isArray(calloutPoints) ? calloutPoints : [])
+  .map((row) => ({
+    lead: typeof row?.lead === "string" ? row.lead.trim() : "",
+    item: typeof row?.item === "string" ? row.item.trim() : "",
+  }))
+  .filter((point) => point.lead !== "" || point.item !== "");
+
+const hasPanel =
+  calloutEyebrowText !== "" ||
+  calloutHeadingText !== "" ||
+  calloutBodyHtml !== "" ||
+  panelPoints.length > 0;
+
+/**
+ * NULL placement is "below". The select defaults on add so a row with panel
+ * copy should never arrive null — but a row that does must not flip the
+ * band's geometry, and "below" is the placement that exists without a second
+ * grid column. (media_split's NULL means "aside" for the mirror-image reason:
+ * its eleven saved rows are asides. Neither block may borrow the other's
+ * default.)
+ */
+const asidePanel = hasPanel && calloutPlacement === "aside";
+const belowPanel = hasPanel && !asidePanel;
+
+/**
+ * Anything that changes the markup AROUND the grid. When this is false the
+ * template returns the exact grid expression this file has always shipped, so
+ * the 187 saved rows render byte-for-byte — proven by rendering, not assumed.
+ */
+const hasGridExtras = cardsEyebrowText !== "" || asidePanel;
+
+/* The token map, hover table and resolvers live in ./cta.ts — ONE copy for
+   every block that draws a CTA row, extracted the day the fifth copy appeared.
+   The tables only work because the blocks agree, and five copies is five
+   places for the next hover-label edit to miss. */
+const cta1 = resolveCta(ctaHref, ctaHover);
+const cta2 = resolveCta(ctaHref2, ctaHover2);
+
+/**
+ * The row draws for EITHER button, not just the first — a band that fills
+ * only the second pair must not silently lose it. The note draws only inside
+ * a row: the PHP field's own instructions promise "leave both button labels
+ * blank and no button row is drawn at all", and a floating note under no
+ * buttons is not a shape any page ships.
+ */
+const hasCta = typeof ctaLabel === "string" && ctaLabel.trim() !== "";
+const hasCta2 = typeof ctaLabel2 === "string" && ctaLabel2.trim() !== "";
+const hasCtaRow = hasCta || hasCta2;
+const ctaNoteText = typeof ctaNote === "string" ? ctaNote.trim() : "";
+
+/**
+ * Foot-row button variants follow the band, same pairings as MediaSplitBlock:
+ * sage + ghost on paper/cream (gum-contouring's `#why`, the band this
+ * reproduces), light + ghost-light on charcoal/sage. The ASIDE panel's two are
+ * not derived: the panel is always the boxed sage card, so they are the
+ * template's literal light + outline-light whatever band the section sits on.
+ */
+const isDarkBand = bandKey === "charcoal" || bandKey === "sage";
+const primaryVariant = isDarkBand ? "light" : "sage";
+const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
+---
+
+<section class:list={["section", bandClass]} id={id} data-vs-reveal-batch>
+  <div class="wrap">
+    {
+      hasHead && (
+        <div class="section-head">
+          {eyebrow && <span class:list={["eyebrow", eyebrowLight && "light"]}>{eyebrow}</span>}
+          {heading && (
+            <h2>
+              <Fragment set:html={heading} />
+            </h2>
+          )}
+          {body && <p>{body}</p>}
+        </div>
+      )
+    }
+
+    {
+      /* An IIFE so the grid is written ONCE and each of the three shapes that
+         surround it (bare, eyebrow column, eyebrow column beside the panel)
+         reuses the same markup — three inlined copies of the card map is how
+         renderers drift. The `<div class:list=...>` below keeps its original
+         indentation on purpose: text nodes inside it reach the HTML exactly as
+         written, and the no-extras return path must be byte-for-byte the
+         markup this file has always shipped. */
+      (() => {
+        const grid = rows.length > 0 && (
+        <div class:list={["why-grid", colsClass]}>
+          {rows.map((card, i) => {
+            const num = figure(card, i);
+            return (
+              <article class="why-card">
+                {num && <div class="num">{num}</div>}
+                {card.title && <h3>{card.title}</h3>}
+                {card.lead && <p class="lead">{card.lead}</p>}
+                {card.body && <p>{card.body}</p>}{
+                  /* Flush against the previous conditional, no newline between
+                     them. Astro preserves whitespace between expressions, so a
+                     conditional on its own line adds a permanent whitespace-only
+                     text node to EVERY card saved before body_2 existed. Same
+                     idiom as StatCalloutBlock. */
+                  card.body2 && <p>{card.body2}</p>
+                }{
+                  /* Same flush idiom, same reason: blank on every card saved
+                     before this batch, so those cards render byte-for-byte. */
+                  card.stat && <div class="stat-line">{card.stat}</div>
+                }
+              </article>
+            );
+          })}
+        </div>
+        );
+
+        if (!hasGridExtras) return grid;
+
+        /* `.invest-factors` is sinus-lift's own name for the eyebrow-plus-list
+           column (sinus-lift.astro:563, css:644) and it wraps the grid in BOTH
+           extras shapes: beside the panel it is the left grid column, and with
+           only the eyebrow it supplies the 26px eyebrow-to-cards gap the page
+           ships. The eyebrow takes `light` on the two sage bands on the same
+           terms the section head's does. */
+        const factors = (
+          <div class="invest-factors">
+            {cardsEyebrowText !== "" && (
+              <span class:list={["eyebrow", eyebrowLight && "light"]}>{cardsEyebrowText}</span>
+            )}{grid}
+          </div>
+        );
+
+        if (!asidePanel) return factors;
+
+        /* sinus-lift.astro:562-602 — the two-column `.invest-grid`, cards left,
+           boxed sage `.insurance-card` right, with the buttons and the "Bring
+           your insurance card(s)…" note INSIDE the panel. The buttons are the
+           template's literal variants (light / outline-light) because the panel
+           is always the sage card, whatever band the section sits on. */
+        return (
+          <div class="invest-grid">
+            {factors}
+            <aside class="insurance-card">
+              {calloutEyebrowText !== "" && <span class="eyebrow light">{calloutEyebrowText}</span>}{
+                calloutHeadingText !== "" && <h3>{calloutHeadingText}</h3>
+              }{
+                calloutBodyIsBlock ? (
+                  <Fragment set:html={calloutBodyHtml} />
+                ) : (
+                  calloutParagraphs.map((para) => <p set:html={para} />)
+                )
+              }{
+                panelPoints.length > 0 && (
+                  <ul class="insurance-card__list">
+                    {panelPoints.map((point) => (
+                      <li>{point.lead === "" ? point.item : <Fragment><b>{point.lead}</b> {point.item}</Fragment>}</li>
+                    ))}
+                  </ul>
+                )
+              }{
+                hasCtaRow && (
+                  <div class="insurance-card__actions">
+                    {hasCta && (
+                      <Button variant="light" href={cta1.href} hoverLabel={cta1.hover}>
+                        {ctaLabel}
+                      </Button>
+                    )}{
+                      hasCta2 && (
+                      <Button variant="outline-light" href={cta2.href} hoverLabel={cta2.hover}>
+                        {ctaLabel2}
+                      </Button>
+                    )}
+                  </div>
+                )
+              }{
+                ctaNoteText !== "" && <p class="insurance-card__bring">{ctaNoteText}</p>
+              }
+            </aside>
+          </div>
+        );
+      })()
+    }{
+      /* all-on-4-single-arch.astro:753-763 — the full-width `.candidacy-sub`
+         strip under the grid ("Maintenance & Longevity / How Long All-on-4
+         Lasts / With consistent care…"). Flush `}{` against the grid
+         expression: a line of its own would add a whitespace text node to
+         every band saved before the panel existed. */
+      belowPanel && (
+        <div class="candidacy-sub">
+          {calloutEyebrowText !== "" && <span class="label">{calloutEyebrowText}</span>}{
+            calloutHeadingText !== "" && <h3>{calloutHeadingText}</h3>
+          }{
+            calloutBodyIsBlock ? (
+              <Fragment set:html={calloutBodyHtml} />
+            ) : (
+              calloutParagraphs.map((para) => <p set:html={para} />)
+            )
+          }{
+            /* No page ships a list in the below strip, but a saved list must
+               never silently vanish, so the aside's markup is reused and the
+               scoped style below recolours it from the strip's own palette. */
+            panelPoints.length > 0 && (
+              <ul class="insurance-card__list">
+                {panelPoints.map((point) => (
+                  <li>{point.lead === "" ? point.item : <Fragment><b>{point.lead}</b> {point.item}</Fragment>}</li>
+                ))}
+              </ul>
+            )
+          }
+        </div>
+      )
+    }{
+      /* gum-contouring.astro:527-532 — the centred `.cta-row` at the band's
+         foot, note under the buttons. Suppressed when the panel is an aside,
+         because the only aside band in the corpus draws these same buttons
+         inside the panel and a band with the row twice is a shape no page
+         ships. */
+      hasCtaRow && !asidePanel && (
+        <div class="cta-row">
+          <div class="cta-buttons">
+            {hasCta && (
+              <Button variant={primaryVariant} href={cta1.href} hoverLabel={cta1.hover}>
+                {ctaLabel}
+              </Button>
+            )}{
+              hasCta2 && (
+              <Button variant={secondaryVariant} href={cta2.href} hoverLabel={cta2.hover}>
+                {ctaLabel2}
+              </Button>
+            )}
+          </div>{
+            ctaNoteText !== "" && <span class="cta-note">{ctaNoteText}</span>
+          }
+        </div>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  /* ---------- band shell ----------
+     `.section` owns its padding and has no margin at all, so this band cannot
+     collapse into whichever band an editor drags above or below it. Same rule
+     as FinalBand.astro. */
+  .section {
+    margin: 0;
+    padding: 110px 0;
+    background: var(--vs-paper);
+  }
+  .section.cream {
+    background: var(--vs-cream);
+  }
+  .section.dark {
+    background: var(--vs-sage-pale);
+  }
+  .section.sage {
+    background: var(--vs-sage);
+  }
+  .section.alt {
+    background: var(--vs-charcoal-green);
+  }
+
+  .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  .eyebrow {
+    font-family: var(--vs-font-body);
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+  }
+  .eyebrow.light {
+    color: var(--vs-eyebrow-on-sage);
+  }
+
+  /* h2 resolves to ink. The page sheet reaches that colour only through a
+     trailing override block whose comment says it works because of its file
+     position; a block that owns its cascade states the outcome once. */
+  h2 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    color: var(--vs-ink);
+    margin: 0;
+    line-height: 1.1;
+    letter-spacing: -0.022em;
+    font-size: clamp(32px, 4.2vw, 54px);
+  }
+  /* `:global()` because the `<em>` arrives through `set:html` and carries no
+     scope attribute — a plain `h2 em` compiles to `em[data-astro-cid]`, misses
+     it, and drops the accent colour from every heading on the site. */
+  h2 :global(em) {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+
+  p {
+    margin: 0;
+    color: var(--vs-ink-soft);
+  }
+
+  .section-head {
+    max-width: 760px;
+    margin: 0 auto 64px;
+    text-align: center;
+  }
+  .section-head .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .section-head .eyebrow::before,
+  .section-head .eyebrow::after {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+  .section-head h2 {
+    margin: 22px 0 22px;
+  }
+  .section-head p {
+    font-size: 17px;
+    line-height: 1.7;
+    max-width: 60ch;
+    margin: 0 auto;
+  }
+
+  /* ---------- band inversions ----------
+     Scoped to `.section-head`, not written band-wide. The cards sit on their
+     own white surface whatever the band is, so a band-wide
+     `.section.alt p { color: rgba(255,255,255,.85) }` — which is what the page
+     sheets do — paints white body copy onto a white card the first time an
+     editor drags this grid onto a charcoal band. The page sheets get away with
+     it only because no page currently pairs the two. This block has to survive
+     the pairing, because making it possible is the entire point of the phase. */
+  .section.alt .section-head h2,
+  .section.sage .section-head h2 {
+    color: #fff;
+  }
+  .section.alt .section-head h2 :global(em),
+  .section.sage .section-head h2 :global(em) {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .section.alt .section-head p,
+  .section.sage .section-head p {
+    color: rgba(255, 255, 255, 0.85);
+  }
+  .section.alt .section-head .eyebrow,
+  .section.sage .section-head .eyebrow {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .section.alt .section-head .eyebrow::before,
+  .section.alt .section-head .eyebrow::after,
+  .section.sage .section-head .eyebrow::before,
+  .section.sage .section-head .eyebrow::after {
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  .section.dark .section-head h2 {
+    color: var(--vs-ink);
+  }
+  .section.dark .section-head h2 :global(em) {
+    color: var(--vs-sage);
+  }
+  .section.dark .section-head p,
+  .section.dark .section-head .eyebrow {
+    color: var(--vs-ink-soft);
+  }
+  .section.dark .section-head .eyebrow::before,
+  .section.dark .section-head .eyebrow::after {
+    background: var(--vs-ink-soft);
+  }
+
+  /* ---------- grid ----------
+     Two across at 30px is this page's rule; three and four across carry the
+     tighter 18px gutter the four-card implant pages already use
+     (all-on-4-single-arch.css, bone-grafting.css), because four 30px gutters
+     inside 1240px leave the cards too narrow for a three-line title. */
+  .why-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+  }
+  .why-grid.cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+  }
+  .why-grid.cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+  }
+
+  /* Five across. A SCOPED COMPOUND rather than anything left to a page sheet,
+     for the reason ProcessStepsBlock.astro:734-750 records for its own
+     `.cols-5`: both pages that draw five spell it at (0,2,0)
+     (`.smilemakeover .issues-grid`, smile-makeover.css:363-366;
+     `.singletooth .benefits-grid`, single-tooth-dental-implants.css:563-566),
+     and this file's scoped `.why-grid` compiles to `.why-grid[data-astro-cid-…]`
+     — also (0,2,0). A tie decided by bundle order is not a thing a band's
+     column count should hang on. This compound is (0,3,0) and wins outright.
+
+     18px, matching BOTH sheets exactly — they agree on the desktop shape even
+     though they disagree about the collapse below. */
+  .why-grid.cols-5 {
+    grid-template-columns: repeat(5, 1fr);
+    gap: 18px;
+  }
+
+  /* THE FIVE-TRACK LADDER, AND THE ONE PLACE THE TWO PAGES DISAGREE.
+     Stated here rather than folded into the 991px/780px pair below, because a
+     five-track row is already under 220px per card at 1240px and has to start
+     collapsing before three or four do.
+
+       smile-makeover.css:691,713,724   5 -> 3 @1100 -> 2 @780 -> 1 @480
+       single-tooth…css:674,687,…       5 -> 3 @1240 -> 2 @1100 -> 1 @780
+
+     Neither is wrong; they are two pages authored a year apart. This takes
+     smile-makeover's, which is EXACT for that route and never overflows on the
+     other — single-tooth draws five where its sheet drew three between 1100 and
+     1240, and two where its sheet drew one between 480 and 780. Recorded on
+     that block rather than papered over, and the honest close is a named ladder
+     field the way `collapse_at` closed the same species of disagreement for
+     service_cards. Not worth a second field for two rows today.
+
+     All three are (0,3,0), same as the desktop rule, so SOURCE ORDER decides
+     between them — narrowest last. Reordering these three blocks changes the
+     layout. */
+  @media (max-width: 1100px) {
+    .why-grid.cols-5 {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+  @media (max-width: 780px) {
+    .why-grid.cols-5 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  @media (max-width: 480px) {
+    .why-grid.cols-5 {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .why-card {
+    background: #fff;
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-lg);
+    padding: 42px 38px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition:
+      transform 0.3s ease,
+      box-shadow 0.3s ease;
+  }
+  .why-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--vs-shadow);
+  }
+  .why-card .num {
+    font-family: var(--vs-font-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: 36px;
+    color: var(--vs-sage-soft);
+    line-height: 1;
+  }
+  .why-card h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: 22px;
+    color: var(--vs-ink);
+    margin: 0;
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+  }
+  .why-card .lead {
+    font-family: var(--vs-font-display);
+    font-style: italic;
+    font-weight: 300;
+    color: var(--vs-sage);
+    font-size: 17px;
+    line-height: 1.45;
+    letter-spacing: -0.005em;
+  }
+  .why-card p {
+    font-size: 15px;
+    line-height: 1.75;
+    color: var(--vs-ink-soft);
+  }
+  /* Copied from `.aos4 .benefits-card .stat-line`
+     (all-on-4-single-arch.css:679), margin included: that card is the same
+     14px-gap flex column as `.why-card`, so the template's spacing above the
+     rule IS gap-plus-margin and dropping the margin here would pull the line
+     14px closer than the page ships it. */
+  .why-card .stat-line {
+    margin-top: 14px;
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    color: var(--vs-sage);
+    font-size: 15px;
+    letter-spacing: -0.005em;
+    border-top: 1px solid var(--vs-line);
+    padding-top: 12px;
+  }
+
+  /* ---------- cards eyebrow / aside panel ----------
+     Copied from sinus-lift.css:636-747, `--vs-*` tokens for the page-local
+     aliases. The class names are the page's own (see the header): on
+     sinus-lift the page sheet still styles them with identical declarations,
+     so the (0,2,0) tie between `.thing[cid]` and `.sinuslift .thing` decides
+     nothing — both sheets agree — and the band survives the stylesheet pass
+     that removes the page's copies. The 56px top margin collapses against
+     `.section-head`'s 64px bottom margin exactly as it does on the page. */
+  .invest-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
+    gap: 56px;
+    margin-top: 56px;
+    align-items: start;
+  }
+  .invest-factors {
+    display: flex;
+    flex-direction: column;
+    gap: 26px;
+  }
+
+  .insurance-card {
+    background: var(--vs-sage);
+    color: #fff;
+    border-radius: var(--vs-r-lg);
+    padding: 44px 40px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    position: relative;
+    overflow: hidden;
+  }
+  .insurance-card::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.18);
+  }
+  .insurance-card h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    font-size: clamp(24px, 2.6vw, 30px);
+    line-height: 1.18;
+    letter-spacing: -0.012em;
+    color: #fff;
+    margin: 4px 0 0;
+    max-width: 22ch;
+  }
+  /* `> p` as the page spells it, so `.insurance-card__bring` below keeps its
+     own colour, and `:global(p)` on the child because a paragraph born from
+     `set:html` carries no scope attribute — the same reason the h2's `em`
+     rule above is global. */
+  .insurance-card > :global(p) {
+    color: rgba(255, 255, 255, 0.85);
+    font-size: 15.5px;
+    line-height: 1.7;
+    max-width: 50ch;
+    margin: 0;
+  }
+  .insurance-card__list {
+    list-style: none;
+    padding: 0;
+    margin: 6px 0 4px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .insurance-card__list li {
+    position: relative;
+    padding-left: 22px;
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.92);
+  }
+  .insurance-card__list li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.78em;
+    width: 12px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.55);
+  }
+  .insurance-card__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 14px;
+  }
+  /* (0,2,0) against the child rule's (0,2,1), exactly the page's own pairing
+     (sinus-lift.css:710 vs :742): the child rule's colour and size win and
+     these declarations fill in the italic display face. Writing this any more
+     specific would flip a cascade the live page ships. */
+  .insurance-card__bring {
+    font-family: var(--vs-font-display);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 14px;
+    color: rgba(255, 255, 255, 0.78);
+    margin-top: 4px;
+    letter-spacing: -0.005em;
+  }
+
+  /* ---------- below panel ----------
+     Copied from `.aos4 .candidacy-sub` (all-on-4-single-arch.css:575-599).
+     A white card on its own surface, so it needs no band inversions. */
+  .candidacy-sub {
+    margin-top: 70px;
+    max-width: 940px;
+    margin-left: auto;
+    margin-right: auto;
+    background: #fff;
+    border: 1px solid var(--vs-line);
+    border-left: 3px solid var(--vs-sage);
+    border-radius: var(--vs-r-lg);
+    padding: 36px 40px;
+    box-shadow: var(--vs-shadow);
+  }
+  .candidacy-sub .label {
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+    display: block;
+    margin-bottom: 10px;
+  }
+  .candidacy-sub h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    color: var(--vs-ink);
+    font-size: clamp(20px, 2vw, 24px);
+    letter-spacing: -0.005em;
+    margin: 0 0 14px;
+  }
+  .candidacy-sub :global(p) {
+    font-size: 15.5px;
+    line-height: 1.8;
+    color: var(--vs-ink-soft);
+    margin: 0;
+  }
+  /* No page ships a list in this strip (all-on-4's carries prose only), so
+     these lines are the aside list's own geometry recoloured from the strip's
+     palette — the sage of its accent border, the ink of its prose — because a
+     saved list has to draw SOMETHING readable rather than vanish. */
+  .candidacy-sub .insurance-card__list {
+    margin: 14px 0 0;
+  }
+  .candidacy-sub .insurance-card__list li {
+    color: var(--vs-ink-soft);
+  }
+  .candidacy-sub .insurance-card__list li::before {
+    background: var(--vs-sage);
+  }
+
+  /* ---------- CTA row ----------
+     Copied from gum-contouring.css:462-478 — the centred variant is the shape
+     the band ships (no `.left` modifier anywhere in this family). The note's
+     colour by band follows the family's own sheets: `var(--muted)` on the
+     light bands (gum-contouring:475), ink-soft on sage-pale
+     (gum-contouring:478), white-on-dark for charcoal/sage
+     (all-on-4-single-arch.css:618) — written per band VALUE, same policy as
+     the section-head inversions above. */
+  .cta-row {
+    margin-top: 56px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+  }
+  .cta-row .cta-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+    justify-content: center;
+  }
+  .cta-row .cta-note {
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--vs-muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section.dark .cta-row .cta-note {
+    color: var(--vs-ink-soft);
+  }
+  .section.alt .cta-row .cta-note,
+  .section.sage .cta-row .cta-note {
+    color: rgba(255, 255, 255, 0.75);
+  }
+
+  /* Base and breakpoint rules live together, unlike the page sheets where 24
+     files keep a trailing "responsive" section physically separated from what
+     it modifies. */
+  @media (max-width: 991px) {
+    /* Two across collapses straight to one — two 42px-padded cards side by side
+       stop fitting their own type before they stop fitting the viewport. Three
+       and four go via two, which is what the implant sheets do. */
+    .why-grid {
+      grid-template-columns: 1fr;
+    }
+    .why-grid.cols-3,
+    .why-grid.cols-4 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    /* cols-5 is deliberately NOT in the pair above: five tracks have to start
+       collapsing EARLIER than three or four do, and the two pages that draw
+       five disagree about where. Its ladder is stated on its own, below. */
+    /* sinus-lift.css:899-900 — the two columns stack, panel under cards. */
+    .invest-grid {
+      grid-template-columns: 1fr;
+      gap: 40px;
+    }
+    .insurance-card {
+      padding: 38px 32px 32px;
+    }
+  }
+
+  @media (max-width: 780px) {
+    .section {
+      padding: 70px 0;
+    }
+    .wrap {
+      padding: 0 22px;
+    }
+    .why-grid.cols-3,
+    .why-grid.cols-4 {
+      grid-template-columns: 1fr;
+    }
+    /* sinus-lift.css:940-941; the buttons go full-width inside the panel.
+       `:global(.vs-btn)` because Button.astro's element carries no scope
+       attribute from THIS component. */
+    .insurance-card {
+      padding: 32px 24px 28px;
+    }
+    .insurance-card__actions :global(.vs-btn) {
+      width: 100%;
+      justify-content: space-between;
+    }
+    /* all-on-4-single-arch.css:857 */
+    .candidacy-sub {
+      padding: 28px 24px;
+      margin-top: 50px;
+    }
+    /* gum-contouring.css:702, same value MediaSplitBlock carries. */
+    .cta-row {
+      margin-top: 36px;
+    }
+  }
+</style>

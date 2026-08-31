@@ -1,0 +1,1318 @@
+---
+/**
+ * ProcessStepsBlock — the `process_steps` layout: a centred head, a row of
+ * numbered step cards, and the inline CTA that closes the band.
+ *
+ * EXTRACTED, NOT DESIGNED. This is the `#process` band of
+ * src/pages/cosmetic-dentistry/clear-aligners.astro — `.process-grid` wrapping
+ * `.process-card`, each card a `.step-tag`, a `.num`, an `<h3>` and a `<p>`,
+ * followed by `.inline-cta.dark`. The class names are the page's own because
+ * the page stylesheet still styles them and keeps styling them until the
+ * stylesheet pass removes its copies.
+ *
+ * THE INLINE CTA: THE SENTENCE IS A FIELD, THE BUTTONS ARE NOT.
+ * All eight pages in the family close their process band with the same card:
+ * one line of copy, then "Book Online" and "Call". The two buttons are
+ * identical on all eight because they are site data (src/data/contact.ts), not
+ * page content, so they are written in — a per-page field for them is a
+ * per-page chance to publish the wrong phone number, and the wrong phone number
+ * on a dental site is a lost patient rather than a cosmetic bug. The sentence
+ * IS page content: "Ready for the next step? …" here and on porcelain-veneers,
+ * "Not sure which KöR level fits? …" on teeth-whitening, something else on the
+ * other five. So it is `cta_text`, read here as `ctaText`.
+ *
+ *   `cta_text` IS BEING ADDED TO cms/mu-plugins/vs-content-model.php IN THIS
+ *   SAME BATCH, AND THE REGISTRY IS WIRED IN A SEPARATE SEQUENCED STEP. Do not
+ *   add `ctaText` to the selection set in manifest.ts until the PHP layout is
+ *   deployed. GraphQL validates the whole document before executing any of it,
+ *   so a field name the schema does not carry does not break this one band — it
+ *   fails the query, and with it every page in the build.
+ *
+ * THE `.process-pre` MINI-GRID: TWO WIDE CARDS ABOVE THE NUMBERED ONES.
+ * teeth-whitening's `#process` opens with a 2-up grid of prose cards — "What to
+ * Expect During Your Teeth Whitening Appointment" and "In-Office vs At-Home KöR
+ * Whitening" — sitting between the section head and the numbered steps. That is
+ * 200-odd words that the backfill drops on the floor without somewhere to put
+ * them, and it is not a variant of `steps`: the rows carry no tag and no
+ * number, they are twice the width, and the page sheet gives them a
+ * deliberately quieter treatment "so the eye still settles on the 3 primary
+ * level cards". A different shape holding different content is a different
+ * repeater, so `pre_cards { heading, body }`.
+ *
+ * The repeater is named `pre_cards` and not `cards`, `items` or `points`
+ * because WPGraphQL merges two layouts that share a repeater name into one type
+ * and silently drops one side's sub-fields. All three of those names are
+ * already taken elsewhere in the `blocks` field.
+ *
+ * `layout` — the shape the steps are drawn in — offers grid, card and divided.
+ * ALL THREE ARE DRAWN NOW. An unknown value still renders as a grid and says so
+ * in the build log rather than rendering nothing, because a band that quietly
+ * disappears is the failure mode this library is built to avoid.
+ *
+ *   grid     `.process-grid` > `.process-card` > step-tag, num, h3, p.
+ *            The pilot's eight service pages. THE LABEL COMES FIRST.
+ *   card     `.pgrid-card[data-vs-reveal]` > `.pgrid.pgrid-{n}` > `.pstep` >
+ *            num, h3, p, step label. THE LABEL COMES LAST. The two hub bands:
+ *            cosmetic-dentistry/index.astro:526-539 (six steps, three across)
+ *            and implant-dentistry/index.astro:505-516 (four steps, four
+ *            across).
+ *   divided  `.vs-process-card[data-vs-reveal]` > `.vs-process-grid` >
+ *            `.vs-pstep` > num, TAGLINE, h3, p, label. /services/ #process,
+ *            services/index.astro:362-388, today drawn by the shared
+ *            src/components/ProcessStepGrid.astro + ProcessStep.astro pair.
+ *
+ * THE ELEMENT ORDER IS THE WHOLE POINT, AND A WORD DIFF CANNOT SEE IT. `grid`
+ * prints the step label first and `card` prints it last. Mapping a hub band as
+ * `grid` would move the label to the top of ten live step cards while leaving
+ * every word on the page — which is precisely the class of defect the 26
+ * mis-coloured bands taught this migration to stop trusting word counts for.
+ * Read the shape off the route map, never off the word count.
+ *
+ * `steps[].tagline` and `sub_foot` LAND WITH `card` AND `divided`.
+ *   tagline  the short italic line between the numeral and the title.
+ *            `divided` is the shape that ships one today (services'
+ *            "Listen first." / "Calibrated to you." / "Quiet, careful
+ *            delivery."). `card` prints it in the same slot when a row carries
+ *            one — not because a hub band has one, but because a selected,
+ *            non-empty field that renders nowhere is content silently dropped,
+ *            and this library exists to not do that. `grid` prints it nowhere:
+ *            that shape leads with `.step-tag` and has no extracted position
+ *            for a second line, so inventing one would be design, not
+ *            extraction.
+ *   subFoot  cosmetic-dentistry's closing `.process-outro` paragraph
+ *            (index.astro:541-544). Renders after the steps and before the CTA
+ *            plate, in every shape, whenever it is non-empty. It is a bare
+ *            paragraph and NOT the `ctaText` plate — that one carries two
+ *            buttons, and buttons under a band that never had them is a stray
+ *            control on a live client page.
+ *
+ * Both are additive by construction: every saved row has `tagline: null` and
+ * `subFoot: null`, blank emits no element, and the three shape branches sit
+ * flush against each other (`}{`) so a `grid` row gains not one byte of
+ * whitespace from the two branches it does not take.
+ *
+ * Styles are co-located per docs/PAGE-BLOCKS.md 2.5, modelled on
+ * FinalBand.astro: no page namespace, `--vs-*` tokens directly, band as a
+ * prop, self-owned padding, zero margin.
+ */
+import Button from "../components/Button.astro";
+import { phoneHref, phoneLabel, bookNowHref } from "../data/contact";
+import { fillSiteTokens } from "./site-tokens";
+
+/** One row of the layout's `steps` repeater. */
+export interface ProcessStep {
+  /** e.g. "Step One". */
+  tag?: string | null;
+  /** Text, not a number: the site prints these verbatim and some read "01". */
+  num?: string | null;
+  /**
+   * The short italic line between the numeral and the title — "Listen first."
+   * Drawn by `divided` and by `card`, never by `grid`. See the header.
+   */
+  tagline?: string | null;
+  title?: string | null;
+  body?: string | null;
+}
+
+/**
+ * One row of the layout's `pre_cards` repeater — the wide prose cards above the
+ * numbered steps. `heading` and not `title`: the sub-field sits beside the
+ * preamble's own `heading`/`body` pair in wp-admin and matching that naming is
+ * what stops an editor filling in the wrong one.
+ */
+export interface ProcessPreCard {
+  heading?: string | null;
+  body?: string | null;
+}
+
+interface Props {
+  /** DOM id, already deduplicated by PageBlocks.astro. */
+  id?: string;
+  /** The same value as `id`. Accepted so the spread in PageBlocks is lossless. */
+  anchor?: string | null;
+  /** Rail label. Read by the page that builds the rail, not by this band. */
+  navLabel?: string | null;
+  band?: string | null;
+  /**
+   * The heading column's width, as a class the PAGE SHEET hooks.
+   *
+   * "default" (and blank) emits `class="section-head"` — every one of the
+   * fifteen saved rows, byte-identical to today. "center" adds `center`.
+   *
+   * NOT DECORATION, AND NOT REDUNDANT WITH THIS FILE'S OWN CENTRING.
+   * /new-patients/, /our-office/ and /referral-program/ style a bare
+   * `.section-head` as a LEFT-aligned 60ch grid and centre it only through
+   * `.section-head.center`. Dropping the class on backfill left those bands on
+   * this file's own `.section-head` rule — still centred, but 760px instead of
+   * 60ch, so the heading column grew by about a third and re-wrapped. Measured
+   * in a browser against the built pages: 760px against 587.355px. A word diff
+   * and a section-class diff are both blind to it.
+   */
+  headAlign?: string | null;
+  eyebrow?: string | null;
+  /** May contain `<em>`, and nothing else (docs/PAGE-BLOCKS.md, Fact 3). */
+  heading?: string | null;
+  body?: string | null;
+  /** "grid" | "card" | "divided" — all three are drawn. See the header. */
+  layout?: string | null;
+  /**
+   * "2" | "3" | "4" | "5" — ACF returns the select's value as a string.
+   *
+   * Governs `grid` and `card`. `divided` ignores it: that shape is three
+   * bordered columns inside one card and nothing in src draws it at any other
+   * count, so honouring the field there would be inventing a layout rather
+   * than extracting one.
+   */
+  columns?: string | number | null;
+  /**
+   * The wide prose cards above the numbered steps. Empty or absent renders no
+   * grid and no wrapper — see the header.
+   */
+  preCards?: ProcessPreCard[] | null;
+  steps?: ProcessStep[] | null;
+  /**
+   * The closing `.process-outro` paragraph, below the steps and above the CTA
+   * plate. Plain text, deliberately: cosmetic-dentistry's is one unmarked
+   * sentence, and a `set:html` here would be an injection surface bought for
+   * emphasis nothing uses.
+   */
+  subFoot?: string | null;
+  /**
+   * The sentence in the closing card. `<em>` and `<strong>` are permitted, as
+   * they are in the eight hand-written instances this replaces. See the header
+   * before adding it to the registry's selection set.
+   */
+  ctaText?: string | null;
+}
+
+/**
+ * band value -> the modifier class the page's markup already uses.
+ *
+ * `paper` maps to nothing because the pilot's paper bands are a bare
+ * `class="section"`. `alt` and `dark` are inherited names and inherited
+ * liabilities — `.section.alt` is charcoal on porcelain-veneers.css and cream
+ * on teeth-whitening.css (Fact 4) — which is why the colour below is written
+ * against the band VALUE and the class is only the hook the un-migrated page
+ * sheet still needs.
+ */
+const BAND_CLASS: Record<string, string | undefined> = {
+  paper: undefined,
+  cream: "cream",
+  "sage-pale": "dark",
+  sage: "sage",
+  charcoal: "alt",
+};
+
+const {
+  id,
+  band = "sage-pale",
+  headAlign,
+  eyebrow,
+  heading,
+  body,
+  layout = "grid",
+  columns,
+  preCards,
+  steps,
+  subFoot,
+  ctaText,
+} = Astro.props;
+
+/* See the `headAlign` prop. Unknown values fall back to today's class, never to
+   a band that centres itself by accident. */
+const headKey = String(headAlign ?? "").trim().toLowerCase();
+const headClass = headKey === "center" || headKey === "narrow" ? headKey : undefined;
+
+
+const bandKey = typeof band === "string" && band !== "" ? band : "sage-pale";
+const bandClass = BAND_CLASS[bandKey];
+
+/**
+ * The eyebrow carries `light` on the two bands the page spells `.section.dark`
+ * — which is exactly where this band sits on the pilot, so the class is in the
+ * HTML there and has to be in the HTML here. It is inert under the current
+ * cascade (`.section.dark .eyebrow` at 0,3,0 already beats `.eyebrow.light` at
+ * 0,2,0); it is reproduced because the phase is verified by an HTML diff, not
+ * by a rendering.
+ */
+const eyebrowLight = bandKey === "sage-pale" || bandKey === "sage";
+
+/**
+ * The shape, resolved once, with `grid` as the value a blank field degrades to.
+ *
+ * `grid` is the default for the same reason it always was: it is the shape the
+ * PHP select defaults to and the shape all eight pilot bands are saved as, so a
+ * row that never touched the field draws what it drew before this batch.
+ *
+ * A choice added in wp-admin and not enumerated here reaches this line as a
+ * string nothing matches. It draws as a grid and says so in the build log —
+ * wrong shape, right words, loud. The alternative, keying the markup off the
+ * raw value, is a band that renders nothing at all.
+ *
+ * `layout` arrives as a bare string: readBlocks() unwraps every one-element
+ * select array once, in src/lib/page-content.ts, so there is no `Array.isArray`
+ * here and there must not be one — that per-component duplication is the defect
+ * that shipped two charcoal bands as paper.
+ */
+const SHAPES = ["grid", "card", "divided"] as const;
+type Shape = (typeof SHAPES)[number];
+
+const shape: Shape = SHAPES.includes(layout as Shape) ? (layout as Shape) : "grid";
+
+if (layout && !SHAPES.includes(layout as Shape)) {
+  console.warn(
+    `[blocks] process_steps shape "${layout}" on ${Astro.url.pathname}${id ? `#${id}` : ""} is not one of ${SHAPES.join(" | ")} — drawing it as a grid`,
+  );
+}
+
+/**
+ * Four across is the base, and the grid carries a modifier only when it is not.
+ *
+ * Four matches both the PHP field's default and this page's own band, so a
+ * missing value degrades to the layout the markup already has. Emitting nothing
+ * at 4 is what keeps `class="process-grid"` the exact string the page ships.
+ *
+ * The test enumerates the values it accepts rather than passing through
+ * whatever ACF hands over, so a select choice added in wp-admin and not here
+ * emits no class and degrades to the 4-across base — a band one column off,
+ * not a band wearing a `cols-7` no stylesheet answers. `5` is enumerated here
+ * because the PHP select gained that choice in this same batch.
+ */
+const cols = String(columns ?? "4");
+const colsClass =
+  cols === "2" || cols === "3" || cols === "5" ? `cols-${cols}` : undefined;
+
+const rows = Array.isArray(steps) ? steps : [];
+
+/**
+ * Rows with nothing in them are dropped rather than drawn.
+ *
+ * ACF returns a repeater an editor opened and abandoned as a row of empty
+ * strings, and an empty `.process-pre-card` is a visible bordered rectangle
+ * with nothing inside it. Filtering here also means a repeater of nothing but
+ * blank rows leaves the grid wrapper unemitted, so the band is byte-identical
+ * to one where the field was never touched.
+ */
+const preRows = (Array.isArray(preCards) ? preCards : []).filter(
+  (c) => (c?.heading ?? "").trim() !== "" || (c?.body ?? "").trim() !== "",
+);
+
+const hasHead = Boolean(eyebrow || heading || body);
+const hasCta = typeof ctaText === "string" && ctaText.trim() !== "";
+
+/**
+ * A whitespace-only `sub_foot` draws no paragraph.
+ *
+ * `.process-outro` carries `margin: 40px auto 0`, so an editor who put a space
+ * in the field and saved would otherwise get 40px of dead air under the steps
+ * with nothing in it — visible, and unattributable to any content on the page.
+ */
+const hasSubFoot = typeof subFoot === "string" && subFoot.trim() !== "";
+
+/**
+ * The step-count class the two hub bands already wear: `.pgrid-6` on cosmetic,
+ * `.pgrid-4` on implant. It is THE NUMBER OF STEPS, NOT THE NUMBER OF COLUMNS,
+ * and on those two pages the numbers disagree — cosmetic is six steps in three
+ * columns (cosmetic-dentistry.css:606), implant four in four
+ * (implant-dentistry.css:817). Deriving it from `columns` would emit
+ * `.pgrid-3` on cosmetic, which the page sheet does not style at all, and the
+ * band would fall out of its card to a single default column.
+ *
+ * The tracks come from `columns` instead, through the same `.cols-*` modifier
+ * the grid shape uses, so one field means one thing in both shapes.
+ */
+const stepCountClass = `pgrid-${rows.length}`;
+---
+
+<section class:list={["section", bandClass]} id={id} data-vs-reveal-batch>
+  <div class="wrap">
+    {
+      hasHead && (
+        <div class:list={["section-head", headClass]}>
+          {eyebrow && <span class:list={["eyebrow", eyebrowLight && "light"]}>{eyebrow}</span>}
+          {heading && (
+            <h2>
+              <Fragment set:html={heading} />
+            </h2>
+          )}
+          {body && <p>{body}</p>}
+        </div>
+      )
+    }
+
+    {/* Between the head and the numbered steps, which is where teeth-whitening
+        puts it. `<article>` and not `<div>`: the page's own markup uses
+        `<article>` here and `<div>` for the numbered cards, and these two are
+        genuinely self-contained prose while a step out of its sequence is not. */}
+    {
+      preRows.length > 0 && (
+        <div class="process-pre">
+          {preRows.map((c) => (
+            <article class="process-pre-card">
+              {c.heading && <h3>{c.heading}</h3>}
+              {c.body && <p>{c.body}</p>}
+            </article>
+          ))}
+        </div>
+      )
+    }
+
+    {/* THE THREE SHAPE BRANCHES ARE FLUSH — `}{`, NO NEWLINE, NO INDENT.
+        Astro emits the literal text between two expression containers, so a
+        blank line here would add whitespace inside `.wrap` on every band in the
+        library the moment this file gained a second branch. A `grid` row saved
+        before this batch has to come back byte-for-byte, and "byte" includes
+        the spaces. Same idiom as GalleryMarqueeBlock.astro:190 and
+        CandidacyLedgerBlock.astro:409. The gap ABOVE this comment and the gap
+        BELOW the `subFoot` branch are the two that already existed and are
+        deliberately left alone. And this comment container is itself flush
+        against the branch below it, for the same reason. */}{
+      shape === "grid" && rows.length > 0 && (
+        <div class:list={["process-grid", colsClass]}>
+          {rows.map((s) => (
+            <div class="process-card">
+              {s.tag && <span class="step-tag">{s.tag}</span>}
+              {s.num && <div class="num">{s.num}</div>}
+              {s.title && <h3>{s.title}</h3>}
+              {s.body && <p>{s.body}</p>}
+            </div>
+          ))}
+        </div>
+      )
+    }{
+      /* card — the hubs' bordered plate. `data-vs-reveal` on the plate and
+         `data-vs-reveal-batch` on the section are both in the hand-written
+         markup: the batch attribute staggers the band, the inner one reveals
+         the card as a single object. Reproduced, not chosen.
+
+         THE LABEL IS LAST HERE AND FIRST IN THE GRID ABOVE. That inversion is
+         the reason this shape exists rather than being a `columns` variant of
+         the grid. */
+      shape === "card" && rows.length > 0 && (
+        <div class="pgrid-card" data-vs-reveal>
+          <div class:list={["pgrid", stepCountClass, colsClass]}>
+            {rows.map((s) => (
+              <div class="pstep">
+                {s.num && <div class="pstep-num">{s.num}</div>}
+                {s.tagline && <span class="pstep-tagline">{s.tagline}</span>}
+                {s.title && <h3>{s.title}</h3>}
+                {s.body && <p>{s.body}</p>}
+                {s.tag && <span class="pstep-lbl">{s.tag}</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    }{
+      /* divided — /services/ #process, the three bordered columns.
+
+         The markup is ProcessStepGrid.astro + ProcessStep.astro inlined rather
+         than imported. Importing them would put their `is:global` stylesheets
+         into this block's module graph, and registry.ts is imported by every
+         one of the 48 routes — so two page-scale global sheets would ship on
+         all of them and move every page's asset hash. The CSS below is the same
+         declarations, scoped.
+
+         `.vs-pstep-tagline` sits BETWEEN the numeral and the h3, which is where
+         ProcessStep.astro puts it and nowhere a reader would guess. */
+      shape === "divided" && rows.length > 0 && (
+        <div class="vs-process-card" data-vs-reveal>
+          <div class="vs-process-grid">
+            {rows.map((s) => (
+              <div class="vs-pstep">
+                {s.num && <div class="vs-pstep-num">{s.num}</div>}
+                {s.tagline && <span class="vs-pstep-tagline">{s.tagline}</span>}
+                {s.title && <h3>{s.title}</h3>}
+                {s.body && <p>{s.body}</p>}
+                {s.tag && <span class="vs-pstep-lbl">{s.tag}</span>}
+              </div>
+            ))}
+          </div>
+        </div>
+      )
+    }{
+      /* The closing paragraph, outside the steps container in every shape —
+         cosmetic-dentistry/index.astro:541 puts it after `.pgrid-card` and
+         inside `.wrap`, which is exactly here.
+
+         set:html AND the token fill, both required. /referral-program/ stores
+         an inline `<a class="vs-link" href="{phone_href}">{phone}</a>` here;
+         escaped, a patient would read the tag and the class attribute as body
+         copy, and set:html alone would ship a link whose href is the literal
+         string "{phone_href}". Both live rows that reach this line are
+         markup-free prose (all-on-4-single-arch and cosmetic-dentistry's
+         sedation sentence), so the switch cannot change what they draw. */
+      hasSubFoot && (
+        <p class="process-outro" set:html={fillSiteTokens(subFoot)} />
+      )
+    }
+
+    {
+      hasCta && (
+        /* Always `.inline-cta.dark`: the card is a sage-deep plate on every one
+           of the eight bands it appears in, and the cream `.inline-cta` variant
+           in the page sheets is matched by no markup anywhere in src. The two
+           buttons are site data, identical on all eight, and deliberately not
+           editable — a per-page field for them is a per-page chance to publish
+           the wrong phone number. */
+        <div class="inline-cta dark">
+          <div class="ic-text" set:html={ctaText} />
+          <div class="ic-buttons">
+            <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">
+              Book Online
+            </Button>
+            <Button variant="ghost-light" href={phoneHref} hoverLabel="Tap to Dial">
+              Call {phoneLabel}
+            </Button>
+          </div>
+        </div>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  /* ---------- band shell ----------
+     `.section` owns its padding and has no margin at all, so this band cannot
+     collapse into whichever band an editor drags above or below it. Same rule
+     as FinalBand.astro. */
+  .section {
+    margin: 0;
+    padding: 110px 0;
+    background: var(--vs-paper);
+  }
+  .section.cream {
+    background: var(--vs-cream);
+  }
+  .section.dark {
+    background: var(--vs-sage-pale);
+  }
+  .section.sage {
+    background: var(--vs-sage);
+  }
+  .section.alt {
+    background: var(--vs-charcoal-green);
+  }
+
+  .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  .eyebrow {
+    font-family: var(--vs-font-body);
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+  }
+  .eyebrow.light {
+    color: var(--vs-eyebrow-on-sage);
+  }
+
+  /* h2 resolves to ink. The page sheet reaches that colour only through a
+     trailing override block whose comment says it works because of its file
+     position; a block that owns its cascade states the outcome once. */
+  h2 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    color: var(--vs-ink);
+    margin: 0;
+    line-height: 1.1;
+    letter-spacing: -0.022em;
+    font-size: clamp(32px, 4.2vw, 54px);
+  }
+  /* `:global()` because the `<em>` arrives through `set:html` and carries no
+     scope attribute — a plain `h2 em` compiles to `em[data-astro-cid]`, misses
+     it, and drops the accent colour from every heading on the site. */
+  h2 :global(em) {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+
+  p {
+    margin: 0;
+    color: var(--vs-ink-soft);
+  }
+
+  .section-head {
+    max-width: 760px;
+    margin: 0 auto 64px;
+    text-align: center;
+  }
+
+  /* ---------- the narrow heading column ----------
+     THE CLASS ALONE DOES NOT DELIVER THIS, which is why both rules restate the
+     whole box. The three sheets that use this house style put only the centring
+     in `.section-head.center` and leave the width, the grid and the bottom
+     margin on the bare `.section-head` — which TIES this file's own (0,2,0)
+     rule and loses to bundle order. Measured, not assumed: adding the class
+     moved the class attribute and left the column at 760px.
+
+     Both rules are (0,3,0), so they beat this file's own default outright, and
+     they match only rows that set `head_align` — the fifteen saved rows never
+     do. Values are identical across new-patients.css:88-95,
+     our-office.css:124-127 and referral-program.css:104-110; one pair of rules
+     covers all three pages.
+
+     `narrow` is the sheets' BARE `.section-head`: left-aligned. It is a real
+     value and not a synonym for the default, because on those pages a plain
+     `<div class="section-head">` is left-aligned at 60ch, where this file's
+     default is centred at 760px — a difference no class-level sweep can see. */
+  .section-head.center,
+  .section-head.narrow {
+    display: grid;
+    gap: 18px;
+    max-width: 60ch;
+    margin: 0 0 56px;
+  }
+  .section-head.center {
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+  }
+  .section-head.narrow {
+    text-align: left;
+  }
+  .section-head .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .section-head .eyebrow::before,
+  .section-head .eyebrow::after {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+  .section-head h2 {
+    margin: 22px 0 22px;
+  }
+  .section-head p {
+    font-size: 17px;
+    line-height: 1.7;
+    max-width: 60ch;
+    margin: 0 auto;
+  }
+
+  /* ---------- band inversions ----------
+     Scoped to `.section-head`. The step cards and the closing plate are both
+     surfaces of their own with colours of their own, so a band-wide inversion
+     would tie on specificity with `.process-card h3` once Astro appends the
+     scope attribute to both compounds, and the winner would be whichever rule
+     happened to come later in this file. Scoping removes the tie instead of
+     winning it — the same fault general-dentistry.css:1128 exists to patch. */
+  .section.alt .section-head h2,
+  .section.sage .section-head h2 {
+    color: #fff;
+  }
+  .section.alt .section-head h2 :global(em),
+  .section.sage .section-head h2 :global(em) {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .section.alt .section-head p,
+  .section.sage .section-head p {
+    color: rgba(255, 255, 255, 0.85);
+  }
+  .section.alt .section-head .eyebrow,
+  .section.sage .section-head .eyebrow {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .section.alt .section-head .eyebrow::before,
+  .section.alt .section-head .eyebrow::after,
+  .section.sage .section-head .eyebrow::before,
+  .section.sage .section-head .eyebrow::after {
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  .section.dark .section-head h2 {
+    color: var(--vs-ink);
+  }
+  .section.dark .section-head h2 :global(em) {
+    color: var(--vs-sage);
+  }
+  .section.dark .section-head p,
+  .section.dark .section-head .eyebrow {
+    color: var(--vs-ink-soft);
+  }
+  .section.dark .section-head .eyebrow::before,
+  .section.dark .section-head .eyebrow::after {
+    background: var(--vs-ink-soft);
+  }
+
+  /* ---------- the pre-card mini-grid ----------
+     Two wide prose cards above the numbered steps. Always 2-up: the shape is
+     the point of it, and it does not take `columns` — that select governs the
+     numbered grid, and letting one field drive two grids would mean a band
+     could not have four steps and two pre-cards, which is exactly the band this
+     was extracted from.
+
+     WHY THIS IS TWO SETS OF COLOURS AND `.process-card` IS ONE. The step card
+     is a heavy translucent-white plate that reads on all five bands, so it
+     needs no per-band variant. The pre-card cannot borrow that: the page sheet
+     gives it a 4%-white wash specifically so "the eye still settles on the 3
+     primary level cards", and 4% white over cream is nothing at all. The
+     subordinate relationship is what has to survive, not the literal alpha —
+     so on light bands it is a hairline outline with no fill, and on the two
+     dark bands it is the page's own values to the digit. Written against the
+     band VALUE rather than the class, per this file's rule, because
+     `.section.alt` is charcoal on one sibling sheet and cream on another. */
+  .process-pre {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+    margin-bottom: 28px;
+  }
+  .process-pre-card {
+    background: transparent;
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-lg);
+    padding: 26px 28px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    transition:
+      background 0.3s ease,
+      border-color 0.3s ease;
+  }
+  .process-pre-card:hover {
+    background: rgba(255, 255, 255, 0.45);
+    border-color: var(--vs-sage-soft);
+  }
+  .process-pre-card h3 {
+    font-family: var(--vs-font-display);
+    color: var(--vs-ink);
+    font-weight: 500;
+    font-size: 17px;
+    line-height: 1.3;
+    letter-spacing: -0.015em;
+    margin: 0;
+  }
+  .process-pre-card p {
+    color: var(--vs-ink-soft);
+    font-size: 14px;
+    line-height: 1.7;
+  }
+
+  /* The dark-band treatment, verbatim from teeth-whitening.css:323–345 — the
+     only band these cards ship on today. */
+  .section.alt .process-pre-card,
+  .section.sage .process-pre-card {
+    background: rgba(255, 255, 255, 0.04);
+    border-color: rgba(255, 255, 255, 0.14);
+  }
+  .section.alt .process-pre-card:hover,
+  .section.sage .process-pre-card:hover {
+    background: rgba(255, 255, 255, 0.07);
+    border-color: rgba(255, 255, 255, 0.24);
+  }
+  .section.alt .process-pre-card h3,
+  .section.sage .process-pre-card h3 {
+    color: #fff;
+  }
+  .section.alt .process-pre-card p,
+  .section.sage .process-pre-card p {
+    color: rgba(255, 255, 255, 0.78);
+  }
+
+  /* ---------- steps ---------- */
+  .process-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+  }
+  .process-grid.cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .process-grid.cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  /* Five across, and it is a scoped `.cols-5` rather than something left to the
+     page sheet on purpose. porcelain-veneers.css carries
+     `.pveneers .process-grid { repeat(5, 1fr) }` at (0,2,0), and this block's
+     scoped `.process-grid` compiles to `.process-grid[data-astro-cid-…]`, also
+     (0,2,0). Two rules at the same specificity are settled by whichever the
+     bundler emits last, and bundle order is not a thing a band's column count
+     should hang on — the failure is a five-step row silently drawing four wide
+     and one orphaned underneath, on a live page, decided by build order. This
+     compound is (0,3,0) and wins outright, so the band is deterministic whether
+     the page sheet is present, absent, or removed in the stylesheet pass.
+
+     Read off the compiled CSS rather than assumed, because it rests on
+     astro.config leaving `scopedStyleStrategy` at its default `attribute`. Set
+     that to `where` and the scope contributes no specificity at all: this
+     compound drops to (0,2,0), the tie with `.pveneers .process-grid` comes
+     back, and so does every other tie this file's scoped compounds currently
+     win against a page sheet. */
+  .process-grid.cols-5 {
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  /* THIS BREAKPOINT IS NOT COSMETIC — IT REPLACES ONE THE PAGE SHEET CAN NO
+     LONGER APPLY.
+
+     porcelain-veneers.css collapses its process grid to two columns at 1100px,
+     but that rule is `.pveneers .process-grid` at (0,2,0) and the scoped
+     `.process-grid.cols-5` above compiles to
+     `.process-grid[data-astro-cid-...].cols-5` at (0,3,0). A media query adds no
+     specificity, so without this rule the scoped five-track declaration wins
+     inside the page's own 1100px query and the band draws FIVE across between
+     992px and 1100px, where the page draws two today.
+
+     Five 1fr tracks is the only column count in this component that needs to
+     collapse before 991px, which is why no sibling `.cols-*` rule appears here:
+     at 1100px a five-track row is already under 200px per card. */
+  @media (max-width: 1100px) {
+    .process-grid.cols-5 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  /* The card is a translucent white plate, so it reads on every one of the five
+     bands without a per-band variant — which is why there is none here even
+     though the pilot only ever pairs it with sage-pale. */
+  .process-card {
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.7);
+    border-radius: var(--vs-r-lg);
+    padding: 28px 24px 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: relative;
+    min-height: 280px;
+    transition:
+      background 0.3s ease,
+      transform 0.3s ease,
+      border-color 0.3s ease;
+  }
+  .process-card:hover {
+    background: rgba(255, 255, 255, 0.75);
+    border-color: #fff;
+    transform: translateY(-3px);
+  }
+  .process-card .step-tag {
+    font-size: 10px;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: var(--vs-ink-soft);
+    font-weight: 500;
+  }
+  .process-card .num {
+    font-family: var(--vs-font-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: 52px;
+    color: var(--vs-sage);
+    line-height: 1;
+    letter-spacing: -0.02em;
+  }
+  .process-card h3 {
+    font-family: var(--vs-font-display);
+    color: var(--vs-ink);
+    font-weight: 500;
+    font-size: 19px;
+    line-height: 1.25;
+    letter-spacing: -0.015em;
+    margin: 0;
+  }
+  .process-card p {
+    color: var(--vs-ink-soft);
+    font-size: 14px;
+    line-height: 1.65;
+  }
+
+  /* ---------- the CARD shape ----------
+     One paper plate with hairline-divided cells inside it, from
+     cosmetic-dentistry.css:598-646 and implant-dentistry.css:810-879. The two
+     sheets are the same design twice with three measured disagreements, all
+     three reconciled below and named where they are reconciled.
+
+     `.pgrid` IS AN ADDED CLASS AND A NAMED CLASS-LEVEL DELTA. The hand-written
+     markup carries only `.pgrid-6` / `.pgrid-4` — the STEP COUNT — so hanging
+     this CSS off that class would mean enumerating every count an editor might
+     save, and an editor deleting one step would drop the band out of its own
+     stylesheet. `.pgrid` is the stable hook; the count class rides along
+     untouched so the page sheets that still style `.cdent .pgrid-6` keep
+     working during the overlap. Expect `pgrid` on both hub bands in the
+     vr-html diff, and `cols-3` on cosmetic's — deliberate, do not "fix". */
+  .pgrid-card {
+    background: var(--vs-paper);
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-xl);
+    padding: 14px;
+    box-shadow: var(--vs-shadow);
+    /* cosmetic-dentistry.css:604 states this and implant's copy does not. It
+       is stated here because this block owns its own spacing and inherits none
+       — the same rule the band shell follows. */
+    margin-top: 0;
+  }
+  .pgrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    /* The inner radius has to be the outer one minus the plate's padding or
+       the corner cells square off against a rounded plate. `overflow: hidden`
+       is what actually clips them. */
+    border-radius: calc(var(--vs-r-xl) - 14px);
+    overflow: hidden;
+  }
+  .pgrid.cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .pgrid.cols-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .pgrid.cols-5 {
+    grid-template-columns: repeat(5, 1fr);
+  }
+
+  .pstep {
+    padding: 30px 28px 28px;
+    border-right: 1px solid var(--vs-line);
+    /* RECONCILED DRIFT 1 OF 3: cosmetic-dentistry.css:617 gives every cell a
+       bottom hairline and implant-dentistry.css:824 gives none. Both sheets
+       are right about their own page and the difference is not a decision —
+       implant is four steps in four columns, one row, so a bottom hairline
+       would have had nothing to divide and nowhere to draw. Stating it here
+       and clearing it on the last row generalises both: at four columns over
+       four steps every cell IS in the last row, so implant comes out with no
+       bottom border, exactly as it ships today. */
+    border-bottom: 1px solid var(--vs-line);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: var(--vs-paper);
+    transition: background 0.3s ease;
+    /* RECONCILED DRIFT 2 OF 3: 280px on implant (implant-dentistry.css:832),
+       260px on cosmetic (cosmetic-dentistry.css:619). Keyed to the column
+       count rather than averaged, because the column count is what the two
+       sheets actually differ by: a four-across cell is wider, sets the same
+       words in fewer lines, and needs the larger floor to keep the row even.
+       Both pages therefore render at the height they render at today. */
+    min-height: 280px;
+    /* Nothing in either sheet positions a child against this, but both declare
+       it, and a card that stops being a containing block is the kind of change
+       that surfaces three components later. */
+    position: relative;
+  }
+  .pgrid.cols-3 > .pstep {
+    min-height: 260px;
+  }
+  .pstep:hover {
+    background: var(--vs-cream);
+  }
+
+  /* The edge rules — which cell ends a row, which cells sit in the last row —
+     live in the width ranges further down and NOT here. Reason in full at the
+     head of that group; the short version is that "which cell is last in its
+     row" changes at every breakpoint, so a rule stated once at the top has to
+     be un-stated twice below it, and un-stating an `:nth-last-child()` needs a
+     selector at least as specific as the one that stated it. Range-guarded
+     queries state each answer exactly once instead. */
+
+  .pstep-num {
+    font-family: var(--vs-font-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: 48px;
+    line-height: 0.9;
+    color: var(--vs-sage-soft);
+    letter-spacing: -0.02em;
+  }
+  /* No page sheet carries this: the card shape ships no tagline today. The
+     values are `.vs-pstep-tagline`'s from ProcessStep.astro, resized to this
+     shape's smaller numeral and heading (48/20 against divided's 56/21) so the
+     three lines keep their relative weight. */
+  .pstep-tagline {
+    font-family: var(--vs-font-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: 15px;
+    line-height: 1.3;
+    color: var(--vs-sage);
+  }
+  /* Stated, not inherited. cosmetic's process band is `.section.alt` —
+     charcoal — and cosmetic-dentistry.css:212-214 exists solely to pull this
+     text back off white-on-white after the band-wide inversion has already hit
+     it. This block's inversions are scoped to `.section-head` (see above), so
+     that patch has nothing to patch here. */
+  .pstep h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: 20px;
+    color: var(--vs-ink);
+    letter-spacing: -0.005em;
+    margin: 0;
+  }
+  .pstep p {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--vs-ink-soft);
+  }
+  .pstep-lbl {
+    font-size: 10.5px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--vs-muted);
+    font-weight: 500;
+    /* `margin-top: auto` is what pins the label to the bottom of the cell, and
+       it is the whole reason this shape prints the label last while the grid
+       prints it first. */
+    margin-top: auto;
+    padding-top: 14px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .pstep-lbl::before {
+    content: "";
+    width: 18px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+
+  /* RECONCILED DRIFT 3 OF 3: the two sheets stack at different widths.
+     cosmetic goes three-across straight to one column at 991px
+     (cosmetic-dentistry.css:941-944); implant halves four to two at 991px
+     (implant-dentistry.css:1400-1412) and only reaches one column at 640px
+     (implant-dentistry.css:1508-1518). Keyed to the column count again, so
+     both pages break where they break today rather than one of them inheriting
+     the other's breakpoints. The hairlines are re-stated at each step because
+     the cell that ends a row changes when the row length does. */
+  /* ---------- the card shape's width ranges ----------
+     EVERY EDGE RULE IS RANGE-GUARDED — `min-width` as well as `max-width` —
+     AND THAT IS NOT A STYLE PREFERENCE.
+
+     `.pstep` carries a hairline on its right and its bottom, and each width
+     then clears the ones that would draw on the outside of the plate. Which
+     cells those are depends on how many columns are showing, so the answer
+     changes twice on the way down. State it once at the top with
+     `:nth-last-child(-n + 4)` and a phone-width one-column stack inherits it:
+     four cells, all four inside "the last four", none of them with the
+     divider they now need. Un-stating that needs a selector at least as heavy
+     as `.pgrid:not(…):not(…):not(…) > .pstep:nth-last-child(-n + 4)`, in every
+     later block, for every count — a specificity ladder that one careless
+     selector silently falls off, on a live client page, as a missing hairline
+     nobody diffs for.
+
+     A range says each answer once and lets the others not apply at all.
+
+     The three ranges are the union of the two source sheets' own, kept apart
+     because the two pages break at different widths (drift 3, named above):
+       >= 992    every band at its authored column count
+       641-991   four- and five-across halve to two; three-across has already
+                 stacked
+       <= 640    one column, everywhere
+     `.cols-3` alone stacks at 991 rather than 640, which is
+     cosmetic-dentistry.css:941-944 exactly. */
+  @media (min-width: 992px) {
+    .pgrid:not(.cols-2):not(.cols-3):not(.cols-5) > .pstep:nth-child(4n) {
+      border-right: 0;
+    }
+    .pgrid:not(.cols-2):not(.cols-3):not(.cols-5) > .pstep:nth-last-child(-n + 4) {
+      border-bottom: 0;
+    }
+    .pgrid.cols-3 > .pstep:nth-child(3n) {
+      border-right: 0;
+    }
+    .pgrid.cols-3 > .pstep:nth-last-child(-n + 3) {
+      border-bottom: 0;
+    }
+    .pgrid.cols-5 > .pstep:nth-child(5n) {
+      border-right: 0;
+    }
+    .pgrid.cols-5 > .pstep:nth-last-child(-n + 5) {
+      border-bottom: 0;
+    }
+  }
+
+  /* Two across from 641px up: the four- and five-across bands in the middle
+     range, and `.cols-2` at every width above the stack. One pair of edge
+     rules serves all three because in this range they are all two columns. */
+  @media (min-width: 641px) {
+    .pgrid.cols-2 > .pstep:nth-child(2n) {
+      border-right: 0;
+    }
+    .pgrid.cols-2 > .pstep:nth-last-child(-n + 2) {
+      border-bottom: 0;
+    }
+  }
+  @media (min-width: 641px) and (max-width: 991px) {
+    .pgrid:not(.cols-2):not(.cols-3):not(.cols-5),
+    .pgrid.cols-5 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    .pgrid:not(.cols-2):not(.cols-3):not(.cols-5) > .pstep:nth-child(2n),
+    .pgrid.cols-5 > .pstep:nth-child(2n) {
+      border-right: 0;
+    }
+    .pgrid:not(.cols-2):not(.cols-3):not(.cols-5) > .pstep:nth-last-child(-n + 2),
+    .pgrid.cols-5 > .pstep:nth-last-child(-n + 2) {
+      border-bottom: 0;
+    }
+  }
+
+  /* Three across stacks a full breakpoint earlier than the rest — three
+     columns of a six-step band is already a ~24ch measure at 991px, which is
+     the call cosmetic-dentistry.css:941 makes and the reason its band does not
+     wait for 640. `min-height` goes to 0 in the same breath: a 260px floor
+     under a one-column stack is six tall boxes of white space. */
+  @media (max-width: 991px) {
+    .pgrid.cols-3 {
+      grid-template-columns: 1fr;
+    }
+    .pgrid.cols-3 > .pstep {
+      border-right: 0;
+      min-height: 0;
+    }
+    .pgrid.cols-3 > .pstep:last-child {
+      border-bottom: 0;
+    }
+  }
+
+  /* One column, everything.
+     THE MODIFIERS ARE ENUMERATED BESIDE THE BASE for the reason the grid
+     shape's 780px block already documents: `.pgrid` scoped is (0,2,0) and
+     `.pgrid.cols-5` is (0,3,0), a media query adds no specificity, and a
+     modifier left off this list keeps its desktop track count onto a phone. */
+  @media (max-width: 640px) {
+    .pgrid,
+    .pgrid.cols-2,
+    .pgrid.cols-5 {
+      grid-template-columns: 1fr;
+    }
+    .pgrid > .pstep {
+      border-right: 0;
+      min-height: 0;
+    }
+    .pgrid > .pstep:last-child {
+      border-bottom: 0;
+    }
+  }
+
+  /* ---------- the DIVIDED shape ----------
+     Copied declaration-for-declaration from src/components/ProcessStepGrid.astro
+     and src/components/ProcessStep.astro, which is what /services/ #process
+     draws through today. Copied and not imported: both of those components
+     publish their CSS with `is:global`, and registry.ts reaches all 48 routes,
+     so importing them would ship two page-scale global sheets site-wide and
+     move every page's asset hash. Class names are theirs to the letter so the
+     shape stays one shape while both spellings exist.
+
+     Three columns, fixed. `columns` does not reach this shape — see the prop. */
+  .vs-process-card {
+    background: var(--vs-paper);
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-xl);
+    padding: 14px;
+    box-shadow: var(--vs-shadow);
+  }
+  .vs-process-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 0;
+    border-radius: calc(var(--vs-r-xl) - 14px);
+    overflow: hidden;
+  }
+  .vs-pstep {
+    padding: 36px 32px;
+    border-right: 1px solid var(--vs-line);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    background: var(--vs-paper);
+    transition: background 0.3s ease;
+  }
+  /* `:last-child` and not `:nth-child(3n)` because this grid is three columns
+     at every width and a fourth step would wrap — which the shared component
+     does not handle either. A divided band is three steps; more than three is
+     a `card` band. */
+  .vs-process-grid > .vs-pstep:last-child {
+    border-right: 0;
+  }
+  .vs-pstep:hover {
+    background: var(--vs-cream);
+  }
+  .vs-pstep-num {
+    font-family: var(--vs-font-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: 56px;
+    color: var(--vs-sage-soft);
+    line-height: 0.9;
+    letter-spacing: -0.02em;
+  }
+  .vs-pstep-tagline {
+    font-family: var(--vs-font-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: 16px;
+    color: var(--vs-sage);
+    line-height: 1.3;
+  }
+  .vs-pstep h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: 21px;
+    color: var(--vs-ink);
+    letter-spacing: -0.005em;
+    margin: 0;
+  }
+  .vs-pstep p {
+    font-size: 14px;
+    line-height: 1.7;
+    color: var(--vs-ink-soft);
+  }
+  .vs-pstep-lbl {
+    font-size: 10.5px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--vs-muted);
+    margin-top: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding-top: 16px;
+  }
+  .vs-pstep-lbl::before {
+    content: "";
+    width: 18px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+  @media (max-width: 991px) {
+    .vs-process-grid {
+      grid-template-columns: 1fr;
+    }
+    .vs-process-grid > .vs-pstep {
+      border-right: 0;
+      border-bottom: 1px solid var(--vs-line);
+    }
+    .vs-process-grid > .vs-pstep:last-child {
+      border-bottom: 0;
+    }
+  }
+
+  /* ---------- the closing paragraph ----------
+     cosmetic-dentistry.css:647-651, with the alt-band colour from :1008. The
+     colour is written against the band VALUE rather than the class, per this
+     file's rule, and it is needed here where it was not needed on the step
+     cards: the outro is bare text on the band itself, not text on a paper
+     plate, so it is the one element in this shape the band can reach. */
+  .process-outro {
+    font-size: 15.5px;
+    line-height: 1.7;
+    color: var(--vs-ink-soft);
+    max-width: 60ch;
+    margin: 40px auto 0;
+    text-align: center;
+  }
+  .section.alt .process-outro,
+  .section.sage .process-outro {
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  /* ---------- closing plate ---------- */
+  .inline-cta {
+    margin-top: 44px;
+    background: var(--vs-cream);
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-lg);
+    padding: 28px 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 30px;
+    flex-wrap: wrap;
+  }
+  .inline-cta .ic-text {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    font-size: clamp(18px, 1.8vw, 22px);
+    color: var(--vs-ink);
+    letter-spacing: -0.005em;
+    line-height: 1.35;
+    max-width: 46ch;
+  }
+  /* `:global()` for the same reason as the heading: the sentence is injected
+     with `set:html`, so its `<em>` and `<strong>` carry no scope attribute. */
+  .inline-cta .ic-text :global(em) {
+    font-style: italic;
+    color: var(--vs-sage);
+    font-weight: 300;
+  }
+  .inline-cta .ic-buttons {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .inline-cta.dark {
+    background: var(--vs-sage-deep);
+    border-color: var(--vs-sage-deep);
+  }
+  .inline-cta.dark .ic-text {
+    color: #fff;
+  }
+  .inline-cta.dark .ic-text :global(em) {
+    color: var(--vs-eyebrow-on-sage);
+  }
+
+  /* Base and breakpoint rules live together, unlike the page sheets where 24
+     files keep a trailing "responsive" section physically separated from what
+     it modifies. */
+  @media (max-width: 991px) {
+    /* `.cols-5` is named here for the same reason `.cols-3` is: the base
+       `.process-grid` in this block is (0,2,0) once scoped, the compound is
+       (0,3,0), and a media query does not add specificity — so a compound left
+       out of this list keeps its desktop track count all the way down and puts
+       five cards in a phone-width row. */
+    .process-grid,
+    .process-grid.cols-3,
+    .process-grid.cols-5 {
+      grid-template-columns: repeat(2, 1fr);
+    }
+    /* The pre-cards stack a breakpoint earlier than the numbered ones: they
+       hold a full paragraph each, so two of them in a 991px viewport give a
+       ~28ch measure. teeth-whitening.css:735 does the same. */
+    .process-pre {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  @media (max-width: 780px) {
+    .section {
+      padding: 70px 0;
+    }
+    .wrap {
+      padding: 0 22px;
+    }
+    .process-grid,
+    .process-grid.cols-2,
+    .process-grid.cols-3,
+    .process-grid.cols-5 {
+      grid-template-columns: 1fr;
+    }
+    .inline-cta {
+      padding: 24px 22px;
+    }
+  }
+
+  /* The card lift and the pre-card wash are the only motion in this band, and
+     both are decorative. `.pstep` and `.vs-pstep` join them: both fade their
+     background on hover, and implant-dentistry.css:1538 already kills `.pstep`
+     here — dropping it in the move would be a reduced-motion regression that
+     no HTML diff can see. */
+  @media (prefers-reduced-motion: reduce) {
+    .process-card,
+    .process-pre-card,
+    .pstep,
+    .vs-pstep {
+      transition: none !important;
+    }
+  }
+</style>

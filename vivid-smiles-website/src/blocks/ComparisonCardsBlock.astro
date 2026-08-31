@@ -1,0 +1,1254 @@
+---
+/**
+ * ComparisonCardsBlock — the `comparison_cards` layout: this against that.
+ *
+ * Extracted from the `compare` band of
+ * src/pages/cosmetic-dentistry/clear-aligners.astro:290-336, not designed anew.
+ * The markup below is that band's markup — same elements, same order, same
+ * class names — because the phase is verified by diffing built HTML and a
+ * different wrapper changes the page the moment it is backfilled
+ * (docs/PAGE-BLOCKS.md 3.3).
+ *
+ * The same `.compare` / `.compare-card` shell is inline on nine templates
+ * today (both cosmetic and implant families), so this block lands ready-made
+ * on the whole Phase 3 list.
+ *
+ * ── The CTA row: field-driven since the census batch; the fallback IS the
+ *    contract ──────────────────────────────────────────────────────────────
+ * The band ends with a `.cta-row`: two Buttons and a `.cta-note`. The layout
+ * now carries the seven cta fields (`cta_label`…`cta_note`, the
+ * block_cta_fields factory in vs-content-model.php) because the row is page
+ * copy the client must be able to reword. But eleven back-filled routes were
+ * verified byte-for-byte against a LITERAL row — Free Virtual Consult →
+ * #consult hover "Get a Video"; Read FAQ → #faq hover "See Answers"; note
+ * "No commitment · Personal video reply" — and every one of their saved rows
+ * has all seven fields blank. So while BOTH labels are blank this component
+ * draws exactly that literal row: never no row, never a partial one. One
+ * non-blank label switches the WHOLE row to the fields — the literal pair
+ * never mixes with an edited one, because half-and-half is the "both sides
+ * assumed the other had it" failure mode this census batch exists to close.
+ *
+ * HREF POLICY: a cta href field stores an in-page anchor ("#consult"), a site
+ * path ("/smile-gallery/"), or one of the tokens `book` | `phone` | `map`,
+ * resolved below from src/data/contact.ts — never a pasted booking/tel/maps
+ * URL, which goes stale the day the practice changes numbers or booking
+ * vendors. Hover labels: a blank `cta_hover*` falls back to the
+ * per-destination table; an unknown destination falls back to the visible
+ * label (Button's own `hoverLabel ?? slot`), so a typo'd token degrades to a
+ * working button instead of a wrong promise.
+ *
+ * PHASE 3 CAVEAT, still true with fields: `smile-makeover.astro:288` and
+ * `full-mouth-rehabilitation.astro:233` reuse this same `.compare` shell for
+ * their `options` band and draw NO cta-row, and blank fields here mean the
+ * FALLBACK row, not no row. The fix remains a `show_cta` boolean on the PHP
+ * layout, read here — not a heuristic on the anchor, which an editor can
+ * rename.
+ *
+ * `callout_heading` + `callout_body` draw the `.safety-callout` aside that sits
+ * between the cards and the CTA row on teeth-whitening.astro:495-509. It is a
+ * field pair rather than a page-specific band because the copy it carries — the
+ * pro-vs-DIY safety argument — is the same argument the cards above it make,
+ * which is why that page put it inside the compare band instead of giving it a
+ * section. Both fields are blank on the two pages this block renders today and
+ * blank draws no aside at all, so adding them changes nothing until a page is
+ * backfilled with them.
+ *
+ * `altColumns` + `altCards` draw the `.alternatives-grid` of `.config-card`s
+ * that follows the comparison on all-on-4-single-arch.astro:611-620 and
+ * full-mouth-dental-implants.astro:577-586, and that OPENS bone-grafting's
+ * `#types` at bone-grafting.astro:527-536. A SECOND grid beside `tiers`, never a
+ * replacement for it: `tiers` draws the wide `.compare-card`s with their bullet
+ * lists, these are the smaller cards under them, and folding them into `tiers`
+ * would give them bullets they do not have and an `<h3>` where the markup has
+ * `<h4>`.
+ *
+ * WHERE IT SITS, AND WHY IT IS NOT INSIDE THE ASIDE. On the two `#compare`
+ * pages the grid's sub-head is a `.compare-sub-head` — an eyebrow, an `<h3>` and
+ * a paragraph — and the `<h3>` and paragraph are exactly what `calloutHeading` /
+ * `calloutBody` already carry, which is why the contract selects `altCards`
+ * immediately after `callout_body`. So the grid is drawn immediately after the
+ * `.safety-callout` aside and before the CTA row, in that DOM order.
+ *
+ * It is a SIBLING of the aside rather than a child of it, and that is a
+ * deliberate departure from the batch brief's wording, because nesting has two
+ * concrete failure modes:
+ *   1. `.safety-callout` is `max-width: 920px` with `36px 40px` of padding
+ *      (teeth-whitening.css:425-439, restated below). The grid is full
+ *      `.wrap` width — 1240px less 40px gutters — on all three source pages, so
+ *      nesting it would visibly narrow every card and paint the row cream.
+ *   2. bone-grafting's `#types` grid has NO sub-head at all (its section head
+ *      does that job), so `calloutHeading`/`calloutBody` are blank there and
+ *      `hasCallout` is false. A grid nested inside the aside would render
+ *      nothing at all on that page — the exact loss this batch exists to close.
+ * As a sibling, all three pages come out right with one code path: aside then
+ * grid where there is a sub-head, grid alone where there is not.
+ *
+ * ADDITIVE. No row saved before this batch holds an `altCards` row, so the list
+ * is empty and the `.alternatives-grid` WRAPPER IS INSIDE THE LENGTH TEST, not
+ * around it — an empty grid div is a visible gap on eleven bands nobody edited.
+ *
+ * BOTH GAPS THE PREVIOUS REVISION RECORDED HERE ARE NOW CLOSED, by the census
+ * batch's contract rather than by reinterpreting an existing field:
+ *
+ * `glossaryEyebrow`/`glossaryHeading`/`glossaryBody` + the `glossary` repeater
+ * carry bone-grafting `#types`'s second shape below the grid — the
+ * `.materials-block`: its own eyebrow / `<h3>` / `<p>` head beside a
+ * `<dl class="materials-list">` of `<dt><span class="tag"><span class="label">`
+ * over `<dd>` rows (bone-grafting.astro:548-565). Its own head trio and its
+ * own repeater rather than a third reading of the callout pair, because that
+ * band needs the callout pair AND this head at once, and `altCards` is spent
+ * on the same band's `.alternatives-grid`. Drawn AFTER the grid and before
+ * the CTA row — the source page's DOM order. `glossary` mints
+ * PageFieldsBlocksGlossary; checked by enumeration in the PHP, claimed
+ * nowhere else.
+ *
+ * `calloutEyebrow` closes the `.compare-sub-head` EYEBROW gap
+ * ("Alternatives", all-on-4-single-arch.astro:607 and
+ * full-mouth-dental-implants.astro:573): it opens the `.safety-callout`
+ * aside, above the `<h3>` the callout pair already carries. The aside never
+ * had one, so blank draws no element and every saved aside is unchanged.
+ *
+ * `bullets` renders the `<ul>` variant the implant pages use
+ * (implant-dentistry.css:734-762). The pilot's three cards have no bullets, so
+ * on the pilot this branch never fires — it is here so Phase 3 does not have to
+ * reopen the component.
+ *
+ * `body2` (PHP `body_2`) is a tier's closing paragraph AFTER the bullets:
+ * smile-makeover's featured veneers card runs body, bullet list, then a second
+ * full paragraph (smile-makeover.astro:489-492), and one body slot dropped its
+ * 26 words. HTML-bearing — same treatment as media_split's `body_2` — and
+ * emitted flushed against the bullet expression so a card saved without one is
+ * byte-identical.
+ *
+ * NOTHING HERE THROWS. An editor triggers deploys and never sees the output
+ * (cms/mu-plugins/vs-deploy.php:142-158), so every field is read as if it might
+ * be missing, blank or the wrong type. Same rule as PageBlocks.astro.
+ *
+ * Spec: docs/PAGE-BLOCKS.md 1.2, 1.3 (Wave A), 2.5, 3.3.
+ */
+import Button from "../components/Button.astro";
+import { resolveCtaHref, resolveCtaHover } from "./cta";
+
+/**
+ * The five bands, mapped to the modifier this block writes on its own section.
+ *
+ * Read this map, not an ancestor class. `.section.alt` is charcoal green on
+ * clear-aligners.css:240 and cream on teeth-whitening.css:237 — Fact 4 — so a
+ * block that inherits its band is wrong on at least one page the moment a
+ * section is reordered, and the eyebrow rules below would paint themselves the
+ * colour of their own background (R2).
+ *
+ * `alt` and `dark` are kept as the modifier *names* for charcoal and pale sage
+ * because the acceptance test for this phase is that the block's markup matches
+ * the band it replaces, class attribute included. They no longer mean what the
+ * page sheets mean by them: the meaning is the four rules in <style> below,
+ * which this block carries onto any page it is dropped on.
+ *
+ * `paper` deliberately maps to no modifier at all — the pilot emits
+ * `class="section"` for a paper band, so adding one would be the diff.
+ */
+const BAND_MODIFIER: Record<string, string | null> = {
+  paper: null,
+  cream: "cream",
+  "sage-pale": "dark",
+  sage: "sage",
+  charcoal: "alt",
+};
+
+/** One line of a card's bullet list. ACF has no list-of-strings, so it is a
+ *  repeater with `lead` (the bolded lead-in, trailing em dash stored in the
+ *  value) and `item` sub-fields (vs-content-model.php). */
+interface BulletRow {
+  lead?: string | null;
+  item?: string | null;
+}
+
+interface CardRow {
+  tag?: string | null;
+  title?: string | null;
+  body?: string | null;
+  bullets?: BulletRow[] | null;
+  /** The paragraph AFTER the bullets — see the header comment. */
+  body2?: string | null;
+  ribbon?: string | null;
+  featured?: boolean | null;
+}
+
+/**
+ * One card of the `.alternatives-grid` under the comparison.
+ *
+ * Three pieces of copy and no more. Read off the markup rather than the class
+ * names: `.config-card` is `<span class="tag">` + `<h4>` + `<p>` identically on
+ * all-on-4-single-arch.astro:614-618, full-mouth-dental-implants.astro:580-584
+ * and bone-grafting.astro:530-534. No `href`, no `ribbon`, no `featured` —
+ * nothing in any of those grids is a link or carries a flash.
+ *
+ * `body` is optional because the twin shape on the media_split side
+ * (sinus-lift's `.cause-card`) has no `<p>` at all, and a blank body must draw
+ * NO paragraph rather than an empty one.
+ */
+interface AltCardRow {
+  tag?: string | null;
+  title?: string | null;
+  body?: string | null;
+}
+
+interface Props {
+  /** The DOM id, already deduplicated by PageBlocks.astro. Absent when blank. */
+  id?: string;
+  /** Passed by PageBlocks alongside `id`; unused here, accepted so the spread
+   *  of the whole block row does not land in the rest props of a typed
+   *  component that never declared it. */
+  anchor?: string;
+  band?: string | null;
+  eyebrow?: string | null;
+  /** May contain `<em>` and nothing else (Fact 3), so it is rendered set:html. */
+  heading?: string | null;
+  body?: string | null;
+  /** Named `tiers` in PHP, not `cards`: card_grid.cards already mints
+   *  PageFieldsBlocksCards, and a second repeater of that name merges into it. */
+  tiers?: CardRow[] | null;
+  /**
+   * The small label the `.safety-callout` aside opens with, above the `<h3>` —
+   * the `.compare-sub-head` eyebrow ("Alternatives") on both `#compare` pages
+   * (all-on-4-single-arch.astro:607, full-mouth-dental-implants.astro:573).
+   * Blank draws no element: the aside never had one before this batch.
+   */
+  calloutEyebrow?: string | null;
+  /**
+   * The `.safety-callout` aside that sits between the cards and the CTA row —
+   * its `<h3>`. Reproduces teeth-whitening.astro:495-509, which hosts the "Is
+   * Professional Teeth Whitening Safe" copy inside the compare band rather than
+   * inventing a section for it. Blank on the pilot, and blank must draw nothing.
+   */
+  calloutHeading?: string | null;
+  /**
+   * The aside's prose. HTML-bearing on purpose: the real copy is two paragraphs
+   * and the corpus puts `<a class="vs-link">` and `<em>` inside this kind of
+   * body, so it is rendered set:html rather than as text. See the paragraph
+   * split below for how two paragraphs survive a plain textarea.
+   */
+  calloutBody?: string | null;
+  /**
+   * How many `altCards` sit across a row on a desktop screen: "2", "3" or "4".
+   *
+   * NULL MEANS THREE, and null is what every one of the eleven back-filled
+   * routes returns — ACF writes its "3" default only when an editor ADDS a row,
+   * never onto rows saved before the field existed. A component that read null
+   * as "unset" and fell back to one column would collapse a grid that has
+   * always been three across on all-on-4-single-arch.css:530-531 and
+   * bone-grafting.css:530-531. Two is a real choice, not a guess:
+   * full-mouth-dental-implants.css:537-541 overrides to two because that page
+   * has two alternatives.
+   */
+  altColumns?: string | null;
+  /**
+   * The smaller cards under the comparison — the alternatives, the material
+   * sources, the other options. Named `altCards`, not `subCards`, because a
+   * repeater's GraphQL type is its field name appended to the parent's prefix
+   * and the layout contributes nothing: media_split's grid already mints
+   * PageFieldsBlocksSubCards, and a second repeater of that name would merge
+   * into it and silently stop one side's sub-fields being queryable.
+   */
+  altCards?: (AltCardRow | null)[] | null;
+  /**
+   * The `.materials-block` head, drawn AFTER the alternatives grid — see the
+   * header comment for why this is its own trio and not the callout pair read
+   * a second time. All three blank plus an empty `glossary` draws nothing.
+   */
+  glossaryEyebrow?: string | null;
+  glossaryHeading?: string | null;
+  glossaryBody?: string | null;
+  /**
+   * The `<dl class="materials-list">` rows. The same {tag, title, body} triple
+   * as `AltCardRow` — reused on purpose, because the two shapes carry the same
+   * three pieces of copy and diverge only in the wrapper that draws them — but
+   * a separate PHP repeater (`glossary`, minting PageFieldsBlocksGlossary):
+   * bone-grafting's `#types` needs BOTH at once, so one repeater cannot serve.
+   */
+  glossary?: (AltCardRow | null)[] | null;
+  /**
+   * The seven CTA fields — see the header comment for the fallback contract
+   * and the href policy. All seven are blank on every row saved before this
+   * batch, which is exactly the state that draws the literal row.
+   */
+  ctaLabel?: string | null;
+  ctaHref?: string | null;
+  ctaHover?: string | null;
+  ctaLabel2?: string | null;
+  ctaHref2?: string | null;
+  ctaHover2?: string | null;
+  ctaNote?: string | null;
+  /**
+   * Draw NO closing row at all.
+   *
+   * BLANK LABELS ARE NOT THIS. With both label fields blank the component
+   * falls back to its literal row — that fallback is deliberate and four
+   * lossless routes depend on it — so blankness cannot mean "no row". A band
+   * that genuinely ends at the cards needs to say so, and implant's #compare
+   * is one: the template stops at the grid, and without this flag the
+   * migration ADDS two buttons and a note to a live page.
+   *
+   * A true_false, so it arrives boolean; tested for truthiness because an
+   * importer may write 1 and an unsaved field returns null.
+   */
+  ctaHide?: boolean | string | number | null;
+}
+
+const {
+  id,
+  band,
+  eyebrow,
+  heading,
+  body,
+  tiers,
+  calloutEyebrow,
+  calloutHeading,
+  calloutBody,
+  altColumns,
+  altCards,
+  glossaryEyebrow,
+  glossaryHeading,
+  glossaryBody,
+  glossary,
+  ctaLabel,
+  ctaHref,
+  ctaHover,
+  ctaLabel2,
+  ctaHref2,
+  ctaHover2,
+  ctaNote,
+  ctaHide,
+} = Astro.props;
+
+// `?? null` rather than a default value: an unknown band from a future PHP
+// choice must fall through to the paper shell rather than emit a class with no
+// rule behind it.
+const bandKey = band ?? "paper";
+const bandModifier = BAND_MODIFIER[bandKey] ?? null;
+
+/** A solid button on a dark band has to be the light variant, not the sage one.
+ *  Same test as FaqBlock.astro:148, so the two bands agree on any page. */
+const isDarkBand = bandKey === "charcoal" || bandKey === "sage";
+
+const cardRows = Array.isArray(tiers) ? tiers : [];
+
+/** Trim once, here, so every `{x && …}` guard below is a test for real content
+ *  rather than for a field an editor left as a single space. */
+const text = (value: unknown): string =>
+  typeof value === "string" ? value.trim() : "";
+
+const eyebrowText = text(eyebrow);
+const headingHtml = text(heading);
+const bodyText = text(body);
+
+/* ── The safety callout ───────────────────────────────────────────────────────
+   Both halves are new and both default to empty, so everything below has to
+   collapse to nothing at all — not to an empty <aside>, not to a bare <h3>.
+   The two live branch pages render this band today with both fields blank and
+   the phase is verified by diffing built HTML, so a wrapper that survives an
+   empty field is a failed phase (docs/PAGE-BLOCKS.md 3.3). */
+const calloutEyebrowText = text(calloutEyebrow);
+const calloutHeadingText = text(calloutHeading);
+const calloutBodyHtml = text(calloutBody);
+
+/* The field is a textarea, so the expected value is inline markup and the `<p>`
+   elements below are this component's. Same guard as MediaSplitBlock's `body_2`
+   (MediaSplitBlock.astro:243-251): if wp-admin ever converts this to a wysiwyg,
+   ACF's `wpautop` returns `<p>…</p>` already wrapped, and nesting that inside
+   another `<p>` produces invalid markup whose parser recovery leaves a stray
+   empty paragraph in the band. */
+const calloutBodyIsBlock = /^<(p|div|ul|ol|blockquote)[\s>]/i.test(calloutBodyHtml);
+
+/* The copy this replaces is TWO paragraphs, and `.safety-callout p + p` exists
+   only to space them. Splitting on the blank line an editor already types is
+   what lets a plain textarea reproduce that markup; without it the callout
+   collapses to one paragraph, the `p + p` rule never fires, and the diff shows
+   a missing element. Blank-line-separated, not newline-separated: a soft wrap
+   inside a sentence must not become a paragraph break. */
+const calloutParagraphs = calloutBodyIsBlock
+  ? []
+  : calloutBodyHtml
+      .split(/\n\s*\n/)
+      .map((part) => part.trim())
+      .filter((part) => part !== "");
+
+const hasCallout =
+  calloutEyebrowText !== "" ||
+  calloutHeadingText !== "" ||
+  calloutBodyHtml !== "";
+
+/* Derived from the anchor rather than hard-coded, because PageBlocks has
+   already deduplicated the anchor (PageBlocks.astro:64-85) and two
+   comparison_cards rows on one page would otherwise both emit
+   id="safety-callout-h3" — a duplicate id that sends the accessible name of
+   the second aside to the first one's heading. Nothing links to this value:
+   its only consumer is the `aria-labelledby` on the element that owns it.
+   `undefined` when there is no heading, so the aside never points at an id
+   that was never written. */
+const calloutHeadingId =
+  calloutHeadingText === ""
+    ? undefined
+    : id
+      ? `${id}-safety-callout`
+      : "safety-callout-h3";
+
+/* ── The alternatives grid ────────────────────────────────────────────────────
+   Trimmed and emptied-out here so the single length test below is a test for
+   real cards. A row an editor added and then left entirely blank must not draw
+   an empty `.config-card`, and — more to the point — must not be the one row
+   that makes `.alternatives-grid` render on a band that has no cards. */
+const altCardRows = (Array.isArray(altCards) ? altCards : [])
+  .map((row) => ({
+    tag: text(row?.tag),
+    title: text(row?.title),
+    body: text(row?.body),
+  }))
+  .filter((row) => row.tag !== "" || row.title !== "" || row.body !== "");
+
+/* A class rather than an inline `grid-template-columns`, because the count has
+   to change again at the mobile breakpoint and an inline style would outrank
+   the media query. Same three choices the PHP select offers
+   (vs-content-model.php:2337-2352). */
+const ALT_COLUMN_CLASS: Record<string, string> = {
+  "2": "cols-2",
+  "3": "cols-3",
+  "4": "cols-4",
+};
+
+/* `?? "cols-3"` is the null case spelled out, not a defensive shrug: see
+   `altColumns` above. An unrecognised future choice lands here too, which is
+   the right place for it — three across is the shape four of the five source
+   grids draw. */
+const altColumnClass = ALT_COLUMN_CLASS[text(altColumns)] ?? "cols-3";
+
+/* ── The materials glossary ───────────────────────────────────────────────────
+   Same trim-and-drop discipline as `altCardRows` above, and for the same
+   reason: one blank-but-saved row must not be the thing that makes the whole
+   `.materials-block` render on a band that never had one. */
+const glossaryRows = (Array.isArray(glossary) ? glossary : [])
+  .map((row) => ({
+    tag: text(row?.tag),
+    title: text(row?.title),
+    body: text(row?.body),
+  }))
+  .filter((row) => row.tag !== "" || row.title !== "" || row.body !== "");
+
+const glossaryEyebrowText = text(glossaryEyebrow);
+const glossaryHeadingText = text(glossaryHeading);
+const glossaryBodyText = text(glossaryBody);
+
+const hasGlossaryHead =
+  glossaryEyebrowText !== "" ||
+  glossaryHeadingText !== "" ||
+  glossaryBodyText !== "";
+
+/* Head OR rows, not head AND rows: an editor who has typed the heading but not
+   yet added rows must see the heading on the page — a shape that silently
+   requires both halves before showing either is the bone-grafting `#what`
+   failure (55 words lost to a pair each side assumed the other rendered). */
+const hasGlossary = hasGlossaryHead || glossaryRows.length > 0;
+
+/* ── The CTA row ──────────────────────────────────────────────────────────────
+   Field-driven with the literal fallback — the full contract is in the header
+   comment. Everything below computes three values (button one, button two, the
+   note) so the template has a single rendering path: the fallback is DATA, not
+   a second copy of the markup that could drift from the first.
+
+   In the template the two button expressions sit on their OWN lines, breaking
+   with the `}{` flush idiom used everywhere else in this file: in fallback
+   mode both are truthy, and the newline-and-indent text node between them is
+   exactly the text node the old literal template carried between its two
+   <Button>s — flushing them would DELETE a byte the eleven verified routes
+   render today. The flush idiom exists to keep an EMPTY expression from
+   adding bytes; here the expressions are never both empty. */
+
+/* Token map, hover table and both resolvers now live in ./cta.ts — one copy
+   for every block that draws a CTA row. The literal-fallback logic below is
+   this block's own and stays here. */
+
+const ctaLabelText = text(ctaLabel);
+const ctaLabel2Text = text(ctaLabel2);
+
+/* ONE label switches the whole row to the fields (never literal + field mixed);
+   BOTH blank is the literal row, byte-for-byte — invariant 2 of the census
+   batch, eleven live routes depend on it. */
+const ctaIsFieldDriven = ctaLabelText !== "" || ctaLabel2Text !== "";
+
+/* See the `ctaHide` prop. Truthiness, not === true: an unsaved true_false comes
+   back null and an importer may write 1. */
+const hideCta = Boolean(ctaHide) && String(ctaHide) !== "0" && String(ctaHide) !== "false";
+
+interface CtaButton {
+  label: string;
+  href: string;
+  hover: string | undefined;
+}
+
+const ctaOne: CtaButton | null = ctaIsFieldDriven
+  ? ctaLabelText === ""
+    ? null
+    : {
+        label: ctaLabelText,
+        href: resolveCtaHref(text(ctaHref)),
+        hover: resolveCtaHover(text(ctaHref), text(ctaHover)),
+      }
+  : { label: "Free Virtual Consult", href: "#consult", hover: "Get a Video" };
+
+const ctaTwo: CtaButton | null = ctaIsFieldDriven
+  ? ctaLabel2Text === ""
+    ? null
+    : {
+        label: ctaLabel2Text,
+        href: resolveCtaHref(text(ctaHref2)),
+        hover: resolveCtaHover(text(ctaHref2), text(ctaHover2)),
+      }
+  : { label: "Read FAQ", href: "#faq", hover: "See Answers" };
+
+/* In field mode a blank note draws no note — a reworded pair of buttons does
+   not have to carry a caption. In fallback mode the note is one third of the
+   literal row and always draws. */
+const ctaNoteText = ctaIsFieldDriven
+  ? text(ctaNote)
+  : "No commitment · Personal video reply";
+---
+
+<section class:list={["section", bandModifier]} id={id} data-vs-reveal-batch>
+  <div class="wrap">
+    <div class="section-head">
+      {eyebrowText && <span class="eyebrow">{eyebrowText}</span>}
+      {headingHtml && <h2><Fragment set:html={headingHtml} /></h2>}
+      {bodyText && <p>{bodyText}</p>}
+    </div>
+
+    <div class="compare">
+      {
+        cardRows.map((card) => {
+          // `lead` is the bolded lead-in and carries its own trailing em dash
+          // ("Adjacent teeth —"), because that dash sits INSIDE the <b> in every
+          // template this reproduces. A row with no lead draws no <b> and no
+          // leading space, so a list saved before `lead` existed is unchanged.
+          const bullets = (Array.isArray(card?.bullets) ? card.bullets : [])
+            .map((row) => ({ lead: text(row?.lead), item: text(row?.item) }))
+            .filter((row) => row.lead !== "" || row.item !== "");
+
+          const tag = text(card?.tag);
+          const title = text(card?.title);
+          const cardBody = text(card?.body);
+          const cardBody2 = text(card?.body2);
+          const ribbon = text(card?.ribbon);
+
+          return (
+            <article class:list={["compare-card", card?.featured && "featured"]}>
+              {ribbon && <span class="ribbon">{ribbon}</span>}
+              {tag && <span class="tag">{tag}</span>}
+              {title && <h3>{title}</h3>}
+              {cardBody && <p>{cardBody}</p>}
+              {bullets.length > 0 && (
+                <ul class="compare-list">
+                  {bullets.map((row) => (
+                    <li>{row.lead === "" ? row.item : (<Fragment><b>{row.lead}</b> {row.item}</Fragment>)}</li>
+                  ))}
+                </ul>
+              )}{/* `}{` flushed — same idiom as the altCards expression below:
+                  a line of its own would put a text node inside every card
+                  that has no body2, which is all of them but one. set:html for
+                  the same reason as calloutBody: this is prose that may carry
+                  an <em> mid-sentence. */
+              cardBody2 && <p set:html={cardBody2} />}
+            </article>
+          );
+        })
+      }
+    </div>
+
+    {
+      hasCallout && (
+        <aside class="safety-callout" aria-labelledby={calloutHeadingId}>
+          {/* Flushed against the heading expression: teeth-whitening's saved
+              aside has no eyebrow, and an expression on its own line would add
+              a text node inside an aside that is diff-verified today. */
+          calloutEyebrowText && (
+            <span class="eyebrow">{calloutEyebrowText}</span>
+          )}{calloutHeadingText && <h3 id={calloutHeadingId}>{calloutHeadingText}</h3>}
+          {calloutBodyIsBlock ? (
+            <Fragment set:html={calloutBodyHtml} />
+          ) : (
+            calloutParagraphs.map((para) => <p set:html={para} />)
+          )}
+        </aside>
+      )
+    }{/* `}{` with nothing between, deliberately — the same idiom as
+        MediaSplitBlock.astro:430,476,508. An expression on its own line carries
+        a newline-and-indent TEXT NODE either side, and that survives into the
+        built HTML as a rendered space even when the condition is false. Eleven
+        routes are already back-filled against this layout and all eleven have an
+        empty `altCards`, so a line of its own here would move `</aside> <div
+        class="cta-row">` to `</aside>  <div class="cta-row">` on every one of
+        them and fail the byte-for-byte diff. Flushed against the callout's
+        closing brace, the pre-existing text node between the two just moves
+        behind this expression and the empty case is unchanged.
+
+        THE WRAPPER IS INSIDE THE TEST, not around it: `altCardRows.length > 0`
+        gates the `<div class="alternatives-grid">` itself, so a band with no
+        cards emits no empty grid div. */
+      altCardRows.length > 0 && (
+        <div class:list={["alternatives-grid", altColumnClass]}>
+          {altCardRows.map((card) => (
+            <article class="config-card">
+              {card.tag && <span class="tag">{card.tag}</span>}
+              {card.title && <h4>{card.title}</h4>}
+              {card.body && <p>{card.body}</p>}
+            </article>
+          ))}
+        </div>
+      )
+    }{/* `}{` flushed, same reasoning as above — twelve saved bands have no
+        glossary and the text node a free-standing line adds would fail their
+        byte-for-byte diff. The markup is bone-grafting.astro:548-565 element
+        for element: head div beside a <dl> of div-wrapped dt/dd rows (the div
+        wrapper is valid dl content and is what the source page ships).
+
+        THE WRAPPER IS INSIDE THE TEST. The head renders without rows and the
+        rows render without a head — a shape that silently requires both
+        halves before drawing either is the bone-grafting #what failure. */
+      hasGlossary && (
+        <div class="materials-block">
+          {hasGlossaryHead && (
+            <div class="materials-head">
+              {glossaryEyebrowText && <span class="eyebrow">{glossaryEyebrowText}</span>}
+              {glossaryHeadingText && <h3>{glossaryHeadingText}</h3>}
+              {glossaryBodyText && <p>{glossaryBodyText}</p>}
+            </div>
+          )}
+          {glossaryRows.length > 0 && (
+            <dl class="materials-list">
+              {glossaryRows.map((row) => (
+                <div class="material-row">
+                  <dt>
+                    {row.tag && <span class="tag">{row.tag}</span>}
+                    {row.title && <span class="label">{row.title}</span>}
+                  </dt>
+                  {row.body && <dd>{row.body}</dd>}
+                </div>
+              ))}
+            </dl>
+          )}
+        </div>
+      )
+    }
+
+    {hideCta ? null : <div class="cta-row">
+      <div class="cta-buttons">
+        {ctaOne && (
+          <Button
+            variant={isDarkBand ? "light" : "sage"}
+            href={ctaOne.href}
+            hoverLabel={ctaOne.hover}>{ctaOne.label}</Button>
+        )}
+        {ctaTwo && (
+          <Button
+            variant={isDarkBand ? "ghost-light" : "ghost"}
+            href={ctaTwo.href}
+            hoverLabel={ctaTwo.hover}>{ctaTwo.label}</Button>
+        )}
+      </div>
+      {ctaNoteText && <span class="cta-note">{ctaNoteText}</span>}
+    </div>}
+  </div>
+</section>
+
+<style>
+  /* ── Band shell ───────────────────────────────────────────────────────────
+     Lifted from src/styles/pages/clear-aligners.css:228-283 with the
+     `.caligners` prefix stripped and the page's local `--sage` / `--ink` / …
+     aliases resolved back to the `--vs-*` tokens they alias one-for-one
+     (clear-aligners.css:24-42). Rendered values are unchanged.
+
+     The shell is repeated in each block rather than shared, because a shared
+     sheet is an ancestor by another name: the property that makes a block safe
+     to drop on any page is that nothing outside it decides how it looks (R3).
+     Astro scopes all of this to this component's elements. */
+  .section {
+    padding: 110px 0;
+    background: var(--vs-paper);
+  }
+  .section.cream { background: var(--vs-cream); }
+  .section.dark { background: var(--vs-sage-pale); }
+  .section.sage { background: var(--vs-sage); }
+  .section.alt { background: var(--vs-charcoal-green); }
+
+  /* Keep the heading clear of the stacked global Nav + sticky TOC when a rail
+     chip is clicked. The two custom properties are written onto the page
+     wrapper at runtime by the page script and inherit down; the fallbacks are
+     the desktop measurements, so a page that does not set them still lands in
+     the right place instead of under the nav. */
+  .section[id] {
+    scroll-margin-top: calc(var(--nav-h, 77px) + var(--toc-h, 68px) + 12px);
+  }
+
+  .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  /* ── Typography ─────────────────────────────────────────────────────────
+     h2 is ink rather than sage: the page sheet sets sage in its base rule and
+     then flips h2 to ink in its end-of-file override block
+     (clear-aligners.css:766). Collapsed to the value that actually renders,
+     which is the whole point of owning it here instead of inheriting a
+     source-order tie-break. */
+  .section-head h2 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    font-size: clamp(32px, 4.2vw, 54px);
+    letter-spacing: -0.022em;
+    line-height: 1.1;
+    color: var(--vs-ink);
+    margin: 22px 0 22px;
+  }
+  /* :global because the `<em>` arrives through set:html and therefore carries
+     no scope attribute — the same reason FinalBand.astro:87 reaches for it for
+     slotted content. Scope stays on `h2`, so this cannot leak. */
+  .section-head h2 :global(em) {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+  .section-head p {
+    font-size: 17px;
+    line-height: 1.7;
+    max-width: 60ch;
+    margin: 0 auto;
+    color: var(--vs-ink-soft);
+  }
+
+  .section-head {
+    max-width: 760px;
+    margin: 0 auto 64px;
+    text-align: center;
+  }
+  .eyebrow {
+    font-family: var(--vs-font-body);
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+  }
+  .section-head .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .section-head .eyebrow::before,
+  .section-head .eyebrow::after {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+
+  /* Band-conditional text, computed from this block's own modifier. */
+  .section.alt h2 { color: #fff; }
+  .section.alt h2 :global(em) { color: var(--vs-eyebrow-on-sage); }
+  .section.alt p { color: rgba(255, 255, 255, 0.85); }
+  .section.alt .eyebrow { color: var(--vs-eyebrow-on-sage); }
+  .section.alt .section-head .eyebrow::before,
+  .section.alt .section-head .eyebrow::after {
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  .section.dark h2 { color: var(--vs-ink); }
+  .section.dark h2 :global(em) { color: var(--vs-sage); }
+  .section.dark p { color: var(--vs-ink-soft); }
+  .section.dark .eyebrow { color: var(--vs-ink-soft); }
+  .section.dark .section-head .eyebrow::before,
+  .section.dark .section-head .eyebrow::after {
+    background: var(--vs-ink-soft);
+  }
+
+  .section.sage h2 { color: #fff; }
+  .section.sage h2 :global(em) { color: var(--vs-eyebrow-on-sage); }
+  .section.sage p { color: rgba(255, 255, 255, 0.85); }
+  .section.sage .eyebrow { color: var(--vs-eyebrow-on-sage); }
+  .section.sage .section-head .eyebrow::before,
+  .section.sage .section-head .eyebrow::after {
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  /* ── The cards ──────────────────────────────────────────────────────────
+     clear-aligners.css:374-410. Three columns is the pilot's value and the
+     value on porcelain-veneers; the implant family draws the same cards two
+     across. That is a `columns` sub-field the layout does not have yet, so it
+     is a Phase 3 decision, not something to guess at from the card count. */
+  .compare {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+  }
+  .compare-card {
+    background: var(--vs-paper);
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-lg);
+    padding: 36px 32px 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: relative;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .compare-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--vs-shadow);
+  }
+  .compare-card .tag {
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+  }
+  .compare-card h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: 24px;
+    color: var(--vs-ink);
+    letter-spacing: -0.005em;
+    line-height: 1.1;
+    margin: 0;
+  }
+  .compare-card p {
+    font-size: 14.5px;
+    line-height: 1.75;
+    color: var(--vs-ink-soft);
+    margin: 0;
+  }
+  .compare-card.featured {
+    background: var(--vs-sage);
+    border-color: var(--vs-sage);
+  }
+  .compare-card.featured .tag { color: var(--vs-eyebrow-on-sage); }
+  .compare-card.featured h3 { color: #fff; }
+  .compare-card.featured p { color: rgba(255, 255, 255, 0.88); }
+  .compare-card .ribbon {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    background: rgba(255, 255, 255, 0.18);
+    color: #fff;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    padding: 5px 10px;
+    border-radius: 999px;
+  }
+
+  /* The bullet variant, from implant-dentistry.css:734-762. `margin: auto 0 0`
+     is load-bearing: it pushes the list to the bottom of the flex column so
+     cards with different amounts of copy still line their lists up. */
+  .compare-card ul {
+    list-style: none;
+    padding: 0;
+    margin: auto 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .compare-card ul li {
+    position: relative;
+    padding-left: 22px;
+    font-family: var(--vs-font-body);
+    font-size: 14.5px;
+    line-height: 1.65;
+    color: var(--vs-ink-soft);
+  }
+  .compare-card ul li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.72em;
+    width: 12px;
+    height: 1px;
+    background: var(--vs-ink-soft);
+  }
+  .compare-card ul li b {
+    color: var(--vs-ink);
+    font-weight: 600;
+  }
+  .compare-card.featured ul li { color: rgba(255, 255, 255, 0.88); }
+  .compare-card.featured ul li b { color: #fff; }
+  .compare-card.featured ul li::before { background: rgba(255, 255, 255, 0.6); }
+
+  /* ── The safety callout ─────────────────────────────────────────────────
+     teeth-whitening.css:425-439 with the `.twhitening` prefix stripped and the
+     page's local `--cream` / `--sage` / `--r-lg` aliases resolved back to the
+     `--vs-*` tokens they alias one-for-one (teeth-whitening.css:36-54).
+     Rendered values are unchanged.
+
+     THE DOUBLED CLASS IS LOAD-BEARING, not a typo. `.section.alt p` above is
+     (0,2,1) and would outrank a single-class `.safety-callout p` at (0,1,1) —
+     so on a charcoal or sage band this cream box would take the band's white
+     text and become unreadable. The callout is cream on EVERY band, so its
+     text must not follow the band (R2). Doubling the class is the same
+     specificity lever global.css:228 already uses for cards on dark bands. */
+  .safety-callout {
+    margin: 50px auto 0;
+    max-width: 920px;
+    padding: 36px 40px;
+    border-radius: var(--vs-r-lg);
+    background: var(--vs-cream);
+    border-left: 3px solid var(--vs-sage);
+  }
+  .safety-callout.safety-callout h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: clamp(20px, 2vw, 24px);
+    color: var(--vs-sage);
+    letter-spacing: -0.005em;
+    margin: 0 0 14px;
+  }
+  /* `margin: 0` is the page's own `p { margin: 0 }` reset (global.css:28)
+     restated locally: the callout's paragraph rhythm comes from `p + p`, and a
+     UA default margin here would open a gap the source page never had. */
+  .safety-callout.safety-callout p {
+    font-size: 15.5px;
+    line-height: 1.8;
+    color: var(--vs-ink-soft);
+    margin: 0;
+  }
+  .safety-callout.safety-callout p + p { margin-top: 14px; }
+  /* The aside's opening eyebrow (`calloutEyebrow`). The type itself is the
+     shared `.eyebrow` rule above — the page sheets' base eyebrow restated
+     token for token (all-on-4-single-arch.css:352 relies on the same base).
+     The dash pair on `.section-head .eyebrow` is deliberately NOT reproduced:
+     it is the centred section-head treatment, and inside this left-aligned
+     cream box a dash would hang against the text. `display: block` puts the
+     `<h3>` on its own line; the 14px gap is `.compare-sub-head h3`'s
+     `margin: 14px 0 0` (all-on-4-single-arch.css:362-366) carried by the
+     eyebrow instead, because the aside's h3 already owns its bottom margin.
+     Colour restated for the same R2 reason as the h3/p rules above: the box
+     is cream on EVERY band, and the (0,3,0) band recolours earlier in this
+     sheet would otherwise win the tie and paint the eyebrow pale on charcoal
+     cream. Doubled class so the tie is ours by source order, same lever as
+     the two rules above. */
+  .safety-callout.safety-callout .eyebrow {
+    display: block;
+    margin: 0 0 14px;
+    color: var(--vs-sage);
+  }
+  /* No link rule here on purpose. An `<a class="vs-link">` arriving through
+     set:html is styled by global.css:31-58, and the callout is cream on every
+     band — so unlike MediaSplitBlock.astro:533, which has to invert `.vs-link`
+     where its `.prose` sits on charcoal, there is nothing here to invert. A
+     local rule would only outrank the site's own link treatment. */
+
+  /* ── The alternatives grid ──────────────────────────────────────────────
+     Lifted from all-on-4-single-arch.css:371-394 and :530-531 (the `.aos4`
+     prefix stripped and the page's local `--sage` / `--ink` / `--line` /
+     `--r-lg` / `--f-display` aliases resolved back to the `--vs-*` tokens they
+     alias one-for-one, all-on-4-single-arch.css:6-27). bone-grafting.css:374-394
+     and full-mouth-dental-implants.css:375-395 are the same rules character for
+     character, so the three pages agree on everything except the column count.
+
+     Owned here rather than left to the page sheets for the reason this whole
+     phase exists: `.aos4 .config-card` is a DESCENDANT selector off a namespace
+     class the block is not inside, so it cannot reach a block-rendered card at
+     all. Without these rules a back-filled grid renders as three unstyled
+     `<article>`s.
+
+     The margin above the grid is `.compare-sub`'s `margin-top: 70px`
+     (all-on-4-single-arch.css:342-344), which is what separates the grid from
+     what precedes it — the comparison cards on bone-grafting's `#types`, the
+     `.safety-callout` aside on the two `#compare` bands. `.compare-sub-head`'s
+     own `margin-bottom: 32px` is NOT restated: it belongs to the head element,
+     and the head here is the aside, which carries its own spacing. */
+  .alternatives-grid {
+    margin-top: 70px;
+    display: grid;
+    gap: 24px;
+  }
+  /* Three source values, three classes. Two is the
+     full-mouth-dental-implants.css:537-541 override, and the `max-width` +
+     `margin: 0 auto` are part of that override rather than a separate decision —
+     the sheet's own comment says they exist to centre a pair under a centred
+     head. Reproducing the columns without them would leave that page's two
+     cards stretched to the full 1240px wrap, which is not what it draws today. */
+  .alternatives-grid.cols-2 {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 820px;
+    margin-inline: auto;
+  }
+  /* all-on-4-single-arch.css:530-531 and bone-grafting.css:530-531, identical. */
+  .alternatives-grid.cols-3 { grid-template-columns: repeat(3, 1fr); }
+  /* No `.alternatives-grid` in the corpus is four across — the only 4-col value
+     for this card shape is sinus-lift.css:387-388's `.cause-grid`, which is the
+     media_split side of the same batch. It is here because the PHP select offers
+     "4" (vs-content-model.php:2341-2345) and a choice with no rule behind it
+     would render as a single implicit column. */
+  .alternatives-grid.cols-4 { grid-template-columns: repeat(4, 1fr); }
+
+  .config-card {
+    background: var(--vs-paper);
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-lg);
+    padding: 36px 34px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  /* `var(--vs-shadow)` and not the two-layer value the three implant sheets
+     assign to their local `--shadow` (all-on-4-single-arch.css:19 and its two
+     twins override the token rather than aliasing it). Deliberate: this card
+     hovers in the same band as `.compare-card`, whose hover four rules up
+     already reads `var(--vs-shadow)`, and two cards in one band lifting under
+     different shadows is a defect a reader would blame on the block. The delta
+     is confined to the hover shadow on three pages. */
+  .config-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--vs-shadow);
+  }
+  .config-card .tag {
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+  }
+  /* THE DOUBLED CLASS IS LOAD-BEARING on both of these, exactly as it is on
+     `.safety-callout` above, and the arithmetic is worth writing down because
+     Astro's scoping does NOT help: it compiles to `:where(.astro-<hash>)`, which
+     contributes ZERO specificity, so what ships is what is written here.
+
+     `.config-card` is a WHITE card. On a charcoal or sage band `.section.alt p`
+     and `.section.sage p` above sit at (0,2,1) and would paint this card's
+     paragraph white on white — the regression global.css:194-200 says has been
+     flagged repeatedly. A single-class `.config-card p` is (0,1,1) and loses
+     outright. Doubled it is (0,2,1): a TIE, broken by source order, which this
+     rule wins because it comes later in this same scoped sheet. That is the
+     identical lever and the identical margin the `.safety-callout` rules run on,
+     so the two behave the same way rather than one of them being special.
+
+     global.css:228-249 also lists `.config-card.config-card` in the sitewide
+     white-card rescue at (0,3,1), which would catch this anyway — but a block
+     whose text colour depends on a global sheet it does not own is not
+     droppable on an arbitrary page (R3), so it is settled here.
+
+     `line-height: 1.1` and `margin: 0` come from the page sheets' h1-h4 group
+     rule (all-on-4-single-arch.css:39-42), collapsed to what actually renders —
+     the flex `gap` above is the only spacing this card is meant to have. */
+  .config-card.config-card h4 {
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: 22px;
+    color: var(--vs-ink);
+    letter-spacing: -0.005em;
+    line-height: 1.1;
+    margin: 0;
+  }
+  .config-card.config-card p {
+    font-size: 15px;
+    line-height: 1.75;
+    color: var(--vs-ink-soft);
+    margin: 0;
+  }
+
+  /* ── The materials glossary ─────────────────────────────────────────────
+     bone-grafting.css:958-1031 with the `.bgraft` prefix stripped and the
+     page's local `--sage` / `--ink` / `--ink-soft` / `--line` / `--f-display`
+     / `--f-body` aliases resolved back to the `--vs-*` tokens they alias
+     one-for-one (bone-grafting.css:6-27). Rendered values unchanged. Owned
+     here for the same reason as the alternatives grid above: `.bgraft
+     .materials-block` is a descendant selector off a namespace class this
+     block is not inside, so it cannot reach a block-rendered row at all —
+     without these rules a back-filled glossary renders as an unstyled <dl>.
+
+     `.materials-head .eyebrow` carries only the two layout declarations the
+     source rule carries (bone-grafting.css:965-968) — the type itself is the
+     shared `.eyebrow` rule above, which restates `.bgraft .eyebrow`
+     (bone-grafting.css:32-36) token for token.
+
+     `.materials-head p` states no font-size because the source rule states
+     none either: it renders at the 16px body base (global.css:21), and
+     writing a size here would change the one page this shape ships on. The
+     `margin: 0` is global.css's own p reset restated locally, exactly as the
+     `.safety-callout` rules above restate it, so the shape survives on a
+     page that never loads a sheet with the reset.
+
+     Colours are the source page's, drawn for the paper band this shape ships
+     on (bone-grafting `#types`). No dark-band recolours: no saved or mapped
+     row puts a glossary on charcoal or sage, and only the head's `<p>` would
+     follow the band today — a future dark-band glossary needs its own
+     recolour group here, not a page-sheet patch (R3). */
+  .materials-block {
+    margin-top: 80px;
+    display: grid;
+    grid-template-columns: minmax(280px, 0.85fr) 1.4fr;
+    gap: 56px;
+    align-items: start;
+  }
+  .materials-head .eyebrow {
+    display: inline-block;
+    margin-bottom: 18px;
+  }
+  .materials-head h3 {
+    font-family: var(--vs-font-display);
+    font-size: clamp(26px, 2.6vw, 36px);
+    font-weight: 400;
+    color: var(--vs-sage);
+    letter-spacing: -0.018em;
+    line-height: 1.1;
+    margin: 0 0 18px;
+  }
+  .materials-head p {
+    color: var(--vs-ink-soft);
+    max-width: 36ch;
+    line-height: 1.6;
+    margin: 0;
+  }
+
+  .materials-list {
+    margin: 0;
+    padding: 0;
+    border-top: 1px solid var(--vs-line);
+  }
+  .material-row {
+    display: grid;
+    grid-template-columns: minmax(180px, 0.85fr) 1.6fr;
+    gap: 40px;
+    padding: 26px 4px;
+    border-bottom: 1px solid var(--vs-line);
+    align-items: baseline;
+  }
+  .material-row dt {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  /* 11.5px / 0.28em, NOT the 10.5px / 0.22em the card tags above use — the
+     source page draws the dl's tags a step larger than its card tags
+     (bone-grafting.css:1001-1008 vs the config-card tag), and flattening the
+     two would show in the diff. */
+  .material-row dt .tag {
+    font-family: var(--vs-font-body);
+    font-size: 11.5px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+  }
+  .material-row dt .label {
+    font-family: var(--vs-font-display);
+    font-size: clamp(18px, 1.7vw, 22px);
+    color: var(--vs-ink);
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+  .material-row dd {
+    margin: 0;
+    color: var(--vs-ink-soft);
+    line-height: 1.6;
+    font-size: 15px;
+  }
+
+  /* ── The CTA row ────────────────────────────────────────────────────────
+     clear-aligners.css:446-463. `.cta-note` is the one part of this band whose
+     colour the page sheet reads off the ancestor band (`.section.dark .cta-row
+     .cta-note`); computed from this block's own modifier instead, which is R2
+     fixed at the source rather than patched per page. */
+  .cta-row {
+    margin-top: 56px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 18px;
+  }
+  .cta-row .cta-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+    justify-content: center;
+  }
+  .cta-row .cta-note {
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--vs-muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section.dark .cta-row .cta-note { color: var(--vs-ink-soft); }
+  .section.alt .cta-row .cta-note,
+  .section.sage .cta-row .cta-note { color: rgba(255, 255, 255, 0.7); }
+
+  /* ── Responsive ─────────────────────────────────────────────────────────
+     Re-united with the rules they modify rather than left in a trailing
+     "responsive" section 300 lines away (3.2, step 3). Breakpoints normalised
+     to the block set — 991 / 780 / 479 (FinalBand.astro:109,117). */
+  @media (max-width: 991px) {
+    .compare { grid-template-columns: 1fr; }
+    /* One step to a single column, which is what all three sheets do
+       (all-on-4-single-arch.css:825, full-mouth-dental-implants.css:837,
+       bone-grafting.css:870) — no intermediate 2-col stop for any of the three
+       counts, including `cols-4`, which no page draws yet and which nothing in
+       the corpus gives a middle value for.
+
+       991 and not the sheets' 1100 for the same reason `.compare` above is 991:
+       the block normalises to its own breakpoint set (3.2, step 3), and the two
+       grids in this band have to collapse together or the comparison stacks
+       while the alternatives under it stay three across.
+
+       `max-width` and `margin-inline` are reset with the columns rather than
+       left standing: `cols-2`'s 820px cap exists to centre a PAIR under a
+       centred head, and a single stacked column held to 820px inside a 22px
+       gutter would be narrower than the cards above it. */
+    .alternatives-grid.cols-2,
+    .alternatives-grid.cols-3,
+    .alternatives-grid.cols-4 {
+      grid-template-columns: 1fr;
+      max-width: none;
+      margin-inline: 0;
+    }
+    /* bone-grafting.css:1025-1030, which is already a 991px block — the head
+       stacks above the dl before the dl's own rows collapse. */
+    .materials-block {
+      grid-template-columns: 1fr;
+      gap: 32px;
+      margin-top: 60px;
+    }
+  }
+
+  @media (max-width: 780px) {
+    .section { padding: 70px 0; }
+    .wrap { padding: 0 22px; }
+    .cta-row { margin-top: 36px; }
+    /* teeth-whitening.css:770, which lives in that sheet's 780px block. */
+    .safety-callout { padding: 28px 24px; }
+    /* bone-grafting.css:1032-1037, normalised UP from that sheet's 640px to
+       this block's 780 (3.2, step 3) — the early side of the normalisation on
+       purpose: between 640 and 780 the rows stack a step sooner than the
+       source page, which is safe; the late side (479) would hold
+       minmax(180px, …) plus a 40px gap in a width the source never draws two
+       columns at, and that overflows. */
+    .material-row {
+      grid-template-columns: 1fr;
+      gap: 12px;
+      padding: 22px 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .compare-card { transition: none; }
+    /* all-on-4-single-arch.css:872 lists `.config-card` in the same
+       reduced-motion group as `.compare-card`, so it belongs here too — the
+       hover lift above is the transition being suppressed. No `!important`:
+       the page sheets need it to beat a namespaced rule, this block has only
+       its own. */
+    .config-card { transition: none; }
+  }
+</style>

@@ -1,0 +1,151 @@
+{
+  "_": "WHAT THIS IS. The current hero copy of 24 Vivid Smiles routes, in the exact characters each page renders today, ready to be typed into the ACF `hero` field group so the owner edits real words instead of blank boxes. Commit 68d80ac made the hero editable; this file is the content that fills it. Writing it changes no rendered pixel -- it moves the wording from the template literal into WordPress, where the template already prefers it.\n\nHOW IT WAS PROVED. Every value was read out of the BUILT HTML (dist/<route>/index.html), not the .astro source, then HTML-unescaped and .strip()ed to model the `.trim()` the loader applies at src/loaders/pages.ts:642-644. The payload was then injected locally through the hero surface behind an env var and the whole site rebuilt and diffed route by route against HEAD with scripts/vr-html.mjs. See the accompanying report for the per-route result.\n\nFIELD ABSENT = DELIBERATELY BLANK. A route that has no `eyebrow`, `sub` or `ctas` key is one where that box must be LEFT EMPTY in wp-admin; the template's own literal is the correct rendering and a stored value would be wrong. Reasons, per route:\n  /services/                            -- h1-only by contract; the page draws no hero band.\n  /implant-dentistry/sinus-lift/  sub   -- the rendered sub contains a real <a> link. `sub` is plain text rendered as {hero.sub}, so storing it would publish visible &lt;a ...&gt; tags and destroy the link. Needs an HTML field, or the link has to leave the hero.\n  /referral-program/              sub   -- same problem: the rendered sub contains <b>$50 credit</b>.\n  ctas on 23 of 24 routes               -- the loader drops any CTA row missing either half (pages.ts:646) and the templates then read the survivors POSITIONALLY (hero.cta(0) is the solid button). Button 0 on nearly every hero is site data (bookNowHref / phoneHref), which src/blocks/cta.ts forbids storing, and the hero surface does not run resolveCtaHref, so a `book` token would emit href=\"book\". Because slot 0 cannot be filled legally, slot 1 is unreachable: a payload holding only button 1 shifts it into slot 0 and repaints the primary button. All-or-nothing from index 0 down. /referral-program/ is the single exception -- its button 0 is the literal anchor #how-it-works, so it is stored, and button 1 is left to fall back. Making the rest editable is a change to the hero surface (a book/phone token resolved the way block CTAs already are), not to this file.\n\n`ratings` IS INCLUDED ON PURPOSE, though it is not hero copy. Filling `h1` flips `heroOn` true, and at that moment showRatings stops being unconditional and becomes the stored `ratings` boolean (src/lib/page-content.ts:312,339). 22 of these 24 routes draw a review line today; if the write leaves ratings off, all 22 lose it. It must be ON for every route here. (/contact/ and /services/ never draw the line, so the value is inert there -- set true for uniformity and to match the ACF default.)\n\nNO CREDENTIALS, NO SITE DATA. Every value is page copy. No phone number, booking URL, address or key appears anywhere in this file, by construction: the fields that would have carried them are the omitted ones above.",
+  "routes": {
+    "/cosmetic-dentistry/": {
+      "eyebrow": "Cosmetic Dentistry · Parker, CO",
+      "h1": "Parker, Colorado's <em>cosmetic dentistry destination.</em>",
+      "sub": "If you've spent years hiding your smile, cosmetic dentistry at Vivid Smiles Dentistry\n              in Parker offers a clear path to changing that. Dr. Bryce Richardson and Dr. Annelise\n              Westermeier provide a full range of cosmetic treatments — from porcelain veneers and\n              clear aligners to smile makeovers and gum contouring — with 600+ hours of specialized\n              training and the technology to preview results before treatment begins.",
+      "ratings": true
+    },
+    "/cosmetic-dentistry/clear-aligners/": {
+      "eyebrow": "Cosmetic Dentistry · Parker, CO",
+      "h1": "Clear Aligners <em>in Parker, CO</em>",
+      "sub": "Clear aligners are custom-made, removable plastic trays that shift teeth gradually\n              into alignment, offering a nearly invisible alternative to traditional braces. Unlike\n              metal brackets and wires, they come out for meals and daily brushing, and digital\n              planning tools let you see your projected results before treatment begins. Here is\n              what to expect from the process, who qualifies, and why Parker residents choose Vivid\n              Smiles Dentistry for their clear aligner care.",
+      "ratings": true
+    },
+    "/cosmetic-dentistry/porcelain-veneers/": {
+      "eyebrow": "Cosmetic Dentistry · Parker, CO",
+      "h1": "Porcelain Veneers <em>in Parker, CO</em>",
+      "sub": "Porcelain veneers are thin shells of dental porcelain bonded to the front of your\n              teeth to correct discoloration, chips, gaps, and worn enamel. At Vivid Smiles\n              Dentistry, Dr. Bryce Richardson specializes in no-prep and minimal-prep veneers that\n              transform smiles while preserving natural tooth structure. Here is what the process\n              looks like, how digital technology lets patients preview results first, and what sets\n              this Parker practice apart.",
+      "ratings": true
+    },
+    "/cosmetic-dentistry/teeth-whitening/": {
+      "eyebrow": "Cosmetic Dentistry · Parker, CO",
+      "h1": "Professional Teeth Whitening <em>in Parker, Colorado</em>",
+      "sub": "KöR professional whitening delivers reliable shade improvement for most patients,\n              including those with difficult staining types that over-the-counter products cannot\n              address. Unlike generic whitening systems, KöR uses refrigerated gels and continuous\n              tooth contact to produce results that hold for years.",
+      "ratings": true
+    },
+    "/cosmetic-dentistry/smile-makeover/": {
+      "eyebrow": "Cosmetic Dentistry · Parker, CO",
+      "h1": "Transform Your Smile with a <em>Custom Smile Makeover in Parker, CO</em>",
+      "sub": "A smile makeover combines two or more cosmetic treatments into one coordinated plan,\n              designed to address your specific aesthetic concerns all at once rather than one\n              procedure at a time. Unlike a single-service approach, it starts with the outcome you\n              want and works backward to build the right treatment path. Here is what that process\n              looks like at Vivid Smiles Dentistry, and what separates results that look natural\n              from results that look obvious.",
+      "ratings": true
+    },
+    "/cosmetic-dentistry/gum-contouring/": {
+      "eyebrow": "Cosmetic Dentistry · Parker, CO",
+      "h1": "Laser Gum Contouring <em>in Parker, CO</em>",
+      "sub": "Gum contouring is a cosmetic dental procedure that reshapes excess or uneven gum tissue to reveal more\n            of the natural tooth structure underneath. Laser technology makes the process precise and minimally\n            invasive, with most patients experiencing little to no downtime. Here is who benefits, what the\n            procedure involves, and how Dr. Bryce Richardson at Vivid Smiles Dentistry approaches gum reshaping\n            as part of a complete smile design plan.",
+      "ratings": true
+    },
+    "/cosmetic-dentistry/full-mouth-rehabilitation/": {
+      "eyebrow": "Cosmetic Dentistry · Parker, CO",
+      "h1": "Full-Mouth Rehabilitation in <em>Parker, Colorado</em>",
+      "sub": "Full-mouth rehabilitation restores function, health, and appearance across multiple teeth in a single\n            coordinated plan. Treatment combines whichever procedures each patient's condition requires: implants,\n            crowns, bridges, veneers, or implant-supported dentures. Here is what to expect at Vivid Smiles\n            Dentistry in Parker, Colorado.",
+      "ratings": true
+    },
+    "/implant-dentistry/": {
+      "eyebrow": "Implant Dentistry · Parker, CO",
+      "h1": "Advanced dental implants <em>in Parker, Colorado.</em>",
+      "sub": "Dental implants are the only tooth replacement that functions at the root level — preserving the\n            jawbone and restoring full biting strength. Unlike bridges or dentures, implants fuse with the bone,\n            making them a permanent solution rather than a prosthetic one. At Vivid Smiles Dentistry, Dr. Bryce\n            Richardson places and restores implants entirely in-house with robotic guidance and full digital\n            fabrication capability.",
+      "ratings": true
+    },
+    "/implant-dentistry/all-on-4-single-arch/": {
+      "eyebrow": "Implant Dentistry · Parker, CO",
+      "h1": "All-on-4 Single Arch Implants <em>in Parker, Colorado</em>",
+      "sub": "All-on-4 single arch implants replace every tooth in one jaw, upper or lower, using\n              four strategically placed titanium implants, and you leave the same day with a fixed,\n              functional set of teeth. Unlike full-mouth treatment, single-arch All-on-4 targets one\n              jaw, which means lower cost, a shorter procedure, and a focused treatment plan. Below\n              is what the procedure involves, how robotic technology at Vivid Smiles Dentistry sets\n              these outcomes apart, and what to expect from surgery through the final teeth.",
+      "ratings": true
+    },
+    "/implant-dentistry/bone-grafting/": {
+      "eyebrow": "Implant Dentistry · Parker, CO",
+      "h1": "Bone Grafting <em>in Parker, CO</em>",
+      "sub": "Bone grafting rebuilds jawbone lost after tooth extraction or gum disease, creating\n              the foundation needed for dental implants. Without adequate bone volume, implants\n              cannot anchor securely, which is why Dr. Richardson evaluates every patient with CBCT\n              3D imaging before recommending treatment. Here is what bone grafting involves, who\n              needs it, and what to expect at Vivid Smiles Dentistry in Parker.",
+      "ratings": true
+    },
+    "/implant-dentistry/full-mouth-dental-implants/": {
+      "eyebrow": "Implant Dentistry · Parker, CO",
+      "h1": "Full Mouth Dental Implants <em>in Parker, Colorado</em>",
+      "sub": "Full mouth dental implants replace an entire arch with a fixed, non-removable\n              prosthesis supported by four to six titanium implants fused to the jaw. They function\n              like natural teeth and preserve the bone that traditional dentures allow to erode.\n              Below is what the procedure involves, who qualifies, and what to expect at Vivid\n              Smiles Dentistry.",
+      "ratings": true
+    },
+    "/implant-dentistry/single-tooth-dental-implants/": {
+      "eyebrow": "Implant Dentistry · Parker, CO",
+      "h1": "Single Tooth Dental Implants <em>in Parker, Colorado</em>",
+      "sub": "A single tooth dental implant replaces a missing tooth with a titanium post and custom\n              crown. It stands alone without altering adjacent teeth and preserves the jawbone\n              beneath the gap. Below is how the process works at Vivid Smiles, how it compares to\n              other replacement options, and who qualifies.",
+      "ratings": true
+    },
+    "/implant-dentistry/sinus-lift/": {
+      "eyebrow": "Implant Dentistry · Parker, CO",
+      "h1": "Sinus Lift Procedure <em>in Parker, Colorado</em>",
+      "ratings": true
+    },
+    "/general-dentistry/": {
+      "eyebrow": "General Dentistry · Parker, CO",
+      "h1": "Comprehensive general dentistry <em>for Parker, CO families.</em>",
+      "sub": "Vivid Smiles Dentistry provides general dentistry in Parker, covering preventive care,\n              same-day crowns, periodontal treatment, and emergency services all under one roof.\n              What separates the practice is a dual-doctor model backed by diagnostic technology,\n              including CBCT 3D imaging and in-house milling.",
+      "ratings": true
+    },
+    "/emergency-dentistry/": {
+      "eyebrow": "Emergency Dentistry · Parker, CO",
+      "h1": "Emergency dental care <em>in Parker, Colorado.</em>",
+      "sub": "Dental emergencies don't follow business hours, and knowing where to go in Parker can be the difference between saving a tooth and losing one. Vivid Smiles Dentistry offers same-day emergency appointments, 3D diagnostic imaging, and in-house surgical expertise to resolve most cases on the first visit. The following is how to recognize a dental emergency, what to do before you arrive, and why Vivid Smiles is equipped to handle it.",
+      "ratings": true
+    },
+    "/services/": {
+      "h1": "Services in Parker, CO — Vivid Smiles Dentistry",
+      "ratings": true
+    },
+    "/new-patients/": {
+      "eyebrow": "New Patients · Welcome to Vivid Smiles",
+      "h1": "Your first visit, <em class=\"vs-italic-word\">thoughtfully planned.</em>",
+      "sub": "We take new patients seriously — and unhurriedly. Plan on a thorough,\n            conversation-first appointment at our Parker, CO office, tailored to where\n            your smile is today and where you'd like it to go.",
+      "ratings": true
+    },
+    "/our-office/": {
+      "eyebrow": "Our Office · Parker, CO",
+      "h1": "Step inside our <em>Parker office.</em>",
+      "sub": "Our practice is on Cedar Gulch Parkway in Parker — a calm, modern interior\n            designed to feel more like a wellness studio than a dental clinic, with\n            free parking right out front and a ground-floor entrance.",
+      "ratings": true
+    },
+    "/contact/": {
+      "eyebrow": "Get in touch · Parker, CO",
+      "h1": "We'd love to <em>meet you.</em>",
+      "sub": "Send us a message in the form, or reach us another way — book online, call our\n            front desk, or drop us an email. Every message lands on a real person.",
+      "ratings": true
+    },
+    "/referral-program/": {
+      "eyebrow": "Referral Program · Vivid Smiles",
+      "h1": "Refer a friend, <em>share a smile.</em>",
+      "ratings": true,
+      "ctas": [
+        {
+          "label": "How It Works",
+          "href": "#how-it-works"
+        }
+      ]
+    },
+    "/dental-membership-plan/": {
+      "eyebrow": "Membership Plan · Parker, CO",
+      "h1": "Year-round care, without insurance <em class=\"vs-italic-word\">getting in the way.</em>",
+      "sub": "A flat $500 a year. Two cleanings, exams, x-rays — and 15% off everything\n            else we do, from Invisalign to implants. No claims to file, no waiting\n            periods, no pre-approvals. Built for the patients who'd rather work with\n            us directly.",
+      "ratings": true
+    },
+    "/about-us/": {
+      "eyebrow": "About Vivid Smiles · Parker, CO",
+      "h1": "Where artistry meets <em class=\"vs-italic-word\">esthetic dentistry.</em>",
+      "sub": "Vivid Smiles Dentistry is Colorado's premier destination for highly esthetic smile\n              transformations. Founded on the belief that a smile should feel effortless, youthful,\n              and authentically you, we pair world-class cosmetic artistry with the most advanced\n              clinical technology available.",
+      "ratings": true
+    },
+    "/patient-testimonials/": {
+      "eyebrow": "Real stories · Real patients",
+      "h1": "Real stories, <em>real transformations.</em>",
+      "sub": "From life-changing All-On-X full-arch makeovers to cosmetic redesigns,\n            our patients share their experiences in their own words — and on their\n            own terms. Every story on this page is a real Vivid Smiles patient.",
+      "ratings": true
+    },
+    "/smile-gallery/": {
+      "eyebrow": "Smile Gallery · Real Patients",
+      "h1": "Finished smiles, <em class=\"vs-italic-word\">up close.</em>",
+      "sub": "A working portfolio of the cosmetic and restorative work that leaves Dr. Bryce\n              Richardson's chair. Every smile here belongs to a Vivid Smiles patient, photographed\n              in our Parker office.",
+      "ratings": true
+    }
+  }
+}

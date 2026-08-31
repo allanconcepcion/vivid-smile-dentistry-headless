@@ -2,6 +2,55 @@
 /**
  * All-on-4 Single Arch Implants — Vivid Smiles Dentistry, Parker CO.
  * Page-scoped styles: src/styles/pages/all-on-4-single-arch.css (.aos4 wrapper).
+ *
+ * MIGRATED TO BLOCKS (docs/PAGE-BLOCKS.md 2.3). TEN top-level content bands —
+ * why, what, robotics, process, compare, candidacy, living, cost, gallery, faq
+ * — each guarded with `hasBlocks ? null : …` and each carrying a row in
+ * cms/import/block-map.json under /implant-dentistry/all-on-4-single-arch/.
+ * Ten bands against exactly ten `sections` rows, in template order.
+ *
+ * THE BAND COLOURS ON THIS PAGE ARE READ OFF THIS SHEET AND THE COMMENTS THAT
+ * USED TO SIT ON `what`, `candidacy` AND `cost` WERE WRONG. Each of the three
+ * said "cream". `.aos4 .section.alt` is `background: var(--vs-charcoal-green)`
+ * (all-on-4-single-arch.css:227), with h2 #fff at :231 and p
+ * rgba(255,255,255,.85) at :235 — a dark band with white type. Had the map been
+ * written from those comments instead of from the rule, three of the ten bands
+ * would have been repainted cream on backfill and the white heading colour the
+ * block derives from `band` would have gone onto a cream plate. The class name
+ * is not the colour: `.section.alt` is cream on teeth-whitening.css:237 and
+ * charcoal here.
+ *
+ * WHAT THIS PAGE OWNS THAT NEITHER WORKED EXAMPLE DOES, all recorded as
+ * `known_gaps` on the blocks in the map rather than papered over here:
+ *   1. FOUR bands carry a SECOND SHAPE inside them — `.what-sub` + `.config-grid`
+ *      in `what`, `.compare-sub` + `.alternatives-grid` in `compare`,
+ *      `.candidacy-sub` in both `candidacy` and `living`. No registered layout
+ *      has a slot for a sub-band, so each is a gap, and the two `cards` groups
+ *      that feed them (archConfigs, alternatives) are named in `exempt.cards`.
+ *      A group that is neither claimed nor exempt stops the backfill before it
+ *      writes anything, which is the behaviour worth keeping.
+ *   2. `robotics` is the one band in src/pages that mixes the two media_split
+ *      families: the photo is FIRST like `.what-*` but the frame is 4/5 like
+ *      `.natural-*` (all-on-4-single-arch.css:308-311, with :316 overriding
+ *      only `.what-img` to 5/4). The block ties the frame to the side, so the
+ *      map keeps the side and the column split and loses the portrait frame.
+ *   3. `living`'s cards are `.benefits-*`, not `.why-*`, and card 4 ends in a
+ *      `.stat-line`. card_grid draws `.why-*` and has one figure slot.
+ *
+ * Every top-level band between the rail and <VirtualConsult> is guarded, and
+ * every one of them has a map row. Those two facts move together: a band that
+ * is neither blocked nor guarded renders in ADDITION to the block run and lands
+ * at the bottom carrying a duplicate id, and a band that is guarded with no map
+ * row disappears on backfill with nothing in the log. Both have happened on
+ * this project. There is no third outcome. The bands ABOVE the switch — the
+ * breadcrumb, the hero, `.keys` and the rail — are not blocks by spec 7 and are
+ * deliberately unguarded, as are <VirtualConsult> and <FinalBand> below it.
+ *
+ * The guards are written one per band rather than one around all ten, and that
+ * is not a style choice: Astro preserves whitespace between expressions, so a
+ * conditional on a line of its own adds a text node that scripts/vr-html.mjs
+ * reports as a difference. A guard sitting exactly where its <section> sat
+ * emits byte-identical HTML.
  */
 import { Image } from 'astro:assets';
 import BaseLayout from '../../layouts/BaseLayout.astro';
@@ -21,11 +70,13 @@ import '../../styles/pages/all-on-4-single-arch.css';
 // Candidacy section — real patient portrait, outdoors in the Colorado
 // foothills. Distinct from the hero portrait so no one person appears twice
 // on the page; the alt describes the photograph, never a treatment.
-import { getPageContent } from '../../lib/page-content';
+import { getPageContent, type TocLink } from '../../lib/page-content';
+import PageBlocks from '../../blocks/PageBlocks.astro';
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> All-on-4 Single Arch Implants in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, processSteps, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+const { blocks, hasBlocks, tocLinks, processSteps, faqs, hero, closing, section, image, seo } =
+  await getPageContent(Astro.url.pathname);
 
 
 // Track doubled for seamless marquee loop.
@@ -117,6 +168,69 @@ const archConfigs = [
   },
 ];
 
+/**
+ * The "On this page" rail, derived from the blocks themselves (docs/PAGE-BLOCKS.md 1.2).
+ *
+ * Used only when this page renders from `blocks`. The `toc_links` repeater is
+ * nine rows that restate the order of the ten bands below it, so a reorder in
+ * wp-admin moves a band and leaves its rail entry pointing at the old
+ * neighbour — the single largest way a reorder breaks a link. Reading the
+ * anchors off the blocks makes that unrepresentable: there is one ordering and
+ * the rail is a projection of it.
+ *
+ * Three rules, in the order they bite:
+ *
+ * 1. A blank anchor is skipped. Not tidiness — src/scripts/toc-spy.ts:24 feeds
+ *    each rendered href straight to document.querySelector(), and
+ *    querySelector("") throws a SyntaxError that kills the whole spy, not just
+ *    the one entry. PageBlocks.astro emits no id at all for a blank anchor
+ *    (`id={anchor || undefined}`), so there is nothing to link to either.
+ * 2. An anchor that is not a valid id selector is skipped for the same reason —
+ *    "#3-reasons" is legal HTML and an illegal CSS selector. Dropping one rail
+ *    entry costs one link; letting it through costs every link on the page,
+ *    plus the mobile pill auto-centering.
+ * 3. Duplicate anchors follow PageBlocks.astro's dedup exactly, second
+ *    occurrence onward suffixed `-2`, `-3`. The counter has to advance on every
+ *    non-blank anchor, including blocks with no nav_label, or the rail's idea
+ *    of "the second #faq" drifts from the id the renderer actually emitted.
+ *
+ * A blank nav_label means "leave this block out of the rail" (1.2), which is
+ * how a band that should not be navigable opts out — `gallery` on this page,
+ * which has no toc_links row and never appeared in the rail.
+ */
+const ANCHOR_IS_ID_SELECTOR = /^[A-Za-z_][A-Za-z0-9_-]*$/;
+
+const anchorsSeen = new Map<string, number>();
+// Typed as TocLink[] rather than an equivalent inline shape so the ternary in
+// the rail below collapses to one type instead of a union of two array types,
+// which TypeScript will not let you call .map() on.
+const derivedTocLinks: TocLink[] = [];
+
+for (const block of blocks) {
+  // A nested block is drawn INSIDE the band above it, not as a band of its own,
+  // so it has no id to link to. Without this the rail emits an entry pointing at
+  // an anchor nothing renders — a dead link in the "On this page" list.
+  if (block?.nested) continue;
+
+  const anchor = typeof block.anchor === 'string' ? block.anchor.trim() : '';
+  if (anchor === '') continue;
+
+  const nth = (anchorsSeen.get(anchor) ?? 0) + 1;
+  anchorsSeen.set(anchor, nth);
+
+  const label = typeof block.navLabel === 'string' ? block.navLabel.trim() : '';
+  if (label === '') continue;
+
+  if (!ANCHOR_IS_ID_SELECTOR.test(anchor)) {
+    console.warn(
+      `[blocks] anchor "${anchor}" on ${Astro.url.pathname} cannot be used as a selector — ` +
+        `omitting "${label}" from the On this page rail so toc-spy keeps working`,
+    );
+    continue;
+  }
+
+  derivedTocLinks.push({ href: `#${nth > 1 ? `${anchor}-${nth}` : anchor}`, label });
+}
 
 ---
 
@@ -143,26 +257,26 @@ const archConfigs = [
       <header class="hero" data-vs-reveal-batch>
         <div class="wrap hero-inner">
           <div class="hero-copy">
-            <span class="eyebrow">Implant Dentistry · Parker, CO</span>
-            <h1 data-vs-reveal-lines>All-on-4 Single Arch Implants <em>in Parker, Colorado</em></h1>
-            <p class="hero-sub">
+            {hero.eyebrow ? <span class="eyebrow">{hero.eyebrow}</span> : <span class="eyebrow">Implant Dentistry · Parker, CO</span>}
+            {hero.h1 ? <h1 data-vs-reveal-lines set:html={hero.h1} /> : <h1 data-vs-reveal-lines>All-on-4 Single Arch Implants <em>in Parker, Colorado</em></h1>}
+            {hero.sub ? <p class="hero-sub">{hero.sub}</p> : <p class="hero-sub">
               All-on-4 single arch implants replace every tooth in one jaw, upper or lower, using
               four strategically placed titanium implants, and you leave the same day with a fixed,
               functional set of teeth. Unlike full-mouth treatment, single-arch All-on-4 targets one
               jaw, which means lower cost, a shorter procedure, and a focused treatment plan. Below
               is what the procedure involves, how robotic technology at Vivid Smiles Dentistry sets
               these outcomes apart, and what to expect from surgery through the final teeth.
-            </p>
+            </p>}
             <div class="hero-actions">
-              <Button variant="light" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button
+              <Button variant="light" href={hero.cta(0) ? hero.cta(0)!.href : bookNowHref} hoverLabel="Let's Talk">{hero.cta(0) ? hero.cta(0)!.label : "Book Online"}</Button
               >
-              <Button variant="ghost-light" href="#consult" hoverLabel="Get a Video"
-                >Free Virtual Consult</Button
+              <Button variant="ghost-light" href={hero.cta(1) ? hero.cta(1)!.href : "#consult"} hoverLabel="Get a Video"
+                >{hero.cta(1) ? hero.cta(1)!.label : "Free Virtual Consult"}</Button
               >
-              <div class="ratings">
+              {hero.showRatings && <div class="ratings">
                 <span class="stars" aria-hidden="true">★★★★★</span>
                 <span>5.0 · 300+ reviews</span>
-              </div>
+              </div>}
             </div>
           </div>
           <div class="hero-img" data-vs-parallax data-parallax="-30">
@@ -198,20 +312,46 @@ const archConfigs = [
         </div>
       </section>
 
-      {/* ---------- ON-THIS-PAGE TOC ---------- */}
+      {
+        /* ---------- ON-THIS-PAGE TOC ----------
+         The rail itself is never a block (spec 7: "Not a block, even though it
+         is a band") — only its contents move. Derived from the blocks when
+         they are drawing the page, read from the `toc_links` repeater when the
+         template is. Same markup either way, which is what lets
+         src/scripts/toc-spy.ts go on reading its section list off the rendered
+         links without knowing which source produced them. */
+      }
       <nav class="toc" id="toc" aria-label="On this page">
         <div class="toc-inner">
           <span class="toc-label">On this page</span>
           <div class="toc-scroll">
             <div class="toc-list">
-              {tocLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+              {(hasBlocks ? derivedTocLinks : tocLinks).map((l) => <a href={l.href}>{l.label}</a>)}
             </div>
           </div>
         </div>
       </nav>
 
-      {/* ---------- WHY ---------- */}
-      <section class="section" id="why" data-vs-reveal-batch>
+      {
+        /* ---------- WHY (paper) ----------
+
+         THE MIGRATION SWITCH (docs/PAGE-BLOCKS.md 2.3) starts here. `hasBlocks`
+         means "this build can draw this page from its blocks" — not "WordPress
+         sent rows" (src/lib/page-content.ts). When it is true PageBlocks draws
+         the ten bands in the order an editor arranged them; when it is false —
+         which is every build until the backfill has run, and again the moment
+         an editor empties the field — every band below renders exactly as it
+         always has.
+
+         PageBlocks goes at the position of the FIRST content band, not after
+         the last one: it draws all ten, so putting it anywhere else would move
+         the whole run relative to <VirtualConsult> and <FinalBand>, which are
+         unguarded and stay where they are.
+
+         `.aos4 .section` (all-on-4-single-arch.css:226) sets padding and no
+         background, so this band is the body paper. */
+      }
+      {hasBlocks ? <PageBlocks blocks={blocks} /> : <section class="section" id="why" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("why").eyebrow}</span>
@@ -230,10 +370,22 @@ const archConfigs = [
             }
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* ---------- WHAT (cream split + Upper/Lower 2-card sub-grid) ---------- */}
-      <section class="section alt" id="what" data-vs-reveal-batch>
+      {/* ---------- WHAT (charcoal split + Upper/Lower 2-card sub-grid) ----------
+       `.aos4 .section.alt` is `background: var(--vs-charcoal-green)`
+       (all-on-4-single-arch.css:227) — a DARK band, not the cream the old
+       comment on this line claimed and not the cream the identical class name
+       means on teeth-whitening.css:237. The map's band value is read off that
+       rule; taking it from the class name would have repainted this band and
+       inverted every colour the block derives from it.
+
+       `.what-sub` below — the Upper/Lower head, the two `.config-card`s and the
+       closing paragraph — has no slot on media_split and is a recorded
+       known_gap on this block. Guarding the band anyway is still right: the
+       alternative is an unguarded `<section id="what">` rendering a second time
+       after the block run with the same id. ---------- */}
+      {hasBlocks ? null : <section class="section alt" id="what" data-vs-reveal-batch>
         <div class="wrap">
           <div class="what-grid">
             <div class="what-img" data-vs-parallax data-parallax="-25">
@@ -294,10 +446,23 @@ const archConfigs = [
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* ---------- ROBOTICS ---------- */}
-      <section class="section" id="robotics" data-vs-reveal-batch>
+      {/* ---------- ROBOTICS (paper) ----------
+       `.aos4 .section` (all-on-4-single-arch.css:226) is padding only, so this
+       is the body paper.
+
+       THE ONE BAND IN src/pages THAT MIXES THE TWO media_split FAMILIES.
+       MediaSplitBlock's header states as a fact that no page has a `.what-*`
+       band with a portrait plate; this one does. `.robotics-img` takes the
+       shared 4/5 frame at all-on-4-single-arch.css:308-311 and the :316
+       override to 5/4 names only `.what-img`, while `.robotics-grid` is
+       1.1fr 1fr (:406-407) with the photo FIRST. The block ties the frame to
+       the side, so the map keeps the side and the split — `media_side: left`
+       plus `ratio: wide-media`, which is exactly 1.1fr 1fr — and records the
+       portrait frame, the `.robotics-*` class names, the bare
+       `p.robotics-prose` and the `.robotics-callout` as gaps. ---------- */}
+      {hasBlocks ? null : <section class="section" id="robotics" data-vs-reveal-batch>
         <div class="wrap">
           <div class="robotics-grid">
             <div class="robotics-img" data-vs-parallax data-parallax="-25">
@@ -328,10 +493,20 @@ const archConfigs = [
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* ---------- PROCESS (sage, 5-step + Healing Timeline inline-cta) ---------- */}
-      <section class="section dark" id="process" data-vs-reveal-batch>
+      {/* ---------- PROCESS (sage-pale, 5-step + Healing Timeline inline-cta) ----------
+       `.aos4 .section.dark` is `background: var(--vs-sage-pale)`
+       (all-on-4-single-arch.css:237), with h2 var(--vs-ink) at :241 — PALE,
+       despite the class name. `sage` and `sage-pale` are two separate
+       BLOCK_BANDS choices painting two different tokens, so the map says
+       sage-pale.
+
+       The only band on this page with no gap at all. `.aos4 .process-grid` is
+       repeat(5, 1fr) (:433-434) over five process_steps rows, and the layout's
+       `columns` select now offers "5" with a scoped `.process-grid.cols-5` in
+       ProcessStepsBlock, so the row of five survives. ---------- */}
+      {hasBlocks ? null : <section class="section dark" id="process" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow light">Same-Day Procedure</span>
@@ -370,10 +545,22 @@ const archConfigs = [
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* ---------- COMPARE (paper, Single vs Full Mouth + 3-card Alternatives) ---------- */}
-      <section class="section" id="compare" data-vs-reveal-batch>
+      {/* ---------- COMPARE (paper, Single vs Full Mouth + 3-card Alternatives) ----------
+       `.aos4 .section` (all-on-4-single-arch.css:226), no background, body
+       paper. `.aos4 .compare` is 1fr 1fr (:469-470) over two cards, and
+       comparison_cards has no `columns` sub-field — the count IS the row count.
+
+       TWO GAPS LIVE IN THIS BAND, both recorded on the block in the map: the
+       `<ul class="compare-list">` inside each card (the layout's
+       `tiers[].bullets` is real in vs-content-model.php but is not in the
+       comparison_cards fragment in src/blocks/manifest.ts, and the component
+       draws a bare `<ul>` of plain `<li>` with no `.compare-list` and no `<b>`
+       lead-in), and the whole `.compare-sub` block with its three
+       `.alternatives-grid` cards. Those three cards are the CMS `alternatives`
+       group, which is why it is named in `exempt.cards`. ---------- */}
+      {hasBlocks ? null : <section class="section" id="compare" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("compare").eyebrow}</span>
@@ -449,10 +636,26 @@ const archConfigs = [
             <span class="cta-note">No commitment · Personal video reply</span>
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* ---------- CANDIDACY (cream, image+text + .candidacy-sub fallback) ---------- */}
-      <section class="section alt" id="candidacy" data-vs-reveal-batch>
+      {/* ---------- CANDIDACY (charcoal, image+text + .candidacy-sub fallback) ----------
+       The same `.aos4 .section.alt` rule as `what` above,
+       all-on-4-single-arch.css:227 — charcoal, not the cream the old comment on
+       this line claimed.
+
+       This is the band `media_split.checklist` was added for: `.candidate-list`
+       is a repeater of { lead, item } and the 01/02/03/04 markers are DERIVED
+       from row position, never stored, so deleting the second of four rows
+       cannot leave `01 03 04` on the page. `lead` carries its own trailing em
+       dash because the dash belongs to the bold run in the markup below.
+
+       `.candidacy-sub` — the "If you don't qualify yet" label, its <h3> and the
+       `sections.candidacy.body` paragraph — has no slot, and `body` is
+       deliberately NOT mapped on this block: media_split would draw it as a
+       `<p>` inside a `.prose` div this band does not have, which is the same
+       words in the wrong place rather than in no place. Recorded as a gap.
+       ---------- */}
+      {hasBlocks ? null : <section class="section alt" id="candidacy" data-vs-reveal-batch>
         <div class="wrap">
           <div class="natural-grid">
             <div class="natural-text">
@@ -507,10 +710,25 @@ const archConfigs = [
             <p>{section("candidacy").body}</p>
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* ---------- LIVING (paper, 4-card + Maintenance sub-callout) ---------- */}
-      <section class="section" id="living" data-vs-reveal-batch>
+      {/* ---------- LIVING (paper, 4-card + Maintenance sub-callout) ----------
+       `.aos4 .section` (all-on-4-single-arch.css:226), body paper.
+
+       TWO SHAPES IN ONE BAND, and card_grid carries one of them. The four
+       `.benefits-card`s are the CMS `livingCards` group and are moved; the
+       `.stat-line` on card four is not, because CardGridBlock has ONE figure
+       slot and one rule for it (`numbered` draws the position, otherwise
+       `meta`). The stat is stored in that card's `meta` — "Every 3–6 months" —
+       so setting `numbered: false` would print it where `04` belongs and leave
+       card four unnumbered. `numbered: true` is the correct trade and the
+       stat-line is a recorded gap. The `.candidacy-sub` maintenance callout is
+       a second recorded gap.
+
+       Note also that card_grid emits `.why-grid`/`.why-card`, not
+       `.benefits-*`. Same four-across geometry, different padding, min-height
+       and type sizes (:276-304 against :650-686). ---------- */}
+      {hasBlocks ? null : <section class="section" id="living" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">Daily Life</span>
@@ -544,10 +762,21 @@ const archConfigs = [
             </p>
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* ---------- INVESTMENT (cream) ---------- */}
-      <section class="section alt" id="cost" data-vs-reveal-batch>
+      {/* ---------- INVESTMENT (charcoal) ----------
+       `.aos4 .section.alt`, all-on-4-single-arch.css:227 — charcoal. The old
+       comment here read "cream" and it was the third of three on this page to
+       do so. porcelain-veneers' cost band is `paper`, which is why `band` is a
+       field on pricing_tiers rather than a constant in the block.
+
+       Standalone `<section id="cost">` around a one-tier <PricingTiers> — the
+       exact shape the layout was built for, and PricingTiersBlock imports the
+       same <PricingTiers> component rather than redrawing it, so the table
+       cannot drift from this one. The closing `.cta-row` below it is the gap:
+       the block emits section > wrap > section-head > PricingTiers and stops.
+       ---------- */}
+      {hasBlocks ? null : <section class="section alt" id="cost" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("cost").eyebrow}</span>
@@ -589,10 +818,14 @@ const archConfigs = [
             <span class="cta-note">17167 Cedar Gulch Pkwy Ste 102 · Parker, CO</span>
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* ---------- GALLERY ---------- */}
-      <section class="section dark" id="gallery">
+      {/* ---------- GALLERY (sage-pale) — marquee, doubled track.
+       `.aos4 .section.dark` is var(--vs-sage-pale), all-on-4-single-arch.css:237,
+       the same token as `process`. Out of the rail on both sides of the switch:
+       this page has no `toc_links` row for #gallery, so nav_label resolves blank
+       and the derived rail skips it exactly as the repeater does. ---------- */}
+      {hasBlocks ? null : <section class="section dark" id="gallery">
         <div class="wrap">
           <div class="section-head" data-vs-reveal>
             <span class="eyebrow light">Smile Gallery</span>
@@ -619,10 +852,14 @@ const archConfigs = [
             }
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* ---------- FAQ (paper, 8 accordion items + closing pull-quote) ---------- */}
-      <section class="section" id="faq" data-vs-reveal-batch>
+      {/* ---------- FAQ (paper, 8 accordion items + closing pull-quote) ----------
+       `.aos4 .section` (all-on-4-single-arch.css:226), body paper.
+       `sections.faq.body` maps to `pull`, NOT to `body`: the template puts it in
+       `.pull` below the questions and the FAQ section-head has no paragraph at
+       all, so writing it to `body` would print it twice. ---------- */}
+      {hasBlocks ? null : <section class="section" id="faq" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("faq").eyebrow}</span>
@@ -662,25 +899,33 @@ const archConfigs = [
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* ---------- VIRTUAL CONSULT ---------- */}
-      <VirtualConsult id="consult" eyebrow="Free All-on-4 consultation">
-        <Fragment slot="headline">Free All-on-4 <em>consultation.</em></Fragment>
-        <Fragment slot="body">
+      {
+        /* ---------- VIRTUAL CONSULT — primary closing conversion.
+         NOT a block and deliberately unguarded, like the breadcrumb, hero,
+         `.keys` strip and the rail above: it renders on both sides of the
+         switch and has no row in the map. It sits after the block run in
+         template order and PageBlocks draws at the `why` position, so the
+         closing pair still comes last. Anchor #consult is the destination for
+         every mid-page CTA on this page. */
+      }
+      <VirtualConsult id="consult" eyebrow={closing.consultEyebrow || "Free All-on-4 consultation"}>
+        <Fragment slot="headline">{closing.consultHeadline ? <Fragment set:html={closing.consultHeadline} /> : <>Free All-on-4 <em>consultation.</em></>}</Fragment>
+        <Fragment slot="body">{closing.consultBody ? closing.consultBody : <>
           Vivid Smiles Dentistry in Parker, CO, brings Dr. Richardson's 600+ hours of surgical
           training, Implant Pathway credentials, and robotic technology to deliver outcomes grounded
           in precision planning. Schedule your free consultation below or call {phoneLabel} to learn which
           arch treatment suits you.
-        </Fragment>
+        </>}</Fragment>
       </VirtualConsult>
 
       {/* ---------- CLOSING BAND ---------- */}
       <FinalBand>
-        <p>
+        <p>{closing.note ? closing.note : <>
           Dr. Bryce Richardson combines robotic precision with 600-plus hours of advanced surgical
           training to deliver All-on-4 outcomes built to last decades.
-        </p>
+        </>}</p>
       </FinalBand>
     </main>
 

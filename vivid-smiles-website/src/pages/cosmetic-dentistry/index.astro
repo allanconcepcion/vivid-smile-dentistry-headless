@@ -29,7 +29,8 @@ import '../../styles/pages/cosmetic-dentistry.css';
 // "Also at the practice" eyebrow. Squarish source means object-fit: cover
 // alone does the right thing — no CSS zoom hacks needed.
 
-import { getPageContent, schemaImageUrl } from '../../lib/page-content';
+import { getPageContent, schemaImageUrl, type TocLink } from '../../lib/page-content';
+import PageBlocks from '../../blocks/PageBlocks.astro';
 // FAQ data — 8 questions, verbatim from approved SEO copy.
 // `a` values use HTML so set:html can render embedded <a class="vs-link"> anchors
 //. Composite bonding intentionally not enumerated in FAQ #1
@@ -37,7 +38,8 @@ import { getPageContent, schemaImageUrl } from '../../lib/page-content';
 // tocLinks, processSteps, faqs are edited in WordPress (Pages -> Cosmetic Dentistry in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, processSteps, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+const { hero, closing, blocks, hasBlocks, tocLinks, processSteps, faqs, section, image, seo } =
+  await getPageContent(Astro.url.pathname);
 
 
 
@@ -164,6 +166,100 @@ const schemaImages: Record<string, string> = Object.fromEntries(
   await Promise.all(services.map(async (s) => [s.title, await schemaImageUrl(s.img, Astro.site)])),
 );
 
+/**
+ * THE MIGRATION SWITCH (docs/PAGE-BLOCKS.md 2.3), AND WHY ITS COMMENTARY LIVES
+ * UP HERE RATHER THAN BESIDE THE GUARDS.
+ *
+ * The sibling detail pages carry `{/* ---------- WHY ---------- *\/}` comment
+ * expressions between their bands already, so a note added there costs nothing.
+ * This template has NONE — its bands are separated by a single blank line and
+ * nothing else. Astro preserves whitespace between expressions and compressHTML
+ * collapses it to a single space rather than removing it, so an Astro comment
+ * expression dropped between two bands here is a text node that HEAD does not
+ * have, on eleven routes' worth of precedent that a 14-byte difference is what
+ * this project measures. So: prose here, guards and nothing but guards below.
+ *
+ * `hasBlocks` means "this build can draw this page from its blocks" — not
+ * "WordPress sent rows" (src/lib/page-content.ts:206 tests the layouts against
+ * the registry). True: PageBlocks draws the nine bands in the order an editor
+ * arranged them, at the position `#why` used to open. False — every build until
+ * the backfill runs, and again the moment an editor empties the field — every
+ * band renders exactly where and as it always has.
+ *
+ * ONE GUARD PER BAND, NOT ONE GUARD AROUND ALL NINE, for the reason
+ * clear-aligners.astro:252-274 records: wrapping them in a Fragment moves them
+ * into a component slot, where compressHTML treats the boundaries differently
+ * and silently drops a space at each one. A guard sitting exactly where its
+ * `<section>` sat emits byte-identical HTML — verified against the compiler,
+ * both ways, before and after this edit.
+ *
+ * THREE BANDS ARE DELIBERATELY NOT GUARDED and each is a different reason:
+ *
+ *   `.crumbs`, `.hero`, `.toc`, <VirtualConsult> and <FinalBand> are chrome —
+ *   never blocks (spec 7: "Not a block, even though it is a band"). Only the
+ *   rail's CONTENTS move, which is the ternary on the rail below.
+ *
+ *   `.closing` (:742) is page copy with no layout that can express it and no
+ *   `code_section` band key registered for it. Guarding it
+ *   with no row would delete it from a live page; giving it a row it has no
+ *   layout for is not possible today. It stays unguarded, and that is ORDER-SAFE
+ *   only because it is the LAST content band — it follows `#faq`, the last
+ *   block, so the template's copy of it lands exactly where the block run ends.
+ *   The moment a block is added after it, this becomes the LocalTrust fault
+ *   (CodeSectionBlock.astro:22-31) and it needs a `code_section` row instead.
+ *   Recorded as a known gap on this route in cms/import/block-map.json.
+ */
+const ANCHOR_IS_ID_SELECTOR = /^[A-Za-z_][A-Za-z0-9_-]*$/;
+
+const anchorsSeen = new Map<string, number>();
+// Typed as TocLink[] rather than an equivalent inline shape so the ternary in
+// the rail below collapses to one type instead of a union of two array types,
+// which TypeScript will not let you call .map() on.
+const derivedTocLinks: TocLink[] = [];
+
+/**
+ * The "On this page" rail, derived from the blocks themselves (docs/PAGE-BLOCKS.md 1.2).
+ *
+ * Carried verbatim from clear-aligners.astro:128-151, including the `nested`
+ * skip: this page's `toc_links` repeater is eight rows that restate the order of
+ * the bands below it, so a reorder in wp-admin moves a band and leaves its rail
+ * entry pointing at the old neighbour. Reading the anchors off the blocks makes
+ * that unrepresentable.
+ *
+ * The three rules, in the order they bite: a blank anchor is skipped because
+ * src/scripts/toc-spy.ts:24 feeds each rendered href to querySelector() and
+ * querySelector("") throws a SyntaxError that kills the whole spy; an anchor
+ * that is not a valid id selector is skipped for the same reason; duplicates
+ * follow PageBlocks.astro's dedup exactly, and the counter advances on every
+ * non-blank anchor — including blocks with no nav_label — or the rail's idea of
+ * "the second #faq" drifts from the id the renderer emitted.
+ */
+for (const block of blocks) {
+  // A nested block is drawn INSIDE the band above it, not as a band of its own,
+  // so it has no id to link to. Without this the rail emits an entry pointing at
+  // an anchor nothing renders — a dead link in the "On this page" list.
+  if (block?.nested) continue;
+
+  const anchor = typeof block.anchor === 'string' ? block.anchor.trim() : '';
+  if (anchor === '') continue;
+
+  const nth = (anchorsSeen.get(anchor) ?? 0) + 1;
+  anchorsSeen.set(anchor, nth);
+
+  const label = typeof block.navLabel === 'string' ? block.navLabel.trim() : '';
+  if (label === '') continue;
+
+  if (!ANCHOR_IS_ID_SELECTOR.test(anchor)) {
+    console.warn(
+      `[blocks] anchor "${anchor}" on ${Astro.url.pathname} cannot be used as a selector — ` +
+        `omitting "${label}" from the On this page rail so toc-spy keeps working`,
+    );
+    continue;
+  }
+
+  derivedTocLinks.push({ href: `#${nth > 1 ? `${anchor}-${nth}` : anchor}`, label });
+}
+
 ---
 
 <BaseLayout
@@ -185,26 +281,26 @@ const schemaImages: Record<string, string> = Object.fromEntries(
       <header class="hero" data-vs-reveal-batch>
         <div class="hero-inner">
           <div class="hero-copy">
-            <span class="eyebrow">Cosmetic Dentistry · Parker, CO</span>
-            <h1 data-vs-reveal-lines>
+            {hero.eyebrow ? <span class="eyebrow">{hero.eyebrow}</span> : <span class="eyebrow">Cosmetic Dentistry · Parker, CO</span>}
+            {hero.h1 ? <h1 data-vs-reveal-lines set:html={hero.h1} /> : <h1 data-vs-reveal-lines>
               Parker, Colorado's <em>cosmetic dentistry destination.</em>
-            </h1>
-            <p class="hero-sub">
+            </h1>}
+            {hero.sub ? <p class="hero-sub">{hero.sub}</p> : <p class="hero-sub">
               If you've spent years hiding your smile, cosmetic dentistry at Vivid Smiles Dentistry
               in Parker offers a clear path to changing that. Dr. Bryce Richardson and Dr. Annelise
               Westermeier provide a full range of cosmetic treatments — from porcelain veneers and
               clear aligners to smile makeovers and gum contouring — with 600+ hours of specialized
               training and the technology to preview results before treatment begins.
-            </p>
+            </p>}
             <div class="hero-actions">
-              <Button variant="sage" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button>
-              <Button variant="ghost" href="#consult" hoverLabel="Get a Video"
-                >Free Virtual Consult</Button
+              <Button variant="sage" href={hero.cta(0) ? hero.cta(0)!.href : bookNowHref} hoverLabel="Let's Talk">{hero.cta(0) ? hero.cta(0)!.label : "Book Online"}</Button>
+              <Button variant="ghost" href={hero.cta(1) ? hero.cta(1)!.href : "#consult"} hoverLabel="Get a Video"
+                >{hero.cta(1) ? hero.cta(1)!.label : "Free Virtual Consult"}</Button
               >
-              <div class="ratings">
+              {hero.showRatings && <div class="ratings">
                 <span class="stars" aria-hidden="true">★★★★★</span>
                 <span>5.0 · 300+ reviews</span>
-              </div>
+              </div>}
             </div>
           </div>
           <div class="hero-stack">
@@ -227,13 +323,13 @@ const schemaImages: Record<string, string> = Object.fromEntries(
           <span class="toc-label">On this page</span>
           <div class="toc-scroll">
             <div class="toc-list">
-              {tocLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+              {(hasBlocks ? derivedTocLinks : tocLinks).map((l) => <a href={l.href}>{l.label}</a>)}
             </div>
           </div>
         </div>
       </nav>
 
-      <section class="section alt" id="why" data-vs-reveal-batch>
+      {hasBlocks ? <PageBlocks blocks={blocks} /> : <section class="section alt" id="why" data-vs-reveal-batch>
         <div class="why-grid">
           <div class="why-copy">
             <span class="eyebrow">{section("why").eyebrow}</span>
@@ -277,9 +373,9 @@ const schemaImages: Record<string, string> = Object.fromEntries(
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
-      <section class="section" id="services" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section" id="services" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("services").eyebrow}</span>
@@ -317,9 +413,9 @@ const schemaImages: Record<string, string> = Object.fromEntries(
             with no pressure to pursue more.
           </p>
         </div>
-      </section>
+      </section>}
 
-      <section class="section dark" id="technology" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section dark" id="technology" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow light">Advanced technology · Parker</span>
@@ -364,9 +460,9 @@ const schemaImages: Record<string, string> = Object.fromEntries(
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
-      <section class="section" id="doctors" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section" id="doctors" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("doctors").eyebrow}</span>
@@ -417,9 +513,9 @@ const schemaImages: Record<string, string> = Object.fromEntries(
             </div>
           </article>
         </div>
-      </section>
+      </section>}
 
-      <section class="section alt" id="process" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section alt" id="process" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("process").eyebrow}</span>
@@ -447,9 +543,9 @@ const schemaImages: Record<string, string> = Object.fromEntries(
             every step as comfortable as possible.
           </p>
         </div>
-      </section>
+      </section>}
 
-      <section class="section" id="results" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section" id="results" data-vs-reveal-batch>
         <div class="wrap">
           <div class="results-grid">
             <div class="results-copy">
@@ -505,9 +601,9 @@ const schemaImages: Record<string, string> = Object.fromEntries(
             }
           </div>
         </div>
-      </section>
+      </section>}
 
-      <section class="section dark" id="candidacy" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section dark" id="candidacy" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow light">Is it for you?</span>
@@ -563,9 +659,9 @@ const schemaImages: Record<string, string> = Object.fromEntries(
             </aside>
           </div>
         </div>
-      </section>
+      </section>}
 
-      <section class="section" id="area" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section" id="area" data-vs-reveal-batch>
         <div class="wrap">
           <div class="area">
             <div class="area-copy">
@@ -602,9 +698,9 @@ const schemaImages: Record<string, string> = Object.fromEntries(
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
-      <section class="section alt" id="faq" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section alt" id="faq" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("faq").eyebrow}</span>
@@ -641,7 +737,7 @@ const schemaImages: Record<string, string> = Object.fromEntries(
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       <section class="closing" data-vs-reveal>
         <div class="wrap">
@@ -670,20 +766,20 @@ const schemaImages: Record<string, string> = Object.fromEntries(
         </div>
       </section>
 
-      <VirtualConsult id="consult" eyebrow="Free cosmetic dentistry consultation">
-        <Fragment slot="headline">Free cosmetic dentistry <em>consultation.</em></Fragment>
-        <Fragment slot="body">
+      <VirtualConsult id="consult" eyebrow={closing.consultEyebrow || "Free cosmetic dentistry consultation"}>
+        <Fragment slot="headline">{closing.consultHeadline ? <Fragment set:html={closing.consultHeadline} /> : <>Free cosmetic dentistry <em>consultation.</em></>}</Fragment>
+        <Fragment slot="body">{closing.consultBody ? closing.consultBody : <>
           Taking the first step toward your smile has never been easier. Nothing to schedule — Dr.
           Richardson personally records a custom video response for every consultation request.
           Photos in, video out.
-        </Fragment>
+        </>}</Fragment>
       </VirtualConsult>
 
       <FinalBand>
-        <p>
+        <p>{closing.note ? closing.note : <>
           Vivid Smiles is located in Parker, CO and has earned 300+ five-star Google reviews from
           patients who wanted natural, lasting cosmetic results and got them.
-        </p>
+        </>}</p>
       </FinalBand>
     </main>
 

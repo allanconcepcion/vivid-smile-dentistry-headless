@@ -196,6 +196,10 @@ order meaningful:
 - **`vs-config.php`** — per-environment constants: `VS_FRONTEND_URL`, and
   `VS_DEPLOY_HOOK_URL` where it is set. Sorts first so both are defined before
   `vs-content-model.php`, `vs-deploy.php` and `vs-headless.php` read them.
+- **`vs-admin.php`** — narrows wp-admin for the people who edit it, and locks the
+  blog category list to the five. Every restriction is gated on
+  `! current_user_can( 'manage_options' )`, so an administrator sees the stock
+  admin untouched. Sorts ahead of everything except `vs-config.php`.
 - **`vs-content-model.php`** — the `vs_testimonial` post type, the
   `vs_testimonial_tag` taxonomy, the three ACF field groups, the five canonical
   blog categories, and two custom GraphQL fields (`Page.vsRoute`,
@@ -289,7 +293,15 @@ Two loose ends worth knowing before you touch any of this:
 
 ## What an editor can change
 
-Nothing hides or restricts the standard admin menus. On top of them:
+`vs-admin.php` narrows the standard admin for anyone below administrator:
+Appearance keeps only Menus, and Plugins, Tools, Comments, SCF and GraphQL are
+gone — hidden from the menu and refused as screens, because `remove_menu_page()`
+hides a link, not a door. **Administrators see the stock admin unchanged**, which
+is deliberate: these are must-use plugins, so a restriction that caught the site
+owner could not be lifted from wp-admin. WP-CLI and cron are unaffected, so the
+importers still run.
+
+On top of what remains:
 
 | Screen | What is editable |
 | --- | --- |

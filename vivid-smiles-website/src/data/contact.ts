@@ -42,3 +42,11 @@ export const directionsHref =
    /emergency-dentistry/. Separate from the smile-consult Typeform inside
    <VirtualConsult>. */
 export const contactTypeformId = settings.contactTypeformId;
+/**
+ * The virtual-consult form. NULLABLE, unlike its sibling above: the field was
+ * added to Practice Settings after the settings page shipped, so an install that
+ * has never saved it returns null. VirtualConsult.astro falls back to the id it
+ * has always carried, which is what makes an empty box a no-op rather than a
+ * blank form on the site's primary lead capture.
+ */
+export const consultTypeformId = settings.consultTypeformId;

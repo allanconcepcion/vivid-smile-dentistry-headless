@@ -1,0 +1,988 @@
+---
+/**
+ * DoctorProfilesBlock — the `doctor_profiles` layout: the doctor bio band.
+ *
+ * Extracted from three live bands, not designed anew. All three are
+ * `<article class="doctor doctor--feature">` — one portrait column, one bio
+ * stack — and they differ only in what the stack holds:
+ *
+ *   src/pages/implant-dentistry/index.astro:441-473   `#doctors`, paper.
+ *       Portrait + ONE `.doctor-bio.doctor-bio--lead`, two paragraphs, no rule.
+ *   src/pages/cosmetic-dentistry/index.astro:369-420  `#doctors`, paper.
+ *       Portrait + a lead bio, a `.doctor-rule`, then an `<aside>` for Dr. Annie
+ *       carrying her own circular thumbnail beside her eyebrow.
+ *   src/pages/general-dentistry/index.astro:360-400   `#doctors`, paper.
+ *       Portrait (the duo photo) + TWO equal-weight `.doctor-bio` divs with a
+ *       `.doctor-rule` between them. No `--lead`, no thumbnail.
+ *
+ * ── ONE REPEATER DRAWS ALL THREE, AND TWO FIELDS PICK THE SHAPE ──────────
+ *
+ * `bios[]` is the whole difference. Every row is `.doctor-bio`; two of its own
+ * sub-fields decide which of the three skins it wears, and neither is a "style"
+ * select an editor has to reason about:
+ *
+ *   `lead`  true  → `.doctor-bio--lead`, the FEATURE bio: the larger display
+ *                   heading (clamp 24-32 rather than 22-28). Implant's single
+ *                   bio and cosmetic's first are `--lead`; general's two are
+ *                   deliberately not, because that page's SEO copy bills both
+ *                   doctors equally (general-dentistry.css:741-747 says so at
+ *                   length).
+ *   `image` set → the SECONDARY ASIDE: an `<aside>` rather than a `<div>`, its
+ *                   thumbnail inline with its eyebrow inside
+ *                   `.doctor-secondary-head`, and smaller prose. A bio carrying
+ *                   its own portrait is the only shape that has anywhere to put
+ *                   one — `.doctor-thumb` exists nowhere else in the corpus.
+ *
+ * THE IMAGE WINS WHEN A ROW SETS BOTH, and that is not a coin toss: `--lead`
+ * only resizes an `<h3>`, and the aside as shipped has no `<h3>` at all, so
+ * honouring `lead` there would change nothing on screen while throwing away the
+ * one shape that can draw the thumbnail the editor just uploaded. The row is
+ * warned about rather than silently reinterpreted.
+ *
+ * ── THE RULE IS DERIVED FROM POSITION, NEVER STORED ──────────────────────
+ *
+ * `.doctor-rule` is drawn BEFORE every row but the first, which is exactly
+ * where both pages that ship it put it and is the only place it can go: it is a
+ * separator, so a stored "show a rule" toggle would let an editor put one above
+ * the first bio (a hairline hanging under the section head) or delete the one
+ * between two bios that need it. Same rule as ProcessStepsBlock's numerals and
+ * MediaSplitBlock's `01/02/03` markers — position is computed, not typed.
+ *
+ * Its spacing is the one measured disagreement between the two sheets that draw
+ * it: 32px above and below on cosmetic (cosmetic-dentistry.css:547), 28px on
+ * general (general-dentistry.css:836). The signal that separates them is
+ * already in the DOM — cosmetic's rule follows the FEATURE bio, general's
+ * follows a plain one — so the sheet below expresses it as
+ * `.doctor-bio--lead + .doctor-rule` and needs no field, no modifier class and
+ * no `:has()` (which appears nowhere in this codebase). See the <style> header.
+ *
+ * ── THE ASIDE IS LABELLED FROM ITS OWN EYEBROW ───────────────────────────
+ *
+ * cosmetic-dentistry/index.astro:396 is `aria-label="Also at the practice"`, and
+ * its eyebrow at :406 is the same four words. Two fields for one string is two
+ * chances to drift, and the one that drifts silently is the one only screen
+ * readers hear — so the eyebrow IS the accessible name here. A row with no
+ * eyebrow gets no `aria-label` rather than an empty one, because
+ * `aria-label=""` on a landmark is worse than none: it suppresses the element's
+ * own name without supplying another.
+ *
+ * ── WHERE THE BAND'S OWN `body` GOES, AND WHY IT IS NOT THE BIO'S ────────
+ *
+ * All three templates read `{section("doctors").body}` INSIDE the feature bio,
+ * not in the section head — so that paragraph's field on this layout is
+ * `bios[].body`, and the preamble's `body` is the head paragraph none of the
+ * three bands has. Blank on all three, and blank draws no `<p>`. Filling the
+ * preamble body on a migrated band would put the doctor's prose above the
+ * portrait instead of beside it, which is why the field docs below say which is
+ * which.
+ *
+ * Every field is optional and a blank one draws NOTHING, never an empty
+ * wrapper: no `.section-head` without head copy, no `.doctor--feature` without
+ * either a portrait or a bio, no `.doctor-stack` for an empty repeater, no
+ * `.doctor-portrait` without a picture. The band shell itself is always
+ * emitted, as it is in all eight registered siblings — a block owns its band
+ * (docs/PAGE-BLOCKS.md 2.5), and a row that vanished entirely would take its
+ * `id` with it and break whichever rail chip points at it.
+ *
+ * Styles are co-located per docs/PAGE-BLOCKS.md 2.5, modelled on FinalBand.astro
+ * and on TechGridBlock, its sibling in this wave: no page namespace, `--vs-*`
+ * tokens directly, band as a prop, self-owned padding, zero margin.
+ *
+ * Spec: docs/PAGE-BLOCKS.md Phase 4, Wave A. Nothing imports this file yet —
+ * registry.ts, manifest.ts and vs-content-model.php are a later commit.
+ */
+import { Image } from "astro:assets";
+
+/** The layout's image sub-field, as wpgraphql-acf returns an ACF image.
+    Same shape as MediaSplitBlock.astro:125-132 and TechGridBlock.astro:57-64,
+    and for the same reason: the manifest selects
+    `image { node { sourceUrl altText mediaDetails { width height } } }`. */
+export interface DoctorProfilesImage {
+  node?: {
+    sourceUrl?: string | null;
+    altText?: string | null;
+    mediaDetails?: { width?: number | null; height?: number | null } | null;
+  } | null;
+}
+
+/**
+ * One row of the layout's `bios` repeater — GraphQL type
+ * `PageFieldsBlocksBios`. Every sub-field is optional at the schema level
+ * because ACF returns null for anything an editor never filled in; typing any
+ * of them as a plain string would lie to the filter below.
+ */
+export interface DoctorProfilesBio {
+  /** The name line — "Dr. Bryce Richardson, DDS". Doubles as the aside's
+      accessible name; see the header. */
+  eyebrow?: string | null;
+  /** May contain `<em>`, and nothing else (docs/PAGE-BLOCKS.md, Fact 3) —
+      "Top of his class — <em>and his hometown.</em>". Hence `set:html`. */
+  heading?: string | null;
+  body?: string | null;
+  /** The second paragraph. Only implant's bio ships one
+      (implant-dentistry/index.astro:466-470); blank draws no `<p>`. */
+  body2?: string | null;
+  /** Marks the FEATURE bio — the larger heading. See the header for what
+      happens when a row sets this and uploads a picture too. */
+  lead?: boolean | null;
+  /** The bio's OWN portrait — the circular `.doctor-thumb`. Its presence is
+      what makes this row the secondary aside. Not to be confused with the
+      band's `image`, which is the tall portrait beside the whole stack. */
+  image?: DoctorProfilesImage | null;
+  imageAlt?: string | null;
+}
+
+interface Props {
+  /** DOM id, already deduplicated by PageBlocks.astro. Absent when blank. */
+  id?: string;
+  /** The same value as `id`. Accepted so the spread in PageBlocks is lossless. */
+  anchor?: string | null;
+  /** Rail label. Read by the page that builds the rail, not by this band. */
+  navLabel?: string | null;
+  band?: string | null;
+  eyebrow?: string | null;
+  /** May contain `<em>`, and nothing else (docs/PAGE-BLOCKS.md, Fact 3). */
+  heading?: string | null;
+  /** The SECTION HEAD's paragraph, which none of the three live bands has. The
+      doctor's prose is `bios[].body` — see the header. Blank draws no `<p>`. */
+  body?: string | null;
+  /** The glass chip on the portrait — "Founder · Surgical &amp; Restorative",
+      "Dr. Bryce &amp; Dr. Annie". Absolutely positioned inside
+      `.doctor-portrait`, so it is drawn only when there is a portrait. */
+  pill?: string | null;
+  /** The band's tall 4:5 portrait. */
+  image?: DoctorProfilesImage | null;
+  imageAlt?: string | null;
+  bios?: (DoctorProfilesBio | null)[] | null;
+}
+
+/**
+ * band value -> the modifier class the page's markup already uses.
+ *
+ * Read this map, not an ancestor class. `.section.alt` is charcoal green on all
+ * three hub sheets but cream on teeth-whitening.css:237 (Fact 4), so a block
+ * that inherited its band would be wrong on some page the moment a section is
+ * dragged. `paper` maps to nothing because a paper band is a bare
+ * `class="section"` in every template — which is what all three doctor bands
+ * are.
+ */
+const BAND_CLASS: Record<string, string | undefined> = {
+  paper: undefined,
+  cream: "cream",
+  "sage-pale": "dark",
+  sage: "sage",
+  charcoal: "alt",
+};
+
+const {
+  id,
+  /* `paper` and not something louder: it is what the PHP field stores as its
+     own default_value (vs-content-model.php, block_preamble()), so a row an
+     editor has never opened renders the band wp-admin is showing them. The
+     branch is unreachable for any saved row — ACF returns the stored choice —
+     which is exactly why it must not invent a different one. */
+  band = "paper",
+  eyebrow,
+  heading,
+  body,
+  pill,
+  image,
+  imageAlt,
+  bios,
+} = Astro.props;
+
+const bandKey = typeof band === "string" && band !== "" ? band : "paper";
+const bandClass = BAND_CLASS[bandKey];
+
+const text = (input: unknown): string =>
+  typeof input === "string" ? input.trim() : "";
+
+/**
+ * The eyebrow carries `light` on the two bands the templates spell
+ * `.section.dark` / `.section.sage`. It is INERT under the cascade below
+ * (`.section.dark .section-head .eyebrow` already outranks `.eyebrow.light`);
+ * it is reproduced because this phase is verified by an HTML diff, not by a
+ * rendering. Same rule and same wording as TechGridBlock.astro:148-157 and
+ * ProcessStepsBlock.astro:143-152.
+ */
+const eyebrowLight = bandKey === "sage-pale" || bandKey === "sage";
+
+const eyebrowText = text(eyebrow);
+const headingHtml = text(heading);
+const bodyText = text(body);
+const hasHead = eyebrowText !== "" || headingHtml !== "" || bodyText !== "";
+
+/**
+ * The band's portrait, or nothing.
+ *
+ * `<Image>` refuses a remote source without explicit intrinsic dimensions, so a
+ * media item WordPress recorded no size for cannot be rendered at all — an SVG,
+ * or an upload that did not finish. That degrades to a bio-only band rather
+ * than failing a build an editor triggered (the rule MediaSplitBlock.astro:485-506
+ * and TechGridBlock.astro:196-206 both run on), and the omission is reported to
+ * the build log where an engineer will see it. All three live rows carry a
+ * 1200x1800 WebP and none takes this path.
+ */
+const node = image?.node ?? null;
+const src = typeof node?.sourceUrl === "string" ? node.sourceUrl : "";
+const width = node?.mediaDetails?.width ?? 0;
+const height = node?.mediaDetails?.height ?? 0;
+const hasPortrait = src !== "" && width > 0 && height > 0;
+
+/** Editor override first, then the alt text stored on the file itself. */
+const alt = text(imageAlt) || text(node?.altText) || "";
+
+/* The pill is `position: absolute` inside `.doctor-portrait`
+   (cosmetic-dentistry.css:499-508). With no portrait there is no positioned
+   box to hold it, and a stray chip would land wherever the nearest positioned
+   ancestor happens to be — so it is dropped, loudly. */
+const pillText = text(pill);
+if (pillText !== "" && !hasPortrait) {
+  console.warn(
+    `[blocks] doctor_profiles on ${Astro.url.pathname}${id ? `#${id}` : ""} has a portrait pill but no portrait — ` +
+      "the pill sits inside the photo, so it is not drawn. Add the band image in wp-admin.",
+  );
+}
+
+if (src !== "" && !hasPortrait) {
+  console.warn(
+    `[blocks] doctor_profiles on ${Astro.url.pathname}${id ? `#${id}` : ""} has a band portrait with no recorded ` +
+      "width/height — drawing the bios without it",
+  );
+}
+
+/**
+ * The bios, trimmed, shaped and emptied out.
+ *
+ * `Array.isArray` first because an unqueried repeater arrives `undefined` and a
+ * repeater an editor never opened arrives `null`, and `.map` on either throws
+ * during the build of whatever page the band happens to sit on.
+ *
+ * The filter drops a row only when EVERY text field is blank — the empty row
+ * ACF leaves behind when someone clicks "Add row" and changes their mind. It is
+ * deliberately not "a bio needs a heading": a row saved with only a name line
+ * is a row an editor meant to save, and dropping it here would delete published
+ * copy with no error anywhere to explain it. It runs BEFORE the divider is
+ * derived, which is the whole point of doing it here — numbering the rows first
+ * would spend the first position on a row that draws nothing and hang a
+ * hairline under the section head.
+ *
+ * A row whose only content is an uploaded picture is kept: the thumbnail IS
+ * content, and an aside holding just a face is a shape an editor can see and
+ * fix. A row with nothing at all cannot be.
+ */
+const rows = (Array.isArray(bios) ? bios : [])
+  .map((row) => {
+    const rowNode = row?.image?.node ?? null;
+    const rowSrc = typeof rowNode?.sourceUrl === "string" ? rowNode.sourceUrl : "";
+    const rowWidth = rowNode?.mediaDetails?.width ?? 0;
+    const rowHeight = rowNode?.mediaDetails?.height ?? 0;
+    return {
+      eyebrow: text(row?.eyebrow),
+      heading: text(row?.heading),
+      body: text(row?.body),
+      body2: text(row?.body2),
+      /* `=== true` because ACF returns null for a true/false an editor never
+         touched, and null must mean "not the feature bio", not "maybe". */
+      lead: row?.lead === true,
+      /* The IMAGE FIELD, not a renderable one, is the shape switch — a row
+         whose upload lost its dimensions is still the aside its editor meant,
+         drawn without the thumbnail rather than demoted to a plain bio, which
+         would also silently drop its `aria-label`. */
+      secondary: rowSrc !== "",
+      src: rowSrc,
+      width: rowWidth,
+      height: rowHeight,
+      hasThumb: rowSrc !== "" && rowWidth > 0 && rowHeight > 0,
+      alt: text(row?.imageAlt) || text(rowNode?.altText) || "",
+    };
+  })
+  .filter(
+    (row) =>
+      row.eyebrow !== "" ||
+      row.heading !== "" ||
+      row.body !== "" ||
+      row.body2 !== "" ||
+      row.secondary,
+  );
+
+for (const row of rows) {
+  if (row.secondary && !row.hasThumb) {
+    console.warn(
+      `[blocks] doctor_profiles bio "${row.eyebrow || "(unnamed)"}" on ${Astro.url.pathname}${id ? `#${id}` : ""} ` +
+        "has a thumbnail with no recorded width/height — drawing the aside without it",
+    );
+  }
+  if (row.secondary && row.lead) {
+    console.warn(
+      `[blocks] doctor_profiles bio "${row.eyebrow || "(unnamed)"}" on ${Astro.url.pathname}${id ? `#${id}` : ""} ` +
+        "is marked as the feature bio AND carries its own photo — drawing the photo, which the feature shape has " +
+        "nowhere to put. Clear one of the two in wp-admin.",
+    );
+  }
+}
+
+/* No portrait and no bios means no article: `.doctor--feature` is a two-track
+   grid with 60px of gap, so an empty one is a silent 60px hole in the band. */
+const hasArticle = hasPortrait || rows.length > 0;
+---
+
+{/* `data-vs-reveal-batch` on the section, exactly as all three templates carry
+    it. animations.js:531 animates the section's DIRECT children, which is the
+    one `.wrap` — so this is a single fade of the whole band, not a per-bio
+    stagger. Moving it to `.doctor--feature` would be a different animation. */}
+<section class:list={["section", bandClass]} id={id} data-vs-reveal-batch>
+  <div class="wrap">
+    {
+      hasHead && (
+        <div class="section-head">
+          {eyebrowText && (
+            <span class:list={["eyebrow", eyebrowLight && "light"]}>{eyebrowText}</span>
+          )}
+          {headingHtml && (
+            <h2>
+              <Fragment set:html={headingHtml} />
+            </h2>
+          )}
+          {bodyText && <p>{bodyText}</p>}
+        </div>
+      )
+    }
+
+    {
+      hasArticle && (
+        <article class="doctor doctor--feature">
+          {/* The pill is NOT flushed against the <Image>, unlike the seams in
+              the stack below, and this comment sits OUTSIDE the portrait for
+              the reason TechGridBlock.astro:277-280 gives: inside it, Astro
+              emits the newlines around it as a text node the templates do not
+              have. The pill itself can keep its own line — `.doctor-portrait`
+              is a block box whose only other child is an `img` set to
+              `display: block`, so the whitespace a blank pill leaves behind
+              cannot open a line box and cannot render, and the templates put
+              the two on their own lines too
+              (cosmetic-dentistry/index.astro:377-386). */}
+          {hasPortrait && (
+            <div class="doctor-portrait">
+              {pillText && <span class="doctor-pill">{pillText}</span>}
+              <Image
+                src={src}
+                width={width}
+                height={height}
+                alt={alt}
+                {/* A SUPERSET OF ALL THREE HUBS, ON PURPOSE. general ships
+                    [420,640,880,1100]; cosmetic and implant ship [420,640,880]
+                    (general-dentistry/index.astro:373,
+                    cosmetic-dentistry/index.astro:382,
+                    implant-dentistry/index.astro:454). Carrying the union costs
+                    the two shorter pages one extra generated candidate and can
+                    never degrade them — the browser picks from what it is
+                    offered — whereas trimming to the shorter list would take a
+                    real candidate away from general on wide screens. The
+                    emitted srcset therefore differs from two templates by one
+                    entry, which is a byte difference and not a visual one. */}
+                widths={[420, 640, 880, 1100]}
+                sizes="(max-width: 991px) 100vw, 50vw"
+              />
+            </div>
+          )}
+
+          {rows.length > 0 && (
+            <div class="doctor-stack">
+              {rows.map((row, i) => (
+                <Fragment>{/* SEAM 1 — the divider, `}{` flush against the bio
+                    that follows it. It is drawn BEFORE every row but the
+                    first, which is the only place a separator can go and is
+                    where both pages that ship it put it
+                    (cosmetic-dentistry/index.astro:394,
+                    general-dentistry/index.astro:385). On its own line the
+                    false branch — the first bio, i.e. every band that has only
+                    one — would carry a leading whitespace text node into
+                    `.doctor-stack` that none of the three templates has. The
+                    comment lives INSIDE the expression because a comment node
+                    on its own line would reintroduce exactly what it
+                    documents. */
+                  i > 0 && <div class="doctor-rule" aria-hidden="true" />
+                }{
+                  row.secondary ? (
+                    <aside
+                      class="doctor-bio doctor-bio--secondary"
+                      aria-label={row.eyebrow || undefined}
+                    >
+                      <div class="doctor-secondary-head">
+                        {row.hasThumb && (
+                          <div class="doctor-thumb">
+                            <Image
+                              src={row.src}
+                              width={row.width}
+                              height={row.height}
+                              alt={row.alt}
+                              widths={[120, 200]}
+                              sizes="(max-width: 991px) 48px, 56px"
+                            />
+                          </div>
+                        )}
+                        {row.eyebrow && <span class="eyebrow">{row.eyebrow}</span>}
+                      </div>{/* SEAM 2 — `}{` flush, nothing between. No live
+                          aside carries a heading (cosmetic's is head + prose),
+                          so this branch is false on the one row that ships this
+                          shape; on its own line it would leave a whitespace
+                          text node inside the aside that the template does not
+                          have, on the band this block exists to reproduce
+                          byte-for-byte. The comment lives INSIDE the expression
+                          because a comment node on its own line would
+                          reintroduce exactly what it documents. */
+                        row.heading && (
+                          <h3>
+                            <Fragment set:html={row.heading} />
+                          </h3>
+                        )
+                      }
+                      {row.body && <p>{row.body}</p>}{/* SEAM 3 — flush. Four of
+                          the five live bios have one paragraph and no `body_2`,
+                          so an own-line expression here would add a second
+                          whitespace node to every one of them. */
+                        row.body2 && <p>{row.body2}</p>
+                      }
+                    </aside>
+                  ) : (
+                    <div class:list={["doctor-bio", row.lead && "doctor-bio--lead"]}>
+                      {row.eyebrow && <span class="eyebrow">{row.eyebrow}</span>}
+                      {row.heading && (
+                        <h3>
+                          <Fragment set:html={row.heading} />
+                        </h3>
+                      )}
+                      {row.body && <p>{row.body}</p>}{/* SEAM 4 — flush, same
+                          reason as seam 3: `body_2` is filled on exactly one
+                          bio in the corpus (implant's), so the false branch is
+                          the common case and it must cost nothing. */
+                        row.body2 && <p>{row.body2}</p>
+                      }
+                    </div>
+                  )
+                }</Fragment>
+              ))}
+            </div>
+          )}
+        </article>
+      )
+    }
+  </div>
+</section>
+
+<style>
+  /* ══ WHERE THESE RULES COME FROM ═══════════════════════════════════════════
+     Three source sheets, because this block draws three live bands:
+
+       src/styles/pages/implant-dentistry.css   `.impd`  — one lead bio
+       src/styles/pages/cosmetic-dentistry.css  `.cdent` — lead + aside
+       src/styles/pages/general-dentistry.css   `.gdent` — two equal bios
+
+     Each page's local `--sage` / `--ink` / `--line` / `--r-lg` / `--shadow-lg`
+     aliases are resolved back to the `--vs-*` tokens they alias one-for-one
+     (cosmetic-dentistry.css:34-55, and the identical tables at the head of the
+     other two). Rendered values are unchanged.
+
+     The three sheets agree declaration-for-declaration on the portrait, the
+     pill, the stack and the eyebrow. They disagree in exactly three places, and
+     every one of the three is a real, measured difference between live pages
+     rather than drift — so each is reproduced from a signal already in the DOM,
+     never flattened to whichever page was read last:
+
+       1. HEADING SIZE. `.doctor-bio--lead h3` is clamp(24px, 2.6vw, 32px)
+          (cosmetic:523-529, and implant:1014-1023 where the only bio IS the
+          lead); a plain `.doctor-bio h3` is clamp(22px, 2.3vw, 28px)
+          (general:809-818). Keyed on `--lead`, which is what the two pages
+          differ by.
+       2. RULE SPACING. 32px on cosmetic (:547), 28px on general (:836); 28px
+          and 24px respectively at the 1100px breakpoint (:932, :1276-1278). The
+          cosmetic rule is the one that follows the FEATURE bio, so it is keyed
+          on `.doctor-bio--lead + .doctor-rule` — an adjacent sibling, no
+          `:has()` (which appears nowhere in this codebase) and no modifier
+          class this block would have to invent and then diff against.
+       3. PARAGRAPH SPACING. Implant's bio has two paragraphs and spaces them
+          `margin: 0 0 14px` with `p:last-child` clearing it (:1029-1038);
+          cosmetic and general have one paragraph each and write `margin: 0`
+          (:533-537, :824-830). Implant's pair is the general case — for a
+          single paragraph the `:last-child` rule resolves to exactly
+          `margin: 0` — so it is the one written here, and all three bands
+          render identically.
+
+     ── AND WHY EVERY RULE IS QUALIFIED WITH `.section` ─────────────────────
+     Astro's attribute scoping compiles `.doctor-portrait` to
+     `.doctor-portrait[cid]` — specificity (0,2,0), which TIES with the page
+     sheets' own `.cdent .doctor-portrait`, and a tie is decided by bundle
+     order. The house rule is never to build on that tie, so every rule below is
+     written `.section .thing` → `.section[cid] .thing[cid]` at (0,4,0), which
+     clears all three page sheets outright. Nothing here depends on which
+     stylesheet a bundler happens to emit first.
+
+     The handful of intra-file overrides (`--lead` over the base heading,
+     `--secondary` over the base prose) are ties WITHIN this file, decided by
+     source order, which is a language guarantee rather than a build artefact —
+     the page sheets settle the same pairs the same way. Each is written
+     directly below the rule it overrides. */
+
+  /* ---------- band shell ----------
+     `.section` owns its padding and has no margin at all, so this band cannot
+     collapse into whichever band an editor drags above or below it. Same rule
+     as FinalBand.astro and every sibling block.
+     padding: implant-dentistry.css:307 = cosmetic-dentistry.css:199 =
+     general-dentistry.css:325-327. `cream` and `sage` are in none of the three
+     hub sheets — no hub places those bands — so their values come from
+     tokens.css via the block family's shell (FaqBlock.astro:235-250), which is
+     the contract the band select promises. */
+  .section {
+    margin: 0;
+    padding: 110px 0;
+    background: var(--vs-paper);
+  }
+  .section.cream {
+    background: var(--vs-cream);
+  }
+  /* cosmetic-dentistry.css:216 / implant-dentistry.css:333-335 /
+     general-dentistry.css:351-353 */
+  .section.dark {
+    background: var(--vs-sage-pale);
+  }
+  .section.sage {
+    background: var(--vs-sage);
+  }
+  /* cosmetic-dentistry.css:200 / implant-dentistry.css:310-312 /
+     general-dentistry.css:328-331 */
+  .section.alt {
+    background: var(--vs-charcoal-green);
+  }
+
+  /* Keep the heading clear of the stacked global Nav + sticky TOC when a rail
+     chip is clicked. implant-dentistry.css:301-303,
+     cosmetic-dentistry.css:195-197, general-dentistry.css:320-322 (all written
+     there as `section[id]`). Both custom properties are set on the page wrapper
+     and inherit down; the fallbacks are the desktop measurements those sheets
+     declare (cosmetic-dentistry.css:35-36). */
+  .section[id] {
+    scroll-margin-top: calc(var(--nav-h, 77px) + var(--toc-h, 68px) + 12px);
+  }
+
+  /* cosmetic-dentistry.css:58 = implant-dentistry.css:48-52 =
+     general-dentistry.css:66-70 */
+  .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  /* cosmetic-dentistry.css:60-64 = implant-dentistry.css:54-61 =
+     general-dentistry.css:72-79 */
+  .eyebrow {
+    font-family: var(--vs-font-body);
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+  }
+  /* general-dentistry.css:80-82 = implant-dentistry.css:62-64 */
+  .eyebrow.light {
+    color: var(--vs-eyebrow-on-sage);
+  }
+
+  /* h2 resolves to ink. All three sheets reach that colour only through a
+     trailing override whose own comment says it works because of its file
+     position (general-dentistry.css:1366-1371, implant-dentistry.css:1543-1549,
+     cosmetic-dentistry tail); a block that owns its cascade states the outcome
+     once. Sizing: general-dentistry.css:105-109 = implant-dentistry.css:87-91. */
+  h2 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    color: var(--vs-ink);
+    margin: 0;
+    line-height: 1.1;
+    letter-spacing: -0.022em;
+    font-size: clamp(32px, 4.2vw, 54px);
+  }
+  /* `:global()` because the `<em>` arrives through `set:html` and carries no
+     scope attribute — a plain `h2 em` compiles to `em[cid]`, misses it, and
+     drops the accent colour. Value: implant-dentistry.css:84-86. */
+  h2 :global(em) {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+
+  /* cosmetic-dentistry.css:78 (`p` base) */
+  p {
+    margin: 0;
+    color: var(--vs-ink-soft);
+  }
+
+  /* implant-dentistry.css:368-400 = general-dentistry.css:386-414 =
+     cosmetic-dentistry.css:238-260 */
+  .section-head {
+    max-width: 760px;
+    margin: 0 auto 64px;
+    text-align: center;
+  }
+  .section-head .eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .section-head .eyebrow::before,
+  .section-head .eyebrow::after {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+  .section-head h2 {
+    margin: 22px 0 22px;
+  }
+  .section-head p {
+    font-size: 17px;
+    line-height: 1.7;
+    max-width: 60ch;
+    margin: 0 auto;
+  }
+
+  /* ---------- band inversions ----------
+     Unlike TechGridBlock, these reach the BIOS as well as the head: a doctor
+     bio has no surface of its own — it sits directly on the band ground — so on
+     charcoal an un-inverted `--vs-ink-soft` paragraph is invisible. And the
+     block's own `.section .doctor-bio p` at (0,5,1) outranks the page sheets'
+     generic `.cdent .section.alt p` at (0,3,1), so leaving this to the page
+     would not merely be untidy, it would take the rescue away from a band that
+     had it. The three live bands are all paper and none of this fires on them.
+     Values: general-dentistry.css:328-349 (alt) and :351-365 (dark);
+     implant-dentistry.css:314-331 / :336-353; cosmetic-dentistry.css:201-207 /
+     :216-223, plus each sheet's trailing source-order repeat of the same
+     declarations. */
+  .section.alt .section-head h2,
+  .section.sage .section-head h2,
+  .section.alt .doctor-bio h3,
+  .section.sage .doctor-bio h3 {
+    color: #fff;
+  }
+  .section.alt .section-head h2 :global(em),
+  .section.sage .section-head h2 :global(em),
+  .section.alt .doctor-bio h3 :global(em),
+  .section.sage .doctor-bio h3 :global(em) {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .section.alt .section-head p,
+  .section.sage .section-head p,
+  .section.alt .doctor-bio p,
+  .section.sage .doctor-bio p {
+    color: rgba(255, 255, 255, 0.85);
+  }
+  .section.alt .section-head .eyebrow,
+  .section.sage .section-head .eyebrow,
+  .section.alt .doctor-bio .eyebrow,
+  .section.sage .doctor-bio .eyebrow {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .section.alt .section-head .eyebrow::before,
+  .section.alt .section-head .eyebrow::after,
+  .section.sage .section-head .eyebrow::before,
+  .section.sage .section-head .eyebrow::after {
+    background: rgba(255, 255, 255, 0.6);
+  }
+
+  .section.dark .section-head h2,
+  .section.dark .doctor-bio h3 {
+    color: var(--vs-ink);
+  }
+  .section.dark .section-head h2 :global(em),
+  .section.dark .doctor-bio h3 :global(em) {
+    color: var(--vs-sage);
+  }
+  .section.dark .section-head p,
+  .section.dark .section-head .eyebrow,
+  .section.dark .doctor-bio p,
+  .section.dark .doctor-bio .eyebrow {
+    color: var(--vs-ink-soft);
+  }
+  .section.dark .section-head .eyebrow::before,
+  .section.dark .section-head .eyebrow::after {
+    background: var(--vs-ink-soft);
+  }
+
+  /* ---------- the article ----------
+     cosmetic-dentistry.css:479-483 = general-dentistry.css:748-755 =
+     implant-dentistry.css:957-964. `.doctor` carries no declarations in any of
+     the three sheets; it is emitted because the templates emit it. */
+  .section .doctor--feature {
+    display: grid;
+    grid-template-columns: 1fr 1.05fr;
+    gap: 60px;
+    align-items: stretch;
+    max-width: 1040px;
+    margin: 0 auto;
+  }
+
+  /* Degenerate-shape guards, which no live row takes and every optional field
+     makes reachable. A lone child of a two-track grid lands in the first track
+     and leaves the other half of the band empty — a portrait with no bios reads
+     as a broken layout rather than as a photo. The cap is the width that column
+     already has: (1040 - 60) / 2.05 = 478px, rounded to 480. */
+  .section .doctor--feature .doctor-stack:only-child {
+    grid-column: 1 / -1;
+  }
+  .section .doctor--feature .doctor-portrait:only-child {
+    grid-column: 1 / -1;
+    max-width: 480px;
+    margin: 0 auto;
+  }
+
+  /* cosmetic-dentistry.css:485-493 = general-dentistry.css:757-765 =
+     implant-dentistry.css:966-974 */
+  .section .doctor-portrait {
+    aspect-ratio: 4/5;
+    width: 100%;
+    border-radius: var(--vs-r-lg);
+    overflow: hidden;
+    box-shadow: var(--vs-shadow-lg);
+    background: linear-gradient(135deg, var(--vs-cream-warm), var(--vs-cream));
+    position: relative;
+  }
+  /* cosmetic-dentistry.css:494-497 = general-dentistry.css:766-772 =
+     implant-dentistry.css:975-981. `<Image>` renders a plain `<img>` authored
+     in this file, so it carries the scope attribute and needs no `:global`. */
+  .section .doctor-portrait img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.6s ease;
+  }
+  /* cosmetic-dentistry.css:498 = general-dentistry.css:773-775 =
+     implant-dentistry.css:982-984 */
+  .section .doctor--feature:hover .doctor-portrait img {
+    transform: scale(1.03);
+  }
+  /* cosmetic-dentistry.css:499-508 = general-dentistry.css:776-791 =
+     implant-dentistry.css:985-1000 */
+  .section .doctor-pill {
+    position: absolute;
+    top: 22px;
+    left: 22px;
+    padding: 7px 14px;
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border-radius: 999px;
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--vs-sage-deep);
+    font-weight: 500;
+    z-index: 2;
+  }
+
+  /* ---------- the bio stack ----------
+     The right column is a vertical flex with centre justification, so the bios
+     read as balanced across the portrait's full height and any size mismatch
+     becomes editorial breathing room top and bottom rather than a chunk of dead
+     space under the last paragraph. cosmetic-dentistry.css:512-516 =
+     general-dentistry.css:793-798 = implant-dentistry.css:1002-1007. */
+  .section .doctor-stack {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-width: 0;
+  }
+
+  /* general-dentistry.css:800-802 = cosmetic-dentistry.css:568 (written there
+     on `--secondary` alone; the two rules are the same declaration and the
+     wider one is correct for both). */
+  .section .doctor-bio {
+    min-width: 0;
+  }
+  /* cosmetic-dentistry.css:519-522 = general-dentistry.css:803-808 =
+     implant-dentistry.css:1008-1013 */
+  .section .doctor-bio .eyebrow {
+    display: inline-block;
+    margin-bottom: 10px;
+    color: var(--vs-sage);
+    font-weight: 500;
+  }
+  /* general-dentistry.css:809-818 — the plain, equal-billing bio. */
+  .section .doctor-bio h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    font-size: clamp(22px, 2.3vw, 28px);
+    line-height: 1.18;
+    letter-spacing: -0.01em;
+    color: var(--vs-ink);
+    margin: 0 0 14px;
+    max-width: 22ch;
+  }
+  /* The FEATURE bio's larger display size — cosmetic-dentistry.css:523-529 =
+     implant-dentistry.css:1014-1023. Directly below the rule it overrides; see
+     the header on intra-file order. */
+  .section .doctor-bio--lead h3 {
+    font-size: clamp(24px, 2.6vw, 32px);
+    line-height: 1.15;
+    margin: 0 0 18px;
+  }
+  /* `:global()` for the same `set:html` reason as the h2 accent above.
+     cosmetic-dentistry.css:530-532 = general-dentistry.css:819-823 =
+     implant-dentistry.css:1024-1028 */
+  .section .doctor-bio h3 :global(em) {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+  /* implant-dentistry.css:1029-1038 — the two-paragraph form, which subsumes
+     cosmetic's and general's single-paragraph `margin: 0` exactly (see the
+     header, difference 3). */
+  .section .doctor-bio p {
+    font-size: 15.5px;
+    line-height: 1.72;
+    color: var(--vs-ink-soft);
+    margin: 0 0 14px;
+    max-width: 56ch;
+  }
+  .section .doctor-bio p:last-child {
+    margin-bottom: 0;
+  }
+
+  /* ---------- the divider ----------
+     Three coupled positions (gap start, gap end, diamond centre) collapse to
+     two custom properties and a calc, so any spacing tweak edits one number.
+     general-dentistry.css:832-854; cosmetic-dentistry.css:543-564 is the same
+     rule with the 32px margin below. */
+  .section .doctor-rule {
+    --rule-gap-start: 64px;
+    --rule-gap-end: 84px;
+    height: 1px;
+    margin: 28px 0;
+    background: linear-gradient(
+      to right,
+      var(--vs-line) 0 var(--rule-gap-start),
+      transparent var(--rule-gap-start) var(--rule-gap-end),
+      var(--vs-line) var(--rule-gap-end) 100%
+    );
+    position: relative;
+  }
+  .section .doctor-rule::before {
+    content: "";
+    position: absolute;
+    top: -3px;
+    left: calc((var(--rule-gap-start) + var(--rule-gap-end)) / 2 - 3.5px);
+    width: 7px;
+    height: 7px;
+    background: var(--vs-sage);
+    transform: rotate(45deg);
+  }
+  /* cosmetic-dentistry.css:547 — the rule that trails the FEATURE bio breathes
+     4px wider top and bottom. Adjacent-sibling rather than `:has()` or a
+     modifier class; see the header, difference 2. (0,6,0) beats the base rule
+     above outright, so this does not lean on source order either. */
+  .section .doctor-bio--lead + .doctor-rule {
+    margin: 32px 0;
+  }
+
+  /* ---------- the secondary aside ----------
+     A circular thumbnail flush with the eyebrow — a magazine contributor mark.
+     cosmetic-dentistry.css:569-594, the only sheet that ships the shape. */
+  .section .doctor-secondary-head {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+  /* cosmetic-dentistry.css:573-583 */
+  .section .doctor-thumb {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: var(--vs-cream);
+    box-shadow:
+      0 8px 18px -8px rgba(40, 40, 30, 0.22),
+      0 0 0 3px var(--vs-paper),
+      0 0 0 4px color-mix(in srgb, var(--vs-sage) 40%, transparent);
+  }
+  /* cosmetic-dentistry.css:584-588 */
+  .section .doctor-thumb img {
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    transition: transform 0.6s ease;
+  }
+  /* cosmetic-dentistry.css:589 */
+  .section .doctor-bio--secondary:hover .doctor-thumb img {
+    transform: scale(1.06);
+  }
+  /* cosmetic-dentistry.css:590 — the head's own 14px already spaces the block,
+     so the eyebrow's 10px would double it. */
+  .section .doctor-bio--secondary .eyebrow {
+    margin-bottom: 0;
+  }
+  /* cosmetic-dentistry.css:591-594 — a point smaller than the feature bio, and
+     that is the entire visual hierarchy between the two. */
+  .section .doctor-bio--secondary p {
+    font-size: 14.5px;
+  }
+
+  /* ---------- responsive ----------
+     Re-united with the rules they modify rather than left in a trailing block
+     hundreds of lines away. Breakpoints are the three hub sheets' own — 1100
+     and 780 — and all three agree on every value below except the rule spacing,
+     which splits exactly as it does at full width.
+     cosmetic-dentistry.css:919/926-933 and :950/951 + :958-959;
+     general-dentistry.css:1231/1270-1278 and :1295/1296-1298 + :1318-1323;
+     implant-dentistry.css:1351/1413-1418 and :1435/1436-1438 + :1459-1463. */
+  @media (max-width: 1100px) {
+    .section .doctor--feature {
+      grid-template-columns: 1fr;
+      gap: 32px;
+      max-width: 600px;
+      align-items: start;
+    }
+    .section .doctor-rule {
+      margin: 24px 0;
+    }
+    .section .doctor-bio--lead + .doctor-rule {
+      margin: 28px 0;
+    }
+    .section .doctor-thumb {
+      width: 48px;
+      height: 48px;
+    }
+  }
+
+  @media (max-width: 780px) {
+    .section {
+      padding: 70px 0;
+    }
+    .wrap {
+      padding: 0 22px;
+    }
+    .section-head {
+      margin-bottom: 44px;
+    }
+  }
+
+  /* Reduced motion — kill the two hover transitions. Reveal and parallax are
+     handled in src/scripts/animations.js via gsap.matchMedia, which is why
+     neither is touched here.
+     general-dentistry.css:1355-1364 is the only sheet that lists
+     `.doctor-portrait img`; cosmetic and implant declare the same 0.6s
+     transition and simply omit it from their reduced-motion blocks
+     (cosmetic-dentistry.css:987-991, implant-dentistry.css:1532-1541). This
+     block honours the preference on all three bands rather than reproducing two
+     omissions — a user who asked for no motion is the one person a faithful
+     copy of an oversight would fail. Nothing visible or textual changes for
+     anyone else. */
+  @media (prefers-reduced-motion: reduce) {
+    .section .doctor-portrait img,
+    .section .doctor-thumb img {
+      transition: none !important;
+    }
+  }
+</style>

@@ -1,0 +1,147 @@
+---
+/**
+ * /new-patients/ `#reviews` — the draggable testimonial marquee.
+ *
+ * A code_section band, registered as `new_patients_reviews` in
+ * src/blocks/CodeSectionBlock.astro, which freezes `sections[reviews]`'s
+ * eyebrow, heading and body — three scalars.
+ *
+ * THE REVIEWS THEMSELVES ARE NOT FROZEN AND ARE NOT PROPS. This component calls
+ * `getCollection("reviews")` and sorts newest-first, exactly as the template
+ * does (new-patients/index.astro:22-23). That is a content collection, not page
+ * fields, so it is reachable from a component and nothing about it is lost by
+ * being here — adding a review still means adding a review, in the one place
+ * the home and about pages already read from.
+ *
+ * WHY NOT `gallery_marquee`. That layout draws the SMILE GALLERY strip from
+ * Practice Settings. This is a different component over different data that
+ * happens to scroll. One word, two bands, no relation.
+ *
+ * THE MARQUEE SITS OUTSIDE `.wrap`, between two of them. It is full-bleed by
+ * design, so the band is `.wrap` (head) + marquee + `.wrap` (foot), which is
+ * what the template ships and what `.np-reviews`'s own sizing expects.
+ *
+ * SPECIFICITY: same rule as the other self-owned bands — Astro scopes by
+ * attribute, so a bare `.reviews-foot` would tie `.np .reviews-foot` at (0,2,0)
+ * and leave bundle order to decide. Everything below is rooted at `.section`.
+ * VALUES ARE NEW-PATIENTS', NOT EMERGENCY'S: this page's `.section-head` is a
+ * 60ch grid with a 56px bottom margin and its `.section` padding is a clamp,
+ * both different from the emergency sheet the sibling bands were lifted from
+ * (new-patients.css:80, :88-99).
+ */
+import { getCollection } from "astro:content";
+import Button from "./Button.astro";
+import ReviewMarquee from "./ReviewMarquee.astro";
+
+interface Props {
+  /** The DOM id. CodeSectionBlock overrides it with the row's deduped anchor. */
+  id?: string;
+  eyebrow?: string | null;
+  /** May carry inline markup (`<em>`); blank draws no `<h2>`. */
+  heading?: string | null;
+  body?: string | null;
+}
+
+const { id = "reviews", eyebrow, heading, body } = Astro.props;
+
+const text = (v?: string | null) => (typeof v === "string" ? v.trim() : "");
+
+const eyebrowText = text(eyebrow);
+const headingHtml = text(heading);
+const bodyText = text(body);
+const hasHead = eyebrowText !== "" || headingHtml !== "" || bodyText !== "";
+
+/* Newest first, the same sort the template runs. */
+const reviews = (await getCollection("reviews")).sort(
+  (a, b) => +b.data.date - +a.data.date,
+);
+---
+
+<section class="section" id={id} data-vs-reveal-batch>
+  <div class="wrap">
+    {
+      hasHead && (
+        <div class="section-head center">
+          {eyebrowText !== "" && <span class="eyebrow">{eyebrowText}</span>}
+          {headingHtml !== "" && (
+            <h2>
+              <Fragment set:html={headingHtml} />
+            </h2>
+          )}
+          {bodyText !== "" && <p>{bodyText}</p>}
+        </div>
+      )
+    }
+  </div>
+
+  <ReviewMarquee reviews={reviews} ariaLabel="Patient reviews" class="np-reviews" />
+
+  <div class="wrap">
+    <div class="reviews-foot">
+      {/* Furniture, not a field: it points at the testimonials page, which is
+          the only destination this band can honestly promise. */}
+      <Button variant="ghost" href="/patient-testimonials/" hoverLabel="See All">
+        Read all reviews
+      </Button>
+    </div>
+  </div>
+</section>
+
+<style>
+  /* new-patients.css:80 and :45. Paper band — the sheet gives `.section` no
+     background, only padding, and this one is a clamp rather than the flat
+     110px the emergency bands use. */
+  .section {
+    padding: clamp(80px, 9vw, 120px) 0;
+  }
+  .section .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  /* new-patients.css:88-99. A 60ch grid, centred by the `.center` modifier the
+     template puts on this one band. */
+  .section .section-head {
+    display: grid;
+    gap: 18px;
+    max-width: 60ch;
+    margin: 0 0 56px;
+  }
+  .section .section-head.center {
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+  }
+  .section .section-head.center p {
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .section .section-head .eyebrow {
+    display: inline-block;
+  }
+  .section .section-head h2 {
+    margin: 4px 0 0;
+  }
+  .section .section-head p {
+    font-size: 17px;
+    line-height: 1.6;
+    margin: 4px 0 0;
+    max-width: 64ch;
+  }
+
+  /* new-patients.css:250-257. All the marquee's structure and sizing lives in
+     ReviewMarquee.astro; this band owns only the top margin and the foot.
+     `:global()` on the marquee because `.np-reviews` is a class this file
+     passes to another component, so it never carries this file's scoping
+     attribute — without it the rule would compile to a selector that matches
+     nothing and the 48px gap would silently vanish. */
+  .section :global(.np-reviews) {
+    margin-top: 48px;
+  }
+  .section .reviews-foot {
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+  }
+</style>

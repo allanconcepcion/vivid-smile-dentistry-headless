@@ -58,20 +58,43 @@ const bodyHtml = await optimizeBodyImages(post.rendered?.html ?? "");
 // the body), H4+ are too granular for a sticky rail.
 const tocItems = headings.filter((h) => h.depth === 2 || h.depth === 3);
 
+// A post with no usable featured image still publishes — src/loaders/blog.ts
+// never drops one — and arrives carrying a placeholder plate with
+// heroPlaceholder: true. Everything hero-shaped on this page is therefore
+// conditional, and each branch is a deliberate choice, not a fallback:
+//
+//   the hero figure   omitted entirely. A 16:9 blank plate at the top of an
+//                     article reads as a broken image; a post that simply opens
+//                     on its headline and byline reads as an editorial choice.
+//                     (The hub grid is the opposite case — see BlogCard.astro,
+//                     where every tile needs a media well or the grid goes
+//                     ragged — so there the placeholder does render.)
+//   og: / twitter:    omitted, so BaseLayout falls through to its site-logo
+//                     default — the same social preview every other page on the
+//                     site uses when it has nothing more specific.
+//   JSON-LD image     omitted. `image` is recommended-not-required on
+//                     BlogPosting, and pointing it at a 180px logo or a blank
+//                     plate is worse than saying nothing: Google wants a real
+//                     ≥1200px article image, and a stand-in misrepresents the
+//                     article in every surface that consumes it.
+const hasHero = !data.heroPlaceholder;
+
 // Absolute hero image URL for og:image + JSON-LD. getImage returns the
 // transformed src so the social preview is the optimized webp, not the raw.
 //
 // heroImage is a remote WordPress URL, so the source dimensions have to be
 // passed explicitly — a remote src carries none, and getImage needs the aspect
 // ratio to derive the height for a given width.
-const heroOg = await getImage({
-  src: data.heroImage,
-  width: 1200,
-  height: Math.round((1200 * data.heroHeight) / data.heroWidth),
-  format: "webp",
-});
+const heroOg = hasHero
+  ? await getImage({
+      src: data.heroImage,
+      width: 1200,
+      height: Math.round((1200 * data.heroHeight) / data.heroWidth),
+      format: "webp",
+    })
+  : null;
 const canonical = new URL(Astro.url.pathname, Astro.site).href;
-const heroAbs = new URL(heroOg.src, Astro.site).href;
+const heroAbs = heroOg ? new URL(heroOg.src, Astro.site).href : null;
 
 const pageTitle = `${data.title} | Vivid Smiles Dentistry`;
 ---
@@ -79,7 +102,7 @@ const pageTitle = `${data.title} | Vivid Smiles Dentistry`;
 <BaseLayout
   title={pageTitle}
   description={data.description}
-  ogImage={heroOg.src}
+  ogImage={heroOg?.src}
   articlePublishedDate={data.date}
   articleAuthor={data.author}
 >
@@ -110,17 +133,19 @@ const pageTitle = `${data.title} | Vivid Smiles Dentistry`;
             <BlogShareButtons url={canonical} title={data.title} />
           </div>
         </div>
-        <div class="post-hero-img" data-vs-reveal>
-          <Image
-            src={data.heroImage}
-            alt={data.heroAlt}
-            width={data.heroWidth}
-            height={data.heroHeight}
-            widths={[640, 960, 1280, 1600]}
-            sizes="(max-width: 991px) 100vw, 1200px"
-            loading="eager"
-          />
-        </div>
+        {hasHero && (
+          <div class="post-hero-img" data-vs-reveal>
+            <Image
+              src={data.heroImage}
+              alt={data.heroAlt}
+              width={data.heroWidth}
+              height={data.heroHeight}
+              widths={[640, 960, 1280, 1600]}
+              sizes="(max-width: 991px) 100vw, 1200px"
+              loading="eager"
+            />
+          </div>
+        )}
       </div>
     </header>
 
@@ -177,7 +202,9 @@ const pageTitle = `${data.title} | Vivid Smiles Dentistry`;
       "@type": "BlogPosting",
       "headline": data.title,
       "description": data.description,
-      "image": heroAbs,
+      // Omitted rather than filled with a stand-in when the post has no real
+      // featured image — see the hasHero note in the frontmatter.
+      ...(heroAbs ? { "image": heroAbs } : {}),
       "datePublished": data.date.toISOString(),
       "dateModified": (data.updated ?? data.date).toISOString(),
       "author": {

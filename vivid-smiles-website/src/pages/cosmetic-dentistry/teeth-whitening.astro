@@ -60,13 +60,15 @@ import '../../styles/pages/teeth-whitening.css';
 
 // Gallery pulls dynamically from the central smiles/ folder.
 import { getSmiles } from '../../lib/smiles';
-import { getPageContent } from '../../lib/page-content';
+import { getPageContent, type TocLink } from '../../lib/page-content';
+import PageBlocks from '../../blocks/PageBlocks.astro';
 // 4 FAQs — verbatim from the user's copy. First Q is `open: true` to match
 // the veneers/aligners default.
 // tocLinks, faqs are edited in WordPress (Pages -> Teeth Whitening in Parker, CO).
 // The shapes are unchanged from the arrays that used to live here, so the
 // markup below is untouched.
-const { tocLinks, faqs, section, image, seo } = await getPageContent(Astro.url.pathname);
+const { hero, closing, blocks, hasBlocks, tocLinks, faqs, section, image, seo } =
+  await getPageContent(Astro.url.pathname);
 
 const galleryTiles = getSmiles();
 const galleryTrack = [...galleryTiles, ...galleryTiles];
@@ -112,6 +114,67 @@ const maintenanceBullets = [
   },
 ];
 
+/**
+ * The "On this page" rail, derived from the blocks themselves (docs/PAGE-BLOCKS.md 1.2).
+ *
+ * Used only when this page renders from `blocks`. The `toc_links` repeater is
+ * eight rows that restate the order of the eight bands below it, so a reorder
+ * in wp-admin moves a band and leaves its rail entry pointing at the old
+ * neighbour. Reading the anchors off the blocks makes that unrepresentable:
+ * there is one ordering and the rail is a projection of it.
+ *
+ * Copied from the pilot (clear-aligners.astro) unchanged, because all three
+ * rules are failure modes rather than preferences:
+ *
+ * 1. A blank anchor is skipped. src/scripts/toc-spy.ts:24 feeds each rendered
+ *    href straight to document.querySelector(), and querySelector("") throws a
+ *    SyntaxError that kills the whole spy, not just the one entry.
+ * 2. An anchor that is not a valid id selector is skipped for the same reason —
+ *    "#3-tiers" is legal HTML and an illegal CSS selector. Dropping one rail
+ *    entry costs one link; letting it through costs every link on the page.
+ * 3. Duplicate anchors follow PageBlocks.astro's dedup exactly, second
+ *    occurrence onward suffixed `-2`, `-3`. The counter advances on every
+ *    non-blank anchor, including blocks with no nav_label, or the rail's idea
+ *    of "the second #faq" drifts from the id the renderer actually emitted.
+ *
+ * A blank nav_label means "leave this block out of the rail" (1.2). #gallery
+ * is the one band here with no `toc_links` row, so it stays out of the rail on
+ * both sides of the switch without anything having to say so.
+ */
+const ANCHOR_IS_ID_SELECTOR = /^[A-Za-z_][A-Za-z0-9_-]*$/;
+
+const anchorsSeen = new Map<string, number>();
+// Typed as TocLink[] rather than an equivalent inline shape so the ternary in
+// the rail below collapses to one type instead of a union of two array types,
+// which TypeScript will not let you call .map() on.
+const derivedTocLinks: TocLink[] = [];
+
+for (const block of blocks) {
+  // A nested block is drawn INSIDE the band above it, not as a band of its own,
+  // so it has no id to link to. Without this the rail emits an entry pointing at
+  // an anchor nothing renders — a dead link in the "On this page" list.
+  if (block?.nested) continue;
+
+  const anchor = typeof block.anchor === 'string' ? block.anchor.trim() : '';
+  if (anchor === '') continue;
+
+  const nth = (anchorsSeen.get(anchor) ?? 0) + 1;
+  anchorsSeen.set(anchor, nth);
+
+  const label = typeof block.navLabel === 'string' ? block.navLabel.trim() : '';
+  if (label === '') continue;
+
+  if (!ANCHOR_IS_ID_SELECTOR.test(anchor)) {
+    console.warn(
+      `[blocks] anchor "${anchor}" on ${Astro.url.pathname} cannot be used as a selector — ` +
+        `omitting "${label}" from the On this page rail so toc-spy keeps working`,
+    );
+    continue;
+  }
+
+  derivedTocLinks.push({ href: `#${nth > 1 ? `${anchor}-${nth}` : anchor}`, label });
+}
+
 
 ---
 
@@ -138,23 +201,23 @@ const maintenanceBullets = [
       <header class="hero" data-vs-reveal-batch>
         <div class="wrap hero-inner">
           <div class="hero-copy">
-            <span class="eyebrow">Cosmetic Dentistry · Parker, CO</span>
-            <h1 data-vs-reveal-lines>Professional Teeth Whitening <em>in Parker, Colorado</em></h1>
-            <p class="hero-sub">
+            {hero.eyebrow ? <span class="eyebrow">{hero.eyebrow}</span> : <span class="eyebrow">Cosmetic Dentistry · Parker, CO</span>}
+            {hero.h1 ? <h1 data-vs-reveal-lines set:html={hero.h1} /> : <h1 data-vs-reveal-lines>Professional Teeth Whitening <em>in Parker, Colorado</em></h1>}
+            {hero.sub ? <p class="hero-sub">{hero.sub}</p> : <p class="hero-sub">
               KöR professional whitening delivers reliable shade improvement for most patients,
               including those with difficult staining types that over-the-counter products cannot
               address. Unlike generic whitening systems, KöR uses refrigerated gels and continuous
               tooth contact to produce results that hold for years.
-            </p>
+            </p>}
             <div class="hero-actions">
-              <Button variant="sage" href={bookNowHref} hoverLabel="Let's Talk">Book Online</Button>
-              <Button variant="ghost" href="#consult" hoverLabel="Get a Video"
-                >Free Virtual Consult</Button
+              <Button variant="sage" href={hero.cta(0) ? hero.cta(0)!.href : bookNowHref} hoverLabel="Let's Talk">{hero.cta(0) ? hero.cta(0)!.label : "Book Online"}</Button>
+              <Button variant="ghost" href={hero.cta(1) ? hero.cta(1)!.href : "#consult"} hoverLabel="Get a Video"
+                >{hero.cta(1) ? hero.cta(1)!.label : "Free Virtual Consult"}</Button
               >
-              <div class="ratings">
+              {hero.showRatings && <div class="ratings">
                 <span class="stars" aria-hidden="true">★★★★★</span>
                 <span>5.0 · 300+ reviews</span>
-              </div>
+              </div>}
             </div>
           </div>
           <div class="hero-img" data-vs-parallax data-parallax="-30">
@@ -192,20 +255,51 @@ const maintenanceBullets = [
         </div>
       </section>
 
-      {/* ---------- ON-THIS-PAGE TOC ---------- */}
+      {
+        /* ---------- ON-THIS-PAGE TOC ----------
+         The rail itself is never a block (spec 7: "Not a block, even though it
+         is a band") — only its contents move. Derived from the blocks when they
+         are drawing the page, read from the `toc_links` repeater when the
+         template is. Same markup either way, which is what lets
+         src/scripts/toc-spy.ts go on reading its section list off the rendered
+         links without knowing which source produced them. */
+      }
       <nav class="toc" id="toc" aria-label="On this page">
         <div class="toc-inner">
           <span class="toc-label">On this page</span>
           <div class="toc-scroll">
             <div class="toc-list">
-              {tocLinks.map((l) => <a href={l.href}>{l.label}</a>)}
+              {(hasBlocks ? derivedTocLinks : tocLinks).map((l) => <a href={l.href}>{l.label}</a>)}
             </div>
           </div>
         </div>
       </nav>
 
-      {/* ---------- WHY (paper) ---------- */}
-      <section class="section" id="why" data-vs-reveal-batch>
+      {
+        /* ---------- WHY (paper) ----------
+
+         THE MIGRATION SWITCH (docs/PAGE-BLOCKS.md 2.3) starts here. `hasBlocks`
+         means "this build can draw this page from its blocks" — not "WordPress
+         sent rows" (src/lib/page-content.ts). When it is true PageBlocks draws
+         the bands in the order an editor arranged them; when it is false — every
+         build until the backfill has run, and again the moment an editor empties
+         the field — every band below renders exactly as it always has.
+
+         One guard per band rather than one guard around all nine, and that is
+         not a style choice: Astro's compressHTML pass treats an Astro comment
+         expression differently inside a component slot than at element level, so
+         wrapping these bands in a Fragment drops one space at every comment
+         boundary below and scripts/vr-html.mjs calls that a difference. A guard
+         sitting exactly where its section sat emits byte-identical HTML.
+
+         EVERY band this page draws below is guarded, including the <LocalTrust>
+         invocation, which is a component call and not a <section> and was the
+         one the pilot missed. A band left unguarded does not stay where it is:
+         PageBlocks draws the whole run here, so an unguarded band renders in
+         ADDITION to the blocks and lands wherever the template happens to put
+         it — at the bottom, after #faq, carrying a duplicate id. */
+      }
+      {hasBlocks ? <PageBlocks blocks={blocks} /> : <section class="section" id="why" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("why").eyebrow}</span>
@@ -243,7 +337,7 @@ const maintenanceBullets = [
             </article>
           </div>
         </div>
-      </section>
+      </section>}
 
       {
         /* ---------- WHAT (cream) — Definition + How It Works.
@@ -252,7 +346,7 @@ const maintenanceBullets = [
          from the home/ folder — on-topic for any whitening shade discussion
          and a placeholder until a KOR-specific photo is sourced. */
       }
-      <section class="section alt" id="what" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section alt" id="what" data-vs-reveal-batch>
         <div class="wrap">
           <div class="what-grid">
             <div class="what-img" data-vs-parallax data-parallax="-25">
@@ -289,7 +383,7 @@ const maintenanceBullets = [
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       {
         /* ---------- PROCESS (sage) — KöR Treatment Levels + appointment flow.
@@ -299,7 +393,7 @@ const maintenanceBullets = [
          At-Home" copy. (The Investment block below shows a fourth tier —
          Opalescence — as an entry option outside the KöR clinical system.) */
       }
-      <section class="section dark" id="process" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section dark" id="process" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow light">Your KöR Treatment</span>
@@ -356,7 +450,7 @@ const maintenanceBullets = [
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       {
         /* ---------- COMPARE (paper) — Pro vs OTC.
@@ -366,7 +460,7 @@ const maintenanceBullets = [
          Professional Teeth Whitening Safe") since both blocks make the
          same pro-vs-DIY argument. */
       }
-      <section class="section" id="compare" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section" id="compare" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("compare").eyebrow}</span>
@@ -429,7 +523,7 @@ const maintenanceBullets = [
             <span class="cta-note">No commitment · Personal video reply</span>
           </div>
         </div>
-      </section>
+      </section>}
 
       {
         /* ---------- NATURAL (cream) — Candidacy + Veneers cross-link.
@@ -438,7 +532,7 @@ const maintenanceBullets = [
          prose as an inset cross-link — F already gestures toward veneers,
          so the callout reads as a natural continuation. */
       }
-      <section class="section alt" id="natural" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section alt" id="natural" data-vs-reveal-batch>
         <div class="wrap">
           <div class="natural-grid">
             <div class="natural-text">
@@ -491,7 +585,7 @@ const maintenanceBullets = [
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       {
         /* ---------- LASTING (paper) — Results + Maintenance + Cost.
@@ -501,7 +595,7 @@ const maintenanceBullets = [
          the 3 cost bullets K verbatim — cost lives logically adjacent to
          lifespan in the source copy and stays in the same Lasting band. */
       }
-      <section class="section" id="lasting" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section" id="lasting" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("lasting").eyebrow}</span>
@@ -596,15 +690,33 @@ const maintenanceBullets = [
             />
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* ---------- LOCAL (cream) ---------- */}
-      <LocalTrust
-        heading="Whitening Designed"
-        headingItalic="in Parker, Colorado"
-        intro="Patients come for KOR whitening locally and from out of state — every appointment starts with the same shade-and-staining consultation, regardless of how far you travel for it."
-        body="Vivid Smiles Dentistry is located at 17167 Cedar Gulch Pkwy in Parker, welcoming new patients under the care of Dr. Bryce Richardson."
-      />
+      {/* ---------- LOCAL (cream) ----------
+       Guarded like every other band on this page even though it is a component
+       call rather than a <section>, and that is precisely why it is easy to
+       miss: it does not look like a band in this file. Left unguarded it
+       renders IN ADDITION to the block run — twice on the page, both carrying
+       id="local", which is invalid and sends the rail and every #local link to
+       whichever the browser picks first. That is the fault the pilot shipped.
+
+       When the page renders from blocks this band comes back through a
+       `code_section` row whose band_key names it, so CodeSectionBlock draws it
+       in the position the editor put it in. The props stay here: CodeSectionBlock
+       reproduces them rather than reading them, so the two copies have to be
+       changed together — and the key this page needs is NOT the pilot's
+       `local_trust`, which is bound to the "for Clear Aligners" wording. Until a
+       key for this instance is registered in CodeSectionBlock.astro's BANDS map
+       and in BLOCK_CODE_BANDS (cms/mu-plugins/vs-content-model.php), a backfilled
+       row here renders nothing and the band is simply absent. */}
+      {hasBlocks ? null : (
+        <LocalTrust
+          heading="Whitening Designed"
+          headingItalic="in Parker, Colorado"
+          intro="Patients come for KOR whitening locally and from out of state — every appointment starts with the same shade-and-staining consultation, regardless of how far you travel for it."
+          body="Vivid Smiles Dentistry is located at 17167 Cedar Gulch Pkwy in Parker, welcoming new patients under the care of Dr. Bryce Richardson."
+        />
+      )}
 
       {
         /* ---------- GALLERY (sage) — marquee, doubled track.
@@ -613,7 +725,7 @@ const maintenanceBullets = [
          src/assets/images/smiles/. The mechanic, band, and
          "smile gallery" framing match the veneers + aligners pages. */
       }
-      <section class="section dark" id="gallery">
+      {hasBlocks ? null : <section class="section dark" id="gallery">
         <div class="wrap">
           <div class="section-head" data-vs-reveal>
             <span class="eyebrow light">Smile Gallery</span>
@@ -640,10 +752,10 @@ const maintenanceBullets = [
             }
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* ---------- FAQ (paper) — native details/summary, zero JS ---------- */}
-      <section class="section" id="faq" data-vs-reveal-batch>
+      {hasBlocks ? null : <section class="section" id="faq" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head">
             <span class="eyebrow">{section("faq").eyebrow}</span>
@@ -679,25 +791,25 @@ const maintenanceBullets = [
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       {
         /* ---------- VIRTUAL CONSULT — primary closing conversion.
          Body slot hosts the verbatim italicized first closing paragraph
          from the source (the consultation pitch). */
       }
-      <VirtualConsult id="consult" eyebrow="Free whitening consultation">
-        <Fragment slot="headline">Free whitening <em>consultation.</em></Fragment>
-        <Fragment slot="body">
+      <VirtualConsult id="consult" eyebrow={closing.consultEyebrow || "Free whitening consultation"}>
+        <Fragment slot="headline">{closing.consultHeadline ? <Fragment set:html={closing.consultHeadline} /> : <>Free whitening <em>consultation.</em></>}</Fragment>
+        <Fragment slot="body">{closing.consultBody ? closing.consultBody : <>
           Getting a noticeably whiter smile in Parker starts with a consultation built around your
           specific staining type and shade goals. KOR's treatment levels cover nearly every case,
           and digital smile design gives you a preview of results before treatment begins.
-        </Fragment>
+        </>}</Fragment>
       </VirtualConsult>
 
       {/* ---------- CLOSING BAND ---------- */}
       <FinalBand>
-        <p>Schedule your consultation and take the first step toward lasting whitening results.</p>
+        <p>{closing.note ? closing.note : <>Schedule your consultation and take the first step toward lasting whitening results.</>}</p>
       </FinalBand>
     </main>
 
