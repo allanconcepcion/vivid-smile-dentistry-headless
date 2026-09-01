@@ -37,7 +37,7 @@ npm run dev        # http://localhost:4321
 | Environment | Value |
 |---|---|
 | Local (`.env`) | `http://localhost:8888/graphql` |
-| Hosted CMS, temporary hostname | `https://1230613.us28.myftpupload.com/graphql` |
+| Hosted CMS, temporary hostname | `https://cms.vividsmilesdentistry.com/graphql` |
 | Production target, after the CMS moves | `https://cms.vividsmilesdentistry.com/graphql` |
 
 On Vercel it is set in the project's environment variables, not in a file. Any host serving as an image source must also be listed under `image.remotePatterns` in `astro.config.mjs`, or every image fails the build.

@@ -24,7 +24,7 @@ is worth knowing which one you are looking at.
 | | Local | Hosted |
 | --- | --- | --- |
 | What | wp-env + Docker, your development copy | GoDaddy Managed WordPress, the CMS the production build reads |
-| Address | `http://localhost:8888` | `https://1230613.us28.myftpupload.com` (temporary hostname) |
+| Address | `http://localhost:8888` | `https://cms.vividsmilesdentistry.com` |
 | Content | whatever you have imported | the real content: 14 posts, 33 pages, 20 testimonials |
 | `VS_FRONTEND_URL` | `http://localhost:4321`, from `.wp-env.json` | `https://vivid-smiles-headless.vercel.app`, from `mu-plugins/vs-config.php` |
 
@@ -443,7 +443,7 @@ confirm rendering.
 
 ## Hosted CMS
 
-Provisioned and live at `https://1230613.us28.myftpupload.com` — GoDaddy Managed
+Provisioned and live at `https://cms.vividsmilesdentistry.com` — GoDaddy Managed
 WordPress, on a temporary hostname. All content is migrated and
 `mu-plugins/` on the host matches this repo. The full runbook is in
 [../docs/DEPLOYING.md](../docs/DEPLOYING.md); the standing constraints are:

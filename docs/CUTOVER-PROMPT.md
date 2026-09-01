@@ -20,7 +20,7 @@ Then read `docs/DEPLOYING.md` in the same repo, specifically the sections
 | Piece | From | To |
 | --- | --- | --- |
 | Front end | `vivid-smiles-headless.vercel.app` | `vividsmilesdentistry.com` |
-| CMS | `1230613.us28.myftpupload.com` | `cms.vividsmilesdentistry.com` |
+| CMS | `1230613.us28.myftpupload.com` | `cms.vividsmilesdentistry.com` — **DONE 2026-09-01**: the CMS answers here, its own settings and media URLs emit this domain, and the repo points at it |
 
 Repo: `github.com/allanconcepcion/vivid-smile-dentistry-headless`
 Vercel project: `vercel.com/allans-projects-cc55d7b7/vivid-smiles-headless`

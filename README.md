@@ -36,8 +36,8 @@ static HTML, so the site keeps its current performance profile.
 | | |
 | --- | --- |
 | Production site | https://vivid-smiles-headless.vercel.app |
-| WordPress admin | https://1230613.us28.myftpupload.com/wp-admin |
-| GraphQL endpoint | https://1230613.us28.myftpupload.com/graphql |
+| WordPress admin | https://cms.vividsmilesdentistry.com/wp-admin |
+| GraphQL endpoint | https://cms.vividsmilesdentistry.com/graphql |
 | GitHub repository | https://github.com/allanconcepcion/vivid-smile-dentistry-headless |
 | Vercel project | `vivid-smiles-headless` (team `allans-projects-cc55d7b7`) |
 

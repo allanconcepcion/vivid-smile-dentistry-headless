@@ -31,7 +31,7 @@ content from WPGraphQL at build time. Nothing is fetched by a visitor's browser.
 | --- | --- |
 | Repo | github.com/allanconcepcion/vivid-smile-dentistry-headless |
 | Front end (production) | https://vivid-smiles-headless.vercel.app |
-| Hosted CMS | https://1230613.us28.myftpupload.com (GoDaddy Managed WP, temporary hostname) |
+| Hosted CMS | https://cms.vividsmilesdentistry.com (GoDaddy Managed WP) |
 | Vercel project | vercel.com/allans-projects-cc55d7b7/vivid-smiles-headless |
 | Future CMS domain | cms.vividsmilesdentistry.com (not moved yet) |
 

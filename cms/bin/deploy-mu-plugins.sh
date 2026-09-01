@@ -53,7 +53,11 @@ if [[ -z "$HOST" || -z "$USER" ]]; then
   cat >&2 <<'MSG'
 ERROR: VS_SFTP_HOST and VS_SFTP_USER must be set.
 
-  export VS_SFTP_HOST=1230613.us28.myftpupload.com
+  # GoDaddy's SFTP endpoint — infrastructure, deliberately NOT the CMS domain.
+# cms.vividsmilesdentistry.com serves the site and refuses port 22; only the
+# ssh. hostname answers SFTP. (This line used to print the web hostname — the
+# exact mistake docs/DEPLOYING.md warned about — corrected 2026-09-01.)
+export VS_SFTP_HOST=1230613.us28.ssh.myftpupload.com
   export VS_SFTP_USER=<your sftp user>
   bash cms/bin/deploy-mu-plugins.sh
 

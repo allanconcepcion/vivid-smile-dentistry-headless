@@ -40,7 +40,7 @@ Vercel will look for a `package.json` that is not there.
 reads only the repo-root file. This was found the hard way — see section 8.
 
 **The only environment variable the build needs is `WP_GRAPHQL_ENDPOINT`.** It currently points at
-`https://1230613.us28.myftpupload.com/graphql`, the temporary GoDaddy Managed WordPress hostname.
+`https://cms.vividsmilesdentistry.com/graphql`, the GoDaddy Managed WordPress hostname.
 Without it the build fails at the first content loader rather than degrading quietly: `src/lib/wp.ts`
 throws, so a missing variable can never publish a site with an empty blog and a gutted sitemap.
 See [.env.example](.env.example) for the three known values. It is defined in **three**

@@ -9,7 +9,7 @@ reach WordPress over the public internet.** A Vercel build cannot reach
 deploying at all rather than a follow-up task.
 
 ```
-WordPress (1230613.us28.myftpupload.com)
+WordPress (cms.vividsmilesdentistry.com)
       │  WPGraphQL, at build time only
       ▼
 Vercel build ──► static HTML ──► visitors
@@ -47,7 +47,7 @@ Hosting rows verified live on 2026-08-13. Repository rows re-verified against
 | Build command | `cd vivid-smiles-website && npm run build` (from `vercel.json`) |
 | Output directory | `vivid-smiles-website/dist` (from `vercel.json`) |
 | Environment variable | `WP_GRAPHQL_ENDPOINT` — Production, Preview and Development |
-| WordPress | `https://1230613.us28.myftpupload.com` — GoDaddy Managed WordPress, temporary hostname |
+| WordPress | `https://cms.vividsmilesdentistry.com` — GoDaddy Managed WordPress |
 
 The local CLI link lives in `vivid-smiles-website/.vercel/project.json`
 (git-ignored) and records the same project and team ids.
@@ -74,7 +74,7 @@ tabled above, and the file is still at the repository root.
 
 | Name | Value | Environments |
 | --- | --- | --- |
-| `WP_GRAPHQL_ENDPOINT` | `https://1230613.us28.myftpupload.com/graphql` | Production, Preview, Development |
+| `WP_GRAPHQL_ENDPOINT` | `https://cms.vividsmilesdentistry.com/graphql` | Production, Preview, Development |
 
 This is the only variable the build needs. Without it the build fails
 immediately with a message naming the fix, rather than publishing an empty site.
@@ -91,7 +91,7 @@ back. Verified in the dashboard on 2026-08-13.
 Change it to `https://cms.vividsmilesdentistry.com/graphql` when the CMS moves to
 its permanent hostname, and add that hostname to `image.remotePatterns` in
 `astro.config.mjs` in the same change. `astro.config.mjs:73-80` already
-authorizes `cms.vividsmilesdentistry.com`, `1230613.us28.myftpupload.com` and
+authorizes `cms.vividsmilesdentistry.com`, `1230613.us28.myftpupload.com` (the old temporary hostname, kept while it still answers) and
 `http://localhost:8888`, all scoped to `/wp-content/uploads/**`. A host that is
 not on that list fails every image in the build.
 
@@ -320,7 +320,7 @@ replacement (an SSH key, or host-side `curl`) has to be in place first.
 
 ```bash
 # NOTE the ssh. in the hostname. SFTP and SSH are NOT on the web hostname —
-# 1230613.us28.myftpupload.com serves the site and refuses port 22.
+# the web host (cms.vividsmilesdentistry.com) serves the site and refuses port 22.
 export VS_SFTP_HOST=1230613.us28.ssh.myftpupload.com
 export VS_SFTP_USER=<from the GoDaddy dashboard, Settings, SSH/SFTP>
 
@@ -329,17 +329,11 @@ bash cms/bin/deploy-mu-plugins.sh                    # every file but vs-config.
 bash cms/bin/deploy-mu-plugins.sh vs-content-model.php   # just one
 ```
 
-**The script's own error message still disagrees with this.** Commit `de93357`
-("Point SFTP at the ssh hostname, not the web one") changed one file — this one.
-`deploy-mu-plugins.sh:56` still prints the web hostname in its usage text:
-
-```
-export VS_SFTP_HOST=1230613.us28.myftpupload.com
-```
-
-Anyone who reaches the script by running it without the variables set is handed
-the hostname that refuses port 22. Trust this file, not that message, until the
-script is corrected.
+**The script's usage text agrees with this now.** It used to print the web
+hostname — the one that refuses port 22 — and this file warned against trusting
+it. Corrected in the 2026-09-01 domain sweep: the script prints the `ssh.`
+hostname, with a comment on why the SFTP host is deliberately not the CMS
+domain.
 
 No credential is stored or read from this repository. The password is typed at
 `sftp`'s own prompt, so it never reaches the script, the process list, or shell
@@ -464,8 +458,9 @@ alongside the real site. `wp-content/mu-plugins/` survives those updates.
 Locally the constant comes from `cms/.wp-env.json` instead, which loads first;
 `vs-config.php` guards with `defined()` so the local value wins.
 
-Verified live on 2026-08-13: `https://1230613.us28.myftpupload.com/` and
-`https://1230613.us28.myftpupload.com/about-us/` both 302 to the matching path
+Verified live on 2026-08-13 on the old temporary hostname, and re-verified
+2026-09-01 on the real one: `https://cms.vividsmilesdentistry.com/` and
+`https://cms.vividsmilesdentistry.com/about-us/` both 302 to the matching path
 on `https://vivid-smiles-headless.vercel.app`, and the CMS `robots.txt` is
 `Disallow: /`.
 
