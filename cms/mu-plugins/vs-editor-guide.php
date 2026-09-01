@@ -1,0 +1,852 @@
+<?php
+/**
+ * Plugin Name:  Vivid Smiles — Editor Guide
+ * Description:  Rewrites the wp-admin guidance messages per page, so an editor
+ *               can tell which tab, which box and which photo change which part
+ *               of which page.
+ * Author:       Concepcion.Work
+ * Version:      0.1.0
+ *
+ * WHY THIS FILE EXISTS. The owner opened the home page and the about page in
+ * wp-admin and could not see where to edit the images and the content. Both
+ * pages were fully editable — the problem was that nothing said so in terms a
+ * person could use. A photo lived under a code like drBryceMain with no hint
+ * that it is the large portrait of Dr. Richardson, and the one-size orientation
+ * message pointed every page at Page sections, which is empty on the handful of
+ * template-driven pages where the older tabs are the live controls — and on the
+ * home page the Hero tab said “These boxes are live” about boxes the site does
+ * not read at all. A control that quietly does nothing is the exact failure the
+ * sibling files exist to prevent; a control that works but cannot be found is
+ * the same failure seen from the other side.
+ *
+ * WHAT IT DOES. Five rewrites, all on `acf/prepare_field`, all reading the
+ * hardcoded per-page maps below, keyed by the page’s WordPress database ID:
+ *
+ *   1. The orientation message above the tabs becomes one of three variants —
+ *      blocks-composed page (edit words in Page sections, read the Images tab
+ *      guide for photos), template page (the exact list of tabs that are live
+ *      HERE), or the home page (the headline area is ours, everything below is
+ *      yours).
+ *   2. The Hero tab message on a page whose hero is not wired (the home page)
+ *      is replaced: the top area is managed by us — ask and we connect it.
+ *   3. The Images tab opens with a guide naming, for every photo code on THIS
+ *      page, what a visitor sees there — and whether the photo is swapped here
+ *      or in Page sections these days. The code box on each filled row says to
+ *      change the Image, never the code.
+ *   4. The Section copy tab likewise opens with a guide mapping each row’s
+ *      Section ID to the part of the page it feeds, and its status.
+ *   5. On pages where the visible questions moved into Page sections, the FAQ
+ *      tab says so — and, where the old list still feeds what Google shows for
+ *      the page, says to keep the two matching. (The per-page audits called
+ *      for this one; it is the same idea as the other four.)
+ *
+ * WHERE THE MAPS CAME FROM. Read out of the Astro templates in
+ * vivid-smiles-website/src/pages/**, cms/import/block-map.json and the live
+ * GraphQL endpoint on 2026-09-01, one call site at a time, under one rule: a
+ * section()/image() call outside the hasBlocks ternary is live always; one
+ * inside the else-branch is dead on every blocks-composed page; a value
+ * block-map.json records as moved into a block row is edited in Page sections
+ * now, and the guide names the target section by its live heading. Heroes stay
+ * template-rendered everywhere, so hero photo rows stay live even on
+ * blocks-composed pages.
+ *
+ * THE GUARD. Every rewrite starts by looking the current page up in the maps.
+ * A page these maps do not know — a new page an editor creates, a page
+ * recreated under a new ID — is left exactly as it is and keeps today’s static
+ * messages, which are written for precisely that general case. Failing back to
+ * the old message is the designed behaviour, not an error.
+ *
+ * WP-ADMIN ONLY. Message and instruction text has no GraphQL surface, so
+ * nothing here can change what the build sees. And vs-content-model.php is
+ * deliberately untouched: this file hooks the same `acf/prepare_field` filter
+ * at priority 20, after that file’s unlock and hide filters have run, and the
+ * one field both files touch (the photo code box) is handled on disjoint
+ * conditions — that file speaks only to an empty box, this one only to a
+ * filled one. Load order between the two does not matter either way: both
+ * files only register hooks at load time.
+ */
+
+declare( strict_types=1 );
+
+namespace VividSmiles\EditorGuide;
+
+/**
+ * The per-page maps.
+ *
+ * Keys are live WordPress database IDs. `kind` picks the orientation variant:
+ * 'home', 'template' (Page sections empty by design, the older tabs are live)
+ * or 'blocks' (Page sections owns the page). `liveTabs` is the complete list
+ * of tabs that change that page, worded for the orientation message.
+ *
+ * `images` rows: the photo code, what a visitor sees in that spot, and a
+ * status — 'live' (swap it on the Images tab), or 'moved:<heading>' (the photo
+ * is changed in Page sections now, in the section with that heading). No page
+ * has an unused photo row: even a moved one is still checked by the build, so
+ * the guide never invites deleting one.
+ *
+ * `sections` rows (where present): the same idea for the Section copy tab,
+ * with one more status — 'dead', a row the design absorbed: it saves, but
+ * nothing on the site reads it any more.
+ */
+const PAGES = [
+
+	// ── The five template-driven pages: Page sections is empty on purpose ──
+
+	78 => [ // Home
+		'route'    => '/',
+		'kind'     => 'home',
+		'liveTabs' => [ 'Section copy', 'Images' ],
+		'images'   => [
+			[ 'slot' => 'heroBg', 'where' => 'the full-width photo of the team behind the big headline at the very top — the same photo appears again beside the membership offer lower down', 'status' => 'live' ],
+			[ 'slot' => 'logoAACD', 'where' => 'the AACD logo in the scrolling “Accredited by” strip near the top', 'status' => 'live' ],
+			[ 'slot' => 'logoAAID', 'where' => 'the AAID logo in the scrolling “Accredited by” strip', 'status' => 'live' ],
+			[ 'slot' => 'logoFAM', 'where' => 'the Full Arch Masters logo in the scrolling “Accredited by” strip', 'status' => 'live' ],
+			[ 'slot' => 'logoYomi', 'where' => 'the Yomi Robotics logo in the scrolling “Accredited by” strip', 'status' => 'live' ],
+			[ 'slot' => 'logoADA', 'where' => 'the ADA logo in the scrolling “Accredited by” strip', 'status' => 'live' ],
+			[ 'slot' => 'logoGoogle', 'where' => 'the Google Reviews logo in the scrolling “Accredited by” strip', 'status' => 'live' ],
+			[ 'slot' => 'imgVeneers', 'where' => 'the wide photo on the big “Cosmetic & Veneers” card in the services area', 'status' => 'live' ],
+			[ 'slot' => 'imgImplants', 'where' => 'the photo on the “Implants” card in the services area', 'status' => 'live' ],
+			[ 'slot' => 'imgGeneral', 'where' => 'the photo on the “General Dentistry” card in the services area', 'status' => 'live' ],
+			[ 'slot' => 'imgEmergency', 'where' => 'the photo on the “Emergency Care” card in the services area', 'status' => 'live' ],
+			[ 'slot' => 'storyVeneersMore', 'where' => 'the photo on the first patient video card (“More than a smile”)', 'status' => 'live' ],
+			[ 'slot' => 'storyVeneersConfidence', 'where' => 'the photo on the second patient video card (“Confidence, restored”)', 'status' => 'live' ],
+			[ 'slot' => 'storyVeneersLength', 'where' => 'the photo on the third patient video card (“Length & balance”)', 'status' => 'live' ],
+			[ 'slot' => 'notableAnnMarie', 'where' => 'the photo of Ann-Marie Muscarello in the Denver Broncos cheerleaders area', 'status' => 'live' ],
+			[ 'slot' => 'notableBrittany', 'where' => 'the photo of Brittany Fanning in the Denver Broncos cheerleaders area', 'status' => 'live' ],
+			[ 'slot' => 'drPortrait', 'where' => 'the tall portrait of Dr. Richardson beside the Meet the Doctor heading mid-page — also the small round photo above his name at the end of the three-step process', 'status' => 'live' ],
+			[ 'slot' => 'techYomi', 'where' => 'the larger photo in the technology area — Dr. Richardson with the robotic arm', 'status' => 'live' ],
+			[ 'slot' => 'techVeneerShells', 'where' => 'the smaller overlapping photo in the technology area — veneer shells on a model', 'status' => 'live' ],
+		],
+		'imagesNote' => 'Not on this list: the scrolling smile photos in the dark area lower down — add or remove those under Practice Settings → Smile gallery in the left menu.',
+		'sections' => [
+			[ 'id' => 'services', 'where' => 'the small line, heading and paragraph above the four service cards near the top', 'status' => 'live' ],
+			[ 'id' => 'stories', 'where' => 'the small line, heading and paragraph above the three patient video cards', 'status' => 'live' ],
+			[ 'id' => 'notable', 'where' => 'the small line, heading and paragraph above the two Denver Broncos cheerleader photos', 'status' => 'live' ],
+			[ 'id' => 'doctor', 'where' => 'the small line, heading and lead paragraph of the Meet the Doctor area mid-page', 'status' => 'live' ],
+			[ 'id' => 'gallery', 'where' => 'the heading and paragraph of the dark area with the scrolling smile photos', 'status' => 'live' ],
+			[ 'id' => 'technology', 'where' => 'the small line, heading and lead paragraph of the technology area with the robot photo', 'status' => 'live' ],
+		],
+	],
+
+	79 => [ // About Us
+		'route'    => '/about-us/',
+		'kind'     => 'template',
+		'liveTabs' => [ 'Hero', 'Section copy', 'Images', 'Bottom of page (the consultation invite)' ],
+		'images'   => [
+			[ 'slot' => 'heroTeam', 'where' => 'the photo beside the headline at the very top — Dr. Annie and Dr. Bryce together', 'status' => 'live' ],
+			[ 'slot' => 'storyOffice', 'where' => 'the photo in the Our Story area — the neon smile sign inside the office', 'status' => 'live' ],
+			[ 'slot' => 'drBryceMain', 'where' => 'the large portrait of Dr. Richardson in the Meet the Doctors area', 'status' => 'live' ],
+			[ 'slot' => 'drBryceInset', 'where' => 'the small photo overlapping Dr. Richardson’s portrait — him working in surgical loupes', 'status' => 'live' ],
+			[ 'slot' => 'drAnnieMain', 'where' => 'the large portrait of Dr. Annie in the Meet the Doctors area', 'status' => 'live' ],
+			[ 'slot' => 'drAnnieInset', 'where' => 'the small photo overlapping Dr. Annie’s portrait', 'status' => 'live' ],
+			[ 'slot' => 'teamSara', 'where' => 'Sara’s photo (Office Manager) in the team area', 'status' => 'live' ],
+			[ 'slot' => 'teamKt', 'where' => 'KT’s photo (Patient Care & Office Coordinator) in the team area', 'status' => 'live' ],
+			[ 'slot' => 'teamCarol', 'where' => 'Carol’s photo (Patient Coordinator) in the team area', 'status' => 'live' ],
+			[ 'slot' => 'teamMandy', 'where' => 'Mandy’s photo (Dental Hygienist) in the team area', 'status' => 'live' ],
+			[ 'slot' => 'teamSammie', 'where' => 'Sammie’s photo (Dental Hygienist) in the team area', 'status' => 'live' ],
+			[ 'slot' => 'teamLinh', 'where' => 'Linh’s photo (Dental Assistant) in the team area', 'status' => 'live' ],
+			[ 'slot' => 'teamTina', 'where' => 'Tina’s photo (Dental Assistant) in the team area', 'status' => 'live' ],
+			[ 'slot' => 'teamKnox', 'where' => 'Knox’s photo (the dog, Director of Smiles) in the team area', 'status' => 'live' ],
+			[ 'slot' => 'teamBirdie', 'where' => 'Birdie’s photo (the dog, Chief Comfort Officer) in the team area', 'status' => 'live' ],
+			[ 'slot' => 'yomiImg', 'where' => 'the photo in the technology area — a treatment room', 'status' => 'live' ],
+			[ 'slot' => 'aacdLogo', 'where' => 'the AACD logo card in the credentials area near the bottom', 'status' => 'live' ],
+			[ 'slot' => 'aaidLogo', 'where' => 'the AAID logo card in the credentials area', 'status' => 'live' ],
+			[ 'slot' => 'famLogo', 'where' => 'the Full Arch Masters logo card in the credentials area', 'status' => 'live' ],
+			[ 'slot' => 'iuLogo', 'where' => 'the Indiana University logo card in the credentials area', 'status' => 'live' ],
+			[ 'slot' => 'yomiLogo', 'where' => 'the Yomi Robotics logo card in the credentials area', 'status' => 'live' ],
+			[ 'slot' => 'adaLogo', 'where' => 'the ADA logo card in the credentials area', 'status' => 'live' ],
+			[ 'slot' => 'googleLogo', 'where' => 'the Google Reviews logo card in the credentials area', 'status' => 'live' ],
+			[ 'slot' => 'vsLogo', 'where' => 'the Vivid Smiles logo card in the credentials area', 'status' => 'live' ],
+		],
+		'sections' => [
+			[ 'id' => 'story', 'where' => 'the heading and first paragraph beside the neon-sign photo in Our Story', 'status' => 'live' ],
+			[ 'id' => 'doctors', 'where' => 'Dr. Richardson’s name heading and his short intro line in Meet the Doctors (Dr. Annie’s wording is managed by us)', 'status' => 'live' ],
+			[ 'id' => 'technology', 'where' => 'the heading and lead paragraph beside the treatment-room photo in the technology area', 'status' => 'live' ],
+			[ 'id' => 'voices', 'where' => 'the heading and paragraph above the scrolling patient reviews', 'status' => 'live' ],
+		],
+	],
+
+	90 => [ // Patient Testimonials
+		'route'    => '/patient-testimonials/',
+		'kind'     => 'template',
+		'liveTabs' => [ 'Hero', 'Section copy', 'Images', 'Bottom of page (the consultation invite)' ],
+		'images'   => [
+			[ 'slot' => 'heroImg', 'where' => 'the photo beside the headline at the very top — the team walking outside the office', 'status' => 'live' ],
+			[ 'slot' => 'veneerMore', 'where' => 'the tall photo on the first veneer video card (“More than a smile”)', 'status' => 'live' ],
+			[ 'slot' => 'veneerConfidence', 'where' => 'the tall photo on the “Confidence, restored” veneer video card', 'status' => 'live' ],
+			[ 'slot' => 'veneerLength', 'where' => 'the tall photo on the “Length & balance” veneer video card', 'status' => 'live' ],
+			[ 'slot' => 'veneerFromTo', 'where' => 'the tall photo on the “From veneers to All-on-X” video card', 'status' => 'live' ],
+			[ 'slot' => 'veneerBonding', 'where' => 'the tall photo on the “Bonding or veneers?” video card', 'status' => 'live' ],
+			[ 'slot' => 'veneerAnneMarie', 'where' => 'the tall photo on Anne Marie’s video card', 'status' => 'live' ],
+			[ 'slot' => 'veneerPrep', 'where' => 'the tall photo on the “No-prep or minimal-prep?” video card', 'status' => 'live' ],
+			[ 'slot' => 'storyJames', 'where' => 'the photo on James’s video card in the patient stories area', 'status' => 'live' ],
+			[ 'slot' => 'storyChanel', 'where' => 'the photo on Chanel’s video card in the patient stories area', 'status' => 'live' ],
+			[ 'slot' => 'storyJosh', 'where' => 'the photo on Josh’s video card in the patient stories area', 'status' => 'live' ],
+			[ 'slot' => 'featuredImg', 'where' => 'the large photo on Wayne’s featured story — a full-arch restoration held in a gloved hand', 'status' => 'live' ],
+		],
+		'sections' => [
+			[ 'id' => 'veneer-stories', 'where' => 'the small line, heading and paragraph above the seven tall veneer video cards', 'status' => 'live' ],
+			[ 'id' => 'stories', 'where' => 'the small line, heading and paragraph above the James / Chanel / Josh video cards', 'status' => 'live' ],
+			[ 'id' => 'featured-story', 'where' => 'the small line, heading and the quote paragraph beside Wayne’s featured video', 'status' => 'live' ],
+			[ 'id' => 'reviews', 'where' => 'the small line, heading and paragraph above the scrolling Google reviews', 'status' => 'live' ],
+		],
+	],
+
+	94 => [ // Smile Gallery
+		'route'    => '/smile-gallery/',
+		'kind'     => 'template',
+		'liveTabs' => [ 'Hero', 'Section copy', 'Images', 'Bottom of page (the consultation invite)' ],
+		'images'   => [
+			[ 'slot' => 'heroImg', 'where' => 'the photo beside the headline at the very top — a close-up of a patient smiling', 'status' => 'live' ],
+		],
+		'imagesNote' => 'Not on this list: the grid of smile photos itself — add, remove and reorder those under Practice Settings → Smile gallery in the left menu.',
+		'sections' => [
+			[ 'id' => 'gallery', 'where' => 'the small line, heading and paragraph above the grid of smile photos', 'status' => 'live' ],
+		],
+	],
+
+	83 => [ // Dental Membership Plan
+		'route'    => '/dental-membership-plan/',
+		'kind'     => 'template',
+		'liveTabs' => [ 'Hero', 'Section copy', 'Images', 'Bottom of page (the booking-strip sentence only)' ],
+		'images'   => [
+			[ 'slot' => 'heroImg', 'where' => 'the photo beside the headline at the very top — the whole team', 'status' => 'live' ],
+			[ 'slot' => 'step1Img', 'where' => 'the small square photo on step one (“Enroll”) in the How it works card', 'status' => 'live' ],
+			[ 'slot' => 'step2Img', 'where' => 'the small square photo on step two (“Come in”) in the How it works card', 'status' => 'live' ],
+			[ 'slot' => 'step3Img', 'where' => 'the small square photo on step three (“Renew”) in the How it works card', 'status' => 'live' ],
+		],
+		'sections' => [
+			[ 'id' => 'story', 'where' => 'the heading and first paragraph of the dark “Why we built it” area', 'status' => 'live' ],
+			[ 'id' => 'how-it-works', 'where' => 'the heading and paragraph above the three-step card', 'status' => 'live' ],
+			[ 'id' => 'whats-included', 'where' => 'the centered heading and paragraph above the big $500 plan card', 'status' => 'live' ],
+			[ 'id' => 'faq', 'where' => 'the heading above the questions-and-answers list (the questions themselves are managed by us)', 'status' => 'live' ],
+		],
+	],
+
+	// ── Cosmetic dentistry: seven blocks-composed pages ──
+
+	82 => [ // Cosmetic Dentistry hub
+		'route'    => '/cosmetic-dentistry/',
+		'kind'     => 'blocks',
+		'liveTabs' => [ 'Hero', 'Images (the top photo)', 'Page sections', 'Bottom of page' ],
+		'faq'      => 'mirror',
+		'images'   => [
+			[ 'slot' => 'imgHero', 'where' => 'the big photo to the right of the headline at the very top of the page — currently a smiling woman at the neon smile wall', 'status' => 'live' ],
+			[ 'slot' => 'imgVeneers', 'where' => 'the photo on the Porcelain Veneers card in the services grid mid-page', 'status' => 'moved:Cosmetic dentistry services at Vivid Smiles.' ],
+			[ 'slot' => 'imgAligners', 'where' => 'the photo on the Clear Aligners card in the services grid mid-page', 'status' => 'moved:Cosmetic dentistry services at Vivid Smiles.' ],
+			[ 'slot' => 'imgWhitening', 'where' => 'the photo on the Teeth Whitening card in the services grid mid-page', 'status' => 'moved:Cosmetic dentistry services at Vivid Smiles.' ],
+			[ 'slot' => 'imgGum', 'where' => 'the photo on the Gum Contouring card in the services grid mid-page', 'status' => 'moved:Cosmetic dentistry services at Vivid Smiles.' ],
+			[ 'slot' => 'imgMakeover', 'where' => 'the photo on the Smile Makeover card in the services grid mid-page', 'status' => 'moved:Cosmetic dentistry services at Vivid Smiles.' ],
+			[ 'slot' => 'imgFullMouth', 'where' => 'the photo on the Full Mouth Rehabilitation card in the services grid mid-page', 'status' => 'moved:Cosmetic dentistry services at Vivid Smiles.' ],
+			[ 'slot' => 'imgDsd', 'where' => 'the smile close-up next to “Preview your results before you commit” in the dark technology section', 'status' => 'moved:Better outcomes, fewer appointments.' ],
+			[ 'slot' => 'imgDrBryce', 'where' => 'the large portrait of Dr. Bryce Richardson in the meet-the-doctor section', 'status' => 'moved:Meet Dr. Bryce Richardson — education, training & expertise.' ],
+			[ 'slot' => 'imgDrAnnie', 'where' => 'the small round headshot of Dr. Annie next to “Also at the practice” in the meet-the-doctor section', 'status' => 'moved:Meet Dr. Bryce Richardson — education, training & expertise.' ],
+		],
+	],
+
+	98 => [ // Clear Aligners
+		'route'    => '/cosmetic-dentistry/clear-aligners/',
+		'kind'     => 'blocks',
+		'liveTabs' => [ 'Hero', 'Images (the top photo)', 'Page sections', 'Bottom of page' ],
+		'faq'      => 'mirror',
+		'images'   => [
+			[ 'slot' => 'heroImg', 'where' => 'the big photo next to the headline at the very top of the page — currently a patient holding a clear aligner tray', 'status' => 'live' ],
+			[ 'slot' => 'whatImg', 'where' => 'the photo beside the “What Are Clear Aligners?” heading — currently a smiling woman by a mountain lake', 'status' => 'moved:What Are Clear Aligners?' ],
+			[ 'slot' => 'naturalImg', 'where' => 'the photo in the “Who Is a Good Candidate for Clear Aligners?” section — currently a smiling woman photographed indoors', 'status' => 'moved:Who Is a Good Candidate for Clear Aligners?' ],
+		],
+	],
+
+	99 => [ // Full Mouth Rehabilitation
+		'route'    => '/cosmetic-dentistry/full-mouth-rehabilitation/',
+		'kind'     => 'blocks',
+		'liveTabs' => [ 'Hero', 'Images (the top photo)', 'Page sections', 'Bottom of page' ],
+		'faq'      => 'mirror',
+		'images'   => [
+			[ 'slot' => 'heroImg', 'where' => 'the big photo next to the headline at the very top of the page — currently a smiling woman at the office', 'status' => 'live' ],
+			[ 'slot' => 'whatImg', 'where' => 'the photo beside the “What is Full-Mouth Rehabilitation?” heading — currently a full-arch restoration held on a dental model', 'status' => 'moved:What is Full-Mouth Rehabilitation?' ],
+			[ 'slot' => 'designImg', 'where' => 'the photo in the “Digital Smile Design and Treatment Planning” section — currently a smile in profile against black', 'status' => 'moved:Digital Smile Design and Treatment Planning' ],
+		],
+	],
+
+	100 => [ // Gum Contouring
+		'route'    => '/cosmetic-dentistry/gum-contouring/',
+		'kind'     => 'blocks',
+		'liveTabs' => [ 'Hero', 'Images (the top photo)', 'Page sections', 'Bottom of page' ],
+		'faq'      => 'mirror',
+		'images'   => [
+			[ 'slot' => 'heroImg', 'where' => 'the big photo next to the headline at the very top of the page — currently a smiling woman outdoors among Colorado pines', 'status' => 'live' ],
+			[ 'slot' => 'whatImg', 'where' => 'the photo beside the “What Is Gum Contouring?” heading — currently a close-up of a smile showing the gum line', 'status' => 'moved:What Is Gum Contouring?' ],
+			[ 'slot' => 'gumlineImg', 'where' => 'the photo in the laser-technology section — currently a side-lit close-up of lips and upper teeth', 'status' => 'moved:How Laser Technology Makes Gum Contouring Gentle and Precise' ],
+			[ 'slot' => 'resultsImg', 'where' => 'the photo in the “Gum Contouring Results: What to Expect” section — currently a smiling woman inside the office', 'status' => 'moved:Gum Contouring Results: What to Expect' ],
+		],
+	],
+
+	101 => [ // Porcelain Veneers
+		'route'    => '/cosmetic-dentistry/porcelain-veneers/',
+		'kind'     => 'blocks',
+		'liveTabs' => [ 'Hero', 'Images (the top photo)', 'Page sections', 'Bottom of page' ],
+		'faq'      => 'mirror',
+		'images'   => [
+			[ 'slot' => 'heroImg', 'where' => 'the big photo next to the headline at the very top of the page — currently a patient in front of the practice neon sign', 'status' => 'live' ],
+			[ 'slot' => 'whatImg', 'where' => 'the photo beside the “What Are Porcelain Veneers?” heading — currently veneer shells seated on a dental model', 'status' => 'moved:What Are Porcelain Veneers?' ],
+			[ 'slot' => 'naturalImg', 'where' => 'the photo in the “Achieving Natural-Looking Results” section — currently a close-up of finished porcelain veneers', 'status' => 'moved:Achieving Natural-Looking Results' ],
+		],
+	],
+
+	102 => [ // Smile Makeover
+		'route'    => '/cosmetic-dentistry/smile-makeover/',
+		'kind'     => 'blocks',
+		'liveTabs' => [ 'Hero', 'Images (the top photo)', 'Page sections', 'Bottom of page' ],
+		'faq'      => 'mirror',
+		'images'   => [
+			[ 'slot' => 'heroImg', 'where' => 'the big photo next to the headline at the very top of the page — currently a smiling woman against a dark studio background', 'status' => 'live' ],
+			[ 'slot' => 'whatImg', 'where' => 'the photo beside the “What Is a Smile Makeover?” heading — currently a smile at a three-quarter angle against black', 'status' => 'moved:What Is a Smile Makeover?' ],
+			[ 'slot' => 'editorialImg', 'where' => 'the photo in the makeover-process section — currently an editorial smile close-up with berry lipstick', 'status' => 'moved:Our Smile Makeover Process: Digital Design to Final Result' ],
+		],
+	],
+
+	103 => [ // Teeth Whitening
+		'route'           => '/cosmetic-dentistry/teeth-whitening/',
+		'kind'            => 'blocks',
+		'liveTabs'        => [ 'Hero', 'Images (the top photo)', 'Page sections', 'Bottom of page' ],
+		'faq'             => 'mirror',
+		// The heading is the live Page sections row, read from the endpoint on
+		// 2026-09-01 — the four whitening prices are a price list of their own.
+		'orientationNote' => 'The four whitening prices are edited in Page sections too — open the row headed “Teeth Whitening Pricing in Parker, Colorado”.',
+		'images'          => [
+			[ 'slot' => 'heroImg', 'where' => 'the big photo next to the headline at the very top of the page — currently a smiling man at the neon smile wall', 'status' => 'live' ],
+			[ 'slot' => 'whatImg', 'where' => 'the photo beside the “What Is KöR Teeth Whitening?” heading — currently a close-up of a natural smile in daylight', 'status' => 'moved:What Is KöR Teeth Whitening?' ],
+			[ 'slot' => 'naturalImg', 'where' => 'the photo in the “Who Is a Good Candidate for Professional Teeth Whitening?” section — currently a smiling woman photographed indoors', 'status' => 'moved:Who Is a Good Candidate for Professional Teeth Whitening?' ],
+		],
+	],
+
+	// ── Implant dentistry: six blocks-composed pages ──
+
+	87 => [ // Implant Dentistry hub
+		'route'    => '/implant-dentistry/',
+		'kind'     => 'blocks',
+		'liveTabs' => [ 'Hero', 'Images (the top photo)', 'Page sections', 'Bottom of page' ],
+		'faq'      => 'mirror',
+		'images'   => [
+			[ 'slot' => 'imgHero', 'where' => 'the large photo beside the headline at the very top of the page — an implant-supported restoration held on a dental model', 'status' => 'live' ],
+			[ 'slot' => 'imgWhat', 'where' => 'the photo on the left of the “What are dental implants?” section — a smiling woman at the Vivid Smiles office', 'status' => 'moved:What are dental implants?' ],
+			[ 'slot' => 'imgSingleTooth', 'where' => 'the photo on the first of the five clickable service tiles (“Single Tooth Implants”), below the pricing table', 'status' => 'moved:Service tiles' ],
+			[ 'slot' => 'imgFullMouth', 'where' => 'the photo on the “Full Mouth Implants” service tile — a smiling woman beside a mountain lake', 'status' => 'moved:Service tiles' ],
+			[ 'slot' => 'imgAllOn4', 'where' => 'the photo on the “All-on-4 Single Arch” service tile — a smiling man at the neon smile wall', 'status' => 'moved:Service tiles' ],
+			[ 'slot' => 'imgBoneGrafting', 'where' => 'the photo on the “Bone Grafting” service tile — a smiling woman inside the office', 'status' => 'moved:Service tiles' ],
+			[ 'slot' => 'imgSinusLift', 'where' => 'the photo on the “Sinus Lift” service tile — a treatment room at the practice', 'status' => 'moved:Service tiles' ],
+			[ 'slot' => 'imgDrBryce', 'where' => 'the portrait of Dr. Bryce Richardson in the meet-the-doctor area mid-page', 'status' => 'moved:Dr. Richardson’s implant training and experience.' ],
+		],
+	],
+
+	104 => [ // All-on-4 Single Arch
+		'route'    => '/implant-dentistry/all-on-4-single-arch/',
+		'kind'     => 'blocks',
+		'liveTabs' => [ 'Hero', 'Images (the top photo)', 'Page sections', 'Bottom of page' ],
+		'faq'      => 'mirror',
+		'images'   => [
+			[ 'slot' => 'heroImg', 'where' => 'the large photo beside the headline at the very top of the page — a smiling woman at the Vivid Smiles office', 'status' => 'live' ],
+			[ 'slot' => 'whatImg', 'where' => 'the photo on the left of the “What Are All-on-4 Single Arch Implants?” section — a full set of teeth on a dental model, held in a gloved hand', 'status' => 'moved:What Are All-on-4 Single Arch Implants?' ],
+			[ 'slot' => 'roboticsImg', 'where' => 'the photo of Dr. Richardson using the robotic arm, in the section about robotic placement', 'status' => 'moved:How Robotic All-on-4 Placement Works at Vivid Smiles' ],
+			[ 'slot' => 'candidacyImg', 'where' => 'the photo on the right of the who-is-a-candidate section — a smiling woman outdoors in the foothills', 'status' => 'moved:Who Is a Good Candidate for Single Arch All-on-4?' ],
+		],
+	],
+
+	105 => [ // Bone Grafting
+		'route'    => '/implant-dentistry/bone-grafting/',
+		'kind'     => 'blocks',
+		'liveTabs' => [ 'Hero', 'Images (the top photo)', 'Page sections', 'Bottom of page' ],
+		'faq'      => 'mirror',
+		'images'   => [
+			[ 'slot' => 'heroImg', 'where' => 'the large photo beside the headline at the very top of the page — a smiling man at the neon smile wall', 'status' => 'live' ],
+			[ 'slot' => 'whatImg', 'where' => 'the illustration on the left of the “What Is Bone Grafting?” section — a cross-section showing graft material under a membrane', 'status' => 'moved:What Is Bone Grafting?' ],
+			[ 'slot' => 'implantsImg', 'where' => 'the smaller framed photo in the grafting-and-implants area mid-page — an implant restoration on a dental model', 'status' => 'moved:Bone Grafting and Dental Implants' ],
+			[ 'slot' => 'candidacyImg', 'where' => 'the photo on the right of the who-needs-it section — a woman beside a stone wall on a bright afternoon', 'status' => 'moved:Who Needs Bone Grafting?' ],
+		],
+	],
+
+	106 => [ // Full Mouth Dental Implants
+		'route'    => '/implant-dentistry/full-mouth-dental-implants/',
+		'kind'     => 'blocks',
+		'liveTabs' => [ 'Hero', 'Images (the top photo)', 'Page sections', 'Bottom of page' ],
+		'faq'      => 'mirror',
+		'images'   => [
+			[ 'slot' => 'heroImg', 'where' => 'the large photo beside the headline at the very top of the page — a smiling woman inside the Vivid Smiles office', 'status' => 'live' ],
+			[ 'slot' => 'whatImg', 'where' => 'the photo on the left of the “What Are Full Mouth Dental Implants?” section — a full set of teeth on a dental model, held in a gloved hand', 'status' => 'moved:What Are Full Mouth Dental Implants?' ],
+			[ 'slot' => 'roboticsImg', 'where' => 'the photo of Dr. Richardson using the robotic arm, in the section about robotic placement', 'status' => 'moved:Robotic Implant Placement: Precision Technology' ],
+			[ 'slot' => 'candidacyImg', 'where' => 'the photo on the right of the who-is-a-candidate section — a woman seated in tall grass above a Colorado lake', 'status' => 'moved:Who Is a Candidate for Full Mouth Implants?' ],
+		],
+	],
+
+	107 => [ // Single Tooth Dental Implants
+		'route'    => '/implant-dentistry/single-tooth-dental-implants/',
+		'kind'     => 'blocks',
+		'liveTabs' => [ 'Hero', 'Images (the top photo)', 'Page sections', 'Bottom of page' ],
+		'faq'      => 'mirror',
+		'images'   => [
+			[ 'slot' => 'heroImg', 'where' => 'the large photo beside the headline at the very top of the page — a smiling woman photographed indoors', 'status' => 'live' ],
+			[ 'slot' => 'whatImg', 'where' => 'the photo on the left of the “Why Choose a Single Tooth Implant?” section — a close-up of an implant restoration on a dental model', 'status' => 'moved:Why Choose a Single Tooth Implant?' ],
+			[ 'slot' => 'candidacyImg', 'where' => 'the photo on the right of the who-is-a-candidate section — a woman among pines on a Colorado hillside', 'status' => 'moved:Who Is a Candidate for Single Tooth Implants?' ],
+		],
+	],
+
+	108 => [ // Sinus Lift
+		'route'    => '/implant-dentistry/sinus-lift/',
+		'kind'     => 'blocks',
+		'liveTabs' => [ 'Hero', 'Images (the top photo)', 'Page sections', 'Bottom of page' ],
+		'faq'      => 'mirror',
+		'images'   => [
+			[ 'slot' => 'heroImg', 'where' => 'the large photo beside the headline at the very top of the page — a smiling woman outdoors in the foothills', 'status' => 'live' ],
+			[ 'slot' => 'drRichardsonImg', 'where' => 'the portrait of Dr. Bryce Richardson in the first section under the headline area (why choose Vivid Smiles)', 'status' => 'moved:Why Choose Vivid Smiles for Your Sinus Lift in Parker, CO' ],
+			[ 'slot' => 'whatImg', 'where' => 'the illustration on the left of the “What Is a Sinus Lift?” section — a cross-section of graft material beneath the lifted sinus membrane', 'status' => 'moved:What Is a Sinus Lift?' ],
+			[ 'slot' => 'yomiImg', 'where' => 'the photo of Dr. Richardson using the robotic arm, in the technology section lower on the page', 'status' => 'moved:Advanced Technology for Predictable Outcomes' ],
+		],
+	],
+
+	// ── The rest: seven blocks-composed pages with mixed older tabs ──
+
+	85 => [ // General Dentistry
+		'route'    => '/general-dentistry/',
+		'kind'     => 'blocks',
+		'liveTabs' => [ 'Hero', 'Images (the top photo)', 'Page sections', 'Bottom of page' ],
+		'faq'      => 'mirror',
+		'images'   => [
+			[ 'slot' => 'imgHero', 'where' => 'the big photo to the right of the headline at the very top of the page — a hygienist polishing a patient’s teeth', 'status' => 'live' ],
+			[ 'slot' => 'imgPreventive', 'where' => 'the photo on the “Preventive Care & Cleanings” card in the four-card services row', 'status' => 'moved:General dentistry services at Vivid Smiles.' ],
+			[ 'slot' => 'imgRestorative', 'where' => 'the photo on the “Fillings, Crowns & Bridges” card in that same row', 'status' => 'moved:General dentistry services at Vivid Smiles.' ],
+			[ 'slot' => 'imgPeriodontal', 'where' => 'the photo on the “Periodontal Care” card in that same row', 'status' => 'moved:General dentistry services at Vivid Smiles.' ],
+			[ 'slot' => 'imgEmergency', 'where' => 'the photo on the “Emergency Dental Care” card in that same row', 'status' => 'moved:General dentistry services at Vivid Smiles.' ],
+			[ 'slot' => 'imgFirstVisit', 'where' => 'the photo of the practice’s etched entry doors beside the first-visit copy', 'status' => 'moved:What to expect during your first general dentistry visit.' ],
+			[ 'slot' => 'imgGateway', 'where' => 'the portrait at the neon smile wall beside the cosmetic-care copy', 'status' => 'moved:General dentistry as a gateway to cosmetic care.' ],
+			[ 'slot' => 'imgDoctors', 'where' => 'the photo of both doctors in the meet-the-doctors area', 'status' => 'moved:Meet Dr. Richardson and Dr. Annie.' ],
+		],
+		'sections' => [
+			[ 'id' => 'why', 'where' => 'the dark technology-and-stats area under the headline', 'status' => 'moved:Technology-forward, family-focused care.' ],
+			[ 'id' => 'services', 'where' => 'the intro above the four service cards', 'status' => 'moved:General dentistry services at Vivid Smiles.' ],
+			[ 'id' => 'first-visit', 'where' => 'the first-visit area with the entry-doors photo', 'status' => 'moved:What to expect during your first general dentistry visit.' ],
+			[ 'id' => 'gateway', 'where' => 'the cosmetic-care area with the neon-wall portrait', 'status' => 'moved:General dentistry as a gateway to cosmetic care.' ],
+			[ 'id' => 'trust', 'where' => 'the dark “Why Parker trusts us” quote area mid-page', 'status' => 'dead' ],
+			[ 'id' => 'doctors', 'where' => 'the meet-the-doctors area', 'status' => 'moved:Meet Dr. Richardson and Dr. Annie.' ],
+			[ 'id' => 'payment', 'where' => 'the insurance-and-membership area', 'status' => 'dead' ],
+			[ 'id' => 'area', 'where' => 'the map-and-address area', 'status' => 'dead' ],
+			[ 'id' => 'faq', 'where' => 'the intro above the questions-and-answers list', 'status' => 'moved:Frequently asked questions about general dentistry in Parker, CO.' ],
+		],
+	],
+
+	84 => [ // Emergency Dental Care
+		'route'    => '/emergency-dentistry/',
+		'kind'     => 'blocks',
+		'liveTabs' => [ 'Hero', 'Images (the top photo)', 'Page sections', 'Section copy (only the message-form heading row)', 'Bottom of page (the booking-strip sentence only)' ],
+		'faq'      => 'inert',
+		'images'   => [
+			[ 'slot' => 'imgHero', 'where' => 'the big photo to the right of the headline at the very top of the page — a smiling woman in a warm interior', 'status' => 'live' ],
+			[ 'slot' => 'imgHow', 'where' => 'the photo of a dentist and assistant treating a patient, beside the how-we-handle-emergencies copy', 'status' => 'moved:How Vivid Smiles handles emergency dental cases.' ],
+		],
+		'sections' => [
+			[ 'id' => 'when', 'where' => 'the dark area under the headline with the three number cards', 'status' => 'moved:When to seek emergency dental care.' ],
+			[ 'id' => 'protocol', 'where' => 'the “In case of” scenario cards', 'status' => 'dead' ],
+			[ 'id' => 'how', 'where' => 'the area with the treatment photo mid-page', 'status' => 'moved:How Vivid Smiles handles emergency dental cases.' ],
+			[ 'id' => 'emergencies', 'where' => 'the checklist of common emergencies', 'status' => 'moved:Common dental emergencies.' ],
+			[ 'id' => 'why-us', 'where' => 'the dark “Why choose Vivid Smiles” quote area', 'status' => 'dead' ],
+			[ 'id' => 'area', 'where' => 'the map-and-address area', 'status' => 'dead' ],
+			[ 'id' => 'prevent', 'where' => 'the preventing-emergencies area near the bottom', 'status' => 'dead' ],
+			[ 'id' => 'faq', 'where' => 'the intro above the questions-and-answers list', 'status' => 'moved:Dental emergency FAQs.' ],
+			[ 'id' => 'contact-form', 'where' => 'the heading beside the message form at the very bottom of the page (only the Heading box changes the page)', 'status' => 'live' ],
+		],
+	],
+
+	93 => [ // Services
+		'route'    => '/services/',
+		'kind'     => 'blocks',
+		'liveTabs' => [
+			'Page sections (the three photo grids and their intros)',
+			'Section copy (only the “process” and “faq” rows)',
+			'FAQ (this page’s questions and answers are edited on that tab, not in Page sections)',
+			'Bottom of page (the consultation invite)',
+			'Hero (the headline box only — invisible on the page, it speaks to search engines and screen readers)',
+		],
+		'images'   => [
+			[ 'slot' => 'imgVeneers', 'where' => 'the photo on the “Porcelain Veneers” card in the cosmetic grid', 'status' => 'moved:Where artistry meets esthetic dentistry.' ],
+			[ 'slot' => 'imgSmileMakeover', 'where' => 'the photo on the “Smile Makeover” card in the cosmetic grid', 'status' => 'moved:Where artistry meets esthetic dentistry.' ],
+			[ 'slot' => 'imgClearAligners', 'where' => 'the photo on the “Clear Aligners” card in the cosmetic grid', 'status' => 'moved:Where artistry meets esthetic dentistry.' ],
+			[ 'slot' => 'imgWhitening', 'where' => 'the photo on the “Teeth Whitening” card in the cosmetic grid', 'status' => 'moved:Where artistry meets esthetic dentistry.' ],
+			[ 'slot' => 'imgGumContouring', 'where' => 'the photo on the “Gum Contouring” card in the cosmetic grid', 'status' => 'moved:Where artistry meets esthetic dentistry.' ],
+			[ 'slot' => 'imgFullMouthRehab', 'where' => 'the photo on the “Full Mouth Rehabilitation” card in the cosmetic grid', 'status' => 'moved:Where artistry meets esthetic dentistry.' ],
+			[ 'slot' => 'imgSingleImplant', 'where' => 'the photo on the “Single Tooth Implant” card in the implant grid', 'status' => 'moved:Replace what’s missing with sub-millimeter accuracy.' ],
+			[ 'slot' => 'imgFullMouthImplants', 'where' => 'the photo on the “Full Mouth Implants” card in the implant grid', 'status' => 'moved:Replace what’s missing with sub-millimeter accuracy.' ],
+			[ 'slot' => 'imgAllOn4', 'where' => 'the photo on the “All-on-4 Single Arch” card in the implant grid', 'status' => 'moved:Replace what’s missing with sub-millimeter accuracy.' ],
+			[ 'slot' => 'imgBoneGraft', 'where' => 'the photo on the “Bone Grafting” card in the implant grid', 'status' => 'moved:Replace what’s missing with sub-millimeter accuracy.' ],
+			[ 'slot' => 'imgSinusLift', 'where' => 'the photo on the “Sinus Lift” card in the implant grid', 'status' => 'moved:Replace what’s missing with sub-millimeter accuracy.' ],
+			[ 'slot' => 'imgGeneral', 'where' => 'the photo on the “General Dentistry” card in the everyday-care pair', 'status' => 'moved:When life happens, we’re here.' ],
+			[ 'slot' => 'imgEmergency', 'where' => 'the photo on the “Emergency Dentistry” card in the everyday-care pair', 'status' => 'moved:When life happens, we’re here.' ],
+		],
+		'sections' => [
+			[ 'id' => 'cosmetic', 'where' => 'the intro above the cosmetic services grid at the top', 'status' => 'moved:Where artistry meets esthetic dentistry.' ],
+			[ 'id' => 'implants', 'where' => 'the intro above the implant services grid', 'status' => 'moved:Replace what’s missing with sub-millimeter accuracy.' ],
+			[ 'id' => 'everyday', 'where' => 'the intro above the everyday-care pair', 'status' => 'moved:When life happens, we’re here.' ],
+			[ 'id' => 'process', 'where' => 'the intro above the three how-we-work steps (the steps themselves are part of the design)', 'status' => 'live' ],
+			[ 'id' => 'faq', 'where' => 'the intro above the questions-and-answers list', 'status' => 'live' ],
+		],
+	],
+
+	88 => [ // New Patients
+		'route'    => '/new-patients/',
+		'kind'     => 'blocks',
+		'liveTabs' => [ 'Hero', 'Images (the top photo)', 'Page sections', 'Section copy (only the “membership” row)', 'Bottom of page (the consultation invite)' ],
+		'faq'      => 'inert',
+		'images'   => [
+			[ 'slot' => 'heroImg', 'where' => 'the big photo to the right of the headline at the very top — the team walking outside the office', 'status' => 'live' ],
+			[ 'slot' => 'imgCosmetic', 'where' => 'the photo on the “Cosmetic Dentistry” card in the four-card services row', 'status' => 'moved:Care that fits every chapter of your smile.' ],
+			[ 'slot' => 'imgImplant', 'where' => 'the photo on the “Implant Dentistry” card in that same row', 'status' => 'moved:Care that fits every chapter of your smile.' ],
+			[ 'slot' => 'imgGeneral', 'where' => 'the photo on the “General Dentistry” card in that same row', 'status' => 'moved:Care that fits every chapter of your smile.' ],
+			[ 'slot' => 'imgEmergency', 'where' => 'the photo on the “Emergency Dentistry” card in that same row', 'status' => 'moved:Care that fits every chapter of your smile.' ],
+		],
+		'sections' => [
+			[ 'id' => 'first-visit', 'where' => 'the intro above the six numbered first-visit steps', 'status' => 'moved:Your first visit, step by step.' ],
+			[ 'id' => 'services', 'where' => 'the intro above the four service cards', 'status' => 'moved:Care that fits every chapter of your smile.' ],
+			[ 'id' => 'reviews', 'where' => 'the heading above the sliding patient-reviews strip', 'status' => 'dead' ],
+			[ 'id' => 'faq', 'where' => 'the heading above the questions-and-answers list', 'status' => 'moved:Frequently asked questions.' ],
+			[ 'id' => 'membership', 'where' => 'the no-insurance membership panel near the bottom (the small line and the paragraph; the bold line is part of the design)', 'status' => 'live' ],
+		],
+	],
+
+	89 => [ // Our Office
+		'route'    => '/our-office/',
+		'kind'     => 'blocks',
+		'liveTabs' => [ 'Hero', 'Images (all nine photos on this page are edited there)', 'Section copy (the “tour”, “technology” and “expect” rows)', 'Page sections (the map area and the questions list)', 'Bottom of page (the consultation invite)' ],
+		'faq'      => 'inert',
+		'images'   => [
+			[ 'slot' => 'heroPrimary', 'where' => 'the big photo at the top of the page — the waiting-room lounge', 'status' => 'live' ],
+			[ 'slot' => 'heroInset', 'where' => 'the small photo overlapping the big one at the top — the entry doors with the logo', 'status' => 'live' ],
+			[ 'slot' => 'bentoA', 'where' => 'the largest tile in the photo tour grid — the reception desk', 'status' => 'live' ],
+			[ 'slot' => 'bentoB', 'where' => 'the tall tile in the photo tour grid — a treatment room', 'status' => 'live' ],
+			[ 'slot' => 'bentoC', 'where' => 'the tile in the photo tour grid with the glowing neon sign', 'status' => 'live' ],
+			[ 'slot' => 'bentoD', 'where' => 'the tile in the photo tour grid with both doctors in the hallway', 'status' => 'live' ],
+			[ 'slot' => 'bentoE', 'where' => 'the tile in the photo tour grid of a patient being welcomed at the desk', 'status' => 'live' ],
+			[ 'slot' => 'techPrimary', 'where' => 'the big photo in the green technology area — the robotic implant arm in use', 'status' => 'live' ],
+			[ 'slot' => 'techInset', 'where' => 'the small photo overlapping it — a hygienist polishing a patient’s teeth', 'status' => 'live' ],
+		],
+		'sections' => [
+			[ 'id' => 'tour', 'where' => 'the intro above the photo tour grid', 'status' => 'live' ],
+			[ 'id' => 'technology', 'where' => 'the heading and paragraph in the green technology area (the small label and the four pills are part of the design)', 'status' => 'live' ],
+			[ 'id' => 'expect', 'where' => 'the heading above the four what-to-expect tiles (the tiles themselves are part of the design)', 'status' => 'live' ],
+			[ 'id' => 'visit', 'where' => 'the address-hours-and-map area', 'status' => 'moved:How to find us.' ],
+			[ 'id' => 'faq', 'where' => 'the heading above the questions-and-answers list', 'status' => 'moved:A few quick answers.' ],
+		],
+	],
+
+	80 => [ // Contact
+		'route'    => '/contact/',
+		'kind'     => 'blocks',
+		'liveTabs' => [ 'Hero (the words beside the message form at the top)', 'Section copy (only the “reach” row)', 'Page sections (the map area and the questions list)' ],
+		'faq'      => 'inert',
+		'images'   => [],
+		'sections' => [
+			[ 'id' => 'reach', 'where' => 'the intro above the four ways-to-reach-us cards (the cards themselves are part of the design)', 'status' => 'live' ],
+			[ 'id' => 'visit', 'where' => 'the address-hours-and-map area', 'status' => 'moved:Right here in Parker.' ],
+			[ 'id' => 'faq', 'where' => 'the intro above the questions-and-answers list', 'status' => 'moved:Before you reach out.' ],
+		],
+	],
+
+	92 => [ // Referral Program
+		'route'    => '/referral-program/',
+		'kind'     => 'blocks',
+		'liveTabs' => [ 'Hero', 'Images (the top photo)', 'Section copy (only the “program” row)', 'Page sections', 'Bottom of page (the booking-strip sentence only)' ],
+		'faq'      => 'inert',
+		'images'   => [
+			[ 'slot' => 'heroPrimary', 'where' => 'the big photo to the right of the headline at the top — a patient checking in at the front desk', 'status' => 'live' ],
+		],
+		'sections' => [
+			[ 'id' => 'program', 'where' => 'the heading and first paragraph beside the $50 + $50 reward card (the card itself is part of the design)', 'status' => 'live' ],
+			[ 'id' => 'how-it-works', 'where' => 'the intro above the three numbered steps', 'status' => 'moved:Three easy steps, no paperwork.' ],
+			[ 'id' => 'faq', 'where' => 'the heading above the questions-and-answers list', 'status' => 'moved:Quick answers before you refer.' ],
+		],
+	],
+];
+
+/**
+ * The map entry for the page being edited, or null for a page the maps do not
+ * know — which is the signal to leave every message exactly as it is.
+ *
+ * get_the_ID() is enough on the edit screen (the global post is set up before
+ * any meta box renders); the query-string fallback covers the odd admin
+ * request that renders fields before the loop.
+ */
+function current_page(): ?array {
+	$id = get_the_ID();
+
+	if ( ! is_int( $id ) || $id <= 0 ) {
+		// Read-only routing on an admin id; nothing here is saved or echoed.
+		$id = isset( $_GET['post'] ) ? (int) $_GET['post'] : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+	}
+
+	return PAGES[ $id ] ?? null;
+}
+
+/**
+ * Whether a tab is in this page's live list. Entries may carry a qualifier in
+ * parentheses, so match the bare label or the label followed by a space.
+ */
+function tab_is_live( array $page, string $label ): bool {
+	foreach ( $page['liveTabs'] as $tab ) {
+		if ( $tab === $label || 0 === strpos( $tab, $label . ' ' ) ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * The live tabs as a sentence fragment: "Hero, Images and Bottom of page".
+ */
+function tabs_sentence( array $page ): string {
+	$tabs = array_map( 'esc_html', $page['liveTabs'] );
+	$last = array_pop( $tabs );
+
+	return $tabs ? implode( ', ', $tabs ) . ' and ' . $last : (string) $last;
+}
+
+/**
+ * Split a status into its state and, for a moved one, the target section's
+ * heading — trimmed of its trailing period so it reads cleanly inside quotes.
+ */
+function parse_status( string $status ): array {
+	if ( 0 === strpos( $status, 'moved:' ) ) {
+		return [ 'moved', rtrim( trim( substr( $status, 6 ) ), '.' ) ];
+	}
+
+	return [ $status, '' ];
+}
+
+/**
+ * Whether any row in a guide list is not plainly live. When every row is live
+ * the guide skips the per-row "Live" tag and says so once at the bottom.
+ */
+function list_is_mixed( array $rows ): bool {
+	foreach ( $rows as $row ) {
+		if ( 'live' !== $row['status'] ) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+/**
+ * One guide line: the code, what the visitor sees there, and the status. Only
+ * inline tags, because the images guide travels through instruction text,
+ * which is filtered harder than a message body.
+ */
+function guide_line( array $row, string $code_key, bool $mixed, bool $is_photo ): string {
+	$where = rtrim( trim( $row['where'] ), '.' );
+
+	list( $state, $target ) = parse_status( $row['status'] );
+
+	$line = '<strong>' . esc_html( $row[ $code_key ] ) . '</strong> — ' . esc_html( $where ) . '.';
+
+	if ( 'moved' === $state ) {
+		$verb  = $is_photo ? 'changed' : 'edited';
+		$line .= ' <em>Now ' . $verb . ' in Page sections — open the section “' . esc_html( $target ) . '”.</em>';
+	} elseif ( 'dead' === $state ) {
+		$line .= ' <em>Part of the design now — this row saves, but changes nothing; ask us if it should say something different.</em>';
+	} elseif ( $mixed ) {
+		$line .= $is_photo ? ' <em>Live — swap it here.</em>' : ' <em>Live — edit it here.</em>';
+	}
+
+	return $line;
+}
+
+/**
+ * Rewrite 1: the orientation message above the tabs, per page.
+ */
+function orientation_message( array $page ): string {
+	$lines = [];
+
+	if ( 'home' === $page['kind'] ) {
+		$lines[] = '<strong>Almost all of this page is yours to edit.</strong>';
+		$lines[] = 'The headline area at the very top is managed by us for now — the note on the <em>Hero</em> tab explains. '
+			. 'Everything below it is edited from two tabs: the words in <em>Section copy</em>, the photos in <em>Images</em>. '
+			. 'Each of those tabs starts with a guide saying exactly which box changes which part of the page.';
+		$lines[] = 'The other tabs save, but do not change this page. Changes go live on the next site build.';
+	} elseif ( 'template' === $page['kind'] ) {
+		$lines[] = '<strong>This page is edited from these tabs: ' . tabs_sentence( $page ) . '.</strong>';
+		$lines[] = 'That is the whole list — a box on any other tab saves, but does not change this page. '
+			. '<em>Page sections</em> is empty here on purpose: this page still runs on its designed layout, '
+			. 'so please leave it empty — we move pages over ourselves.';
+		$lines[] = 'The <em>Images</em> tab starts with a guide saying where each photo appears, and '
+			. '<em>Section copy</em> with one saying which words sit where. Changes go live on the next site build.';
+	} else {
+		$lines[] = '<strong>The words visitors read on this page are edited in <em>Page sections</em> — '
+			. 'one row per part of the page, top to bottom.</strong>';
+
+		if ( ! empty( $page['images'] ) ) {
+			$lines[] = 'For photos, open the <em>Images</em> tab and read the guide at the top first — it says '
+				. 'where each photo appears, and which photos are changed inside <em>Page sections</em> these days.';
+		}
+
+		$lines[] = 'The full list of tabs that change this page: ' . tabs_sentence( $page ) . '. '
+			. 'A box on any other tab saves, but does not change the page.';
+
+		if ( ! empty( $page['orientationNote'] ) ) {
+			$lines[] = esc_html( $page['orientationNote'] );
+		}
+
+		$lines[] = 'Changes go live on the next site build.';
+	}
+
+	return implode( "\n", $lines );
+}
+
+/**
+ * Rewrite 2: the Hero tab message on a page whose hero the site does not read.
+ */
+function hero_message(): string {
+	return '<strong>On this page the top area is managed by us.</strong>' . "\n"
+		. 'The big headline, the small line above it, the sentence under it and the buttons are hand-built '
+		. 'into this page’s design — the boxes below save, but do not change the page. If the top of the page '
+		. 'should say something different, tell us and we will change it, or connect these boxes so they work '
+		. 'here the way they do on the other pages.' . "\n"
+		. 'Everything below the headline area is yours — the note at the very top of this screen says which tabs to use.';
+}
+
+/**
+ * Rewrite 3: the guide at the top of the Images tab.
+ */
+function images_guide( array $page ): string {
+	$mixed = list_is_mixed( $page['images'] );
+
+	$lines   = [];
+	$lines[] = 'Where each photo appears on the page — match the code in the Slot column.';
+
+	foreach ( $page['images'] as $row ) {
+		$lines[] = guide_line( $row, 'slot', $mixed, true );
+	}
+
+	if ( ! empty( $page['imagesNote'] ) ) {
+		$lines[] = esc_html( $page['imagesNote'] );
+	}
+
+	$footer = 'To swap a photo, change the Image and leave the code alone — it ties the photo to its place.';
+
+	if ( $mixed ) {
+		$footer .= ' Keep every row, even one whose photo is changed in Page sections these days: the site '
+			. 'still checks the row exists, and deleting one can stop the next build.';
+	} else {
+		$footer .= ' Keep every row — deleting one can stop the next build.';
+	}
+
+	$footer .= ' Alt text describes the picture for screen readers and search engines; it is worth writing '
+		. 'properly on every photo.';
+
+	$lines[] = $footer;
+
+	return implode( '<br>', $lines );
+}
+
+/**
+ * Rewrite 4: the guide at the top of the Section copy tab.
+ */
+function sections_guide( array $page ): string {
+	$mixed = list_is_mixed( $page['sections'] );
+
+	$lines   = [];
+	$lines[] = '<strong>Where each row below appears on the page — match its Section ID box.</strong>';
+
+	foreach ( $page['sections'] as $row ) {
+		$lines[] = guide_line( $row, 'id', $mixed, false );
+	}
+
+	if ( $mixed ) {
+		$lines[] = 'Edit the words in the rows marked live, and leave each Section ID exactly as it is. '
+			. 'A row marked “now edited in Page sections” still saves here, but the site reads the matching '
+			. 'section there instead.';
+	} else {
+		$lines[] = 'Every row above is live: edit the words, and leave each Section ID exactly as it is.';
+	}
+
+	return implode( "\n", $lines );
+}
+
+/**
+ * Rewrite 5: the FAQ tab, on pages whose visible questions moved into Page
+ * sections. Two flavours, because the pages differ in one honest detail: on
+ * most of them the old list still feeds what Google shows for the page, so an
+ * edit in Page sections should be mirrored here; on the rest the old list is
+ * simply done.
+ */
+function faq_instructions( string $mode ): string {
+	$note = 'The questions visitors see on this page are edited in <em>Page sections</em> now — open the '
+		. 'questions-and-answers section there.';
+
+	if ( 'mirror' === $mode ) {
+		return $note . ' The list below still feeds what Google shows for this page in its search results, '
+			. 'so after changing a question there, make the same change here to keep the two matching.';
+	}
+
+	return $note . ' The list below saves, but the site no longer reads it.';
+}
+
+/**
+ * The one entry point. Runs at priority 20, after vs-content-model.php’s own
+ * prepare filters: its hide filter may hand us `false` for a retired field,
+ * which passes straight through, and the one field both files rewrite — the
+ * photo code box — is guarded on opposite conditions, so the two can never
+ * disagree about the same row.
+ */
+function rewrite_guidance( $field ) {
+	if ( ! is_array( $field ) ) {
+		return $field;
+	}
+
+	$page = current_page();
+
+	if ( null === $page ) {
+		return $field;
+	}
+
+	switch ( $field['key'] ?? '' ) {
+		case 'field_vs_page_intro':
+			$field['message'] = orientation_message( $page );
+			break;
+
+		case 'field_vs_hero_intro':
+			if ( ! tab_is_live( $page, 'Hero' ) ) {
+				$field['message'] = hero_message();
+			}
+			break;
+
+		case 'field_vs_images':
+			if ( ! empty( $page['images'] ) ) {
+				$field['instructions'] = images_guide( $page );
+			}
+			break;
+
+		case 'field_vs_image_slot':
+			// Only a row that already holds a code, and only on a page whose
+			// guide exists to point at. A blank row keeps the unlock message
+			// from vs-content-model.php, which is the right one there: it
+			// explains that a code is created on save.
+			if ( ! empty( $page['images'] ) && '' !== trim( (string) ( $field['value'] ?? '' ) ) ) {
+				$field['instructions'] = 'Filled in automatically — this code ties the photo to its place, and '
+					. 'the guide above says where each one appears. To change a photo, change the Image, '
+					. 'not this code.';
+			}
+			break;
+
+		case 'field_vs_sections_note':
+			if ( ! empty( $page['sections'] ) ) {
+				$field['message'] = sections_guide( $page );
+			}
+			break;
+
+		case 'field_vs_faqs':
+			if ( ! empty( $page['faq'] ) ) {
+				$field['instructions'] = faq_instructions( $page['faq'] );
+			}
+			break;
+	}
+
+	return $field;
+}
+add_filter( 'acf/prepare_field', __NAMESPACE__ . '\\rewrite_guidance', 20 );
