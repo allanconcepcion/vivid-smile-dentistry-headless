@@ -1,25 +1,58 @@
 # Vivid Smiles headless — session handoff
 
-Written to hand this work to a fresh session (human or AI) without re-deriving any of it.
+Written to hand this work to a fresh session — human, or an AI of any model — without
+re-deriving any of it. **If this file and `git log` disagree, `git log` wins**; this file was
+last brought fully in line with the tree at the commit below.
 
-**State this file describes:** branch `page-blocks`, HEAD `07c027d`. `main` is at `73e9865` and is
-**33 commits behind** (`git rev-list --count main..HEAD` → 33). Everything in the block system
-below lives on `page-blocks` and is *not* on `main`.
+**State this file describes:** branch `main`, HEAD `3761258` (2026-09-01). Everything is merged —
+PR #10 (`page-blocks` → `cms-editor-safety`) and PR #9 (`cms-editor-safety` → `main`) both landed
+on 2026-08-31 with merge commits, zero open PRs, both branches kept. The public domain has NOT
+been cut over: the built site is a `Disallow: /` Vercel preview at
+`vivid-smiles-headless.vercel.app`; the practice's real domain still serves the old site. The
+cutover is a separate deliberate step (`docs/CUTOVER-PROMPT.md`).
 
-**Retracted, and the retraction is the point.** Earlier revisions of this file opened with
-_"Where this file and any other README disagree, this file was checked against the live systems
-more recently."_ **That claim is withdrawn and must not come back.** It was false by the time it
-mattered: `73e9865`, the last commit to touch this file, *is* the fork point — so this file
-described none of Phases 0–5 while still asserting precedence over `docs/DEPLOYING.md` and
-`cms/README.md`, which were of the same vintage and were correct. A pointer file cannot assert
-precedence. Where this file and another disagree now, **check the code**, which is where the real
-state lives: `src/blocks/manifest.ts`, `scripts/check-block-schema.mjs`, `scripts/vr-html.mjs`,
-`src/pages/[...slug].astro`.
+A machine-local memory for Claude Code sessions also exists at
+`~/.claude/projects/-Volumes-Concepcion-Work-Vivid-smiles-headless-setup/memory/` — it is a
+convenience for one machine, not a source of truth. **This file is the portable one.**
 
-The old header also carried `_Last verified: 13 August 2026._` while containing text added on
-2026-08-25. Dates in this revision are only ever the dates of commits or of things measured in
-this tree. **Anything requiring wp-admin, the GoDaddy host, or Vercel cannot be checked from a
-terminal in this repo and is marked UNVERIFIABLE HERE.** Do not launder such a claim into a date.
+## Read this first — the state in one screen
+
+**What is editable in WordPress today, and where** (verified in wp-admin and in the build on
+2026-09-01):
+
+| Thing | Where it is edited | Coverage |
+| --- | --- | --- |
+| Section content (bands), incl. drag-to-reorder | Page → **Page sections** tab (16 layouts) | all 20 mapped routes, 148 rows; a blank new page composes too |
+| Headline area (kicker, headline, intro, 2 buttons) | Page → **Hero** tab | 25 routes wired, 24 back-filled with current wording |
+| Consult invite + booking strip at the bottom | Page → **Bottom of page** tab | consult on 20 routes, note on 17 — **boxes empty, backfill pending** |
+| Photos on template-driven pages | Page → **Images** tab, with a per-page plain-English guide | home, about-us, testimonials, gallery, membership + hero photos everywhere |
+| Menus | Appearance → Menus | nav, mobile, footer, 3 mega-menus |
+| Phone, address, booking link, both Typeform IDs, hours | **Practice Settings** | site-wide |
+| Reviews, smile gallery, SEO title/description | Testimonials · Practice Settings · per page | wired |
+| Blog posts | Posts | title/body/hero image/date; the post-page chrome is code |
+
+**Deliberately NOT editable, each with a recorded reason:** the home page hero (hand-built, rails
+and glass badges the group does not model); 13 `code_section` bands whose copy is frozen in
+`src/blocks/CodeSectionBlock.astro`; template bands no layout can draw (our-office #tour /
+#technology / #expect, new-patients #membership, contact #reach, referral #program);
+`/dental-membership-plan/` bands (a different band system); the contact page's closing note
+(it prints live opening hours); legal-page bodies; campaign LPs; utility pages.
+
+**The three recurring defect classes — check for them before calling anything done:**
+1. A field declared in PHP, selected in the loader, read by NOTHING (caught seven times in
+   Wave B alone, then again on `[...slug].astro`, then on the hero's `ratings` gate).
+2. A registered select VALUE with no branch in the component (`card_grid` 5 columns shipped
+   with the choice and the CSS but not the class-emitting guard — it drew TWO across).
+3. A paired list extended on one side only (`global.css` charcoal `.vs-link` override vs its
+   white-card rescue — links went to 1.22:1 contrast).
+
+**Next actions, in order** — see "Suggested next steps" for detail:
+1. Backfill the four "Bottom of page" boxes with each page's current wording (the hero
+   pipeline: extract → prove byte-identical offline → deploy → dry run → write).
+2. Give the two hero subheadings that carry markup (sinus-lift's link, referral's `<b>`) an
+   HTML-capable field; today they stay on the template on purpose.
+3. Owner-side: make the repo private; rotate the WordPress password (hash in git history);
+   confirm the `s.ksrndkehqnwntyxlhgto.com` call-tracking script; decide the domain cutover.
 
 ## What this project is
 
@@ -33,151 +66,108 @@ content from WPGraphQL at build time. Nothing is fetched by a visitor's browser.
 | Front end (production) | https://vivid-smiles-headless.vercel.app |
 | Hosted CMS | https://cms.vividsmilesdentistry.com (GoDaddy Managed WP) |
 | Vercel project | vercel.com/allans-projects-cc55d7b7/vivid-smiles-headless |
-| Future CMS domain | cms.vividsmilesdentistry.com (not moved yet) |
+| Old CMS hostname | 1230613.us28.myftpupload.com — still answers; retire its allowances when GoDaddy drops it |
 
-The repo remote is confirmed from `git remote -v`. The four hostnames are consistent across this
-file, `docs/DEPLOYING.md` and `cms/README.md` but are UNVERIFIABLE HERE.
+The repo remote is confirmed from `git remote -v`. All four hostnames were verified live on
+2026-09-01 (the CMS answers GraphQL on its new domain and reports it as its own URL; the
+front-end 302 from the CMS lands on the Vercel preview; Vercel deployed green against it).
 
 ## Where the work actually is: pages compose from WordPress
 
-This is the subsystem the old handoff never mentioned, and it is now most of the project.
+**The mechanism.** `pageFields.blocks` is an ACF flexible-content field with 16 layouts
+(`cms/mu-plugins/vs-content-model.php`). `src/loaders/pages.ts` selects it through
+`src/blocks/manifest.ts` (the ONE place that says what the build asks GraphQL for), gated on a
+capability probe that sends the exact selection to the host first — a host predating a field
+degrades to "not selected" instead of failing 48 routes. `src/lib/page-content.ts` normalises
+every row (WPGraphQL returns every ACF select as a ONE-ELEMENT ARRAY — `unwrapSelects` is where
+that is fixed, once) and exposes `hasBlocks`, `hero`, `closing`, `section()`, `image()`.
+`src/blocks/PageBlocks.astro` draws the rows through `src/blocks/registry.ts`; each template is
+`{hasBlocks ? <PageBlocks/> : <its original markup>}` band by band. **The else branch is the
+rollback** — empty `blocks` in wp-admin and the page renders from its sheet again.
 
-**All twenty routes that `cms/import/block-map.json` maps compose from WordPress** through an
-ordered ACF flexible-content field named `blocks`, rendered by `src/blocks/PageBlocks.astro`
-through `src/blocks/registry.ts`.
+`hasBlocks` is `blocks.some(row => isRegisteredLayout(row.__typename))`, deliberately not
+`length > 0`, so a row saved against an unshipped layout degrades to "not migrated" rather than
+a blank page. **One registered row flips the whole page** — the wp-admin note says so now.
 
-- **16 layouts**, and all three halves agree — verified by name, one by one:
-  `faq`, `card_grid`, `media_split`, `process_steps`, `gallery_marquee`, `comparison_cards`,
-  `stat_callout`, `pricing_tiers`, `copy_plus_stats`, `tech_grid`, `service_cards`,
-  `doctor_profiles`, `candidacy_ledger`, `callout_list`, `map_visit`, `code_section`.
-  Registered in `cms/mu-plugins/vs-content-model.php` (field `field_vs_blocks`, label "Sections",
-  `:1620-1624`), described in `src/blocks/manifest.ts` (16 keys), bound to components in
-  `src/blocks/registry.ts` (16 entries).
-- **21 files carry the `hasBlocks` guard**: the 20 mapped route templates plus
-  `src/pages/[...slug].astro`. The guard is `{hasBlocks ? <PageBlocks …/> : <the existing markup />}`
-  — see `src/lib/page-content.ts:99`.
-- **48 routes build.** Stated independently at `scripts/vr-html.mjs:19` and
-  `src/blocks/manifest.ts:12`. The most recent measurement, recorded in commit `b1c4550`:
-  *"48 routes, 0 differ in words, 0 in section classes."*
-- **`cms/import/block-map.json` carries 129 `known_gaps` keys** (counted by walking the JSON at
-  HEAD): **128 on block rows**, plus **one at route level on `/contact/`**. `docs/PAGE-BLOCKS.md`
-  says "128 of the 148 mapped block rows" and is the more precise of the two — both numbers are
-  right, they count different things, and neither should be "corrected" into the other. Some name a concrete closing fix; the rest wait on retiring the un-migrated
-  `else` branch. **How many of each is not machine-countable from the file — do not quote a
-  split you have not counted yourself.**
+**Coverage.** 20 routes in `cms/import/block-map.json` (148 rows, 128 carrying `known_gaps`
+with the reason each residual difference exists). Hero on 25 routes (`pageFields.hero`, gated on
+`h1` non-empty; `ratings` defaults ON in PHP because ACF cannot tell "untouched" from "off").
+Closing bands on 20/17 routes (`pageFields.closing`, its own probe). A blank WordPress page with
+no template composes through `src/pages/[...slug].astro` (builds zero routes today; every page
+has a template that wins). `src/blocks/site-tokens.ts` substitutes `{phone}`/`{phone_href}` at
+render so a phone number is never stored twice; `src/blocks/cta.ts` is the one CTA href/hover
+table — stored hrefs are anchors, site paths or tokens, never pasted URLs.
 
-**THE `else` BRANCH IS THE ROLLBACK PATH AND MUST KEEP WORKING FOREVER.** This is the single most
-important thing to carry forward. `src/styles/pages/clear-aligners.css:13-29` states the rule:
-emptying the `blocks` field in wp-admin drops the page back to its template, that undo *has no
-deploy behind it*, and so the page sheets "have to keep working forever, not until the backfill."
-Its `[block: X]` markers are, in its own words, "a map for the Phase 5 dead-CSS sweep, not
-permission."
+**The editor's experience** (`cms/mu-plugins/vs-editor-guide.php`, plus the labels in
+`vs-content-model.php`): guidance is rewritten PER PAGE at `acf/prepare_field` from hardcoded
+maps — three orientation variants (blocks / template / home), an honest Hero note on home, an
+Images guide locating every photo in plain English with live / moved-into-Page-sections / unused
+status, a Section-copy guide, and "check the Page sections tab first" notes on the three tabs
+whose rows mostly stopped changing the site when their bands moved (143 of 213 Section-copy
+rows, 124 of 166 On-this-page rows, all 50 Process rows). **When a template's image slots or
+sections change, the maps in `vs-editor-guide.php` must be updated by hand.**
 
-  *Caveat on that same header, flagged not fixed:* it also says "the `blocks` field is not on the
-  CMS host yet." That sentence is stale at HEAD — the field is registered and deployed. The rule
-  above is unaffected. That file is out of scope for this document.
-
-`/dental-membership-plan/` is **deferred**, and it is the one composable page that is not on
-blocks. It is absent from `block-map.json`'s 20 routes and has no `hasBlocks` guard. Its bands
-paint from `.vs-band-paper` / `.vs-band-cream` / `.vs-band-sage` set on the `<section>` elements
-(`src/pages/dental-membership-plan/index.astro:169`, and the note at `:436-440`) rather than the
-`section` / `section alt` / `section dark` system every block component assumes. The deferral is
-recorded in commit `b1c4550`'s message.
-
-**Phase 5 engineering is complete** as of the three commits at the tip:
-
-- `cfe6409` — **a blank WordPress page composes from `blocks` with no template.**
-  `src/pages/[...slug].astro` branches on `hasBlocks`; branch-only CSS is
-  `src/styles/pages/wp-page-blocks.css`. **It builds ZERO routes today**, by construction: every
-  WordPress page still has a hand-built template, and a static route always wins. The route's own
-  header says so at `:33-35`. Proven end to end anyway, by moving `implant-dentistry/index.astro`
-  aside so the catch-all claimed the route, then restoring the template byte-exact. An adversarial
-  review of the first pass found five defects in a browser — all five closed in
-  `wp-page-blocks.css`, including link contrast that had gone 14.38:1 → 1.22:1 inside white cards
-  on charcoal bands.
-- `68fba34` — **dead-CSS sweep: 133 `.final-band` rules removed across 11 sheets.**
-- `07c027d` — **`card_grid` gained a 5-column choice**, live in wp-admin. **The two 5-up bands
-  deliberately stay on 4** (see divergences below). That commit shipped the choice and the CSS
-  but NOT the guard that emits the class, so `5` would have drawn **two** across; caught by an
-  adversarial docs review and fixed immediately after. Read "live in wp-admin" as "the editor
-  can pick it", and check the component enumerates the value before believing a select works.
-
-Full design and rationale: `docs/PAGE-BLOCKS.md` and `cms/import/block-map.json`, which own this
-subsystem. `docs/MIGRATION-PLAN.md` is a historical record and is not maintained.
+**The CMS domain** is `cms.vividsmilesdentistry.com` since 2026-09-01 (owner did the GoDaddy
+side; repo, docs, `.env.example`, and all three Vercel `WP_GRAPHQL_ENDPOINT` rows updated; the
+old `1230613.us28.myftpupload.com` still answers and stays in the CORS list and the image
+allowlist until GoDaddy retires it). The built site was BYTE-IDENTICAL across the move — media
+is rehosted into `/_assets` at build time, so the live site has no runtime CMS dependency.
 
 ## How this actually gets deployed from here
 
-The old handoff presented `cms/bin/deploy-mu-plugins.sh` as *"how that copy is now supposed to
-happen"* and left it there. It is not the route in use, and an agent cannot run it.
-
-- **`cms/bin/deploy-mu-plugins.sh` needs an interactive password.** `:149` runs
-  `sftp -P "$PORT" -b "$BATCH" "$USER@$HOST"`; `:148` prints "sftp will prompt for the password if
-  no key is loaded"; `:24` confirms "the password is typed at sftp's own prompt". No agent can
-  supply that. Loading a key removes the prompt — `:26` — but no key is set up here.
-- **The route that IS used is WP File Manager in wp-admin:** upload the file and choose **YES to
-  replace**.
-- **NEVER choose BACKUP.** elFinder writes the backup *beside* the original, and **any extra
-  `.php` in `mu-plugins` auto-loads** — which fatals the site.
-- **Two hosted files:** `wp-content/mu-plugins/vs-content-model.php` (the schema) and
-  `wp-content/vs-import/bin/block-map.json` (the migration map).
-- **The backfill does not run via WP-CLI on this host.** It runs from wp-admin at
-  **Tools → Page sections migration** (`cms/mu-plugins/vs-migrate.php:512`, registered at `:520`).
-  **Dry run first** — the dry-run button is separate, at `:855`.
-
-**STANDING ORDER — the PHP schema ships BEFORE the manifest selects new fields.** Independently
-documented at `scripts/check-block-schema.mjs:16-20`: GraphQL validates the *whole* document
-before executing any of it, so one wrong sub-field name in one fragment fails every page in the
-build — *48 routes down because of one word.* That happened **twice in Phase 2**. Run
-`npm run check:blocks` (`scripts/check-block-schema.mjs`) before trusting a manifest change; it
-probes the live host by POSTing each fragment inside a query whose `where` clause matches no page,
-so validation runs and zero rows resolve. Introspection is off for public requests, which is why
-the check is built this way rather than diffing a published schema.
-
-**An unresolved contradiction, flagged rather than settled.** The upload route above requires WP
-File Manager to be *active*. `cms/README.md:133` records it as **installed but inactive**. Either
-that row is stale or the route changed. Settling it needs a person with wp-admin access; do not
-guess.
-
-`docs/DEPLOYING.md` owns deployment and now carries both the File Manager route and the
-never-choose-BACKUP rule — see its "How the two hosted files actually get there" section
-(`grep -ic "file manager" docs/DEPLOYING.md` → 7). An earlier draft of this file said the
-opposite, with a grep that returned nothing; that was true when written and expired inside the
-same working tree, because the two files were rewritten in parallel. Re-run the grep rather than
-trusting either sentence.
+- **Front end:** Vercel builds `main` on push (production) and PR branches (preview).
+  Publishing in WordPress also fires the deploy hook (`vs-deploy.php`). Env var
+  `WP_GRAPHQL_ENDPOINT` = `https://cms.vividsmilesdentistry.com/graphql` in all three
+  environments. Local: copy `.env.example` to `.env`. Build = `npm run build` in
+  `vivid-smiles-website/` (`prebuild` warms the media cache).
+- **mu-plugins:** `cms/bin/deploy-mu-plugins.sh` needs an SFTP password typed at a prompt, which
+  an agent cannot supply. The route that IS used: wp-admin → **WP File Manager** →
+  `wp-content/mu-plugins` → Upload → **YES** to replace. **Never BACKUP.** `php -l` first, always.
+  Driving elFinder from JS: `fm.exec('open', hash)` only works once the parent is loaded — walk
+  root → wp-content → mu-plugins with waits, and check `fm.cwd().name` before opening the upload
+  dialog (a guard that has caught the wrong directory twice).
+- **Three hosted files the script does not carry:** `wp-content/vs-import/bin/block-map.json`
+  and `backfill-blocks.php` (sections), `backfill-hero.php` + `hero-payload.json` (hero). Same
+  File Manager route into `vs-import/bin`.
+- **Backfills run from wp-admin → Tools → "Page content migration"** (`vs-migrate.php`), two
+  modes on one screen: *Page sections* and *Hero copy*. One route at a time. **Dry run first**,
+  every time — it prints exactly what would be written and refuses populated rows unless the
+  overwrite box is ticked. Idempotent; bookkeeping meta records the payload hash.
+- **The proof that makes a backfill safe without touching the CMS:** templates fall back to
+  their literals when a field is blank, so storing IDENTICAL text must leave the built site
+  byte-identical. Overlay the payload locally, rebuild, diff 48 routes. The hero payload passed
+  with a recorded, accepted residue (58 edge-whitespace chars, 6 `&#39;`, 1 inert scoped
+  attribute) and zero word diffs.
+- **Order of operations for a new field:** write PHP → `php -l` → upload → confirm queryable
+  (`curl` the endpoint) → then wire loader/zod/page-content/templates → build → measure. New
+  page-level groups are probe-gated so the reverse order does not fail, but do not rely on it.
 
 ## The verification method this project learned
 
-Each sweep was added **only after the previous set reported clean while something real was
-broken.** Run all four. A green light from a subset is what shipped every defect below.
+Each sweep exists because the previous set reported clean while something real was broken.
 
-1. **Visible words.** A word-level diff of built HTML against the template baseline.
-2. **`<section class>` values.** Added after commit `6943244`: **WPGraphQL returns every ACF
-   select as a ONE-ELEMENT ARRAY** — `band` arrives as `["charcoal"]`, not `"charcoal"`. Eight
-   components tested `typeof band === "string"`, failed, and silently fell back to their
-   hard-coded default. A fallback is indistinguishable from a deliberate value, so nothing
-   complained. **26 of 95 bands were wrong across the eleven then-migrated routes**, live, on
-   client pages. The word diff said zero — "correctly and uselessly." Normalised once at
-   `readBlocks()`, the single boundary every block row crosses.
-3. **`.section-head` / `.eyebrow` modifier classes.** Added after commit `b1c4550`: five bands
-   across three live pages lost `section-head center`. Same words, and not a `<section>` class, so
-   sweeps 1 and 2 are both blind to it.
-4. **COMPUTED STYLES read in a browser.** The only sweep that caught `/new-patients/` `#services`,
-   whose class attribute **matched the template** and still rendered centred at **760px** where the
-   template renders left at **587.355px**. A plain `.section-head` does not mean "the block
-   default" on those sheets; it means left-aligned at 60ch. That is what produced the `head_align`
-   field (`center` / `narrow`) on `faq`, `process_steps` and `service_cards`.
+1. **Visible words** — misses anything that keeps the text.
+2. **`<section class>` values** — added after 26 bands silently lost their band colour (the
+   one-element-array select).
+3. **`.section-head` / `.eyebrow` modifier classes** — added after five bands lost
+   `section-head center` on three live pages.
+4. **Raw `<body>` bytes** — whitespace text nodes are real diffs.
+5. **Computed styles in a browser** — the only thing that found a band whose class attribute
+   MATCHED the template and still rendered at 760px where the template rendered 587.355px.
 
-**A CSS deletion is proven differently.** Deleting CSS changes no markup, so sweeps 1–3 sail past
-a wrong deletion. The proof is **selector-set equality plus reachability**. That is how `68fba34`
-cleared its 133 rules: 0 elements across all 48 built pages carried a `final-band` class token
-(exact token test — the first version of that check matched `vs-final-band` too and proved
-nothing), against 120 carrying `vs-final-band`, and no source file emits the class. Two rules that
-shared a selector list with live CSS were **carved, not cut**.
+**The technique:** build the tree, snapshot `dist` (`node scripts/vr-html.mjs snapshot <dir>`);
+`git stash -u`, build HEAD, snapshot; `git stash pop`; compare in `python3` reading files
+directly (not through shell `diff`, see the rtk caveat). For a change that should be inert, the
+bar is 48/48 identical, `<head>` included. For a backfill, overlay the payload locally first.
+For a CSS deletion the sweeps are blind — prove selector-set equality plus reachability instead.
+`scripts/check-block-schema.mjs` checks the manifest against the deployed schema; it explicitly
+does NOT catch declared-but-unread fields or values with no branch — a forced-value smoke into
+`dist/` does.
 
-Tooling: `npm run vr:snapshot` / `npm run vr:compare` (`scripts/vr-html.mjs`, `scripts/vr-screens.mjs`).
-`vr-html.mjs` normalises content hashes in `/_assets/<name>.<hash>.css|js` and nothing else; its
-header at `:23-64` justifies every normalisation against a failure it would otherwise cause, and
-lists what is deliberately *not* normalised. Read it before adding one.
+**CSS rule:** Astro compiles ATTRIBUTE scoping. A block's `.section-head` compiles to
+`.section-head[data-astro-cid-x]` at (0,2,0) and TIES a page sheet's `.np .section-head`; bundle
+order decides. Root component selectors one compound deeper, and never build on a tie unless
+both sides paint the same value.
 
 ## Where the plan predicted one thing and reality did another
 
@@ -308,6 +298,9 @@ UNVERIFIABLE HERE. `vs-deploy.php` **is** among them; see issue 1.
 
 ## Open issues
 
+*Carried forward from the 13 August round; items 1–4 resolved as recorded, 5–7 still open at
+`3761258`. Numbering is stable because other files link to it.*
+
 Numbered for reference, not ranked — other files link to these numbers, so they stay put. By
 severity, **5 is first**: a working WordPress password hash is published in this repository's
 history right now and **it has still not been rotated.**
@@ -418,6 +411,24 @@ Every one of these re-verifies at HEAD against its own call site.
 - **`raw.githubusercontent.com` and `/pull/N.diff` are not readable** from the browser tooling.
   Use `/blob/<branch>/<path>?plain=1` instead. (No conflict with `docs/DEPLOYING.md`, which curls
   that host *from the host over SSH*, not from browser tooling.)
+- **The `rtk` Bash hook rewrites commands and summarises output.** Two independent review agents
+  saw `diff` print "identical" on files that differed and exit 0; it could not be reproduced in
+  the main session's shell. Every measurement in this project is therefore done in `python3`
+  reading files directly, and `/opt/homebrew/bin/git` is called by path where exactness matters.
+- **Multiple Chrome browsers are connected to the account.** When the tooling asks, choose
+  "send a Connect prompt to all" — it lands on the browser named **work**, signed into wp-admin
+  and Vercel. Tabs die between turns; call `tabs_context` again rather than reusing an id.
+- **Subagents collide on one tree.** A verifier once found three templates deleted by a
+  concurrent writer. One writer per file, disjoint sets, and verifiers must restore byte-exact.
+- **A safety classifier can block subagents on prior conversation content**, not on the task.
+  Three audit readers were blocked at once; the synthesiser recovered by direct inspection. If
+  a workflow returns empty audits, read the journal before assuming the work was done.
+- **`hasCopy` in `[...slug].astro` gates only a log line**, not the build — a page is built
+  regardless. And that route builds zero routes today, so "byte-identical" proves nothing about
+  it; move a template aside to make it claim a route when you need real proof.
+- **WP File Manager is ACTIVE**, not inactive as the 13 August inventory said — it has been the
+  deploy route every day of the block-system work (observed 2026-08-28 → 2026-09-01). The
+  security question about it stands; the "contradiction" does not.
 
 ## Who owns what
 
@@ -428,33 +439,35 @@ This file is deliberately not the source of truth for any of these. Go to the ow
 | Deployment, restore, the deploy hook | `docs/DEPLOYING.md` |
 | CMS, plugin inventory, content model | `cms/README.md` |
 | Blocks, layouts, per-route gaps | `docs/PAGE-BLOCKS.md` + `cms/import/block-map.json` |
+| What each edit screen tells the editor | `cms/mu-plugins/vs-editor-guide.php` (per-page maps) |
+| Every session's starting rules | `CLAUDE.md` at the repo root (auto-loaded by Claude Code) |
 | What the build asks GraphQL for | `src/blocks/manifest.ts` |
 | Schema/manifest contract check | `scripts/check-block-schema.mjs` |
 | Markup-diff harness | `scripts/vr-html.mjs` |
 | PR and commit history | `git log` |
 | The original plan (historical, unmaintained) | `docs/MIGRATION-PLAN.md` |
 
-**One inbound dependency, flagged for whoever owns that file.** `docs/CUTOVER-PROMPT.md` opens by
-instructing a reader to *"treat it as the source of truth for current state"* and links this file
-**on `main`** — which is `73e9865`, the pre-block-system revision. A domain cutover run from that
-pointer would read a description of a subsystem that did not exist yet. `CUTOVER-PROMPT.md` is
-outside this document's scope; that link and that sentence need repointing.
+`docs/CUTOVER-PROMPT.md` links this file on `main` — which is now the current revision, so that
+pointer is correct again. Its CMS row is marked done (2026-09-01); the front-end cutover rows
+are not.
 
 ## Suggested next steps
 
-1. **Rotate two passwords.** The WordPress one whose hash is published in this repository's
-   history (issue 5), and the host's SSH/SFTP password, which was pasted into a chat transcript on
-   13 August. GoDaddy dashboard, site Settings, SSH/SFTP. A key would remove the second one
-   permanently — and would also let `deploy-mu-plugins.sh` run unattended, which is the whole
-   reason the File Manager route exists.
-2. **Repoint `docs/CUTOVER-PROMPT.md`'s "source of truth" link.** (The second half of this
-   item — adding the File Manager route and the never-choose-BACKUP rule to
-   `docs/DEPLOYING.md` — is DONE; that file carries both now.)
-3. **Settle the WP File Manager contradiction** in wp-admin — active or inactive — then decide
-   what to do about it: delete it, or accept an inactive RCE-history plugin on a public admin.
-   Same question for All-in-One WP Migration, which is still active.
-4. **Re-confirm the plugin inventory in wp-admin.** It is unconfirmed since 13 August, and the
-   must-use count in this file was wrong for six days before anyone counted.
-5. **Verify anything this file claims before acting on it.** Two of its three highest-priority
-   items were once stale within a day, and the revision that recorded that lesson then went 33
-   commits out of date while still claiming precedence over the docs that were right.
+1. **Backfill the "Bottom of page" boxes.** Extract each page's consult eyebrow/headline/body and
+   FinalBand note from the templates (20 + 17 call sites), prove the payload byte-identical by
+   local overlay, add a third mode to `vs-migrate.php` (or extend `backfill-hero.php`), deploy,
+   dry run, write. Exclusions already decided in commit `66b5469`.
+2. **An HTML-capable sub for two heroes.** sinus-lift's sub carries a real `<a class="vs-link">`
+   and referral-program's a `<b>$50 credit</b>`; `hero.sub` is plain text, so both stay on the
+   template. Needs a field type change, not a payload fix.
+3. **Owner-side security.** Rotate the WordPress password (issue 5) and the host SFTP password;
+   make the repo private; confirm the unattributed `s.ksrndkehqnwntyxlhgto.com` call-tracking
+   script. Then decide whether to `git filter-repo` the old dump out of history.
+4. **Retire the old hostname's allowances** (`astro.config.mjs` image allowlist, the CMS CORS
+   list) once GoDaddy retires `1230613.us28.myftpupload.com`.
+5. **Later, larger:** the card-family rename that would let smile-makeover and single-tooth go
+   five across (the choice exists; measured, five-up with today's card chrome wraps the heading
+   to five lines); un-freezing `code_section` bands into layouts if a second page ever needs
+   one; `/dental-membership-plan/`; the home hero.
+6. **Verify anything this file claims before acting on it** — its own history is the argument.
+
