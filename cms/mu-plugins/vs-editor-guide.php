@@ -679,7 +679,7 @@ const PAGES = [
 		'route'    => '/blog/',
 		'kind'     => 'template',
 		'liveTabs' => [],
-		'orientationNote' => 'This page is just the list of your blog posts — it builds itself from Posts in the left menu, newest first. Nothing on these tabs changes it. To change what appears here, edit or publish a post.',
+		'orientationNote' => 'This page is just the list of your blog posts. It builds itself from Posts in the left-hand menu, newest first. To change what appears here, write a new post or edit an existing one — it shows up on this list at the next site build.',
 	],
 
 ];
@@ -723,9 +723,11 @@ function tab_is_live( array $page, string $label ): bool {
 function tabs_sentence( array $page ): string {
 	$tabs = array_map( 'esc_html', $page['liveTabs'] ?? [] );
 
-	// No live tabs at all is a real case — the blog index builds itself from
-	// Posts. Without this, array_pop() on an empty list returns null and the
-	// sentence reads "edited from these tabs: ." with nothing in it.
+	// A guard, not a live path: orientation_message() now sends a page with no
+	// live tabs down its own branch and never reaches this. It stays because
+	// without it array_pop() on an empty list returns null and the sentence
+	// reads "edited from these tabs: ." — which is how the empty case was
+	// found in the first place.
 	if ( ! $tabs ) {
 		return 'none';
 	}
@@ -797,6 +799,20 @@ function orientation_message( array $page ): string {
 			. 'Everything below it is edited from two tabs: the words in <em>Section copy</em>, the photos in <em>Images</em>. '
 			. 'Each of those tabs starts with a guide saying exactly which box changes which part of the page.';
 		$lines[] = 'The other tabs save, but do not change this page. Changes go live on the next site build.';
+	} elseif ( 'template' === $page['kind'] && empty( $page['liveTabs'] ) ) {
+		// A page with no live tabs at all — today only the blog index, which
+		// builds itself from Posts. The branch below would open with "edited
+		// from these tabs: none", a sentence an editor has to decode, and then
+		// answer two questions this page does not raise: what "the whole list"
+		// refers to, and why Page sections must stay empty. It gets a short
+		// branch of its own instead, and its note carries the rest.
+		$lines[] = '<strong>There is nothing to edit on this screen.</strong>';
+
+		if ( ! empty( $page['orientationNote'] ) ) {
+			$lines[] = esc_html( $page['orientationNote'] );
+		}
+
+		$lines[] = 'The tabs below do still save when you press Update — they simply do not reach the site.';
 	} elseif ( 'template' === $page['kind'] ) {
 		$lines[] = '<strong>This page is edited from these tabs: ' . tabs_sentence( $page ) . '.</strong>';
 		$lines[] = 'That is the whole list — a box on any other tab saves, but does not change this page. '
@@ -1020,3 +1036,143 @@ function rewrite_guidance( $field ) {
 	return $field;
 }
 add_filter( 'acf/prepare_field', __NAMESPACE__ . '\\rewrite_guidance', 20 );
+
+/**
+ * ─── The Page sections row handles ──────────────────────────────────────────
+ *
+ * A collapsed row in Page sections says only what KIND of section it is:
+ * "Photo and copy", "Card grid", "Process steps". On a page with fourteen rows
+ * that is fourteen handles naming a shape, and none of them naming a place. An
+ * editor told "the bit about sedation is wrong" has to open rows one at a time
+ * until they find it, and the two "Photo and copy" rows look identical until
+ * they are open. The names are also the wrong vocabulary to search with: the
+ * client thinks in headings, because a heading is what they read on the page.
+ *
+ * So each handle gains its own section's heading:
+ *
+ *     Photo and copy: Sedation Options for Anxious Patients
+ *
+ * ADMIN CHROME ONLY. This filter runs while ACF draws the edit screen. It
+ * stores nothing, changes no field value, and is invisible to WPGraphQL and
+ * therefore to the Astro build — the failure mode of getting it wrong is an
+ * ugly row handle, not a wrong page.
+ *
+ * PLAIN TEXT, NO MARKUP. ACF passes the finished title through its own escaper
+ * before printing it, and which tags survive that has changed between ACF
+ * versions. A heading may legitimately contain `<em>`, so it is stripped here
+ * rather than gambled on.
+ */
+
+/** How much of a heading fits in a row handle before it starts wrapping. */
+const HANDLE_CHARS = 56;
+
+/**
+ * Trim to HANDLE_CHARS on a word boundary, with an ellipsis when it was cut.
+ * Falls back to a hard cut for a single word longer than the budget.
+ */
+function shorten_handle( string $text ): string {
+	$text = trim( preg_replace( '/\s+/u', ' ', $text ) );
+
+	if ( '' === $text || mb_strlen( $text ) <= HANDLE_CHARS ) {
+		return $text;
+	}
+
+	$cut   = mb_substr( $text, 0, HANDLE_CHARS );
+	$space = mb_strrpos( $cut, ' ' );
+
+	if ( false !== $space && $space > 20 ) {
+		$cut = mb_substr( $cut, 0, $space );
+	}
+
+	return rtrim( $cut, " ,.;:—-" ) . '…';
+}
+
+/**
+ * The human label a `band_key` value stands for, read off the layout's own
+ * select rather than the constant in vs-content-model.php — the two files are
+ * deployed separately, and a lookup that spans them can go stale in the window
+ * where only one has been uploaded.
+ *
+ * The labels end in the page they belong to, as in "… (Emergency Dentistry)".
+ * That is useful in the dropdown, where every section on the site is listed
+ * together, and noise in a handle on the very page it names.
+ */
+function code_band_label( array $layout, string $value ): string {
+	foreach ( ( $layout['sub_fields'] ?? [] ) as $sub ) {
+		if ( 'band_key' !== ( $sub['name'] ?? '' ) ) {
+			continue;
+		}
+
+		$label = (string) ( $sub['choices'][ $value ] ?? '' );
+
+		return trim( preg_replace( '/\s*\([^()]*\)\s*$/u', '', $label ) );
+	}
+
+	return '';
+}
+
+/**
+ * What this row should say it is, or '' to leave the handle alone.
+ *
+ * Order matters. A built-in section has no heading of its own — its wording
+ * lives in the design — so its picker is the only thing that identifies it, and
+ * is checked first. Otherwise the heading is what the visitor reads and what
+ * the editor will think of the section by. `nav_label` is the last resort: a
+ * section can legitimately have no heading (a band that opens with a photo),
+ * and its side-menu name is then the only words attached to it.
+ */
+function row_summary( array $layout ): string {
+	$band_key = get_sub_field( 'band_key' );
+
+	if ( is_string( $band_key ) && '' !== $band_key ) {
+		$label = code_band_label( $layout, $band_key );
+
+		if ( '' !== $label ) {
+			return shorten_handle( $label );
+		}
+	}
+
+	foreach ( [ 'heading', 'nav_label' ] as $name ) {
+		$value = get_sub_field( $name );
+
+		if ( ! is_string( $value ) ) {
+			continue;
+		}
+
+		// wp_strip_all_tags() rather than a regex: the heading field documents
+		// `<em>` and an editor may well type something else in there too.
+		$value = shorten_handle( wp_strip_all_tags( $value ) );
+
+		if ( '' !== $value ) {
+			return $value;
+		}
+	}
+
+	return '';
+}
+
+/**
+ * Append the summary to the layout's name. ACF sets up the row's loop context
+ * before firing this, which is what makes get_sub_field() work here.
+ *
+ * A row still being added has no values yet, so `row_summary()` returns '' and
+ * the handle keeps the bare layout name until the editor types a heading.
+ */
+function layout_title( $title, $field, $layout, $i ) {
+	if ( ! is_array( $layout ) ) {
+		return $title;
+	}
+
+	$summary = row_summary( $layout );
+
+	if ( '' === $summary ) {
+		return $title;
+	}
+
+	// A colon, not a dash: several of the built-in sections' labels contain an
+	// em dash of their own ("Service area — Parker map, address and
+	// directions"), and a dash joiner turns those into two dashes competing to
+	// be the separator.
+	return $title . ': ' . $summary;
+}
+add_filter( 'acf/fields/flexible_content/layout_title/name=blocks', __NAMESPACE__ . '\\layout_title', 10, 4 );
