@@ -34,7 +34,7 @@
  *      or in Page sections these days. The code box on each filled row says to
  *      change the Image, never the code.
  *   4. The Section copy tab likewise opens with a guide mapping each row’s
- *      Section ID to the part of the page it feeds, and its status.
+ *      Section code to the part of the page it feeds, and its status.
  *   5. On pages where the visible questions moved into Page sections, the FAQ
  *      tab says so — and, where the old list still feeds what Google shows for
  *      the page, says to keep the two matching. (The per-page audits called
@@ -788,6 +788,38 @@ function guide_line( array $row, string $code_key, bool $mixed, bool $is_photo )
 }
 
 /**
+ * A link that opens this page on the real website, in a new tab.
+ *
+ * The point of the whole screen is that it mirrors the front end, and the
+ * cheapest way to make a mirror obvious is to put the thing it mirrors one
+ * click away — so an editor can hold the page and its boxes side by side
+ * instead of guessing which box is which.
+ *
+ * The host comes from VS_FRONTEND_URL, the one place the CMS is told where the
+ * site lives, so this follows the domain cutover without an edit here. If the
+ * constant is unset the link is simply not drawn: a guess at the host would be
+ * a second place for it to go stale, which is the rule the phone number and
+ * the booking link are already held to.
+ */
+function view_on_site_link( array $page ): string {
+	if ( ! defined( 'VS_FRONTEND_URL' ) || ! VS_FRONTEND_URL ) {
+		return '';
+	}
+
+	$route = $page['route'] ?? '';
+
+	if ( '' === $route ) {
+		return '';
+	}
+
+	$url = rtrim( (string) VS_FRONTEND_URL, '/' ) . $route;
+
+	return '<a href="' . esc_url( $url ) . '" target="_blank" rel="noopener">'
+		. 'Open this page on the website ↗</a> — the boxes below are in the same '
+		. 'order as the page itself, top to bottom.';
+}
+
+/**
  * Rewrite 1: the orientation message above the tabs, per page.
  */
 function orientation_message( array $page ): string {
@@ -862,6 +894,12 @@ function orientation_message( array $page ): string {
 		$lines[] = 'Changes go live on the next site build.';
 	}
 
+	$link = view_on_site_link( $page );
+
+	if ( '' !== $link ) {
+		$lines[] = $link;
+	}
+
 	return implode( "\n", $lines );
 }
 
@@ -932,18 +970,18 @@ function sections_guide( array $page ): string {
 		return '';
 	}
 
-	$lines[] = '<strong>Where each row below appears on the page — match its Section ID box.</strong>';
+	$lines[] = '<strong>Where each row below appears on the page — match its Section code box.</strong>';
 
 	foreach ( $page['sections'] as $row ) {
 		$lines[] = guide_line( $row, 'id', $mixed, false );
 	}
 
 	if ( $mixed ) {
-		$lines[] = 'Edit the words in the rows marked live, and leave each Section ID exactly as it is. '
+		$lines[] = 'Edit the words in the rows marked live, and leave each Section code exactly as it is. '
 			. 'A row marked “now edited in Page sections” still saves here, but the site reads the matching '
 			. 'section there instead.';
 	} else {
-		$lines[] = 'Every row above is live: edit the words, and leave each Section ID exactly as it is.';
+		$lines[] = 'Every row above is live: edit the words, and leave each Section code exactly as it is.';
 	}
 
 	// The same escape hatch the images guide has.

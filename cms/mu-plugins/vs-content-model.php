@@ -292,6 +292,17 @@ const BLOCK_CODE_BANDS = [
  * `band`, a `heading` renamed) would render wrong only on the one page that
  * used it, which is the hardest kind of fault to find here.
  *
+ * WORDS FIRST, SETTINGS LAST. The order below is the order the editor meets
+ * them in, and for three years it opened every section with Anchor — a URL
+ * fragment — then a menu label, then a colour, before reaching a single word
+ * that appears on the page. Someone who came to fix a heading had to scroll
+ * past three boxes they must not touch to reach it. Content now comes first
+ * (small line, heading, paragraph) and the plumbing sits under it, where it is
+ * still one scroll away for the rare edit that needs it.
+ *
+ * Field order is presentation only: ACF stores by key, WPGraphQL selects by
+ * name, and neither reads position. Nothing about a saved row changes.
+ *
  * $slug only namespaces the field KEYS, which ACF requires to be globally
  * unique. The field NAMES are identical across layouts on purpose: they are
  * what the meta keys and the GraphQL selection set are built from.
@@ -301,32 +312,30 @@ function block_preamble( string $slug ): array {
 
 	return [
 		[
-			'key'          => $k . 'anchor',
-			'label'        => 'Anchor',
-			'name'         => 'anchor',
-			// Not required of the editor: fill_blank_row_id() below supplies one
-			// on save, exactly as it does for Section ID. Asking a non-technical
-			// person to invent a URL fragment is how you get two sections sharing
-			// one — which is invalid HTML and sends every jump link, and the
-			// scroll offset that goes with it, to the wrong section.
-			'required'     => 0,
+			'key'          => $k . 'eyebrow',
+			'label'        => 'Small line above the heading',
+			'name'         => 'eyebrow',
 			'type'         => 'text',
-			'instructions' => 'The name of this section in the page address — the part after the #, as in '
-				. '…/clear-aligners/#process. Leave it blank and one is made for you when you save. '
-				. 'It is what the “On this page” rail jumps to and what anyone who has linked to or '
-				. 'bookmarked this section is using, so changing it afterwards breaks those links.',
+			'instructions' => 'A few words. Leave blank for none.',
 		],
 		[
-			'key'          => $k . 'nav_label',
-			'label'        => 'Side menu label',
-			'name'         => 'nav_label',
-			'type'         => 'text',
-			'instructions' => 'What this section is called in the “On this page” menu down the side of '
-				. 'the page. Leave it blank to keep this section out of that menu.',
+			'key'          => $k . 'heading',
+			'label'        => 'Heading',
+			'name'         => 'heading',
+			'type'         => 'textarea',
+			'rows'         => 2,
+			'instructions' => 'For the italic accent, wrap those words: Your &lt;em&gt;best&lt;/em&gt; smile.',
+		],
+		[
+			'key'          => $k . 'body',
+			'label'        => 'Paragraph under the heading',
+			'name'         => 'body',
+			'type'         => 'textarea',
+			'rows'         => 4,
 		],
 		[
 			'key'           => $k . 'band',
-			'label'         => 'Background',
+			'label'         => 'Background colour',
 			'name'          => 'band',
 			'type'          => 'select',
 			'choices'       => BLOCK_BANDS,
@@ -339,31 +348,28 @@ function block_preamble( string $slug ): array {
 			'allow_null'    => 0,
 			'multiple'      => 0,
 			'ui'            => 0,
-			'instructions'  => 'The colour behind this section. Alternating them is what gives the page its rhythm; '
-				. 'two of the same in a row read as one long section.',
+			'instructions'  => 'Try not to use the same colour as the section above.',
 		],
 		[
-			'key'          => $k . 'eyebrow',
-			'label'        => 'Small line above',
-			'name'         => 'eyebrow',
+			'key'          => $k . 'nav_label',
+			'label'        => 'Name in the “On this page” menu',
+			'name'         => 'nav_label',
 			'type'         => 'text',
-			'instructions' => 'The small line printed above the heading. A few words. Leave blank for none.',
+			'instructions' => 'Blank keeps this section out of that menu.',
 		],
 		[
-			'key'          => $k . 'heading',
-			'label'        => 'Heading',
-			'name'         => 'heading',
-			'type'         => 'textarea',
-			'rows'         => 2,
-			'instructions' => 'To give a few words the italic accent, type &lt;em&gt; before them and &lt;/em&gt; after, like this: Your &lt;em&gt;best&lt;/em&gt; smile.',
-		],
-		[
-			'key'          => $k . 'body',
-			'label'        => 'Body',
-			'name'         => 'body',
-			'type'         => 'textarea',
-			'rows'         => 4,
-			'instructions' => 'Plain text. The intro paragraph under the heading.',
+			'key'          => $k . 'anchor',
+			'label'        => 'Jump-to name (leave blank)',
+			'name'         => 'anchor',
+			// Not required of the editor: fill_blank_row_id() below supplies one
+			// on save, exactly as it does for Section ID. Asking a non-technical
+			// person to invent a URL fragment is how you get two sections sharing
+			// one — which is invalid HTML and sends every jump link, and the
+			// scroll offset that goes with it, to the wrong section.
+			'required'     => 0,
+			'type'         => 'text',
+			'instructions' => 'Filled in for you when you save. Changing it later breaks any link '
+				. 'anyone has to this section.',
 		],
 	];
 }
@@ -474,7 +480,7 @@ function block_list_field( string $key, string $label, string $name, string $but
 				// normal case and the only case on the live pages: every list the
 				// site ships today is plain lines.
 				'key'          => $key . '_lead',
-				'label'        => 'Lead-in',
+				'label'        => 'Bold opening',
 				'name'         => 'lead',
 				'type'         => 'text',
 				'instructions' => 'Optional. The bold opening of the line, including the dash it ends with '
@@ -1251,7 +1257,7 @@ function register_field_groups(): void {
 					'sub_fields'   => [
 						[
 							'key'          => 'field_vs_step_tag',
-							'label'        => 'Tag',
+							'label'        => 'Small label',
 							'name'         => 'tag',
 							'type'         => 'text',
 							'instructions' => 'e.g. "Step One".',
@@ -1264,7 +1270,7 @@ function register_field_groups(): void {
 						],
 						[
 							'key'   => 'field_vs_step_body',
-							'label' => 'Body',
+							'label' => 'Paragraph',
 							'name'  => 'body',
 							'type'  => 'textarea',
 							'rows'  => 3,
@@ -1302,7 +1308,7 @@ function register_field_groups(): void {
 					'sub_fields'   => [
 						[
 							'key'          => 'field_vs_section_id',
-							'label'        => 'Section ID',
+							'label'        => 'Section code',
 							'name'         => 'section_id',
 							'type'         => 'text',
 							// Not required OF THE EDITOR. The value is still mandatory to
@@ -1333,7 +1339,7 @@ function register_field_groups(): void {
 						],
 						[
 							'key'   => 'field_vs_section_body',
-							'label' => 'Body',
+							'label' => 'Paragraph',
 							'name'  => 'body',
 							'type'  => 'textarea',
 							'rows'  => 4,
@@ -1348,15 +1354,12 @@ function register_field_groups(): void {
 							'type'  => 'text',
 						],
 						[
-							'key'          => 'field_vs_section_cta_href',
-							'label'        => 'Button link',
-							'name'         => 'cta_href',
-							'type'         => 'text',
-							'instructions' => 'Optional, and only used on pages that draw a button under the '
-								. 'section. Where it goes: a page on this site, typed like /contact/, or a spot '
-								. 'on this page, typed like #consult. Do not paste booking links or phone numbers '
-								. 'here — those live under Practice Settings so they can never go out of date. A '
-								. 'button needs both its label and its link filled, or none is drawn.',
+							// No instructions on purpose: hide_retired_section_fields() below
+							// returns false for this key, so an editor never sees this box.
+							'key'   => 'field_vs_section_cta_href',
+							'label' => 'Button link',
+							'name'  => 'cta_href',
+							'type'  => 'text',
 						],
 					],
 				],
@@ -1372,14 +1375,13 @@ function register_field_groups(): void {
 					'type'         => 'repeater',
 					'layout'       => 'table',
 					'button_label' => 'Add image',
-					'instructions' => 'Every photo on this page. Swap one by choosing a different file — '
-						. 'the slot name ties it to its place in the layout, so leave that alone. '
-						. 'Alt text describes the picture for screen readers and search engines; '
-						. 'it is worth writing properly on every image.',
+					'instructions' => 'Every photo on this page. To swap one, choose a different file and '
+						. 'leave its photo code alone. Alt text describes the picture for screen readers '
+						. 'and Google — worth writing on every one.',
 					'sub_fields'   => [
 						[
 							'key'          => 'field_vs_image_slot',
-							'label'        => 'Slot',
+							'label'        => 'Photo code',
 							'name'         => 'slot',
 							'type'         => 'text',
 							// Generated on save when left blank, exactly as Section ID is
@@ -1439,7 +1441,7 @@ function register_field_groups(): void {
 					'sub_fields'   => [
 						[
 							'key'          => 'field_vs_card_group',
-							'label'        => 'Group',
+							'label'        => 'Which group of cards',
 							'name'         => 'group',
 							'type'         => 'text',
 							'required'     => 1,
@@ -1454,7 +1456,7 @@ function register_field_groups(): void {
 						],
 						[
 							'key'   => 'field_vs_card_body',
-							'label' => 'Body',
+							'label' => 'Paragraph',
 							'name'  => 'body',
 							'type'  => 'textarea',
 							'rows'  => 3,
@@ -1669,7 +1671,7 @@ function register_field_groups(): void {
 						],
 						[
 							'key'           => 'field_vs_page_hero_media_shape',
-							'label'         => 'Photo treatment',
+							'label'         => 'How the photo is shown',
 							'name'          => 'media_shape',
 							'type'          => 'select',
 							// A closed list, and short on purpose. These four are the
@@ -1786,7 +1788,7 @@ function register_field_groups(): void {
 								[
 									[
 										'key'           => 'field_vs_blk_faq_head_align',
-										'label'         => 'Section heading width',
+										'label'         => 'Heading width',
 										'name'          => 'head_align',
 										'type'          => 'select',
 										/*
@@ -1821,7 +1823,7 @@ function register_field_groups(): void {
 									],
 									[
 										'key'          => 'field_vs_blk_faq_pull',
-										'label'        => 'Aside',
+										'label'        => 'Note beside the questions',
 										'name'         => 'pull',
 										'type'         => 'textarea',
 										'rows'         => 3,
@@ -1943,7 +1945,7 @@ function register_field_groups(): void {
 								[
 									[
 										'key'           => 'field_vs_blk_cards_columns',
-										'label'         => 'Columns',
+										'label'         => 'How many across',
 										'name'          => 'columns',
 										'type'          => 'select',
 										/*
@@ -2035,7 +2037,7 @@ function register_field_groups(): void {
 											],
 											[
 												'key'   => 'field_vs_blk_cards_card_body',
-												'label' => 'Body',
+												'label' => 'Paragraph',
 												'name'  => 'body',
 												'type'  => 'textarea',
 												'rows'  => 3,
@@ -2150,7 +2152,7 @@ function register_field_groups(): void {
 									 */
 									[
 										'key'          => 'field_vs_blk_cards_callout_eyebrow',
-										'label'        => 'Panel label',
+										'label'        => 'Panel small line',
 										'name'         => 'callout_eyebrow',
 										'type'         => 'text',
 										'instructions' => 'Optional. The small label the closing panel opens with — '
@@ -2166,7 +2168,7 @@ function register_field_groups(): void {
 									],
 									[
 										'key'          => 'field_vs_blk_cards_callout_body',
-										'label'        => 'Panel text',
+										'label'        => 'Panel paragraph',
 										'name'         => 'callout_body',
 										'type'         => 'textarea',
 										'rows'         => 5,
@@ -2327,7 +2329,7 @@ function register_field_groups(): void {
 									],
 									[
 										'key'           => 'field_vs_blk_media_side',
-										'label'         => 'Photo on the',
+										'label'         => 'Which side the photo is on',
 										'name'          => 'media_side',
 										'type'          => 'select',
 										'choices'       => [
@@ -2342,7 +2344,7 @@ function register_field_groups(): void {
 									],
 									[
 										'key'           => 'field_vs_blk_media_ratio',
-										'label'         => 'Split',
+										'label'         => 'How the space is divided',
 										'name'          => 'ratio',
 										'type'          => 'select',
 										'choices'       => [
@@ -2358,7 +2360,7 @@ function register_field_groups(): void {
 									],
 									[
 										'key'          => 'field_vs_blk_media_quote',
-										'label'        => 'Pull quote',
+										'label'        => 'Quote',
 										'name'         => 'quote',
 										'type'         => 'textarea',
 										'rows'         => 3,
@@ -2439,7 +2441,7 @@ function register_field_groups(): void {
 										'sub_fields'   => [
 											[
 												'key'          => 'field_vs_blk_media_cred_stat',
-												'label'        => 'Figure',
+												'label'        => 'The big number',
 												'name'         => 'stat',
 												'type'         => 'text',
 												'instructions' => 'Exactly as it should read — "600+ hrs", "300+", "Implant Pathway".',
@@ -2538,7 +2540,7 @@ function register_field_groups(): void {
 									 */
 									[
 										'key'          => 'field_vs_blk_media_callout_eyebrow',
-										'label'        => 'Aside label',
+										'label'        => 'Panel small line',
 										'name'         => 'callout_eyebrow',
 										'type'         => 'text',
 										'instructions' => 'Optional. The small label above the aside\'s heading — '
@@ -2551,7 +2553,7 @@ function register_field_groups(): void {
 										// on natural. Giving one a field and not the other is how a page
 										// comes back 90 words short with nobody able to say why.
 										'key'          => 'field_vs_blk_media_callout_heading',
-										'label'        => 'Aside heading',
+										'label'        => 'Panel heading',
 										'name'         => 'callout_heading',
 										'type'         => 'text',
 										'instructions' => 'The heading of the boxed aside beside this band. Leave blank '
@@ -2559,7 +2561,7 @@ function register_field_groups(): void {
 									],
 									[
 										'key'          => 'field_vs_blk_media_callout_body',
-										'label'        => 'Aside text',
+										'label'        => 'Panel paragraph',
 										'name'         => 'callout_body',
 										'type'         => 'textarea',
 										'rows'         => 4,
@@ -2591,7 +2593,7 @@ function register_field_groups(): void {
 									 */
 									[
 										'key'           => 'field_vs_blk_media_callout_placement',
-										'label'         => 'Aside position',
+										'label'         => 'Panel position',
 										'name'          => 'callout_placement',
 										'type'          => 'select',
 										'choices'       => [
@@ -2692,7 +2694,7 @@ function register_field_groups(): void {
 										'sub_fields'   => [
 											[
 												'key'          => 'field_vs_blk_media_sub_card_tag',
-												'label'        => 'Tag',
+												'label'        => 'Small label',
 												'name'         => 'tag',
 												'type'         => 'text',
 												'instructions' => 'The small label above the title — "Upper Arch", "Most common".',
@@ -2710,7 +2712,7 @@ function register_field_groups(): void {
 												// than an empty one that adds a gap the design has
 												// never had.
 												'key'          => 'field_vs_blk_media_sub_card_body',
-												'label'        => 'Body',
+												'label'        => 'Paragraph',
 												'name'         => 'body',
 												'type'         => 'textarea',
 												'rows'         => 3,
@@ -2822,7 +2824,7 @@ function register_field_groups(): void {
 								[
 									[
 										'key'           => 'field_vs_blk_steps_head_align',
-										'label'         => 'Section heading width',
+										'label'         => 'Heading width',
 										'name'          => 'head_align',
 										'type'          => 'select',
 										/*
@@ -2861,7 +2863,7 @@ function register_field_groups(): void {
 										// setting, which only applies to repeaters and
 										// groups.
 										'key'           => 'field_vs_blk_steps_layout',
-										'label'         => 'Shape',
+										'label'         => 'How the steps are laid out',
 										'name'          => 'layout',
 										'type'          => 'select',
 										'choices'       => [
@@ -2877,7 +2879,7 @@ function register_field_groups(): void {
 									],
 									[
 										'key'           => 'field_vs_blk_steps_columns',
-										'label'         => 'Columns',
+										'label'         => 'How many across',
 										'name'          => 'columns',
 										'type'          => 'select',
 										// FIVE IS A SHAPE THE SITE ALREADY DRAWS. porcelain-veneers'
@@ -2953,7 +2955,7 @@ function register_field_groups(): void {
 											],
 											[
 												'key'   => 'field_vs_blk_steps_pre_card_body',
-												'label' => 'Body',
+												'label' => 'Paragraph',
 												'name'  => 'body',
 												'type'  => 'textarea',
 												'rows'  => 4,
@@ -2970,7 +2972,7 @@ function register_field_groups(): void {
 										'sub_fields'   => [
 											[
 												'key'          => 'field_vs_blk_steps_step_tag',
-												'label'        => 'Tag',
+												'label'        => 'Small label',
 												'name'         => 'tag',
 												'type'         => 'text',
 												'instructions' => 'e.g. "Step One".',
@@ -3011,7 +3013,7 @@ function register_field_groups(): void {
 											],
 											[
 												'key'   => 'field_vs_blk_steps_step_body',
-												'label' => 'Body',
+												'label' => 'Paragraph',
 												'name'  => 'body',
 												'type'  => 'textarea',
 												'rows'  => 3,
@@ -3136,7 +3138,7 @@ function register_field_groups(): void {
 									],
 									[
 										'key'          => 'field_vs_blk_gallery_quote_attrib',
-										'label'        => 'Quote attribution',
+										'label'        => 'Quote credit',
 										'name'         => 'quote_attrib',
 										'type'         => 'text',
 										'instructions' => 'The line under the quote, including the dash at the start. '
@@ -3169,7 +3171,7 @@ function register_field_groups(): void {
 										'sub_fields'   => [
 											[
 												'key'          => 'field_vs_blk_compare_card_tag',
-												'label'        => 'Tag',
+												'label'        => 'Small label',
 												'name'         => 'tag',
 												'type'         => 'text',
 												'instructions' => 'The small label above the title.',
@@ -3182,7 +3184,7 @@ function register_field_groups(): void {
 											],
 											[
 												'key'   => 'field_vs_blk_compare_card_body',
-												'label' => 'Body',
+												'label' => 'Paragraph',
 												'name'  => 'body',
 												'type'  => 'textarea',
 												'rows'  => 3,
@@ -3218,7 +3220,7 @@ function register_field_groups(): void {
 											],
 											[
 												'key'          => 'field_vs_blk_compare_card_ribbon',
-												'label'        => 'Ribbon',
+												'label'        => 'Corner banner',
 												'name'         => 'ribbon',
 												'type'         => 'text',
 												'instructions' => 'Optional flash across the corner — "Most chosen", "Best value".',
@@ -3273,7 +3275,7 @@ function register_field_groups(): void {
 									 */
 									[
 										'key'          => 'field_vs_blk_compare_callout_eyebrow',
-										'label'        => 'Callout label',
+										'label'        => 'Panel small line',
 										'name'         => 'callout_eyebrow',
 										'type'         => 'text',
 										'instructions' => 'Optional. The small label above the callout heading — '
@@ -3282,7 +3284,7 @@ function register_field_groups(): void {
 									],
 									[
 										'key'          => 'field_vs_blk_compare_callout_heading',
-										'label'        => 'Callout heading',
+										'label'        => 'Panel heading',
 										'name'         => 'callout_heading',
 										'type'         => 'text',
 										'instructions' => 'Optional. The heading of the boxed note under the cards — often the '
@@ -3291,7 +3293,7 @@ function register_field_groups(): void {
 									],
 									[
 										'key'          => 'field_vs_blk_compare_callout_body',
-										'label'        => 'Callout text',
+										'label'        => 'Panel paragraph',
 										'name'         => 'callout_body',
 										'type'         => 'textarea',
 										'rows'         => 6,
@@ -3384,7 +3386,7 @@ function register_field_groups(): void {
 										'sub_fields'   => [
 											[
 												'key'          => 'field_vs_blk_compare_alt_card_tag',
-												'label'        => 'Tag',
+												'label'        => 'Small label',
 												'name'         => 'tag',
 												'type'         => 'text',
 												'instructions' => 'The small label above the title — "Alternative", "Autograft".',
@@ -3399,7 +3401,7 @@ function register_field_groups(): void {
 												// Optional for the same reason media_split's is:
 												// blank must draw no <p>, not an empty one.
 												'key'          => 'field_vs_blk_compare_alt_card_body',
-												'label'        => 'Body',
+												'label'        => 'Paragraph',
 												'name'         => 'body',
 												'type'         => 'textarea',
 												'rows'         => 3,
@@ -3475,7 +3477,7 @@ function register_field_groups(): void {
 										'sub_fields'   => [
 											[
 												'key'          => 'field_vs_blk_compare_glossary_row_tag',
-												'label'        => 'Tag',
+												'label'        => 'Small label',
 												'name'         => 'tag',
 												'type'         => 'text',
 												'instructions' => 'The small label above the term — "Allograft".',
@@ -3649,18 +3651,10 @@ function register_field_groups(): void {
 										'type'          => 'true_false',
 										'ui'            => 1,
 										'default_value' => 0,
-										'instructions'  => 'Leave this off for the usual thing: the prices are their own section, '
-											. 'with their own background, sitting between the section above and the one below. '
-											. 'Turn it on and the prices are drawn INSIDE the section directly above instead, '
-											. 'tucked under that section’s own content — the way the whitening page keeps its price '
-											. 'table under the “how long results last” figure rather than in a section of its own. '
-											. 'Tucked in, the prices take the background of the section above and are no longer a '
-											. 'section in their own right, so Background, Anchor and Side menu label stop doing anything '
-											. 'and the prices do not appear in the “On this page” rail. Eyebrow, Heading and Body '
-											. 'still show, one size smaller, as the introduction to the table. Turned on for the '
-											. 'first section on a page it is simply drawn as an ordinary section instead, because '
-											. 'there is nothing above it to go inside. It can only tuck under a “Stat callout” '
-											. 'section — under anything else it is drawn as an ordinary section too.',
+										'instructions'  => 'Normally off: the prices are a section of their own. Turn it on and '
+											. 'they sit inside the section above instead, sharing its background — which only '
+											. 'works under a “Stat callout” section. Tucked in, this row’s own background and '
+											. 'menu settings stop applying.',
 									],
 									[
 										'key'          => 'field_vs_blk_pricing_plans',
@@ -3722,7 +3716,7 @@ function register_field_groups(): void {
 											],
 											[
 												'key'          => 'field_vs_blk_pricing_plan_ribbon',
-												'label'        => 'Ribbon',
+												'label'        => 'Corner banner',
 												'name'         => 'ribbon',
 												'type'         => 'text',
 												// Same field, same wording and the same optional
@@ -3851,7 +3845,7 @@ function register_field_groups(): void {
 								[
 									[
 										'key'          => 'field_vs_blk_stat_value',
-										'label'        => 'Figure',
+										'label'        => 'The big number',
 										'name'         => 'value',
 										'type'         => 'text',
 										// Text, not number: the figures in the corpus are
@@ -3861,7 +3855,7 @@ function register_field_groups(): void {
 									],
 									[
 										'key'          => 'field_vs_blk_stat_unit',
-										'label'        => 'Unit',
+										'label'        => 'Word after the number',
 										'name'         => 'unit',
 										'type'         => 'text',
 										'instructions' => 'The small word set tight against the figure — hrs, yrs, months. '
@@ -3963,7 +3957,7 @@ function register_field_groups(): void {
 									 */
 									[
 										'key'           => 'field_vs_blk_stat_points_plain',
-										'label'         => 'List without colons',
+										'label'         => 'Plain list (no bold opening)',
 										'name'          => 'points_plain',
 										'type'          => 'true_false',
 										'ui'            => 1,
@@ -3992,7 +3986,7 @@ function register_field_groups(): void {
 											],
 											[
 												'key'   => 'field_vs_blk_stat_point_body',
-												'label' => 'Body',
+												'label' => 'Paragraph',
 												'name'  => 'body',
 												'type'  => 'textarea',
 												'rows'  => 2,
@@ -4116,7 +4110,7 @@ function register_field_groups(): void {
 										'sub_fields'   => [
 											[
 												'key'          => 'field_vs_blk_cstats_stat_value',
-												'label'        => 'Figure',
+												'label'        => 'The big number',
 												'name'         => 'value',
 												'type'         => 'text',
 												'instructions' => 'The big figure — "600", "300", "1", "0". Text, because the site '
@@ -4124,7 +4118,7 @@ function register_field_groups(): void {
 											],
 											[
 												'key'          => 'field_vs_blk_cstats_stat_unit',
-												'label'        => 'Suffix',
+												'label'        => 'After the number',
 												'name'         => 'unit',
 												'type'         => 'text',
 												'instructions' => 'Optional. The small italic tail on the figure — "+", "st". '
@@ -4233,7 +4227,7 @@ function register_field_groups(): void {
 											],
 											[
 												'key'          => 'field_vs_blk_tech_card_body',
-												'label'        => 'Body',
+												'label'        => 'Paragraph',
 												'name'         => 'body',
 												'type'         => 'textarea',
 												'rows'         => 3,
@@ -4268,7 +4262,7 @@ function register_field_groups(): void {
 									],
 									[
 										'key'   => 'field_vs_blk_tech_callout_body',
-										'label' => 'Panel body',
+										'label' => 'Panel paragraph',
 										'name'  => 'callout_body',
 										'type'  => 'textarea',
 										'rows'  => 5,
@@ -4326,7 +4320,7 @@ function register_field_groups(): void {
 								[
 									[
 										'key'           => 'field_vs_blk_svc_head_align',
-										'label'         => 'Section heading width',
+										'label'         => 'Heading width',
 										'name'          => 'head_align',
 										'type'          => 'select',
 										/*
@@ -4366,13 +4360,10 @@ function register_field_groups(): void {
 										'type'          => 'true_false',
 										'ui'            => 1,
 										'default_value' => 0,
-										'instructions'  => 'Leave this off for the usual thing: the tiles are their own section. '
-											. 'Turn it on and the tiles are drawn INSIDE the section directly above instead — '
-											. 'the way the implant hub keeps its five service tiles under its price table in '
-											. 'one section. Tucked in, the tiles take the background of the section above, '
-											. 'and Background, Anchor and Side menu label stop doing anything. It can only tuck '
-											. 'under a “Pricing plans” or “Stat callout” section — under anything else, or as '
-											. 'the first section on a page, it is drawn as an ordinary section instead.',
+										'instructions'  => 'Normally off: the tiles are a section of their own. Turn it on and '
+											. 'they sit inside the section above instead, sharing its background — which only '
+											. 'works under a “Pricing plans” or “Stat callout” section. Tucked in, this row’s '
+											. 'own background and menu settings stop applying.',
 									],
 									[
 										'key'           => 'field_vs_blk_svc_card_style',
@@ -4416,7 +4407,7 @@ function register_field_groups(): void {
 									],
 									[
 										'key'           => 'field_vs_blk_svc_columns',
-										'label'         => 'Columns',
+										'label'         => 'How many across',
 										'name'          => 'columns',
 										'type'          => 'select',
 										// "5" is a shape, not just a count: the centred 3+2
@@ -4472,7 +4463,7 @@ function register_field_groups(): void {
 									 */
 									[
 										'key'           => 'field_vs_blk_svc_collapse_at',
-										'label'         => 'Stack to one column at',
+										'label'         => 'When the tiles stack (advanced)',
 										'name'          => 'collapse_at',
 										'type'          => 'select',
 										/*
@@ -4526,7 +4517,7 @@ function register_field_groups(): void {
 											],
 											[
 												'key'          => 'field_vs_blk_svc_card_tag',
-												'label'        => 'Corner tag',
+												'label'        => 'Corner label',
 												'name'         => 'tag',
 												'type'         => 'text',
 												'instructions' => 'Optional. The small pill on the photo — "Same-Day". '
@@ -4648,7 +4639,7 @@ function register_field_groups(): void {
 											],
 											[
 												'key'   => 'field_vs_blk_docs_bio_body',
-												'label' => 'Body',
+												'label' => 'Paragraph',
 												'name'  => 'body',
 												'type'  => 'textarea',
 												'rows'  => 5,
@@ -4834,14 +4825,14 @@ function register_field_groups(): void {
 											],
 											[
 												'key'   => 'field_vs_blk_cand_ledger_body',
-												'label' => 'Body',
+												'label' => 'Paragraph',
 												'name'  => 'body',
 												'type'  => 'textarea',
 												'rows'  => 2,
 											],
 											[
 												'key'          => 'field_vs_blk_cand_ledger_tag',
-												'label'        => 'Tag',
+												'label'        => 'Small label',
 												'name'         => 'tag',
 												'type'         => 'text',
 												'instructions' => 'The small label on the row\'s right — "CBCT", "Veneers".',
@@ -5080,13 +5071,9 @@ function register_field_groups(): void {
 										// same shape of deadlock unlock_empty_importer_field()
 										// below exists to undo.
 										'required'      => 0,
-										'instructions'  => 'This row is a section the site builds for itself — the map, '
-											. 'reviews and address band, for instance. Pick which one it is; there is '
-											. 'nothing else to fill in, because its wording, its pictures and its '
-											. 'background are all part of the design rather than content. Drag this row '
-											. 'to move that section up or down the page, or delete it to take the section '
-											. 'off the page — but you cannot change what is inside it from here. Ask us '
-											. 'if it needs to say something different.',
+										'instructions'  => 'Pick which one this row is. Everything inside it is part of the '
+											. 'design, so there is nothing else to fill in — drag the row to move it, or '
+											. 'delete it to take the section off the page. Ask us to change its wording.',
 									],
 								]
 							),
