@@ -344,7 +344,7 @@ function block_preamble( string $slug ): array {
 		],
 		[
 			'key'          => $k . 'eyebrow',
-			'label'        => 'Eyebrow',
+			'label'        => 'Small line above',
 			'name'         => 'eyebrow',
 			'type'         => 'text',
 			'instructions' => 'The small line printed above the heading. A few words. Leave blank for none.',
@@ -554,14 +554,30 @@ function block_image_field( string $key, string $label = 'Image', string $name =
  * page hovers "View Steps", and deriving from the href alone cost that page
  * exactly one word — the census line this field closes.
  */
+/**
+ * The one wording for "where does this button go", so that the six link fields
+ * block_cta_fields() generates and the ones declared by hand say the same
+ * thing. It was a local in block_cta_fields() until the FAQ and Photo-and-copy
+ * layouts, which declare their CTA pair by hand, shipped with no instruction at
+ * all on the href — the exact silent break the policy comment above says
+ * nothing else catches.
+ *
+ * Written the way the hero's own link field is written rather than the way the
+ * policy is written: "an anchor", "a path" and "resolve" are the vocabulary of
+ * the rule, not of the person filling the box in.
+ */
+function href_instructions(): string {
+	return 'Where the button goes: a page on this site, typed like /smile-gallery/, or a spot '
+		. 'on this page, typed like #consult. You can also type one of three words and the site '
+		. 'fills in the rest for you — "book" for the online booking page, "phone" to call the '
+		. 'practice, or "map" for directions to the office. Never paste the booking, phone or map '
+		. 'address itself: those live under Practice Settings so they can never go out of date.';
+}
+
 function block_cta_fields( string $slug ): array {
 	$k = 'field_vs_blk_' . $slug . '_';
 
-	$href_instructions = 'An anchor on this page like #consult, a path on this site like /smile-gallery/, '
-		. 'or one of three words the site fills in for itself: "book" (the online booking page), '
-		. '"phone" (tap-to-call the practice) or "map" (directions to the office). '
-		. 'Never paste the booking, phone or map address itself — those live in one place '
-		. 'in the site precisely so they cannot go stale here.';
+	$href_instructions = href_instructions();
 
 	return [
 		[
@@ -584,8 +600,8 @@ function block_cta_fields( string $slug ): array {
 			'label'        => 'Button hover label',
 			'name'         => 'cta_hover',
 			'type'         => 'text',
-			'instructions' => 'Optional. The word-swap shown while the pointer is over the button. '
-				. 'Leave it blank for the usual label for that destination.',
+			'instructions' => 'Optional. The word the button changes to while someone hovers over it on a computer — phones never show it. '
+				. 'Leave it blank for the usual word.',
 		],
 		[
 			'key'          => $k . 'cta_label_2',
@@ -976,7 +992,7 @@ function register_field_groups(): void {
 					'default_value' => 5,
 					'min'           => 1,
 					'max'           => 5,
-					'instructions'  => 'A whole number from 1 to 5. Anything outside that will stop the site building, so stick to 1–5.',
+					'instructions'  => 'How many stars this review gave — a whole number from 1 to 5.',
 				],
 				[
 					'key'           => 'field_vs_source',
@@ -1013,7 +1029,7 @@ function register_field_groups(): void {
 	acf_add_local_field_group(
 		[
 			'key'                                   => 'group_vs_post',
-			'title'                                 => 'Post — Astro fields',
+			'title'                                 => 'Post extras',
 			'location'                              => [
 				[
 					[
@@ -1069,11 +1085,13 @@ function register_field_groups(): void {
 				],
 				[
 					'key'          => 'field_vs_author_name',
-					'label'        => 'Byline override',
+					'label'        => 'Show a different author name',
 					'name'         => 'author_name',
 					'type'         => 'text',
 					'required'     => 0,
-					'instructions' => 'Leave blank to use the WordPress author. Defaults to "Slate" on the site.',
+					'instructions' => 'Leave this blank and the post shows whoever wrote it in WordPress, '
+						. 'which on the website normally reads “Slate”. Type a name here to show that '
+						. 'name instead.',
 				],
 			],
 		]
@@ -1182,12 +1200,13 @@ function register_field_groups(): void {
 				],
 				[
 					'key'          => 'field_vs_toc_links',
-					'label'        => 'Table of contents',
+					'label'        => 'The “On this page” menu',
 					'name'         => 'toc_links',
 					'type'         => 'repeater',
 					'layout'       => 'table',
 					'button_label' => 'Add link',
-					'instructions' => 'The sticky rail down the side of the page. Each anchor must match a section id in the layout.',
+					'instructions' => 'The little menu that follows you down the side of the page. One row '
+						. 'per link: what it is called, and which section it jumps to.',
 					'sub_fields'   => [
 						[
 							'key'   => 'field_vs_toc_label',
@@ -1197,10 +1216,11 @@ function register_field_groups(): void {
 						],
 						[
 							'key'          => 'field_vs_toc_anchor',
-							'label'        => 'Anchor',
+							'label'        => 'Jumps to',
 							'name'         => 'anchor',
 							'type'         => 'text',
-							'instructions' => 'Without the #, e.g. "process".',
+							'instructions' => 'The name of the section this row jumps to, written without the # '
+								. '— for example process. It has to match that section’s own name exactly.',
 						],
 					],
 				],
@@ -1296,10 +1316,12 @@ function register_field_groups(): void {
 							'readonly'     => 1,
 						],
 						[
-							'key'   => 'field_vs_section_eyebrow',
-							'label' => 'Eyebrow',
-							'name'  => 'eyebrow',
-							'type'  => 'text',
+							'key'          => 'field_vs_section_eyebrow',
+							'label'        => 'Small line above',
+							'name'         => 'eyebrow',
+							'type'         => 'text',
+							'instructions' => 'The small line printed above the heading. A few words. '
+								. 'Leave blank for none.',
 						],
 						[
 							'key'          => 'field_vs_section_heading',
@@ -1326,10 +1348,15 @@ function register_field_groups(): void {
 							'type'  => 'text',
 						],
 						[
-							'key'   => 'field_vs_section_cta_href',
-							'label' => 'Button link',
-							'name'  => 'cta_href',
-							'type'  => 'text',
+							'key'          => 'field_vs_section_cta_href',
+							'label'        => 'Button link',
+							'name'         => 'cta_href',
+							'type'         => 'text',
+							'instructions' => 'Optional, and only used on pages that draw a button under the '
+								. 'section. Where it goes: a page on this site, typed like /contact/, or a spot '
+								. 'on this page, typed like #consult. Do not paste booking links or phone numbers '
+								. 'here — those live under Practice Settings so they can never go out of date. A '
+								. 'button needs both its label and its link filled, or none is drawn.',
 						],
 					],
 				],
@@ -1434,16 +1461,20 @@ function register_field_groups(): void {
 						],
 						[
 							'key'          => 'field_vs_card_meta',
-							'label'        => 'Meta',
+							'label'        => 'Supporting line',
 							'name'         => 'meta',
 							'type'         => 'text',
-							'instructions' => 'Secondary line — a price, a stat value, a label.',
+							'instructions' => 'Optional. The one short line under the title — a price, a number, or a short label.',
 						],
 						[
-							'key'   => 'field_vs_card_href',
-							'label' => 'Link',
-							'name'  => 'href',
-							'type'  => 'text',
+							'key'          => 'field_vs_card_href',
+							'label'        => 'Link',
+							'name'         => 'href',
+							'type'         => 'text',
+							'instructions' => 'Optional. Type a page on this site, like /contact/, and this '
+								. 'card’s title becomes a link to it; leave it blank and the title is plain '
+								. 'text. Do not paste booking links or phone numbers here — those live under '
+								. 'Practice Settings so they can never go out of date.',
 						],
 					],
 				],
@@ -1536,7 +1567,7 @@ function register_field_groups(): void {
 					'sub_fields' => [
 						[
 							'key'          => 'field_vs_page_hero_eyebrow',
-							'label'        => 'Eyebrow',
+							'label'        => 'Small line above',
 							'name'         => 'eyebrow',
 							'type'         => 'text',
 							'instructions' => 'The small line above the big headline — a few words, like “Trusted Family Dentistry”. Leave blank for none.',
@@ -1836,10 +1867,11 @@ function register_field_groups(): void {
 										'type'  => 'text',
 									],
 									[
-										'key'   => 'field_vs_blk_faq_cta_href',
-										'label' => 'Button link',
-										'name'  => 'cta_href',
-										'type'  => 'text',
+										'key'          => 'field_vs_blk_faq_cta_href',
+										'label'        => 'Button link',
+										'name'         => 'cta_href',
+										'type'         => 'text',
+										'instructions' => href_instructions(),
 									],
 									/**
 									 * Wave A (hub pages). FaqBlock's hover falls back to
@@ -1858,8 +1890,8 @@ function register_field_groups(): void {
 										'label'        => 'Button hover label',
 										'name'         => 'cta_hover',
 										'type'         => 'text',
-										'instructions' => 'Optional. The word-swap shown while the pointer is over the button. '
-											. 'Leave it blank for the usual label for that destination.',
+										'instructions' => 'Optional. The word the button changes to while someone hovers over it on a computer — phones never show it. '
+											. 'Leave it blank for the usual word.',
 									],
 									/**
 									 * Wave B. WHICH OF THE TWO BUTTONS COMES FIRST.
@@ -1983,10 +2015,10 @@ function register_field_groups(): void {
 										'sub_fields'   => [
 											[
 												'key'          => 'field_vs_blk_cards_card_meta',
-												'label'        => 'Meta',
+												'label'        => 'Supporting line',
 												'name'         => 'meta',
 												'type'         => 'text',
-												'instructions' => 'Secondary line — a price, a stat value, a label.',
+												'instructions' => 'Optional. The one short line under the title — a price, a number, or a short label.',
 											],
 											[
 												'key'   => 'field_vs_blk_cards_card_title',
@@ -2061,10 +2093,18 @@ function register_field_groups(): void {
 													. '"Every 3–6 months". Leave it blank and the card ends at its body.',
 											],
 											[
-												'key'   => 'field_vs_blk_cards_card_href',
-												'label' => 'Link',
-												'name'  => 'href',
-												'type'  => 'text',
+												'key'          => 'field_vs_blk_cards_card_href',
+												'label'        => 'Link',
+												'name'         => 'href',
+												'type'         => 'text',
+												// Says so out loud because the box cannot: CardGridBlock
+												// renders no link on these cards and does not even query
+												// this field. Left visible rather than hidden so that a
+												// value typed before this note existed is still findable.
+												'instructions' => 'This box does nothing yet. These cards are not links '
+													. 'on the site — there is no design for one — so anything typed here '
+													. 'saves but changes nothing. Tell us if a card should lead somewhere '
+													. 'and we will design it.',
 											],
 										],
 									],
@@ -2428,10 +2468,11 @@ function register_field_groups(): void {
 										'type'  => 'text',
 									],
 									[
-										'key'   => 'field_vs_blk_media_cta_href',
-										'label' => 'Button link',
-										'name'  => 'cta_href',
-										'type'  => 'text',
+										'key'          => 'field_vs_blk_media_cta_href',
+										'label'        => 'Button link',
+										'name'         => 'cta_href',
+										'type'         => 'text',
+										'instructions' => href_instructions(),
 									],
 									/**
 									 * Hover overrides for the two buttons, same names and same
@@ -2453,8 +2494,8 @@ function register_field_groups(): void {
 										'label'        => 'Button hover label',
 										'name'         => 'cta_hover',
 										'type'         => 'text',
-										'instructions' => 'Optional. The word-swap shown while the pointer is over the '
-											. 'button. Leave it blank for the usual label for that destination.',
+										'instructions' => 'Optional. The word the button changes to while someone hovers over it on a computer — phones never show it. '
+											. 'Leave it blank for the usual word.',
 									],
 									/**
 									 * The SECOND button, beside the first.
@@ -2727,8 +2768,8 @@ function register_field_groups(): void {
 										'label'        => 'Second button hover label',
 										'name'         => 'cta_hover_2',
 										'type'         => 'text',
-										'instructions' => 'Optional. The word-swap shown while the pointer is over the '
-											. 'second button. Leave it blank for the usual label for that destination.',
+										'instructions' => 'Optional. The word the second button changes to while someone hovers over '
+											. 'it on a computer — phones never show it. Leave it blank for the usual word.',
 									],
 									/**
 									 * The `.inline-cta` plate under the whole band — smile-makeover's
@@ -3098,8 +3139,9 @@ function register_field_groups(): void {
 										'label'        => 'Quote attribution',
 										'name'         => 'quote_attrib',
 										'type'         => 'text',
-										'instructions' => 'The line under the quote, including its leading dash — may contain '
-											. '<b>…</b> for the bold half.',
+										'instructions' => 'The line under the quote, including the dash at the start. '
+											. 'To make part of it bold, type &lt;b&gt; before those words and '
+											. '&lt;/b&gt; after.',
 									],
 								],
 								block_cta_fields( 'gallery' )
@@ -3590,7 +3632,7 @@ function register_field_groups(): void {
 									 * back false. A block nobody has flagged takes exactly the path it
 									 * takes today.
 									 *
-									 * NO CONDITIONAL LOGIC HIDING Anchor, Rail label and Background,
+									 * NO CONDITIONAL LOGIC HIDING Anchor, Side menu label and Background,
 									 * though all three go inert when this is on. fill_blank_row_id()
 									 * fires per sub-field on save and is handed only that field's own
 									 * value, so it cannot see a sibling `nested` and would go on
@@ -3613,7 +3655,7 @@ function register_field_groups(): void {
 											. 'tucked under that section’s own content — the way the whitening page keeps its price '
 											. 'table under the “how long results last” figure rather than in a section of its own. '
 											. 'Tucked in, the prices take the background of the section above and are no longer a '
-											. 'section in their own right, so Background, Anchor and Rail label stop doing anything '
+											. 'section in their own right, so Background, Anchor and Side menu label stop doing anything '
 											. 'and the prices do not appear in the “On this page” rail. Eyebrow, Heading and Body '
 											. 'still show, one size smaller, as the introduction to the table. Turned on for the '
 											. 'first section on a page it is simply drawn as an ordinary section instead, because '
@@ -4012,7 +4054,7 @@ function register_field_groups(): void {
 						[
 							'key'        => 'layout_vs_blk_copy_plus_stats',
 							'name'       => 'copy_plus_stats',
-							'label'      => 'Copy + stat cards',
+							'label'      => 'Words and number cards',
 							'display'    => 'block',
 							'sub_fields' => array_merge(
 								block_preamble( 'cstats' ),
@@ -4130,17 +4172,15 @@ function register_field_groups(): void {
 										'label'        => 'Button link',
 										'name'         => 'cta_href',
 										'type'         => 'text',
-										'instructions' => 'An anchor on this page like #doctors, a path on this site like '
-											. '/about-us/, or one of "book", "phone", "map". Never paste the booking, '
-											. 'phone or map address itself.',
+										'instructions' => href_instructions(),
 									],
 									[
 										'key'          => 'field_vs_blk_cstats_cta_hover',
 										'label'        => 'Button hover label',
 										'name'         => 'cta_hover',
 										'type'         => 'text',
-										'instructions' => 'Optional. The word-swap shown on hover — "See Bio", "See Bios". '
-											. 'Leave it blank for the usual label for that destination.',
+										'instructions' => 'Optional. The word the button changes to while someone hovers over it on a '
+											. 'computer — "See Bio", "See Bios". Phones never show it; leave it blank for the usual word.',
 									],
 								]
 							),
@@ -4197,8 +4237,9 @@ function register_field_groups(): void {
 												'name'         => 'body',
 												'type'         => 'textarea',
 												'rows'         => 3,
-												'instructions' => 'May contain an inline <a class="vs-link"> — the cosmetic '
-													. 'hub\'s robotic-placement card links to the implant hub mid-sentence.',
+												'instructions' => 'You can put a link inside this paragraph. Write it exactly like this, '
+													. 'with your own page and your own wording: '
+													. '&lt;a class="vs-link" href="/the-page/"&gt;the words&lt;/a&gt;.',
 											],
 											[
 												'key'          => 'field_vs_blk_tech_card_foot',
@@ -4211,7 +4252,7 @@ function register_field_groups(): void {
 									],
 									[
 										'key'          => 'field_vs_blk_tech_callout_eyebrow',
-										'label'        => 'Panel eyebrow',
+										'label'        => 'Small line above the panel',
 										'name'         => 'callout_eyebrow',
 										'type'         => 'text',
 										'instructions' => 'The closing panel under the cards — fill in the panel heading '
@@ -4329,7 +4370,7 @@ function register_field_groups(): void {
 											. 'Turn it on and the tiles are drawn INSIDE the section directly above instead — '
 											. 'the way the implant hub keeps its five service tiles under its price table in '
 											. 'one section. Tucked in, the tiles take the background of the section above, '
-											. 'and Background, Anchor and Rail label stop doing anything. It can only tuck '
+											. 'and Background, Anchor and Side menu label stop doing anything. It can only tuck '
 											. 'under a “Pricing plans” or “Stat callout” section — under anything else, or as '
 											. 'the first section on a page, it is drawn as an ordinary section instead.',
 									],
@@ -4479,8 +4520,9 @@ function register_field_groups(): void {
 												'name'         => 'body',
 												'type'         => 'textarea',
 												'rows'         => 3,
-												'instructions' => 'May contain an inline <a class="vs-link"> — the emergency '
-													. 'feature card links out mid-sentence.',
+												'instructions' => 'You can put a link inside this description. Write it exactly like this, '
+													. 'with your own page and your own wording: '
+													. '&lt;a class="vs-link" href="/the-page/"&gt;the words&lt;/a&gt;.',
 											],
 											[
 												'key'          => 'field_vs_blk_svc_card_tag',
@@ -4522,8 +4564,10 @@ function register_field_groups(): void {
 										'name'         => 'sub_foot',
 										'type'         => 'textarea',
 										'rows'         => 3,
-										'instructions' => 'Optional. The paragraph under the tiles — may contain an inline '
-											. '<a class="vs-link">. Blank draws nothing.',
+											'instructions' => 'Optional. The paragraph under the tiles; leave it blank for none. '
+												. 'You can put a link in it, written exactly like this, with your '
+												. 'own page and your own wording: '
+												. '&lt;a class="vs-link" href="/the-page/"&gt;the words&lt;/a&gt;.',
 									],
 								],
 								/**
@@ -4587,7 +4631,7 @@ function register_field_groups(): void {
 										'sub_fields'   => [
 											[
 												'key'          => 'field_vs_blk_docs_bio_eyebrow',
-												'label'        => 'Eyebrow',
+												'label'        => 'Small line above',
 												'name'         => 'eyebrow',
 												'type'         => 'text',
 												'instructions' => '"Dr. Bryce Richardson, DDS" — or "Also at the practice" on a '
@@ -4599,7 +4643,8 @@ function register_field_groups(): void {
 												'name'         => 'heading',
 												'type'         => 'textarea',
 												'rows'         => 2,
-												'instructions' => 'May contain <em>…</em>. Not drawn on a thumbnail card.',
+												'instructions' => 'To give a few words the italic accent, type &lt;em&gt; before them and '
+													. '&lt;/em&gt; after. This heading is not shown on a small thumbnail card.',
 											],
 											[
 												'key'   => 'field_vs_blk_docs_bio_body',
@@ -4661,7 +4706,7 @@ function register_field_groups(): void {
 						[
 							'key'        => 'layout_vs_blk_candidacy_ledger',
 							'name'       => 'candidacy_ledger',
-							'label'      => 'Candidacy + ledger',
+							'label'      => 'Are you a candidate — words and checklist',
 							'display'    => 'block',
 							'sub_fields' => array_merge(
 								block_preamble( 'cand' ),
@@ -4678,7 +4723,9 @@ function register_field_groups(): void {
 										'name'         => 'copy_body',
 										'type'         => 'textarea',
 										'rows'         => 4,
-										'instructions' => 'May contain inline <a class="vs-link"> anchors.',
+										'instructions' => 'You can put a link inside this paragraph. Write it exactly like this, '
+											. 'with your own page and your own wording: '
+											. '&lt;a class="vs-link" href="/the-page/"&gt;the words&lt;/a&gt;.',
 									],
 									[
 										'key'   => 'field_vs_blk_cand_copy_heading_2',
@@ -4692,7 +4739,9 @@ function register_field_groups(): void {
 										'name'         => 'copy_body_2',
 										'type'         => 'textarea',
 										'rows'         => 4,
-										'instructions' => 'May contain inline <a class="vs-link"> anchors.',
+										'instructions' => 'You can put a link inside this paragraph. Write it exactly like this, '
+											. 'with your own page and your own wording: '
+											. '&lt;a class="vs-link" href="/the-page/"&gt;the words&lt;/a&gt;.',
 									],
 									/**
 									 * Which chrome the ledger aside wears.
@@ -4738,7 +4787,7 @@ function register_field_groups(): void {
 									 */
 									[
 										'key'           => 'field_vs_blk_cand_ledger_skin',
-										'label'         => 'Ledger panel style',
+										'label'         => 'Checklist panel colour',
 										'name'          => 'ledger_skin',
 										'type'          => 'select',
 										'choices'       => [
@@ -4755,21 +4804,22 @@ function register_field_groups(): void {
 									],
 									[
 										'key'          => 'field_vs_blk_cand_ledger_eyebrow',
-										'label'        => 'Ledger eyebrow',
+										'label'        => 'Small line above the checklist',
 										'name'         => 'ledger_eyebrow',
 										'type'         => 'text',
 										'instructions' => 'The small label the side panel opens with — "Signs you\'re a candidate".',
 									],
 									[
 										'key'          => 'field_vs_blk_cand_ledger_heading',
-										'label'        => 'Ledger heading',
+										'label'        => 'Checklist heading',
 										'name'         => 'ledger_heading',
 										'type'         => 'textarea',
 										'rows'         => 2,
+										'instructions' => 'The heading on the side panel, under its small line.',
 									],
 									[
 										'key'          => 'field_vs_blk_cand_ledger',
-										'label'        => 'Ledger rows',
+										'label'        => 'Checklist rows',
 										'name'         => 'ledger',
 										'type'         => 'repeater',
 										'layout'       => 'row',
@@ -4811,8 +4861,7 @@ function register_field_groups(): void {
 										'label'        => 'Button link',
 										'name'         => 'cta_href',
 										'type'         => 'text',
-										'instructions' => 'An anchor on this page, a path on this site, or one of "book", '
-											. '"phone", "map". Never paste the booking, phone or map address itself.',
+										'instructions' => href_instructions(),
 									],
 									[
 										'key'          => 'field_vs_blk_cand_cta_hover',
@@ -4833,8 +4882,7 @@ function register_field_groups(): void {
 										'label'        => 'Second button link',
 										'name'         => 'cta_href_2',
 										'type'         => 'text',
-										'instructions' => 'An anchor on this page, a path on this site, or one of "book", '
-											. '"phone", "map". Never paste the booking, phone or map address itself.',
+										'instructions' => href_instructions(),
 									],
 									[
 										'key'          => 'field_vs_blk_cand_cta_hover_2',
