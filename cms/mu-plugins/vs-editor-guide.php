@@ -562,6 +562,126 @@ const PAGES = [
 			[ 'id' => 'faq', 'where' => 'the heading above the questions-and-answers list', 'status' => 'moved:Quick answers before you refer.' ],
 		],
 	],
+
+	// ── Pages with no hero group and no Page sections: photos and/or Section
+	//    copy are still live on every one of them, which is why they are here.
+	//    The three landing pages are paid-campaign creative — see their note.
+
+	81 => [ // Cosmetic Dentistry LP
+		'route'    => '/cosmetic-dentistry-lp/',
+		'kind'     => 'template',
+		'liveTabs' => [ 'Images' ],
+		'orientationNote' => 'This is a paid-campaign landing page. It is hidden from Google and from the site menus on purpose, and an ad campaign points at it — so its WORDS are fixed in the page design and are not edited from these tabs. The photos below are yours to swap.',
+		'images'   => [
+			[ 'slot' => 'imgHeroTilted',   'where' => 'the tilted three-quarter smile photo in the group at the very top (on a phone this is the ONLY hero photo shown)', 'status' => 'live' ],
+			[ 'slot' => 'imgHeroDaylight', 'where' => 'the daylight smile photo in the group at the very top', 'status' => 'live' ],
+			[ 'slot' => 'imgBrushFront',   'where' => 'the veneer-being-hand-finished photo in the group at the very top', 'status' => 'live' ],
+			[ 'slot' => 'imgAnnMarie',     'where' => "Ann Marie Muscarello's before/after photo in the patient results area", 'status' => 'live' ],
+			[ 'slot' => 'imgBrittany',     'where' => "Brittany Fanning's before/after photo in the patient results area", 'status' => 'live' ],
+			[ 'slot' => 'storyMore',       'where' => 'the photo on the first patient story card', 'status' => 'live' ],
+			[ 'slot' => 'storyConfidence', 'where' => 'the photo on the second patient story card', 'status' => 'live' ],
+			[ 'slot' => 'storyLength',     'where' => 'the photo on the third patient story card', 'status' => 'live' ],
+			[ 'slot' => 'logoAACD',   'where' => 'the American Academy of Cosmetic Dentistry logo in the scrolling credentials strip', 'status' => 'live' ],
+			[ 'slot' => 'logoAAID',   'where' => 'the American Academy of Implant Dentistry logo in the credentials strip', 'status' => 'live' ],
+			[ 'slot' => 'logoFAM',    'where' => 'the Full Arch Masters logo in the credentials strip', 'status' => 'live' ],
+			[ 'slot' => 'logoYomi',   'where' => 'the Yomi Robotics logo in the credentials strip', 'status' => 'live' ],
+			[ 'slot' => 'logoADA',    'where' => 'the American Dental Association logo in the credentials strip', 'status' => 'live' ],
+			[ 'slot' => 'logoGoogle', 'where' => 'the Google Reviews logo in the credentials strip', 'status' => 'live' ],
+			[ 'slot' => 'imgRichardson',   'where' => 'the portrait of Dr. Richardson in the meet-the-dentist area', 'status' => 'live' ],
+			[ 'slot' => 'imgBrush',        'where' => 'the photo in the closing section at the bottom of the page', 'status' => 'live' ],
+		],
+	],
+
+	86 => [ // General LP
+		'route'    => '/general-lp/',
+		'kind'     => 'template',
+		'liveTabs' => [ 'Images' ],
+		'orientationNote' => 'This is a paid-campaign landing page. It is hidden from Google and from the site menus on purpose, and an ad campaign points at it — so its WORDS are fixed in the page design and are not edited from these tabs. The photos below are yours to swap.',
+		'images'   => [
+			[ 'slot' => 'imgConsult',    'where' => 'the photo beside the headline at the very top — a smiling patient', 'status' => 'live' ],
+			[ 'slot' => 'imgLounge',     'where' => 'the waiting-lounge photo further down the page', 'status' => 'live' ],
+			[ 'slot' => 'imgHygienist',  'where' => 'the photo of a hygienist doing a cleaning', 'status' => 'live' ],
+			[ 'slot' => 'logoAACD',   'where' => 'the American Academy of Cosmetic Dentistry logo in the scrolling credentials strip', 'status' => 'live' ],
+			[ 'slot' => 'logoAAID',   'where' => 'the American Academy of Implant Dentistry logo in the credentials strip', 'status' => 'live' ],
+			[ 'slot' => 'logoFAM',    'where' => 'the Full Arch Masters logo in the credentials strip', 'status' => 'live' ],
+			[ 'slot' => 'logoYomi',   'where' => 'the Yomi Robotics logo in the credentials strip', 'status' => 'live' ],
+			[ 'slot' => 'logoADA',    'where' => 'the American Dental Association logo in the credentials strip', 'status' => 'live' ],
+			[ 'slot' => 'logoGoogle', 'where' => 'the Google Reviews logo in the credentials strip', 'status' => 'live' ],
+			[ 'slot' => 'imgRichardson', 'where' => 'the portrait of Dr. Richardson in the meet-the-dentist area', 'status' => 'live' ],
+			[ 'slot' => 'imgDrPortrait', 'where' => 'the photo in the closing section at the bottom of the page', 'status' => 'live' ],
+		],
+	],
+
+	97 => [ // Veneers LP
+		'route'    => '/veneers-lp/',
+		'kind'     => 'template',
+		'liveTabs' => [ 'Images' ],
+		'orientationNote' => 'This is a paid-campaign landing page. It is hidden from Google and from the site menus on purpose, and an ad campaign points at it — so its WORDS are fixed in the page design and are not edited from these tabs. The photos below are yours to swap.',
+		'images'   => [
+			[ 'slot' => 'imgHeroSide',   'where' => 'the side-view smile photo in the group at the very top', 'status' => 'live' ],
+			[ 'slot' => 'imgHeroBerry',  'where' => 'the tilted three-quarter smile photo in the group at the very top', 'status' => 'live' ],
+			[ 'slot' => 'imgHeroMacro',  'where' => 'the straight-on close-up smile photo in the group at the very top', 'status' => 'live' ],
+			[ 'slot' => 'imgAnnMarie',   'where' => "Ann Marie Muscarello's before/after photo in the patient results area", 'status' => 'live' ],
+			[ 'slot' => 'imgBrittany',   'where' => "Brittany Fanning's before/after photo in the patient results area", 'status' => 'live' ],
+			[ 'slot' => 'storyMore',       'where' => 'the photo on the first patient story card', 'status' => 'live' ],
+			[ 'slot' => 'storyConfidence', 'where' => 'the photo on the second patient story card', 'status' => 'live' ],
+			[ 'slot' => 'storyLength',     'where' => 'the photo on the third patient story card', 'status' => 'live' ],
+			[ 'slot' => 'logoAACD',   'where' => 'the American Academy of Cosmetic Dentistry logo in the scrolling credentials strip', 'status' => 'live' ],
+			[ 'slot' => 'logoAAID',   'where' => 'the American Academy of Implant Dentistry logo in the credentials strip', 'status' => 'live' ],
+			[ 'slot' => 'logoFAM',    'where' => 'the Full Arch Masters logo in the credentials strip', 'status' => 'live' ],
+			[ 'slot' => 'logoYomi',   'where' => 'the Yomi Robotics logo in the credentials strip', 'status' => 'live' ],
+			[ 'slot' => 'logoADA',    'where' => 'the American Dental Association logo in the credentials strip', 'status' => 'live' ],
+			[ 'slot' => 'logoGoogle', 'where' => 'the Google Reviews logo in the credentials strip', 'status' => 'live' ],
+			[ 'slot' => 'imgRichardson', 'where' => 'the portrait of Dr. Richardson in the meet-the-dentist area', 'status' => 'live' ],
+			[ 'slot' => 'imgEditorial',  'where' => 'the photo in the closing section at the bottom of the page', 'status' => 'live' ],
+		],
+	],
+
+	91 => [ // Privacy Policy
+		'route'    => '/privacy-policy/',
+		'kind'     => 'template',
+		'liveTabs' => [ 'Section copy' ],
+		'orientationNote' => 'The whole policy is written in the Section copy rows below — each row is one numbered part of the document, in the order it appears. There is no hero and no photo on this page.',
+		'sectionsNote' => 'THIS IS A LEGAL DOCUMENT. It says what the practice does with patient information, so please do not reword it casually — have whoever handles your HIPAA compliance approve any change first. Fixing a phone number or an address here is fine.',
+		'sections' => [],
+	],
+
+	95 => [ // Terms & Conditions
+		'route'    => '/terms-conditions/',
+		'kind'     => 'template',
+		'liveTabs' => [ 'Section copy' ],
+		'orientationNote' => 'The whole document is written in the Section copy rows below — each row is one numbered part, in the order it appears. There is no hero and no photo on this page.',
+		'sectionsNote' => 'THIS IS A LEGAL DOCUMENT. Please do not reword it casually — have it approved before changing anything beyond a phone number or an address.',
+		'sections' => [],
+	],
+
+	96 => [ // Thank you
+		'route'    => '/thank-you/',
+		'kind'     => 'template',
+		'liveTabs' => [ 'Images' ],
+		'orientationNote' => 'The page someone lands on after sending a form. Its words are part of the page design and are not edited here; the background photo is.',
+		'images'   => [
+			[ 'slot' => 'heroBg', 'where' => 'the full-width background photo behind the thank-you message — the team walking together outside the practice', 'status' => 'live' ],
+		],
+	],
+
+	344 => [ // 404
+		'route'    => '/404-2/',
+		'kind'     => 'template',
+		'liveTabs' => [ 'Images' ],
+		'orientationNote' => 'The page someone sees at a web address that does not exist. Its words are part of the page design and are not edited here; the background photo is.',
+		'images'   => [
+			[ 'slot' => 'heroBg', 'where' => 'the full-width background photo — the neon smiley sign at the practice entrance', 'status' => 'live' ],
+		],
+	],
+
+	346 => [ // Blog index
+		'route'    => '/blog/',
+		'kind'     => 'template',
+		'liveTabs' => [],
+		'orientationNote' => 'This page is just the list of your blog posts — it builds itself from Posts in the left menu, newest first. Nothing on these tabs changes it. To change what appears here, edit or publish a post.',
+	],
+
 ];
 
 /**
@@ -601,7 +721,15 @@ function tab_is_live( array $page, string $label ): bool {
  * The live tabs as a sentence fragment: "Hero, Images and Bottom of page".
  */
 function tabs_sentence( array $page ): string {
-	$tabs = array_map( 'esc_html', $page['liveTabs'] );
+	$tabs = array_map( 'esc_html', $page['liveTabs'] ?? [] );
+
+	// No live tabs at all is a real case — the blog index builds itself from
+	// Posts. Without this, array_pop() on an empty list returns null and the
+	// sentence reads "edited from these tabs: ." with nothing in it.
+	if ( ! $tabs ) {
+		return 'none';
+	}
+
 	$last = array_pop( $tabs );
 
 	return $tabs ? implode( ', ', $tabs ) . ' and ' . $last : (string) $last;
@@ -674,8 +802,31 @@ function orientation_message( array $page ): string {
 		$lines[] = 'That is the whole list — a box on any other tab saves, but does not change this page. '
 			. '<em>Page sections</em> is empty here on purpose: this page still runs on its designed layout, '
 			. 'so please leave it empty — we move pages over ourselves.';
-		$lines[] = 'The <em>Images</em> tab starts with a guide saying where each photo appears, and '
-			. '<em>Section copy</em> with one saying which words sit where. Changes go live on the next site build.';
+
+		// A page's own note, when it has one — the three campaign landing pages
+		// say their words are ad creative, the two legal pages say the rows ARE
+		// the document, the blog index says it builds itself. This used to be
+		// read only on the `blocks` branch, so every note on a template page
+		// was written and never shown: the project's most-repeated defect,
+		// caught here by rendering the message rather than reading the code.
+		if ( ! empty( $page['orientationNote'] ) ) {
+			$lines[] = esc_html( $page['orientationNote'] );
+		}
+
+		// Promise only the guides this page actually has. Naming the Images
+		// guide on a page with no photos, or the Section copy guide on a page
+		// with no rows, sends an editor to look for something that is not there.
+		$guides = [];
+
+		if ( ! empty( $page['images'] ) ) {
+			$guides[] = 'The <em>Images</em> tab starts with a guide saying where each photo appears';
+		}
+
+		if ( ! empty( $page['sections'] ) || ! empty( $page['sectionsNote'] ) ) {
+			$guides[] = ( $guides ? 'and <em>Section copy</em> with one saying which words sit where' : 'The <em>Section copy</em> tab starts with a note about these rows' );
+		}
+
+		$lines[] = ( $guides ? implode( ', ', $guides ) . '. ' : '' ) . 'Changes go live on the next site build.';
 	} else {
 		$lines[] = '<strong>The words visitors read on this page are edited in <em>Page sections</em> — '
 			. 'one row per part of the page, top to bottom.</strong>';
@@ -750,7 +901,21 @@ function images_guide( array $page ): string {
 function sections_guide( array $page ): string {
 	$mixed = list_is_mixed( $page['sections'] );
 
-	$lines   = [];
+	$lines = [];
+
+	// A page can carry a note and NO per-row list — the two legal pages do,
+	// where the rows are a document rather than page furniture and naming 34 or
+	// 45 of them individually would help nobody. Emitting the "where each row
+	// appears" header above an empty list, and "every row above is live" below
+	// it, is what this guard prevents.
+	if ( empty( $page['sections'] ) ) {
+		if ( ! empty( $page['sectionsNote'] ) ) {
+			return esc_html( $page['sectionsNote'] );
+		}
+
+		return '';
+	}
+
 	$lines[] = '<strong>Where each row below appears on the page — match its Section ID box.</strong>';
 
 	foreach ( $page['sections'] as $row ) {
@@ -763,6 +928,11 @@ function sections_guide( array $page ): string {
 			. 'section there instead.';
 	} else {
 		$lines[] = 'Every row above is live: edit the words, and leave each Section ID exactly as it is.';
+	}
+
+	// The same escape hatch the images guide has.
+	if ( ! empty( $page['sectionsNote'] ) ) {
+		$lines[] = esc_html( $page['sectionsNote'] );
 	}
 
 	return implode( "\n", $lines );
@@ -835,7 +1005,7 @@ function rewrite_guidance( $field ) {
 			break;
 
 		case 'field_vs_sections_note':
-			if ( ! empty( $page['sections'] ) ) {
+			if ( ! empty( $page['sections'] ) || ! empty( $page['sectionsNote'] ) ) {
 				$field['message'] = sections_guide( $page );
 			}
 			break;

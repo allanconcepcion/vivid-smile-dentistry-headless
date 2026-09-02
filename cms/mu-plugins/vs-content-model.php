@@ -944,6 +944,22 @@ function register_field_groups(): void {
 			'graphql_types'                         => [ 'Testimonial' ],
 			'fields'                                => [
 				[
+					'key'       => 'field_vs_testimonial_intro',
+					'label'     => '',
+					'name'      => '',
+					'type'      => 'message',
+					'message'   => "<strong>A patient review, shown on the site.</strong> The review text itself "
+						. "goes in the big box below this panel — the same place you would type a post. "
+						. "Everything on this panel is the label around it: who said it, how many stars, "
+						. "and where they said it.\n"
+						. "The date shown on the site is this review's publish date, so there is no date "
+						. "box to fill in. Reviews appear newest first, and the site pulls them in "
+						. "automatically — you do not have to add them to a page.\n"
+						. "Changes go live on the next site build.",
+					'esc_html'  => 0,
+					'new_lines' => 'wpautop',
+				],
+				[
 					'key'          => 'field_vs_reviewer',
 					'label'        => 'Reviewer name',
 					'name'         => 'reviewer',
@@ -960,7 +976,7 @@ function register_field_groups(): void {
 					'default_value' => 5,
 					'min'           => 1,
 					'max'           => 5,
-					'instructions'  => 'Whole number 1–5. The Astro schema rejects anything outside this range at build time.',
+					'instructions'  => 'A whole number from 1 to 5. Anything outside that will stop the site building, so stick to 1–5.',
 				],
 				[
 					'key'           => 'field_vs_source',
@@ -968,6 +984,9 @@ function register_field_groups(): void {
 					'name'          => 'source',
 					'type'          => 'select',
 					'required'      => 1,
+					'instructions'  => 'Where this review was left. Google reviews show the Google logo beside '
+						. 'the name; every other source shows just the name, on purpose — we do not put '
+						. 'other companies\' logos on the site unless they give us the real artwork.',
 					'choices'       => [
 						'Google'    => 'Google',
 						'Yelp'      => 'Yelp',
@@ -1011,6 +1030,26 @@ function register_field_groups(): void {
 			'graphql_types'                         => [ 'Post' ],
 			'fields'                                => [
 				[
+					'key'       => 'field_vs_post_intro',
+					'label'     => '',
+					'name'      => '',
+					'type'      => 'message',
+					'message'   => "<strong>A blog post.</strong> Most of what you need is NOT on this panel — "
+						. "it is the standard WordPress boxes around it:\n"
+						. "<strong>Title</strong> at the top · <strong>the big editor box</strong> for the "
+						. "article itself · <strong>Featured image</strong> (right-hand column) for the big "
+						. "photo at the top of the post and the picture on the blog list · "
+						. "<strong>Categories</strong> for the label on the card · "
+						. "<strong>Excerpt</strong> for the summary line on the blog list — if you leave it "
+						. "empty the site uses the opening of the article.\n"
+						. "The two boxes below are the only extras. Everything else about a post's "
+						. "layout — the share buttons, the related posts, the booking strip at the "
+						. "bottom — is the same on every post and is not edited here.\n"
+						. "Changes go live on the next site build.",
+					'esc_html'  => 0,
+					'new_lines' => 'wpautop',
+				],
+				[
 					'key'          => 'field_vs_hero_alt',
 					'label'        => 'Hero image alt text',
 					'name'         => 'hero_alt',
@@ -1022,7 +1061,7 @@ function register_field_groups(): void {
 					// blocked save to a warning that names what the reader loses:
 					// post_warning_notice() at the foot of this file.
 					'required'     => 0,
-					'instructions' => 'Describe the picture in a sentence — what is in it, not "hero image". '
+					'instructions' => 'Describe the Featured image in a sentence, for people using a screen reader and for Google — what is in the picture, not "hero image". '
 						. 'It is what someone using a screen reader hears in place of the photo, and it is most of '
 						. 'what gets the image found in Google Images. '
 						. 'Leave it blank and the alt text saved on the file in the Media Library is used instead; '
