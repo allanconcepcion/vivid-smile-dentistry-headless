@@ -1214,3 +1214,180 @@ function layout_title( $title, $field, $layout, $i ) {
 	return $title . ': ' . $summary;
 }
 add_filter( 'acf/fields/flexible_content/layout_title/name=blocks', __NAMESPACE__ . '\\layout_title', 10, 4 );
+
+/**
+ * ─── Grouping a section's boxes so they mirror the section ──────────────────
+ *
+ * A section row is one flat list of boxes: thirty of them for "Photo and copy",
+ * twenty-three for "Comparison cards". Nothing in that list says which box is
+ * the heading you can see, which is the panel underneath it, and which three
+ * you should never touch. Allan's words, and they are the right test: "the
+ * fields of each page will be like a mirror on the front end."
+ *
+ * So the boxes are re-grouped under headings that walk down the section the way
+ * a visitor's eye does — the heading at the top, then the cards, then the panel
+ * under them, then the buttons — with every non-content control collected into
+ * one closing group the editor can ignore.
+ *
+ * WHY THIS LIVES HERE AND RUNS ON `acf/prepare_field`.
+ *
+ * The obvious place to reorder sub-fields is where they are declared, in
+ * vs-content-model.php. That file is the GraphQL contract: 37 block types and
+ * 325 fields that all 48 routes are built from, and this project's most
+ * expensive failures have been schema-shaped. `acf/prepare_field` runs only
+ * when wp-admin DRAWS a field. It is not part of registering the schema and not
+ * part of resolving a query, so nothing done here can reach WPGraphQL — the
+ * separation is structural rather than careful.
+ *
+ * That was checked rather than assumed. Against the live endpoint, `PageFields`
+ * exposes exactly nine fields — blocks, cards, closing, faqs, hero, images,
+ * processSteps, sections, tocLinks — and NONE of the model's five `tab` fields
+ * or its `message` fields appear anywhere in the schema. WPGraphQL for ACF
+ * skips field types that carry no value, which is the class an `accordion`
+ * belongs to. A fingerprint of all 37 block types and their 325 fields was
+ * taken before this filter existed, and is re-taken after: identical, or this
+ * comes out.
+ *
+ * NOTHING CAN VANISH. The plan lists field NAMES, not keys — the names are
+ * identical across layouts by design, which is what lets one entry describe the
+ * preamble everywhere. Any field the plan does not mention falls through to the
+ * closing settings group rather than being dropped, so a field added to a
+ * layout later appears in wp-admin whether or not anyone updates this table.
+ * Ordering is presentation only: ACF stores values by key, so a reordered row
+ * loads and saves exactly as before.
+ */
+
+/**
+ * layout name → the groups, in the order the section renders.
+ *
+ * Each group is [ heading, [ field names, in order ] ]. The closing settings
+ * group is added automatically and holds everything not named here.
+ */
+const SECTION_GROUPS = [
+	'faq' => [
+		[ 'The heading at the top', [ 'eyebrow', 'heading', 'body' ] ],
+		[ 'The questions', [ 'items' ] ],
+		[ 'The note beside the questions', [ 'pull' ] ],
+		[ 'The buttons at the end', [ 'cta_label', 'cta_href', 'cta_hover', 'cta_phone_first' ] ],
+	],
+];
+
+/** The heading every layout's leftover controls are collected under. */
+const SETTINGS_GROUP = 'Settings — you can usually leave these alone';
+
+/**
+ * One accordion separator. `open` on the first group only, so a row opens
+ * showing the words and nothing else; `multi_expand` so opening one does not
+ * shut another. `endpoint` is what makes the PREVIOUS accordion stop here —
+ * without it ACF nests every following field under the first one.
+ */
+function group_divider( string $layout, string $title, int $i, bool $open ): array {
+	return [
+		'key'          => 'field_vs_grp_' . $layout . '_' . $i,
+		'label'        => $title,
+		'name'         => '',
+		'type'         => 'accordion',
+		'open'         => $open ? 1 : 0,
+		'multi_expand' => 1,
+		'endpoint'     => 0,
+	];
+}
+
+/**
+ * Re-order one layout's sub-fields into its groups and splice the accordions in.
+ * Returns the sub-fields unchanged when the layout has no plan.
+ */
+function group_layout_fields( string $layout, array $subs ): array {
+	$plan = SECTION_GROUPS[ $layout ] ?? null;
+
+	if ( null === $plan ) {
+		return $subs;
+	}
+
+	// Index by name. A layout with two fields of one name would collide, which
+	// the model does not do — but take the first and leave the rest to the
+	// leftovers rather than silently dropping one.
+	$by_name = [];
+
+	foreach ( $subs as $i => $sub ) {
+		$name = $sub['name'] ?? '';
+
+		if ( '' !== $name && ! isset( $by_name[ $name ] ) ) {
+			$by_name[ $name ] = $i;
+		}
+	}
+
+	$out   = [];
+	$taken = [];
+	$n     = 0;
+
+	foreach ( $plan as $group ) {
+		list( $title, $names ) = $group;
+
+		$members = [];
+
+		foreach ( $names as $name ) {
+			if ( isset( $by_name[ $name ] ) && ! isset( $taken[ $by_name[ $name ] ] ) ) {
+				$members[]                    = $subs[ $by_name[ $name ] ];
+				$taken[ $by_name[ $name ] ] = true;
+			}
+		}
+
+		// A group whose fields are all absent draws no empty accordion.
+		if ( ! $members ) {
+			continue;
+		}
+
+		$out[] = group_divider( $layout, $title, $n, 0 === $n );
+		$out   = array_merge( $out, $members );
+		++$n;
+	}
+
+	// Everything the plan did not name, in its original order. This is the
+	// safety net: a field added to a layout later still appears.
+	$rest = [];
+
+	foreach ( $subs as $i => $sub ) {
+		if ( ! isset( $taken[ $i ] ) ) {
+			$rest[] = $sub;
+		}
+	}
+
+	if ( $rest ) {
+		$out[] = group_divider( $layout, SETTINGS_GROUP, $n, false );
+		$out   = array_merge( $out, $rest );
+	}
+
+	return $out;
+}
+
+/**
+ * Rewrite the Page sections field as wp-admin draws it.
+ *
+ * Guarded on the field key so this touches one field and nothing else, and
+ * returns the field untouched the moment anything is not the shape expected —
+ * a wrong guess here would be a broken edit screen on 20 live pages.
+ */
+function group_section_fields( $field ) {
+	if ( ! is_array( $field ) || 'field_vs_blocks' !== ( $field['key'] ?? '' ) ) {
+		return $field;
+	}
+
+	if ( empty( $field['layouts'] ) || ! is_array( $field['layouts'] ) ) {
+		return $field;
+	}
+
+	foreach ( $field['layouts'] as $i => $layout ) {
+		if ( ! is_array( $layout ) || empty( $layout['sub_fields'] ) || ! is_array( $layout['sub_fields'] ) ) {
+			continue;
+		}
+
+		$field['layouts'][ $i ]['sub_fields'] = group_layout_fields(
+			(string) ( $layout['name'] ?? '' ),
+			$layout['sub_fields']
+		);
+	}
+
+	return $field;
+}
+add_filter( 'acf/prepare_field', __NAMESPACE__ . '\\group_section_fields', 30 );
