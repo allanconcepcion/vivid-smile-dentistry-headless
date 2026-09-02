@@ -1500,3 +1500,161 @@ function group_section_fields( $field ) {
 	return $field;
 }
 add_filter( 'acf/prepare_field', __NAMESPACE__ . '\\group_section_fields', 30 );
+
+/**
+ * ─── Repeater rows collapse, and each one says what it is ──────────────────
+ *
+ * Every repeater in the model renders each row fully expanded. On a section
+ * with six cards that is six stacks of boxes; on /privacy-policy/ it is
+ * nineteen numbered clauses open at once, and on /terms-conditions/
+ * twenty-three — the two pages where an editor is most likely to be hunting
+ * for one specific paragraph. Twenty-one of the twenty-four repeaters were
+ * declared with no `collapsed` setting at all, so none of them could be
+ * folded shut.
+ *
+ * Setting `collapsed` to a sub-field does two things: rows arrive closed, and
+ * each closed row shows THAT sub-field's value as its title. So the legal
+ * pages become a numbered contents list, and a card grid becomes a list of
+ * card titles — the same idea as the section handles, one level down.
+ *
+ * The sub-field chosen is the one a person would use to find the row again:
+ * the heading for a section, the question for an FAQ, the title for a card,
+ * the plan name for a price. Applied on `acf/prepare_field` for the same
+ * reason as the grouping above — it is a drawing concern, and cannot reach
+ * the schema from here.
+ *
+ * The four `table`-layout repeaters (the photo list, the “On this page” menu,
+ * the credential figures, the hero buttons) are left alone: a table row is
+ * already one line, and collapsing it would hide the only thing it shows.
+ */
+const REPEATER_ROW_TITLE = [
+	'field_vs_process_steps' => 'field_vs_step_title', // process_steps → title
+	'field_vs_sections' => 'field_vs_section_heading', // sections → heading
+	'field_vs_cards' => 'field_vs_card_title', // cards → title
+	'field_vs_faqs' => 'field_vs_faq_q', // faqs → question
+	'field_vs_blk_faq_items' => 'field_vs_blk_faq_q', // items → question
+	'field_vs_blk_cards_cards' => 'field_vs_blk_cards_card_title', // cards → title
+	'field_vs_blk_media_sub_cards' => 'field_vs_blk_media_sub_card_title', // sub_cards → title
+	'field_vs_blk_steps_pre_cards' => 'field_vs_blk_steps_pre_card_heading', // pre_cards → heading
+	'field_vs_blk_steps_steps' => 'field_vs_blk_steps_step_title', // steps → title
+	'field_vs_blk_compare_cards' => 'field_vs_blk_compare_card_title', // tiers → title
+	'field_vs_blk_compare_alt_cards' => 'field_vs_blk_compare_alt_card_title', // alt_cards → title
+	'field_vs_blk_compare_glossary' => 'field_vs_blk_compare_glossary_row_title', // glossary → title
+	'field_vs_blk_pricing_plans' => 'field_vs_blk_pricing_plan_name', // plans → name
+	'field_vs_blk_stat_points' => 'field_vs_blk_stat_point_lead', // points → lead
+	'field_vs_blk_cstats_stats' => 'field_vs_blk_cstats_stat_label', // stats → label
+	'field_vs_blk_tech_cards' => 'field_vs_blk_tech_card_title', // tech_cards → title
+	'field_vs_blk_svc_cards' => 'field_vs_blk_svc_card_title', // svc_cards → title
+	'field_vs_blk_docs_bios' => 'field_vs_blk_docs_bio_heading', // bios → heading
+	'field_vs_blk_cand_ledger' => 'field_vs_blk_cand_ledger_title', // ledger → title
+];
+
+/**
+ * Give a repeater its row title. Returns the field untouched unless it is one
+ * of the repeaters above and still has no `collapsed` of its own, so a setting
+ * added in the content model later wins over this table rather than fighting
+ * it.
+ */
+function collapse_repeater_rows( $field ) {
+	if ( ! is_array( $field ) || 'repeater' !== ( $field['type'] ?? '' ) ) {
+		return $field;
+	}
+
+	$sub = REPEATER_ROW_TITLE[ $field['key'] ?? '' ] ?? null;
+
+	if ( null === $sub || ! empty( $field['collapsed'] ) ) {
+		return $field;
+	}
+
+	$field['collapsed'] = $sub;
+
+	// No stored preference means this editor has never folded this repeater,
+	// so fold it for them once — see print_first_load_collapse() below.
+	if ( '' === (string) acf_get_user_setting( 'collapsed_' . $field['key'], '' ) ) {
+		first_load_collapse( $field['key'] );
+	}
+
+	return $field;
+}
+add_filter( 'acf/prepare_field', __NAMESPACE__ . '\\collapse_repeater_rows', 30 );
+
+/**
+ * ─── Rows arrive folded the first time ─────────────────────────────────────
+ *
+ * `collapsed` above gives every row a fold control and a title; it does not
+ * fold anything. ACF decides that from a per-user preference, which a new
+ * editor does not have — so their FIRST sight of /privacy-policy/ would still
+ * be nineteen clauses open at once, which is the thing being fixed.
+ *
+ * So on a render where ACF holds no preference for one of these repeaters, a
+ * few lines of script fold its rows. It only adds the class ACF's own toggle
+ * adds and writes no preference of its own, so the moment the editor folds or
+ * unfolds anything themselves, ACF stores that and this stops applying.
+ *
+ * Deliberately not done by clicking each toggle: on a nineteen-row page that
+ * would fire nineteen of ACF's preference writes on page load.
+ */
+function first_load_collapse( ?string $key = null ): array {
+	static $keys = [];
+
+	if ( null !== $key && ! in_array( $key, $keys, true ) ) {
+		$keys[] = $key;
+	}
+
+	return $keys;
+}
+
+function print_first_load_collapse(): void {
+	$keys = first_load_collapse();
+
+	if ( ! $keys ) {
+		return;
+	}
+
+	?>
+	<script>
+	( function () {
+		var keys = <?php echo wp_json_encode( $keys ); ?>;
+
+		// querySelectorAll, not querySelector: a repeater nested in a section
+		// layout is drawn once per row of that section, so there is rarely only
+		// one of them on the page.
+		function fold( root ) {
+			keys.forEach( function ( key ) {
+				( root || document )
+					.querySelectorAll( '.acf-field[data-key="' + key + '"]' )
+					.forEach( function ( field ) {
+						field.querySelectorAll( '.acf-row:not(.acf-clone)' ).forEach( function ( row ) {
+							row.classList.add( '-collapsed' );
+						} );
+					} );
+			} );
+		}
+
+		if ( document.readyState === 'loading' ) {
+			document.addEventListener( 'DOMContentLoaded', function () { fold(); } );
+		} else {
+			fold();
+		}
+
+		// ACF does not set up the fields inside a folded section row until that
+		// row is opened, and setting them up rebuilds the rows — which drops the
+		// class the pass above added. So fold again when ACF says a repeater is
+		// ready, and once more after a section handle is clicked open.
+		if ( window.acf && typeof acf.addAction === 'function' ) {
+			acf.addAction( 'ready_field/type=repeater', function ( field ) {
+				if ( field && field.$el ) { fold( field.$el[0].parentNode || document ); }
+			} );
+			acf.addAction( 'append_field/type=repeater', function () { fold(); } );
+		}
+
+		document.addEventListener( 'click', function ( e ) {
+			if ( e.target.closest && e.target.closest( '.acf-fc-layout-handle' ) ) {
+				setTimeout( function () { fold(); }, 60 );
+			}
+		}, true );
+	} )();
+	</script>
+	<?php
+}
+add_action( 'admin_footer', __NAMESPACE__ . '\\print_first_load_collapse' );

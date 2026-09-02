@@ -1335,7 +1335,7 @@ function register_field_groups(): void {
 							'name'         => 'heading',
 							'type'         => 'textarea',
 							'rows'         => 2,
-							'instructions' => 'To give a few words the italic accent, type &lt;em&gt; before them and &lt;/em&gt; after, like this: Your &lt;em&gt;best&lt;/em&gt; smile.',
+							'instructions' => 'For the italic accent, wrap those words: Your &lt;em&gt;best&lt;/em&gt; smile.',
 						],
 						[
 							'key'   => 'field_vs_section_body',
@@ -4257,7 +4257,7 @@ function register_field_groups(): void {
 										'name'         => 'callout_heading',
 										'type'         => 'textarea',
 										'rows'         => 2,
-										'instructions' => 'To give a few words the italic accent, type &lt;em&gt; before them and &lt;/em&gt; after, like this: Your &lt;em&gt;best&lt;/em&gt; smile.',
+										'instructions' => 'For the italic accent, wrap those words: Your &lt;em&gt;best&lt;/em&gt; smile.',
 									],
 									[
 										'key'   => 'field_vs_blk_tech_callout_body',
