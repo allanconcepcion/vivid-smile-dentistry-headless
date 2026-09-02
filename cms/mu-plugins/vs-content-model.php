@@ -489,7 +489,7 @@ function block_list_field( string $key, string $label, string $name, string $but
 			],
 			[
 				'key'   => $key . '_item',
-				'label' => 'Line',
+				'label' => 'The rest of the line',
 				'name'  => 'item',
 				'type'  => 'text',
 			],
@@ -1216,7 +1216,7 @@ function register_field_groups(): void {
 					'sub_fields'   => [
 						[
 							'key'   => 'field_vs_toc_label',
-							'label' => 'Label',
+							'label' => 'Name in the menu',
 							'name'  => 'label',
 							'type'  => 'text',
 						],
@@ -1608,7 +1608,7 @@ function register_field_groups(): void {
 							'sub_fields'   => [
 								[
 									'key'   => 'field_vs_page_hero_cta_label',
-									'label' => 'Label',
+									'label' => 'Button words',
 									'name'  => 'label',
 									'type'  => 'text',
 								],
@@ -2030,10 +2030,9 @@ function register_field_groups(): void {
 											],
 											[
 												'key'          => 'field_vs_blk_cards_card_lead',
-												'label'        => 'Lead',
+												'label'        => 'Line under the title',
 												'name'         => 'lead',
 												'type'         => 'text',
-												'instructions' => 'One line under the title, above the body.',
 											],
 											[
 												'key'   => 'field_vs_blk_cards_card_body',
@@ -2448,7 +2447,7 @@ function register_field_groups(): void {
 											],
 											[
 												'key'   => 'field_vs_blk_media_cred_label',
-												'label' => 'Label',
+												'label' => 'Line of text',
 												'name'  => 'label',
 												'type'  => 'text',
 											],
@@ -3976,7 +3975,7 @@ function register_field_groups(): void {
 										'sub_fields'   => [
 											[
 												'key'          => 'field_vs_blk_stat_point_lead',
-												'label'        => 'Lead',
+												'label'        => 'Bold opening',
 												'name'         => 'lead',
 												'type'         => 'text',
 												// The colon belongs to the template, which
@@ -4126,13 +4125,13 @@ function register_field_groups(): void {
 											],
 											[
 												'key'   => 'field_vs_blk_cstats_stat_label',
-												'label' => 'Label',
+												'label' => 'Line under the number',
 												'name'  => 'label',
 												'type'  => 'text',
 											],
 											[
 												'key'   => 'field_vs_blk_cstats_stat_detail',
-												'label' => 'Detail',
+												'label' => 'Small print under that',
 												'name'  => 'detail',
 												'type'  => 'textarea',
 												'rows'  => 3,
