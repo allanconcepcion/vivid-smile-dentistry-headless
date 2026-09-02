@@ -922,7 +922,7 @@ function images_guide( array $page ): string {
 	$mixed = list_is_mixed( $page['images'] );
 
 	$lines   = [];
-	$lines[] = 'Where each photo appears on the page — match the code in the Slot column.';
+	$lines[] = 'Where each photo appears on the page — match the code in the <em>Photo code</em> column.';
 
 	foreach ( $page['images'] as $row ) {
 		$lines[] = guide_line( $row, 'slot', $mixed, true );
@@ -1262,6 +1262,33 @@ add_filter( 'acf/fields/flexible_content/layout_title/name=blocks', __NAMESPACE_
  *
  * Each group is [ heading, [ field names, in order ] ]. The closing settings
  * group is added automatically and holds everything not named here.
+ *
+ * HOW THE ORDER WAS ESTABLISHED. One agent per layout read the layout's PHP and
+ * its Astro component's template together and reported the order things are
+ * actually drawn in, citing line numbers; a second, adversarial agent per
+ * layout re-derived that order from the component and tried to fault it. Eleven
+ * of thirteen came back with corrections, which is the point of running the
+ * second pass — the most useful was MediaSplit, where the obvious reading puts
+ * the section's `body` at the top with the heading, and the component draws it
+ * at MediaSplitBlock.astro:807, inside `.prose`, AFTER the quote and the
+ * checklist. It is grouped with the words beside the photo for that reason.
+ *
+ * THE FIELD LISTS ARE THE SCHEMA'S, NOT A GREP'S. The first attempt built them
+ * by regex over this repo and silently missed every field `block_preamble()`
+ * contributes, because those keys are concatenated (`$k . 'anchor'`) rather
+ * than written out — so `eyebrow`, `heading` and `body` were absent from twelve
+ * of thirteen plans and would have fallen through into the settings group, one
+ * step short of putting a page's own heading under "you can usually leave these
+ * alone". The lists were re-taken from the live GraphQL schema, which enumerates
+ * exactly the fields each layout has: 244 across sixteen layouts.
+ *
+ * CHECKED MECHANICALLY, per layout: no field named twice, no field named that
+ * the layout does not have, and nothing left to fall through except things that
+ * really are settings — background, menu name, jump-to name, column counts,
+ * heading width, stacking width, photo side, panel position.
+ *
+ * `code_section` is deliberately absent. It has three fields; grouping them
+ * would add furniture, not remove it.
  */
 const SECTION_GROUPS = [
 	'faq' => [
@@ -1269,6 +1296,88 @@ const SECTION_GROUPS = [
 		[ 'The questions', [ 'items' ] ],
 		[ 'The note beside the questions', [ 'pull' ] ],
 		[ 'The buttons at the end', [ 'cta_label', 'cta_href', 'cta_hover', 'cta_phone_first' ] ],
+	],
+	'card_grid' => [
+		[ 'The heading at the top', [ 'eyebrow', 'heading', 'body' ] ],
+		[ 'The cards across the middle', [ 'cards_eyebrow', 'cards' ] ],
+		[ 'The panel under the cards', [ 'callout_eyebrow', 'callout_heading', 'callout_body', 'callout_points' ] ],
+		[ 'The buttons at the end', [ 'cta_label', 'cta_href', 'cta_hover', 'cta_label_2', 'cta_href_2', 'cta_hover_2', 'cta_note' ] ],
+	],
+	'media_split' => [
+		[ 'The heading at the top', [ 'eyebrow', 'heading' ] ],
+		[ 'The photo', [ 'image', 'image_alt' ] ],
+		[ 'The words beside the photo', [ 'quote', 'quote_attrib', 'checklist', 'body', 'body_2_heading', 'body_2', 'body_3_heading', 'body_3' ] ],
+		[ 'The row of big numbers under the words', [ 'creds' ] ],
+		[ 'The boxed note beside the words', [ 'callout_eyebrow', 'callout_heading', 'callout_body' ] ],
+		[ 'The buttons under the words', [ 'cta_label', 'cta_href', 'cta_hover', 'cta_label_2', 'cta_href_2', 'cta_hover_2' ] ],
+		[ 'The cards and closing line at the bottom', [ 'sub_cards', 'sub_foot', 'cta_text' ] ],
+	],
+	'process_steps' => [
+		[ 'The heading at the top', [ 'eyebrow', 'heading', 'body' ] ],
+		[ 'The cards above the steps', [ 'pre_cards' ] ],
+		[ 'The numbered steps', [ 'steps' ] ],
+		[ 'The paragraph under the steps', [ 'sub_foot' ] ],
+		[ 'The line that closes the section', [ 'cta_text' ] ],
+	],
+	'comparison_cards' => [
+		[ 'The heading at the top', [ 'eyebrow', 'heading', 'body' ] ],
+		[ 'The cards across the middle', [ 'tiers' ] ],
+		[ 'The panel under the cards', [ 'callout_eyebrow', 'callout_heading', 'callout_body' ] ],
+		[ 'The smaller cards below the panel', [ 'alt_cards' ] ],
+		[ 'The list of terms at the bottom', [ 'glossary_eyebrow', 'glossary_heading', 'glossary_body', 'glossary' ] ],
+		[ 'The buttons at the end', [ 'cta_label', 'cta_href', 'cta_hover', 'cta_label_2', 'cta_href_2', 'cta_hover_2', 'cta_note', 'cta_hide' ] ],
+	],
+	'pricing_tiers' => [
+		[ 'The heading at the top', [ 'eyebrow', 'heading', 'body' ] ],
+		[ 'The price cards across the middle', [ 'plans' ] ],
+		[ 'The line under the cards', [ 'note' ] ],
+		[ 'The buttons at the end', [ 'cta_label', 'cta_href', 'cta_hover', 'cta_label_2', 'cta_href_2', 'cta_hover_2', 'cta_note' ] ],
+	],
+	'stat_callout' => [
+		[ 'The big number on the left', [ 'value', 'unit', 'caption' ] ],
+		[ 'The words beside the number', [ 'eyebrow', 'heading', 'intro', 'body_heading', 'body', 'intro_2' ] ],
+		[ 'The list of points', [ 'points' ] ],
+	],
+	'copy_plus_stats' => [
+		[ 'The heading at the top', [ 'eyebrow', 'heading', 'body' ] ],
+		[ 'More words below that', [ 'body_2_heading', 'body_2', 'body_3_heading', 'body_3' ] ],
+		[ 'The number cards beside the words', [ 'stats' ] ],
+		[ 'The button at the foot of the words', [ 'cta_label', 'cta_href', 'cta_hover' ] ],
+	],
+	'tech_grid' => [
+		[ 'The heading at the top', [ 'eyebrow', 'heading', 'body' ] ],
+		[ 'The numbered cards', [ 'tech_cards' ] ],
+		[ 'The words in the panel below', [ 'callout_eyebrow', 'callout_heading', 'callout_body' ] ],
+		[ 'The photo in that panel', [ 'image', 'image_alt', 'image_tag' ] ],
+	],
+	'service_cards' => [
+		[ 'The heading at the top', [ 'eyebrow', 'heading', 'body' ] ],
+		[ 'The tiles across the middle', [ 'svc_cards' ] ],
+		[ 'The paragraph under the tiles', [ 'sub_foot' ] ],
+		[ 'The buttons at the end', [ 'cta_label', 'cta_href', 'cta_hover', 'cta_label_2', 'cta_href_2', 'cta_hover_2', 'cta_note' ] ],
+	],
+	'doctor_profiles' => [
+		[ 'The heading at the top', [ 'eyebrow', 'heading', 'body' ] ],
+		[ 'The photo down the left side', [ 'image', 'image_alt', 'pill' ] ],
+		[ 'The write-ups beside the photo', [ 'bios' ] ],
+	],
+	'candidacy_ledger' => [
+		[ 'The heading at the top', [ 'eyebrow', 'heading', 'body' ] ],
+		[ 'The writing down the left side', [ 'copy_heading', 'copy_body', 'copy_heading_2', 'copy_body_2' ] ],
+		[ 'The buttons under that writing', [ 'cta_label', 'cta_href', 'cta_hover', 'cta_label_2', 'cta_href_2', 'cta_hover_2' ] ],
+		[ 'The checklist box on the right', [ 'ledger_eyebrow', 'ledger_heading', 'ledger' ] ],
+	],
+	'gallery_marquee' => [
+		[ 'The heading at the top', [ 'eyebrow', 'heading', 'body', 'body_2' ] ],
+		[ 'The quote under the photos', [ 'quote', 'quote_attrib' ] ],
+		[ 'The buttons at the end', [ 'cta_label', 'cta_href', 'cta_hover', 'cta_label_2', 'cta_href_2', 'cta_hover_2', 'cta_note' ] ],
+	],
+	'callout_list' => [
+		[ 'The heading at the top', [ 'eyebrow', 'heading', 'body' ] ],
+		[ 'The list', [ 'lines' ] ],
+	],
+	'map_visit' => [
+		[ 'The heading at the top', [ 'eyebrow', 'heading', 'body' ] ],
 	],
 ];
 
