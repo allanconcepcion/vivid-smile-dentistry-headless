@@ -4,7 +4,11 @@ Written to hand this work to a fresh session — human, or an AI of any model �
 re-deriving any of it. **If this file and `git log` disagree, `git log` wins**; this file was
 last brought fully in line with the tree at the commit below.
 
-**State this file describes:** branch `main`, HEAD `3761258` (2026-09-01). Everything is merged —
+**State this file describes:** branch `main`, HEAD `41359a4` (2026-09-03). **Eight commits are
+committed locally and NOT pushed** — `d3c84b3` through `41359a4`, the whole wp-admin
+newbie-friendliness round described under "The wp-admin editing screen" below. Allan was asked
+twice whether to push and had not answered when the day ended; pushing is his call, not a
+cleanup step. Everything before them is merged —
 PR #10 (`page-blocks` → `cms-editor-safety`) and PR #9 (`cms-editor-safety` → `main`) both landed
 on 2026-08-31 with merge commits, zero open PRs, both branches kept. The public domain has NOT
 been cut over: the built site is a `Disallow: /` Vercel preview at
@@ -141,6 +145,51 @@ is rehosted into `/_assets` at build time, so the live site has no runtime CMS d
 - **Order of operations for a new field:** write PHP → `php -l` → upload → confirm queryable
   (`curl` the endpoint) → then wire loader/zod/page-content/templates → build → measure. New
   page-level groups are probe-gated so the reverse order does not fail, but do not rely on it.
+
+## The wp-admin editing screen (2026-09-03, commits `d3c84b3`..`41359a4`)
+
+Allan used the CMS and said, twice: adding instruction text is not the same as making a field
+clear, and what he wants is that **"the fields of each page will be like a mirror on the front
+end"**, grouped **per section**. That framing drove this whole round.
+
+**What an editor sees now.** A page opens with a per-page note that ends in a link to that page
+on the live site. *Page sections* rows are titled by their own heading (`Photo and copy: What Are
+Porcelain Veneers?`). Opening a row gives three to eight named groups that walk down the section
+as a visitor's eye does, with every shape control collected under *Settings — you can usually
+leave these alone*. Every repeater row arrives folded and titled by its own text, so
+/terms-conditions/ is a 23-line contents list instead of 23 open clauses.
+
+**Where the code lives, and why that matters.** All of it is in `cms/mu-plugins/vs-editor-guide.php`
+on `acf/prepare_field`, which runs only when wp-admin DRAWS a field — not when the schema is
+registered, not when a query resolves. `vs-content-model.php` (the GraphQL contract) was touched
+only for labels, instructions and one field-group title. Nothing in this round can reach the
+build, and that is structural rather than careful.
+
+**The three checks this round added, all cheap and all repeatable:**
+
+1. **Identifier multiset.** `'key'`/`'name'`/`'graphql_field_name'` values extracted from
+   `vs-content-model.php` at HEAD and now, compared as a multiset — 536 of them, identical. Order
+   may differ (field order is presentation only); membership may not.
+2. **Schema fingerprint.** Introspect every `PageFieldsBlocks*` type and hash its sorted field
+   names: **37 types, 325 fields** is the baseline. Introspection is off for public requests, so
+   it must be run from the GraphiQL IDE page with its nonce —
+   `fetch('/graphql', {headers:{'X-WP-Nonce': window.wpGraphiQLSettings.nonce}, credentials:'include'})`.
+   This is also the authoritative list of what fields a layout actually has: a regex over the repo
+   MISSES everything `block_preamble()` contributes, because those keys are concatenated.
+3. **Save round-trip.** Press Update on a real page and re-query it; the digest and byte length
+   must match. Done on /cosmetic-dentistry/ (FAQ), /porcelain-veneers/ (the 32-field Photo and
+   copy) and /terms-conditions/ (23 sections). All byte-identical.
+
+**Coverage:** all 33 published pages. 20 have `blocks` rows and so get the grouped sections; the
+other 13 have none and are still edited through the older Section copy / Cards & lists / Images
+tabs — those got the folding repeaters, the renamed labels and the per-page guidance.
+
+**Known rough edges.** `.vr/html` is a stale baseline (it predates the merged page-blocks work) so
+`npm run vr:html -- compare` reports all 48 routes changed for reasons that are not this round's;
+it was left alone rather than overwritten. The "open this page on the website" link points at the
+Vercel URL because the domain cutover has not happened — it reads `VS_FRONTEND_URL`, so it
+follows the cutover with no edit. Group headings are Claude's wording and Allan has not reviewed
+them; each is a one-line edit in `SECTION_GROUPS`.
 
 ## The verification method this project learned
 
@@ -453,6 +502,10 @@ are not.
 
 ## Suggested next steps
 
+0. **Decide on the eight unpushed commits** (`d3c84b3`..`41359a4`). They are deployed to the live
+   CMS already — the mu-plugins on the host match these files byte for byte — so the repo is the
+   only thing behind. Push, or say what to change first. Also worth Allan's eye: the section group
+   headings, which are Claude's words for parts of his pages.
 1. **Backfill the "Bottom of page" boxes.** Extract each page's consult eyebrow/headline/body and
    FinalBand note from the templates (20 + 17 call sites), prove the payload byte-identical by
    local overlay, add a third mode to `vs-migrate.php` (or extend `backfill-hero.php`), deploy,
