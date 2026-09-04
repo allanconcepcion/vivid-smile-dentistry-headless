@@ -700,7 +700,52 @@ function current_page(): ?array {
 		$id = isset( $_GET['post'] ) ? (int) $_GET['post'] : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
 	}
 
-	return PAGES[ $id ] ?? null;
+	if ( isset( PAGES[ $id ] ) ) {
+		return PAGES[ $id ];
+	}
+
+	return new_page( $id );
+}
+
+/**
+ * The entry for a page the maps do not know — which in practice means a page
+ * the CLIENT made, since the 33 that existed at handover are all mapped.
+ *
+ * This was the one screen with no guidance at all, and it is the only screen
+ * they will ever create. Worse, the default message it fell back to named two
+ * tabs that do nothing here: it said to use <em>Bottom of page</em> for the
+ * consultation invite and that <em>Images</em> "works on every page".
+ *
+ * A new page is rendered by src/pages/[...slug].astro, and that file decides
+ * what is true here. It has no reference to `closing` or FinalBand anywhere, so
+ * Bottom of page draws nothing; and its own comment at :184 records that this
+ * route "never reads `page.images`". Everything else does work — the hero (read
+ * at :258 and used at :276-279), Page sections, and the five legacy tabs, plus
+ * the ordinary WordPress editor box, which on this route is the only place a
+ * photo can go outside a section.
+ *
+ * Returns null for anything that is not a page, so posts and testimonials are
+ * untouched.
+ */
+function new_page( int $id ): ?array {
+	if ( $id <= 0 || 'page' !== get_post_type( $id ) ) {
+		return null;
+	}
+
+	// Only a published page has a real address. A draft's permalink is a
+	// query-string preview URL whose path is "/", and linking that would send
+	// the editor to the home page under the words "open this page".
+	$route = 'publish' === get_post_status( $id )
+		? (string) wp_parse_url( (string) get_permalink( $id ), PHP_URL_PATH )
+		: '';
+
+	return [
+		'route'    => $route,
+		'kind'     => 'new',
+		// Everything [...slug].astro actually reads. Images and Bottom of page
+		// are deliberately absent, which is what hides them.
+		'liveTabs' => [ 'Hero', 'Page sections', 'Section copy', 'Process', 'Cards & lists', 'FAQ', 'On this page' ],
+	];
 }
 
 /**
@@ -831,6 +876,18 @@ function orientation_message( array $page ): string {
 			. 'Everything below it is edited from two tabs: the words in <em>Section copy</em>, the photos in <em>Images</em>. '
 			. 'Each of those tabs starts with a guide saying exactly which box changes which part of the page.';
 		$lines[] = 'The other tabs save, but do not change this page. Changes go live on the next site build.';
+	} elseif ( 'new' === $page['kind'] ) {
+		$lines[] = '<strong>This is a page you made, so it starts empty.</strong>';
+		$lines[] = 'Give it a headline on the <em>Hero</em> tab, then build the rest in '
+			. '<em>Page sections</em>: press <em>Add a section</em>, choose what kind of section it is, '
+			. 'and fill in the boxes. Photos go inside the section you add, or in the big editor box '
+			. 'under the title.';
+		$lines[] = 'Two tabs do nothing on a page like this and are hidden: the closing invite and the '
+			. 'page-wide photo list are both part of the designs we hand-built, and a new page does not '
+			. 'have one yet. Ask us if this page needs either.';
+		$lines[] = '<strong>A new page is not in any menu until someone puts it there</strong> — '
+			. 'Appearance → Menus. Until then it is only reachable by its address.';
+		$lines[] = 'Changes go live on the next site build.';
 	} elseif ( 'template' === $page['kind'] && empty( $page['liveTabs'] ) ) {
 		// A page with no live tabs at all — today only the blog index, which
 		// builds itself from Posts. The branch below would open with "edited

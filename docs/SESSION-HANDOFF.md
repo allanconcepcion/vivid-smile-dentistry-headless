@@ -180,6 +180,14 @@ build, and that is structural rather than careful.
    must match. Done on /cosmetic-dentistry/ (FAQ), /porcelain-veneers/ (the 32-field Photo and
    copy) and /terms-conditions/ (23 sections). All byte-identical.
 
+**Pages the client makes** get their own orientation and tab trimming, keyed off
+`current_page()` returning a synthesized entry when the id is not in `PAGES`.
+What is true there is decided by `src/pages/[...slug].astro`: it has no reference
+to `closing` or FinalBand anywhere, and its own comment at :184 records that it
+"never reads `page.images`" — so *Bottom of page* and *Images* do nothing on a
+new page and are hidden. Everything else works, including the hero. The default
+message they used to fall back to named both of those tabs as usable.
+
 **Coverage:** all 33 published pages. 20 have `blocks` rows and so get the grouped sections; the
 other 13 have none and are still edited through the older Section copy / Cards & lists / Images
 tabs — those got the folding repeaters, the renamed labels and the per-page guidance.
