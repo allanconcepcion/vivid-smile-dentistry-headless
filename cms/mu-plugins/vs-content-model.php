@@ -505,7 +505,7 @@ function block_list_field( string $key, string $label, string $name, string $but
  * <Image> refuses a remote source without them, and the mime list keeps bmp and
  * ico out of a build that hands every one of these URLs to sharp.
  */
-function block_image_field( string $key, string $label = 'Image', string $name = 'image' ): array {
+function block_image_field( string $key, string $label = 'Image', string $name = 'image', string $instructions = '' ): array {
 	return [
 		'key'           => $key,
 		'label'         => $label,
@@ -515,6 +515,13 @@ function block_image_field( string $key, string $label = 'Image', string $name =
 		'preview_size'  => 'thumbnail',
 		'library'       => 'all',
 		'mime_types'    => 'webp,jpg,jpeg,png',
+		// Every one of the six call sites drew a box with no words at all. The
+		// default says the two things that are not on screen: that an existing
+		// picture can be reused, and which file types will be accepted — a
+		// rejected upload otherwise just fails with no reason given.
+		'instructions'  => '' !== $instructions
+			? $instructions
+			: 'Choose a picture already in the Media Library, or upload one. JPG, PNG or WebP.',
 	];
 }
 
@@ -1620,7 +1627,7 @@ function register_field_groups(): void {
 									'instructions' => 'Where the button goes: a page on this site, typed like /contact/, or a spot '
 										. 'on this page, typed like #consult. Do not paste booking links or phone numbers '
 										. 'here — those live under Practice Settings so they can never go out of date. A '
-										. 'button needs both its Label and its Link filled, or it will not appear.',
+										. 'button needs both its Button words and its Link filled, or it will not appear.',
 								],
 							],
 						],
@@ -1674,6 +1681,8 @@ function register_field_groups(): void {
 							'label'         => 'How the photo is shown',
 							'name'          => 'media_shape',
 							'type'          => 'select',
+							'instructions'  => 'How the top of this page is arranged. The headline and the photo are '
+								. 'sized to fit the arrangement it already has, so check with us before changing it.',
 							// A closed list, and short on purpose. These four are the
 							// hero media treatments that exist in the templates today:
 							// .hero-img (15 pages), .hero-stack (5), .hero-bg (3), and
@@ -2002,10 +2011,10 @@ function register_field_groups(): void {
 										'label'        => 'Label above the cards',
 										'name'         => 'cards_eyebrow',
 										'type'         => 'text',
-										'instructions' => 'Optional. A second small label directly above the cards, '
-											. 'inside the section — not the section\'s own Eyebrow at the top of '
-											. 'this row. Leave it blank and the cards start unlabelled, as every '
-											. 'section does today.',
+										'instructions' => 'Optional. A second small line directly above the cards, '
+											. 'inside the section — not the “Small line above the heading” at the '
+											. 'top of this row. Leave it blank and the cards start unlabelled, as '
+											. 'every section does today.',
 									],
 									[
 										'key'          => 'field_vs_blk_cards_cards',
