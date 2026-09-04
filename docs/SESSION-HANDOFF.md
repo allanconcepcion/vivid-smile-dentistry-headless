@@ -4,11 +4,9 @@ Written to hand this work to a fresh session — human, or an AI of any model �
 re-deriving any of it. **If this file and `git log` disagree, `git log` wins**; this file was
 last brought fully in line with the tree at the commit below.
 
-**State this file describes:** branch `main`, HEAD `41359a4` (2026-09-03). **Eight commits are
-committed locally and NOT pushed** — `d3c84b3` through `41359a4`, the whole wp-admin
-newbie-friendliness round described under "The wp-admin editing screen" below. Allan was asked
-twice whether to push and had not answered when the day ended; pushing is his call, not a
-cleanup step. Everything before them is merged —
+**State this file describes:** branch `main`, HEAD is on `origin/main` (2026-09-04) — everything
+from the wp-admin round is committed AND pushed, so the repo, the live CMS and this file agree.
+Everything before them is merged —
 PR #10 (`page-blocks` → `cms-editor-safety`) and PR #9 (`cms-editor-safety` → `main`) both landed
 on 2026-08-31 with merge commits, zero open PRs, both branches kept. The public domain has NOT
 been cut over: the built site is a `Disallow: /` Vercel preview at
@@ -225,6 +223,51 @@ REMOVE_MENUS entries are gone, Appearance shows only Menus, and WP File Manager
 and All-in-One WP Migration are absent — the last two are NOT in REMOVE_MENUS and
 are expected to hide themselves on capability, which is worth confirming rather
 than assuming.
+
+## 2026-09-04, second wp-admin round — what changed and what it found
+
+Deployed and verified on the live CMS; every item below was checked on real screens, not
+reasoned about.
+
+**Tabs a page does not use are no longer drawn.** Nine tabs shipped on every page and almost no
+page used nine: of 297 tab-instances across the 33 pages, 126 held no data at all. Three states
+now — live (untouched), dead-and-empty (hidden, 89 instances), dead-but-holding-words (kept,
+label gains "(not used here)", 85 instances). *Page sections* is never hidden even when empty:
+it is the migration switch. Checked across all 33 pages, twice: **no live tab missing, and no
+hidden tab holding data.** A save on /privacy-policy/ (6 tabs hidden) round-tripped
+byte-identically.
+
+**Pages the client creates** now get their own guidance. They had none — the guide is keyed by
+post id, so anything outside the 33 fell through to a default that was actively wrong here: it
+named *Bottom of page* and *Images*, and `[...slug].astro` reads neither (no `closing`/FinalBand
+reference anywhere; its own comment at :184 says it "never reads `page.images`"). Add Page now
+shows seven tabs and says a new page is in no menu until someone puts it there.
+
+**A "Start here" panel** is pinned to the top of the dashboard — the five things a receptionist
+owns, each linked. NOT role-gated, and that is the finding: `vs-admin.php` curates the admin menu
+only for non-administrators, and `users.php` lists exactly one account, `admin`, an
+Administrator. **All of that curation is inert.** See its own section below.
+
+**Bottom of page shows what the page says today** (30 pages), scraped from `dist/`. See the
+rewritten next-step 1 for why the real backfill was measured and deliberately deferred.
+
+**Each photo row says where that photo goes**, beside its code, instead of only in a guide above
+a table that runs to 25 rows.
+
+**That found a real defect in the content.** `teamAlly` on /about-us/ was a photo row the site
+never read — not in the guide map, not in the Astro source, "Ally" appearing zero times in the
+built page. Allan confirmed she has left the company. The row was removed from the CMS on
+2026-09-04 and verified in the database: 25 images → 24, **only that slot removed**, every other
+slot in identical order, sections/cards/hero untouched; rebuild gives 48 routes, "Ally" nowhere,
+all 9 team cards intact. Comparing every page's saved slots against the map found it was the
+only orphan on the site. **Her image file is still in the Media Library** — deleting a real
+person's photo is Allan's call, not a cleanup step, and nothing on the site points at it.
+
+Two method notes worth keeping. The File Manager's replace dialog moves between windows, so two
+deploys silently did not land when clicked by coordinate — **click YES by JS
+(`.ui-dialog button` filtered to visible), and always confirm the deployed byte size against the
+local one.** And a wp-admin save is not confirmed by the editor DOM: a disconnect once left 24
+rows on screen while the database still had 25. **Confirm a save against GraphQL, not the page.**
 
 ## The verification method this project learned
 

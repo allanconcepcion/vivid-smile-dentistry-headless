@@ -147,7 +147,6 @@ const PAGES = [
 			[ 'slot' => 'teamLinh', 'where' => 'Linh’s photo (Dental Assistant) in the team area', 'status' => 'live' ],
 			[ 'slot' => 'teamTina', 'where' => 'Tina’s photo (Dental Assistant) in the team area', 'status' => 'live' ],
 			[ 'slot' => 'teamKnox', 'where' => 'Knox’s photo (the dog, Director of Smiles) in the team area', 'status' => 'live' ],
-			[ 'slot' => 'teamAlly', 'where' => 'nothing — this code is not used anywhere on the site', 'status' => 'unused' ],
 			[ 'slot' => 'teamBirdie', 'where' => 'Birdie’s photo (the dog, Chief Comfort Officer) in the team area', 'status' => 'live' ],
 			[ 'slot' => 'yomiImg', 'where' => 'the photo in the technology area — a treatment room', 'status' => 'live' ],
 			[ 'slot' => 'aacdLogo', 'where' => 'the AACD logo card in the credentials area near the bottom', 'status' => 'live' ],
