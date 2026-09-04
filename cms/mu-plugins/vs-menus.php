@@ -97,7 +97,7 @@ function register_fields(): void {
 				],
 				[
 					'key'           => 'field_vs_menu_image',
-					'label'         => 'Image',
+					'label'         => 'Photo (About menu only)',
 					'name'          => 'image',
 					'type'          => 'image',
 					'return_format' => 'array',
