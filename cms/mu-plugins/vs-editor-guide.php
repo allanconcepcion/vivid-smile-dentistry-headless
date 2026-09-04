@@ -1126,6 +1126,23 @@ function rewrite_guidance( $field ) {
 				$field['instructions'] = faq_instructions( $page['faq'] );
 			}
 			break;
+
+		case 'field_vs_closing_intro':
+			// Appended, not replaced: the stored message explains the switch and
+			// which boxes belong to which band, which is still the right
+			// explanation — it just never said what the words currently are.
+			$id = isset( $_GET['post'] ) ? (int) $_GET['post'] : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+			if ( ! $id && isset( $GLOBALS['post']->ID ) ) {
+				$id = (int) $GLOBALS['post']->ID;
+			}
+
+			$today = $id ? closing_today( $id ) : '';
+
+			if ( '' !== $today ) {
+				$field['message'] = ( $field['message'] ?? '' ) . $today;
+			}
+			break;
 	}
 
 	return $field;
@@ -1949,3 +1966,220 @@ function add_dashboard_signpost(): void {
 	$wp_meta_boxes['dashboard']['normal']['core'] = $ours + $column;
 }
 add_action( 'wp_dashboard_setup', __NAMESPACE__ . '\\add_dashboard_signpost' );
+
+/**
+ * ─── What the bottom of each page says today ───────────────────────────────
+ *
+ * The <em>Bottom of page</em> boxes are empty on every page, and the tab's own
+ * note explains why: the invite headline is a switch, and while it is blank the
+ * page keeps its built-in wording. Correct, and useless to someone who wants to
+ * change a word — they cannot see the words. To edit "Free aligners
+ * consultation." they first have to go and find it on the site.
+ *
+ * So the tab now prints what that page says today, beneath the explanation.
+ * Copy a line into the box, change the bit you want, done.
+ *
+ * READ OFF THE BUILT SITE, NOT THE TEMPLATES. The wording lives in JSX
+ * fallbacks inside 23 .astro files, and several are not plain text — they carry
+ * an inline link or a {phoneLabel} expression. Scraping the rendered HTML of
+ * dist/ instead gives exactly what a visitor reads, link text and phone number
+ * included, for all 30 pages that have a closing band rather than the 20 the
+ * template scrape could reach.
+ *
+ * IT IS A SNAPSHOT, and says so on screen. Nothing reads it at build time; if a
+ * template's wording is edited in code, this goes stale until it is re-scraped.
+ * That is the trade for showing anything at all, and the alternative — writing
+ * these 70 values into the fields for real — was measured and is NOT free:
+ * Astro renders a JSX fallback with its source newlines and indentation baked
+ * into the HTML, so a clean one-line CMS value changes the bytes of ~20 live
+ * routes. Identical words, different whitespace. Worth doing deliberately, not
+ * as a side effect of making the text visible.
+ */
+const CLOSING_TODAY = [
+	78 => [ // /
+		'eyebrow' => 'Free virtual consultation',
+		'headline' => 'Free virtual consultation.',
+		'body' => 'Taking the first step toward your dream smile has never been easier. Nothing to schedule — Dr. Richardson personally records a custom video response for every consultation request.',
+	],
+	79 => [ // /about-us/
+		'eyebrow' => 'Free virtual consultation',
+		'headline' => 'Begin your Vivid Smile.',
+		'body' => 'Whether it\'s a smile makeover, a second opinion, or just a question — Dr. Richardson personally records a custom video reply for every consultation request.',
+	],
+	80 => [ // /contact/
+		'note' => 'Call our front desk directly — Mon–Wed 8a–5p, Thu–Fri 8a–1p.',
+	],
+	81 => [ // /cosmetic-dentistry-lp/
+		'eyebrow' => 'Reserve your free consult',
+		'headline' => 'Book your free smile consultation.',
+		'body' => 'Dr. Richardson takes a limited number of new cosmetic cases each month. Fill out the form below — choose virtual or in-office — and reserve your spot. He personally reviews every request.',
+	],
+	82 => [ // /cosmetic-dentistry/
+		'eyebrow' => 'Free cosmetic dentistry consultation',
+		'headline' => 'Free cosmetic dentistry consultation.',
+		'body' => 'Taking the first step toward your smile has never been easier. Nothing to schedule — Dr. Richardson personally records a custom video response for every consultation request. Photos in, video out.',
+		'note' => 'Vivid Smiles is located in Parker, CO and has earned 300+ five-star Google reviews from patients who wanted natural, lasting cosmetic results and got them.',
+	],
+	83 => [ // /dental-membership-plan/
+		'note' => 'Join today and use the benefits this afternoon. No paperwork, no waiting period, no surprises.',
+	],
+	84 => [ // /emergency-dentistry/
+		'note' => 'Vivid Smiles Dentistry in Parker offers same-day emergency dental care backed by CBCT 3D imaging, in-house milling, and a dual-doctor team with 600+ hours of advanced surgical training.',
+	],
+	85 => [ // /general-dentistry/
+		'eyebrow' => 'Free general dentistry consultation',
+		'headline' => 'Free general dentistry consultation.',
+		'body' => 'New to the practice or returning after years away? Send a few photos and we\'ll record a custom video response with findings, next steps, and a recommended visit cadence. Photos in, video out — no commitments.',
+		'note' => 'Vivid Smiles Dentistry in Parker offers comprehensive general care from a dual-doctor team backed by advanced diagnostic technology and 300+ five-star Google reviews.',
+	],
+	86 => [ // /general-lp/
+		'eyebrow' => 'New patients welcome',
+		'headline' => 'Request your appointment.',
+		'body' => 'New to the practice or returning after years away? Fill out the form below — choose virtual or in-office — and the Vivid Smiles team will be in touch. New patients and same-day emergencies are always welcome.',
+	],
+	87 => [ // /implant-dentistry/
+		'eyebrow' => 'Free dental implant consultation',
+		'headline' => 'Free dental implant consultation.',
+		'body' => 'Considering implants? Send a few photos and Dr. Richardson personally records a custom video response with candidacy assessment, treatment options, and next steps. Photos in, video out — no commitments.',
+		'note' => 'Vivid Smiles Dentistry in Parker offers robotic-guided placement and in-house surgical + restorative care, backed by 600-plus hours of advanced training and 300+ five-star Google reviews.',
+	],
+	88 => [ // /new-patients/
+		'eyebrow' => 'Ready when you are',
+		'headline' => 'Let\'s get you scheduled.',
+		'body' => 'Book online, give us a call, or send a quick virtual consult with a photo or two — whatever\'s easiest. We\'ll take it from there.',
+	],
+	89 => [ // /our-office/
+		'eyebrow' => 'Plan your first visit',
+		'headline' => 'Plan your first visit.',
+		'body' => 'Book online, give us a call, or send a quick virtual consult with a photo or two — whatever\'s easiest. Our team will take it from there.',
+	],
+	90 => [ // /patient-testimonials/
+		'eyebrow' => 'Free virtual consultation',
+		'headline' => 'Ready to write your story?',
+		'body' => 'Every transformation on this page started the same way — a few photos, a few questions, and a custom video back from Dr. Richardson. Skip the office visit for the first conversation and see what\'s possible for your smile.',
+	],
+	92 => [ // /referral-program/
+		'note' => 'Sharing a smile has never been easier. If you\'d like to refer a friend or have a question about the program, give us a call at (303) 841-5313 — we\'ll take it from there.',
+	],
+	93 => [ // /services/
+		'eyebrow' => 'Free virtual consultation',
+		'headline' => 'Free virtual consultation.',
+		'body' => 'Taking the first step toward your smile has never been easier. Nothing to schedule — Dr. Richardson personally records a custom video response for every consultation request. Photos in, video out.',
+	],
+	94 => [ // /smile-gallery/
+		'eyebrow' => 'Begin Your Case',
+		'headline' => 'Your smile could be next.',
+		'body' => 'Every smile in the gallery above started with one conversation. Skip the office visit and Dr. Richardson personally records a custom video reviewing your smile, the changes you\'re imagining, and what\'s possible, all from photos you submit below.',
+	],
+	96 => [ // /thank-you/
+		'note' => 'Call our front desk and we\'ll get you scheduled — same-day appointments are often available.',
+	],
+	97 => [ // /veneers-lp/
+		'eyebrow' => 'Reserve your free consult',
+		'headline' => 'Book your free veneer consultation.',
+		'body' => 'Dr. Richardson takes a limited number of new veneer cases each month. Fill out the form below — choose virtual or in-office — and reserve your spot. He personally reviews every request.',
+	],
+	98 => [ // /cosmetic-dentistry/clear-aligners/
+		'eyebrow' => 'Free aligners consultation',
+		'headline' => 'Free aligners consultation.',
+		'body' => 'Wondering whether Spark aligners are right for your smile? Skip the office visit — Dr. Richardson personally records a custom video previewing your alignment options, your projected timeline, and what to expect from candidacy through the final tray, all from a few photos you submit below.',
+		'note' => '17167 Cedar Gulch Pkwy Ste 102, Parker, CO 80134. Patients welcome locally and from out of state.',
+	],
+	99 => [ // /cosmetic-dentistry/full-mouth-rehabilitation/
+		'eyebrow' => 'Free full-mouth rehab consultation',
+		'headline' => 'Free full-mouth rehab consultation.',
+		'body' => 'Curious about full-mouth rehabilitation? Skip the office visit — Dr. Richardson personally records a custom video reviewing your situation, the path that fits your case, and what\'s possible with implants, cosmetic work, or a hybrid plan, all from photos you submit below.',
+		'note' => 'Vivid Smiles Dentistry in Parker, Colorado, offers the specialized training, technology, and in-house coordination that full-mouth cases require.',
+	],
+	100 => [ // /cosmetic-dentistry/gum-contouring/
+		'eyebrow' => 'Free gum contouring consultation',
+		'headline' => 'Free gum contouring consultation.',
+		'body' => 'Gum contouring is one of the most efficient cosmetic procedures available: immediate results, minimal recovery, and a lasting change to the way your smile looks. If you have ever wondered whether your gum line is affecting the way your teeth appear, a consultation with Dr. Richardson will give you a clear answer and a preview of what is possible before any commitment is made.',
+		'note' => 'Free cosmetic consultations at 17167 Cedar Gulch Pkwy, Suite 102, Parker, CO 80134.',
+	],
+	101 => [ // /cosmetic-dentistry/porcelain-veneers/
+		'eyebrow' => 'Free veneers consultation',
+		'headline' => 'Free veneers consultation.',
+		'body' => 'Curious about your veneer options? Skip the office visit — Dr. Richardson personally records a custom video reviewing your smile, the changes you\'re imagining, and what\'s possible with no-prep or minimal-prep porcelain veneers, all from photos you submit below.',
+		'note' => 'Patients welcome locally and from out of state.',
+	],
+	102 => [ // /cosmetic-dentistry/smile-makeover/
+		'eyebrow' => 'Free smile makeover consultation',
+		'headline' => 'Free smile makeover consultation.',
+		'body' => 'If you have spent years wanting to fix your smile, the next step is a consultation, not a commitment. At Vivid Smiles Dentistry, Dr. Richardson starts every smile makeover with a comprehensive analysis and a digital preview so you can see exactly what your results will look like before any treatment begins.',
+		'note' => 'Vivid Smiles is located in Parker, CO and has earned 300+ five-star Google reviews from patients who wanted natural, lasting results and got them.',
+	],
+	103 => [ // /cosmetic-dentistry/teeth-whitening/
+		'eyebrow' => 'Free whitening consultation',
+		'headline' => 'Free whitening consultation.',
+		'body' => 'Getting a noticeably whiter smile in Parker starts with a consultation built around your specific staining type and shade goals. KOR\'s treatment levels cover nearly every case, and digital smile design gives you a preview of results before treatment begins.',
+		'note' => 'Schedule your consultation and take the first step toward lasting whitening results.',
+	],
+	104 => [ // /implant-dentistry/all-on-4-single-arch/
+		'eyebrow' => 'Free All-on-4 consultation',
+		'headline' => 'Free All-on-4 consultation.',
+		'body' => 'Vivid Smiles Dentistry in Parker, CO, brings Dr. Richardson\'s 600+ hours of surgical training, Implant Pathway credentials, and robotic technology to deliver outcomes grounded in precision planning. Schedule your free consultation below or call (303) 841-5313 to learn which arch treatment suits you.',
+		'note' => 'Dr. Bryce Richardson combines robotic precision with 600-plus hours of advanced surgical training to deliver All-on-4 outcomes built to last decades.',
+	],
+	105 => [ // /implant-dentistry/bone-grafting/
+		'eyebrow' => 'Free bone grafting consultation',
+		'headline' => 'Free bone grafting consultation.',
+		'body' => 'Vivid Smiles Dentistry serves patients across Parker, Douglas County, and the surrounding communities. Schedule a free consultation online or call (303) 841-5313 to find out whether bone grafting is the right next step for you.',
+		'note' => 'Dr. Bryce Richardson combines CBCT-guided planning with 600-plus hours of advanced surgical training to deliver bone grafting outcomes built to support implants for the long term.',
+	],
+	106 => [ // /implant-dentistry/full-mouth-dental-implants/
+		'eyebrow' => 'Free full mouth implant consultation',
+		'headline' => 'Free full mouth implant consultation.',
+		'body' => 'Vivid Smiles Dentistry in Parker, CO, brings Dr. Richardson\'s 600+ hours of surgical training, Implant Pathway credentials, and robotic technology to deliver outcomes grounded in precision planning. Schedule your free consultation below or call (303) 841-5313 to learn whether full-mouth implants are the right path for you.',
+		'note' => 'Dr. Richardson\'s staff training at Implant Pathway, robotic placement technology, and in-house lab capabilities give Parker-area clients access to our full range of dental services at a level found only at specialized surgical centers.',
+	],
+	107 => [ // /implant-dentistry/single-tooth-dental-implants/
+		'eyebrow' => 'Free single tooth implant consultation',
+		'headline' => 'Free single tooth implant consultation.',
+		'body' => 'Vivid Smiles Dentistry in Parker, CO, manages the complete single-tooth implant process under one roof, without specialist referrals. Call (303) 841-5313 or book online to schedule your consultation with Dr. Richardson.',
+		'note' => 'Dr. Bryce Richardson pairs robotic precision with 600-plus hours of advanced surgical training to deliver single tooth implant outcomes built to last decades.',
+	],
+	108 => [ // /implant-dentistry/sinus-lift/
+		'eyebrow' => 'Free sinus lift consultation',
+		'headline' => 'Free sinus lift consultation.',
+		'body' => 'Curious whether a sinus lift is the right next step toward upper-jaw implants? Skip the office visit — Dr. Richardson personally records a custom video reviewing your case, your candidacy, and what\'s possible at Vivid Smiles Dentistry, all from photos you submit below.',
+		'note' => 'Vivid Smiles Dentistry in Parker, CO, pairs Dr. Richardson\'s surgical training with CBCT imaging and robotic implant placement. Call (303) 841-5313 or book a free consultation to start with a 3D scan and a personalized plan.',
+	],
+	346 => [ // /blog/
+		'eyebrow' => 'Ready When You Are',
+		'headline' => 'Reading is one step. Talking is the next.',
+		'body' => 'If something you read here applies to your smile, submit a few photos and Dr. Richardson will record a personalized video reply — no office visit required to get started.',
+	],
+];
+
+/**
+ * The "here is what it says now" block for the Bottom of page tab.
+ */
+function closing_today( int $post_id ): string {
+	$rec = CLOSING_TODAY[ $post_id ] ?? null;
+
+	if ( null === $rec ) {
+		return '';
+	}
+
+	$labels = [
+		'eyebrow'  => 'Small line',
+		'headline' => 'Invite headline',
+		'body'     => 'Invite paragraph',
+		'note'     => 'Booking strip sentence',
+	];
+
+	$out = "\n<strong>What the bottom of this page says today</strong> — copy a line into the "
+		. 'box above it and change what you want. (A snapshot taken from the live site; if it '
+		. 'looks out of date, tell us.)';
+
+	foreach ( $labels as $key => $label ) {
+		if ( empty( $rec[ $key ] ) ) {
+			continue;
+		}
+
+		$out .= "\n<em>" . esc_html( $label ) . ':</em> ' . esc_html( $rec[ $key ] );
+	}
+
+	return $out;
+}

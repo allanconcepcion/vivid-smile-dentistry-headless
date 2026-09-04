@@ -541,10 +541,22 @@ are not.
    CMS already — the mu-plugins on the host match these files byte for byte — so the repo is the
    only thing behind. Push, or say what to change first. Also worth Allan's eye: the section group
    headings, which are Claude's words for parts of his pages.
-1. **Backfill the "Bottom of page" boxes.** Extract each page's consult eyebrow/headline/body and
-   FinalBand note from the templates (20 + 17 call sites), prove the payload byte-identical by
-   local overlay, add a third mode to `vs-migrate.php` (or extend `backfill-hero.php`), deploy,
-   dry run, write. Exclusions already decided in commit `66b5469`.
+1. **Backfill the "Bottom of page" boxes — and know before you start that it is NOT
+   byte-identical.** Measured 2026-09-04: all 70 extractable values match the live output, 45
+   byte-exact and 25 differing only in whitespace, none differing in a word. The 25 are the
+   multi-line JSX fallbacks — **Astro renders those with their source newlines and indentation
+   baked into the HTML**, so a clean one-line CMS value changes the bytes of roughly 20 live
+   routes while changing no words. That is acceptable (the change is the point, and emptying a
+   box restores the template exactly) but it must be a deliberate decision, not a surprise
+   halfway through.
+   Seven fields must stay on the template: they carry an inline `<a>` or a `{phoneLabel}`
+   expression, and `consultBody`/`note` are rendered as plain text, so a stored value would show
+   the markup. They are all-on-4/bone-grafting/full-mouth/single-tooth `consult_body`, and
+   full-mouth/sinus-lift/referral-program `note`.
+   Mechanically the blocker is that `backfill-hero.php` is parameterised by four functions
+   (`vs_hb_group_key/group_name/receipt_meta/writable_fields`) but its function names would
+   collide with a copy, so a closing engine needs a `vs_cb_*` prefix or the engine needs
+   generalising. In the meantime the wording is at least VISIBLE — see below.
 2. **An HTML-capable sub for two heroes.** sinus-lift's sub carries a real `<a class="vs-link">`
    and referral-program's a `<b>$50 credit</b>`; `hero.sub` is plain text, so both stay on the
    template. Needs a field type change, not a payload fix.
