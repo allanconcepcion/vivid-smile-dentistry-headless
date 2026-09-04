@@ -147,6 +147,7 @@ const PAGES = [
 			[ 'slot' => 'teamLinh', 'where' => 'Linh’s photo (Dental Assistant) in the team area', 'status' => 'live' ],
 			[ 'slot' => 'teamTina', 'where' => 'Tina’s photo (Dental Assistant) in the team area', 'status' => 'live' ],
 			[ 'slot' => 'teamKnox', 'where' => 'Knox’s photo (the dog, Director of Smiles) in the team area', 'status' => 'live' ],
+			[ 'slot' => 'teamAlly', 'where' => 'nothing — this code is not used anywhere on the site', 'status' => 'unused' ],
 			[ 'slot' => 'teamBirdie', 'where' => 'Birdie’s photo (the dog, Chief Comfort Officer) in the team area', 'status' => 'live' ],
 			[ 'slot' => 'yomiImg', 'where' => 'the photo in the technology area — a treatment room', 'status' => 'live' ],
 			[ 'slot' => 'aacdLogo', 'where' => 'the AACD logo card in the credentials area near the bottom', 'status' => 'live' ],
@@ -825,6 +826,12 @@ function guide_line( array $row, string $code_key, bool $mixed, bool $is_photo )
 		$line .= ' <em>Now ' . $verb . ' in Page sections — open the section “' . esc_html( $target ) . '”.</em>';
 	} elseif ( 'dead' === $state ) {
 		$line .= ' <em>Part of the design now — this row saves, but changes nothing; ask us if it should say something different.</em>';
+	} elseif ( 'unused' === $state ) {
+		// Distinct from 'dead': a dead row's picture was absorbed into the
+		// design, so something is still on the page. An unused row's code is
+		// not read anywhere — whatever is in it has never appeared.
+		$line .= ' <em>Nothing on the site uses this row — the picture in it has never appeared. '
+			. 'Tell us if it should.</em>';
 	} elseif ( $mixed ) {
 		$line .= $is_photo ? ' <em>Live — swap it here.</em>' : ' <em>Live — edit it here.</em>';
 	}
@@ -2183,3 +2190,88 @@ function closing_today( int $post_id ): string {
 
 	return $out;
 }
+
+/**
+ * ─── Each photo row says where that photo goes ─────────────────────────────
+ *
+ * The Images tab is a table whose first column is a code — `heroTeam`,
+ * `imgWhitening`, `imgDrBryce`. What each code means is printed in a guide
+ * ABOVE the table, which works until the table is long: /about-us/ has 25 rows,
+ * so swapping the fourth photo means scrolling up, finding its line, and
+ * scrolling back with it held in your head.
+ *
+ * The guide already knows, per page, which slot draws what. This puts that
+ * sentence on the row itself, beside the code, so the lookup disappears.
+ *
+ * Presentation only, and done in the browser: it writes into the rendered table
+ * and touches no field, no value and no filter. A row whose code is not in the
+ * map — one added by hand since the map was written — simply gets nothing, and
+ * the guide above is still there.
+ */
+function print_image_row_hints(): void {
+	$page = current_page();
+
+	if ( null === $page || empty( $page['images'] ) ) {
+		return;
+	}
+
+	$map = [];
+
+	foreach ( $page['images'] as $row ) {
+		$slot = (string) ( $row['slot'] ?? '' );
+
+		if ( '' === $slot ) {
+			continue;
+		}
+
+		list( $state, $target ) = parse_status( (string) ( $row['status'] ?? 'live' ) );
+
+		$where = rtrim( trim( (string) ( $row['where'] ?? '' ) ), '.' );
+
+		if ( 'moved' === $state ) {
+			$where .= ' — changed in Page sections now, in the section “' . $target . '”';
+		} elseif ( 'dead' === $state ) {
+			$where .= ' — part of the design now; this row changes nothing';
+		}
+
+		$map[ $slot ] = $where;
+	}
+
+	if ( ! $map ) {
+		return;
+	}
+
+	?>
+	<script>
+	( function () {
+		var where = <?php echo wp_json_encode( $map ); ?>;
+		function label() {
+			var field = document.querySelector( '.acf-field[data-key="field_vs_images"]' );
+			if ( ! field ) { return; }
+			field.querySelectorAll( '.acf-row:not(.acf-clone)' ).forEach( function ( row ) {
+				var cell = row.querySelector( '.acf-field[data-name="slot"]' );
+				if ( ! cell || cell.querySelector( '.vs-where' ) ) { return; }
+				var input = cell.querySelector( 'input' );
+				var text = input && where[ input.value ];
+				if ( ! text ) { return; }
+				var note = document.createElement( 'span' );
+				note.className = 'vs-where';
+				note.style.cssText = 'display:block;margin-top:4px;color:#646970;font-size:12px;line-height:1.4';
+				note.textContent = text;
+				cell.appendChild( note );
+			} );
+		}
+		if ( document.readyState === 'loading' ) {
+			document.addEventListener( 'DOMContentLoaded', label );
+		} else {
+			label();
+		}
+		// The Images tab is not the open one on most pages, and ACF only lays a
+		// hidden tab's table out when it is first shown; re-run on any click so
+		// rows that were zero-height at load still get labelled.
+		document.addEventListener( 'click', function () { setTimeout( label, 80 ); }, true );
+	} )();
+	</script>
+	<?php
+}
+add_action( 'admin_footer', __NAMESPACE__ . '\\print_image_row_hints' );
