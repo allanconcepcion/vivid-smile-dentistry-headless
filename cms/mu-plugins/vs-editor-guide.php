@@ -1807,3 +1807,88 @@ function trim_dead_tabs( $field ) {
 	return $field;
 }
 add_filter( 'acf/prepare_field', __NAMESPACE__ . '\\trim_dead_tabs', 5 );
+
+/**
+ * ─── "Start here" on the dashboard ─────────────────────────────────────────
+ *
+ * The first screen after logging in is the WordPress dashboard, which says
+ * nothing about this site: At a Glance, Activity, Quick Draft, and whatever the
+ * host advertises. Someone told "the hours changed" has to already know that
+ * hours live under Practice Settings rather than under Settings, which is a
+ * different menu three items further down.
+ *
+ * So a panel that answers "where do I go for…" in the words a receptionist
+ * would use, pinned to the top of the dashboard.
+ *
+ * NOT gated on role, unlike vs-admin.php. That file curates the menu for
+ * non-administrators and exempts administrators deliberately — but this site
+ * has exactly one account and it is an administrator, so anything gated that
+ * way is inert here. A signpost is harmless to a developer and the only help a
+ * client gets, so it is shown to everyone.
+ */
+function dashboard_signpost(): void {
+	$rows = [
+		[ 'The words and photos on a page', 'edit.php?post_type=page', 'Pages',
+			'Open the page, then read the note at the top — it says which tabs change that page.' ],
+		[ 'Phone, address, opening hours', 'admin.php?page=vs-practice-settings', 'Practice Settings',
+			'Changed in one place and updated everywhere on the site.' ],
+		[ 'Patient reviews', 'edit.php?post_type=vs_testimonial', 'Testimonials',
+			'One review per entry; the newest show first.' ],
+		[ 'Blog posts', 'edit.php', 'Posts',
+			'Write the article in the big box; the Featured image is the photo at the top.' ],
+		[ 'The menus across the top of the site', 'nav-menus.php', 'Appearance → Menus',
+			'Drag an item to move it. Tell us before adding a brand-new page to a menu.' ],
+	];
+
+	echo '<p style="margin:0 0 14px">Not sure where something lives? Start here.</p>';
+
+	// A list, not a two-column table: this widget sits in a dashboard column
+	// roughly 250px wide, where two columns squeeze every line to three words.
+	echo '<ul style="margin:0">';
+
+	foreach ( $rows as $row ) {
+		list( $need, $url, $label, $note ) = $row;
+
+		printf(
+			'<li style="margin:0 0 14px;padding:0 0 14px;border-bottom:1px solid #f0f0f1">'
+				. '<strong>%s</strong><br>'
+				. '<a href="%s">%s</a> &nbsp;<span style="color:#646970">%s</span></li>',
+			esc_html( $need ),
+			esc_url( admin_url( $url ) ),
+			esc_html( $label ),
+			esc_html( $note )
+		);
+	}
+
+	echo '</ul>';
+	echo '<p style="margin:12px 0 0;color:#646970">Everything you save here appears on the website a '
+		. 'few minutes later, once it rebuilds. If something has not changed after that, tell us.</p>';
+}
+
+function add_dashboard_signpost(): void {
+	wp_add_dashboard_widget(
+		'vs_start_here',
+		'Start here — where to change what',
+		__NAMESPACE__ . '\\dashboard_signpost'
+	);
+
+	// Pin it to the top of the left column; wp_add_dashboard_widget() appends,
+	// which on a host that adds its own panels buries it below them.
+	global $wp_meta_boxes;
+
+	if ( ! isset( $wp_meta_boxes['dashboard']['normal']['core'] ) ) {
+		return;
+	}
+
+	$column = $wp_meta_boxes['dashboard']['normal']['core'];
+
+	if ( ! isset( $column['vs_start_here'] ) ) {
+		return;
+	}
+
+	$ours = [ 'vs_start_here' => $column['vs_start_here'] ];
+	unset( $column['vs_start_here'] );
+
+	$wp_meta_boxes['dashboard']['normal']['core'] = $ours + $column;
+}
+add_action( 'wp_dashboard_setup', __NAMESPACE__ . '\\add_dashboard_signpost' );

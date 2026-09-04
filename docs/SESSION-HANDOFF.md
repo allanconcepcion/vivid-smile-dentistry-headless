@@ -191,6 +191,33 @@ Vercel URL because the domain cutover has not happened — it reads `VS_FRONTEND
 follows the cutover with no edit. Group headings are Claude's wording and Allan has not reviewed
 them; each is a one-line edit in `SECTION_GROUPS`.
 
+## vs-admin.php is inert, because the only account is an administrator
+
+`cms/mu-plugins/vs-admin.php` exists to "curate wp-admin down to the screens an
+editor actually owns": it removes Plugins, Tools, Comments, the ACF field-group
+screen and the GraphiQL IDE, trims Appearance to Menus alone, refuses those
+screens outright rather than merely unlinking them, locks the blog categories to
+the canonical five, and trims the admin bar.
+
+**Every one of those is gated on `restrictions_apply()`, which returns false for
+anyone with `manage_options`. `wp-admin/users.php` lists exactly one user —
+`admin`, an Administrator. So none of it has ever applied to anybody.**
+
+That is not a bug in the file; it is the missing half of the plan. The plugin was
+written for an editor account that does not exist yet. Whoever hands this site
+over needs to create one — an Editor, not an Administrator — and hand the client
+THAT login. Until then the client will see Plugins, Tools, Users, Settings,
+All-in-One WP Migration and WP File Manager alongside the five things they
+actually edit, and WP File Manager can delete the site.
+
+Claude cannot create the account (creating accounts and setting passwords are
+off-limits), and the curation cannot be tested without one. When the account
+exists, check: the five menus the dashboard signpost names are present, the five
+REMOVE_MENUS entries are gone, Appearance shows only Menus, and WP File Manager
+and All-in-One WP Migration are absent — the last two are NOT in REMOVE_MENUS and
+are expected to hide themselves on capability, which is worth confirming rather
+than assuming.
+
 ## The verification method this project learned
 
 Each sweep exists because the previous set reported clean while something real was broken.
