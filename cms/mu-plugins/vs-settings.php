@@ -87,34 +87,39 @@ function register_fields(): void {
 				],
 				[
 					'key'          => 'field_vs_phone_label',
-					'label'        => 'Phone (display)',
+					'label'        => 'Phone number, as people should read it',
 					'name'         => 'phone_label',
 					'type'         => 'text',
 					'required'     => 1,
-					'instructions' => 'Exactly as it should read on the page, e.g. (303) 841-5313.',
+					'instructions' => 'Typed exactly as it should appear on the site, e.g. (303) 841-5313. '
+						. 'This is the number every page shows.',
 				],
 				[
 					'key'          => 'field_vs_phone_e164',
-					'label'        => 'Phone (dialable)',
+					'label'        => 'The same number, in dialling form',
 					'name'         => 'phone_e164',
 					'type'         => 'text',
 					'required'     => 1,
-					'instructions' => 'International format for tel: links and structured data, e.g. +1-303-841-5313.',
+					'instructions' => 'The same phone number written so a mobile can dial it when someone taps '
+						. 'it: a plus, the country code, then the number — +1-303-841-5313. It is never '
+						. 'shown; the box above is what people read.',
 				],
 				[
 					'key'      => 'field_vs_email',
-					'label'    => 'Email address',
-					'name'     => 'email_address',
-					'type'     => 'email',
-					'required' => 1,
+					'label'        => 'Email address',
+					'name'         => 'email_address',
+					'type'         => 'email',
+					'required'     => 1,
+					'instructions' => 'The address the site shows and links to.',
 				],
 				[
 					'key'          => 'field_vs_book_href',
-					'label'        => 'Online booking URL',
+					'label'        => 'Online booking page',
 					'name'         => 'book_now_href',
 					'type'         => 'url',
 					'required'     => 1,
-					'instructions' => 'Where every "Book Online" button goes.',
+					'instructions' => 'The web address of your booking system. Every “Book Online” button on '
+						. 'the site sends people here, so changing it here changes all of them.',
 				],
 				[
 					'key'   => 'field_vs_addr_tab',
@@ -152,9 +157,11 @@ function register_fields(): void {
 				[
 					'key'          => 'field_vs_directions',
 					'label'        => 'Directions link',
+					'placeholder'  => 'https://maps.google.com/…',
 					'name'         => 'directions_href',
 					'type'         => 'url',
-					'instructions' => 'Where "Get Directions" goes. Usually a Google Maps link.',
+					'instructions' => 'Where every “Get Directions” button goes — normally the practice’s '
+						. 'Google Maps link.',
 				],
 				[
 					'key'   => 'field_vs_hours_tab',
@@ -163,26 +170,27 @@ function register_fields(): void {
 				],
 				[
 					'key'          => 'field_vs_hours',
-					'label'        => 'Hours',
+					'label'        => 'Your opening hours',
 					'name'         => 'office_hours',
 					'type'         => 'repeater',
 					'layout'       => 'row',
 					'button_label' => 'Add a schedule',
-					'instructions' => 'One row per distinct schedule. Display strings like "8a–5p" are generated '
-						. 'from the times below, so there is nothing to keep in sync by hand. '
-						. 'These also drive the “Open now” indicator and the structured data Google reads.',
+					'instructions' => 'One row per group of days that share the same hours — Mon–Wed together, '
+						. 'Thursday on its own, and so on. You only set the times; the site writes them out '
+						. '("8a–5p") for you, keeps the “Open now” badge right, and tells Google when you '
+						. 'are open.',
 					'sub_fields'   => [
 						[
 							'key'          => 'field_vs_hours_label',
-							'label'        => 'Label',
+							'label'        => 'Which days, as people should read it',
 							'name'         => 'label',
 							'type'         => 'text',
 							'required'     => 1,
-							'instructions' => 'e.g. Mon–Wed',
+							'instructions' => 'Shown on the site exactly as typed — Mon–Wed, Saturday, and so on.',
 						],
 						[
 							'key'      => 'field_vs_hours_days',
-							'label'    => 'Days',
+							'label'    => 'Tick the days this row covers',
 							'name'     => 'days',
 							'type'     => 'checkbox',
 							'required' => 1,
@@ -199,7 +207,7 @@ function register_fields(): void {
 						],
 						[
 							'key'           => 'field_vs_hours_closed',
-							'label'         => 'Closed these days',
+							'label'         => 'Closed on these days',
 							'name'          => 'closed',
 							'type'          => 'true_false',
 							'ui'            => 1,
@@ -240,7 +248,7 @@ function register_fields(): void {
 				],
 				[
 					'key'          => 'field_vs_smile_gallery',
-					'label'        => 'Smile gallery photos',
+					'label'        => 'Your smile gallery photos',
 					'name'         => 'smile_gallery',
 					'type'         => 'gallery',
 					'instructions' => 'Finished-smile photos. These appear on the gallery page and in the '
@@ -262,21 +270,23 @@ function register_fields(): void {
 				],
 				[
 					'key'           => 'field_vs_logo_dark',
-					'label'         => 'Logo — light background',
+					'label'         => 'Logo for the top of the page',
 					'name'          => 'logo_light_bg',
 					'type'          => 'image',
 					'return_format' => 'array',
 					'preview_size'  => 'thumbnail',
-					'instructions'  => 'Used in the header on light pages.',
+					'instructions'  => 'The logo shown in the bar across the top of every page, which has a '
+						. 'pale background — so this one needs dark lettering.',
 				],
 				[
 					'key'           => 'field_vs_logo_light',
-					'label'         => 'Logo — dark background',
+					'label'         => 'Logo for the bottom of the page',
 					'name'          => 'logo_dark_bg',
 					'type'          => 'image',
 					'return_format' => 'array',
 					'preview_size'  => 'thumbnail',
-					'instructions'  => 'Used in the footer and on dark sections.',
+					'instructions'  => 'The logo shown in the dark strip at the foot of every page, and on any '
+						. 'dark section — so this one needs pale lettering.',
 				],
 				[
 					'key'   => 'field_vs_forms_tab',
@@ -285,14 +295,16 @@ function register_fields(): void {
 				],
 				[
 					'key'          => 'field_vs_typeform',
-					'label'        => 'Contact Typeform ID',
+					'label'        => 'Contact form',
 					'name'         => 'contact_typeform_id',
 					'type'         => 'text',
-					'instructions' => 'The front-desk contact form embedded on /contact/ and /emergency-dentistry/.',
+					'instructions' => 'The form on the Contact and Emergency Dentistry pages. Paste the ID from '
+						. 'the end of the form’s Typeform address — the part after the last slash. Ask us '
+						. 'if you are not sure which one that is.',
 				],
 				[
 					'key'          => 'field_vs_consult_typeform',
-					'label'        => 'Virtual Consult Typeform ID',
+					'label'        => 'Virtual consult form',
 					'name'         => 'consult_typeform_id',
 					'type'         => 'text',
 					/*

@@ -1658,3 +1658,152 @@ function print_first_load_collapse(): void {
 	<?php
 }
 add_action( 'admin_footer', __NAMESPACE__ . '\\print_first_load_collapse' );
+
+/**
+ * ─── Tabs a page does not use stop being drawn ─────────────────────────────
+ *
+ * Every page carries the same nine tabs, and almost no page uses all nine.
+ * Counted across the 33 published pages: 126 of the 297 tab-instances hold no
+ * data at all, and on /404-2/ eight of the nine are both empty and inert. The
+ * orientation message has been telling editors this in prose — "a box on any
+ * other tab saves, but does not change this page" — which is a sentence asking
+ * them to remember a list. The tabs can simply not be there.
+ *
+ * THREE STATES, and the distinction is the whole safety of this:
+ *
+ *   live                     → untouched. This is where the page is edited.
+ *   not live, holds nothing  → hidden. There is nothing to lose: no data, and
+ *                              by liveTabs no effect on the page.
+ *   not live, holds something → NOT hidden. Its label gains "(not used here)".
+ *                              Hiding would make saved words unreachable, and
+ *                              85 tab-instances are in this state — mostly the
+ *                              legacy Section copy rows on pages that have
+ *                              since moved to Page sections.
+ *
+ * PAGE SECTIONS IS NEVER HIDDEN, even where it is empty and not live. It is
+ * the switch every remaining page will be migrated with, and its emptiness on
+ * a template page is a deliberate state the orientation message explains. A
+ * tab we ask the client to leave alone still has to be visible to us.
+ *
+ * Liveness comes from PAGES, which was built per page against the templates.
+ * Data is read from post meta at render time, so a tab that gains content
+ * reappears on the next page load without anything here changing.
+ */
+
+/** tab label → [ its own field key, the field keys that belong to it ]. */
+const TAB_FIELDS = [
+	'On this page'   => [ 'field_vs_toc_tab',      [ 'field_vs_toc_note', 'field_vs_toc_links' ] ],
+	'Process'        => [ 'field_vs_process_tab',  [ 'field_vs_process_note', 'field_vs_process_steps' ] ],
+	'Section copy'   => [ 'field_vs_sections_tab', [ 'field_vs_sections_note', 'field_vs_sections' ] ],
+	'Images'         => [ 'field_vs_images_tab',   [ 'field_vs_images' ] ],
+	'Cards & lists'  => [ 'field_vs_cards_tab',    [ 'field_vs_cards' ] ],
+	'FAQ'            => [ 'field_vs_faq_tab',      [ 'field_vs_faqs' ] ],
+	'Hero'           => [ 'field_vs_hero_tab',     [ 'field_vs_hero_intro', 'field_vs_page_hero' ] ],
+	'Page sections'  => [ 'field_vs_blocks_tab',   [ 'field_vs_blocks_intro', 'field_vs_blocks' ] ],
+	'Bottom of page' => [ 'field_vs_closing_tab',  [ 'field_vs_closing_intro', 'field_vs_page_closing' ] ],
+];
+
+/** The one tab that stays visible even when empty and inert — see the header. */
+const TAB_NEVER_HIDDEN = 'Page sections';
+
+/** The meta key a tab's content lives under: a repeater/flexible count, or a group prefix. */
+const TAB_META = [
+	'On this page'   => [ 'count', 'toc_links' ],
+	'Process'        => [ 'count', 'process_steps' ],
+	'Section copy'   => [ 'count', 'sections' ],
+	'Images'         => [ 'count', 'images' ],
+	'Cards & lists'  => [ 'count', 'cards' ],
+	'FAQ'            => [ 'count', 'faqs' ],
+	'Page sections'  => [ 'count', 'blocks' ],
+	'Hero'           => [ 'prefix', 'hero_' ],
+	'Bottom of page' => [ 'prefix', 'closing_' ],
+];
+
+/** Which tab a field key belongs to, or null for the fields outside every tab. */
+function tab_owning( string $key ): ?string {
+	foreach ( TAB_FIELDS as $tab => $pair ) {
+		if ( $key === $pair[0] || in_array( $key, $pair[1], true ) ) {
+			return $tab;
+		}
+	}
+
+	return null;
+}
+
+/**
+ * Whether this page has anything saved under a tab.
+ *
+ * Read from post meta rather than get_field() on purpose: this runs inside
+ * `acf/prepare_field`, and asking ACF for a field's value from there is a way
+ * to re-enter the same filter. A repeater stores its row count under its own
+ * name; a group stores nothing under its name and one row per sub-field, so
+ * those are found by prefix.
+ */
+function tab_has_data( int $post_id, string $tab ): bool {
+	static $cache = [];
+
+	if ( isset( $cache[ $post_id ][ $tab ] ) ) {
+		return $cache[ $post_id ][ $tab ];
+	}
+
+	list( $how, $needle ) = TAB_META[ $tab ] ?? [ null, null ];
+	$has = false;
+
+	if ( 'count' === $how ) {
+		$value = get_post_meta( $post_id, $needle, true );
+		$has   = is_array( $value ) ? (bool) $value : ( '' !== (string) $value && '0' !== (string) $value );
+	} elseif ( 'prefix' === $how ) {
+		foreach ( get_post_meta( $post_id ) as $meta_key => $values ) {
+			if ( 0 === strpos( $meta_key, $needle ) && '' !== trim( (string) ( $values[0] ?? '' ) ) ) {
+				$has = true;
+				break;
+			}
+		}
+	}
+
+	$cache[ $post_id ][ $tab ] = $has;
+
+	return $has;
+}
+
+/**
+ * Hide a tab this page does not use, or say so on its label.
+ *
+ * Runs at priority 5, before the guidance rewrites: a field this returns false
+ * for is never drawn, so there is no point spending the later filters on it.
+ */
+function trim_dead_tabs( $field ) {
+	if ( ! is_array( $field ) ) {
+		return $field;
+	}
+
+	$page = current_page();
+
+	if ( null === $page ) {
+		return $field;
+	}
+
+	$tab = tab_owning( $field['key'] ?? '' );
+
+	if ( null === $tab || tab_is_live( $page, $tab ) || TAB_NEVER_HIDDEN === $tab ) {
+		return $field;
+	}
+
+	$post_id = isset( $_GET['post'] ) ? (int) $_GET['post'] : 0; // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+
+	if ( ! $post_id && isset( $GLOBALS['post']->ID ) ) {
+		$post_id = (int) $GLOBALS['post']->ID;
+	}
+
+	if ( $post_id && ! tab_has_data( $post_id, $tab ) ) {
+		return false;
+	}
+
+	// Holds words, so it stays reachable — but says what it is.
+	if ( 'tab' === ( $field['type'] ?? '' ) ) {
+		$field['label'] = $tab . ' (not used here)';
+	}
+
+	return $field;
+}
+add_filter( 'acf/prepare_field', __NAMESPACE__ . '\\trim_dead_tabs', 5 );

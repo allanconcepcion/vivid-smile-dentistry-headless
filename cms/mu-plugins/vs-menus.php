@@ -81,17 +81,19 @@ function register_fields(): void {
 			'fields'                                => [
 				[
 					'key'          => 'field_vs_menu_eyebrow',
-					'label'        => 'Eyebrow',
+					'label'        => 'Small line above the title',
 					'name'         => 'eyebrow',
 					'type'         => 'text',
-					'instructions' => 'Small label above the title, e.g. "Our practice". Used by the About panel and as the sub-label on Services columns.',
+					'instructions' => 'A few words above this item, e.g. "Our practice". Only the About menu and '
+					. 'the Services columns show it; leave it blank elsewhere.',
 				],
 				[
 					'key'          => 'field_vs_menu_icon',
-					'label'        => 'Icon',
+					'label'        => 'Little picture beside it',
 					'name'         => 'icon',
 					'type'         => 'text',
-					'instructions' => 'Font Awesome class without the style prefix, e.g. <code>fa-tooth</code>. Browse names at fontawesome.com/icons.',
+					'instructions' => 'Pick an icon at fontawesome.com/icons and type its name here, e.g. '
+					. '<code>fa-tooth</code>. Leave blank for no icon.',
 				],
 				[
 					'key'           => 'field_vs_menu_image',
@@ -100,26 +102,27 @@ function register_fields(): void {
 					'type'          => 'image',
 					'return_format' => 'array',
 					'preview_size'  => 'thumbnail',
-					'instructions'  => 'Used by the About panel cards. Ignored elsewhere.',
+					'instructions'  => 'Only the About menu shows a photo. Every other menu ignores this box.',
 				],
 				[
 					'key'          => 'field_vs_menu_image_position',
-					'label'        => 'Image focal point',
+					'label'        => 'Which part of the photo to keep',
 					'name'         => 'image_position',
 					'type'         => 'text',
-					'instructions' => 'CSS object-position, e.g. <code>center 37%</code>. Leave blank to centre. '
-						. 'Use this when a face sits near the top of a photo and the default crop cuts it off.',
+					'instructions' => 'Leave this blank and the middle of the photo is kept. Fill it in only when '
+						. 'the crop cuts someone’s face off — ask us and we will set it.',
 				],
 				[
 					'key'           => 'field_vs_menu_layout',
-					'label'         => 'Panel layout',
+					'label'         => 'How this item is shown',
 					'name'          => 'layout',
 					'type'          => 'select',
-					'instructions'  => 'How this item renders inside its panel. Only applies to second-level items.',
+					'instructions'  => 'Only affects items one level in — the ones inside a drop-down. Leave it on '
+						. 'the default unless we have asked you to change it.',
 					'choices'       => [
 						''                     => 'Default for the panel',
-						'column'               => 'Breakout column (shows its own child links)',
-						'standalone'           => 'Standalone card (no child links)',
+						'column'               => 'Its own column, listing the pages under it',
+						'standalone'           => 'A single card on its own, with no list under it',
 						// A separate value rather than inferring "is this the
 						// emergency one?" from the URL — inferring breaks the
 						// moment someone renames the page.
