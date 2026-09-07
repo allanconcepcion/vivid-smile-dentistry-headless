@@ -16,7 +16,14 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import VirtualConsult from "../../components/VirtualConsult.astro";
 import BlogCard from "../../components/cards/BlogCard.astro";
 import { getAllPosts, getCategories } from "../../lib/blog";
+import { getPageContent } from "../../lib/page-content";
 import "../../styles/pages/blog.css";
+
+// The Hero and Bottom-of-page tabs of the "Blog" page in wp-admin (post 346).
+// Stored since the page was created and read by nothing until now; every
+// fallback below is the literal this page has always shipped, so blank boxes
+// build byte-identically. The list itself still comes from Posts.
+const { hero, closing } = await getPageContent(Astro.url.pathname);
 
 const posts = await getAllPosts();
 const categories = getCategories(posts);
@@ -56,13 +63,13 @@ const pageDescription =
     {/* ---------- HERO ---------- */}
     <header class="hero" data-vs-reveal-batch>
       <div class="wrap">
-        <span class="eyebrow">Insights · From the Chair</span>
-        <h1 data-vs-reveal-lines>Articles for <em>thoughtful patients.</em></h1>
-        <p class="hero-sub">
+        {hero.eyebrow ? <span class="eyebrow">{hero.eyebrow}</span> : <span class="eyebrow">Insights · From the Chair</span>}
+        {hero.h1 ? <h1 data-vs-reveal-lines set:html={hero.h1} /> : <h1 data-vs-reveal-lines>Articles for <em>thoughtful patients.</em></h1>}
+        {hero.sub ? <p class="hero-sub">{hero.sub}</p> : <p class="hero-sub">
           A working library of cosmetic, restorative, and everyday oral-health writing from the team
           at Vivid Smiles. Plain language, real cases, no fluff — written for people deciding what to
           do next about their smile.
-        </p>
+        </p>}
       </div>
     </header>
 
@@ -116,12 +123,12 @@ const pageDescription =
     </section>
 
     {/* ---------- VIRTUAL CONSULT — closing CTA ---------- */}
-    <VirtualConsult id="consult" eyebrow="Ready When You Are">
-      <Fragment slot="headline">Reading is one step. <em>Talking is the next.</em></Fragment>
-      <Fragment slot="body">
+    <VirtualConsult id="consult" eyebrow={closing.consultEyebrow || "Ready When You Are"}>
+      <Fragment slot="headline">{closing.consultHeadline ? <Fragment set:html={closing.consultHeadline} /> : <>Reading is one step. <em>Talking is the next.</em></>}</Fragment>
+      <Fragment slot="body">{closing.consultBody ? closing.consultBody : <>
         If something you read here applies to your smile, submit a few photos and Dr. Richardson
         will record a personalized video reply — no office visit required to get started.
-      </Fragment>
+      </>}</Fragment>
     </VirtualConsult>
 
     </main>
