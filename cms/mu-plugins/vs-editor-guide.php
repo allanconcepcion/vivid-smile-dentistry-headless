@@ -2304,3 +2304,49 @@ function print_image_row_hints(): void {
 	<?php
 }
 add_action( 'admin_footer', __NAMESPACE__ . '\\print_image_row_hints' );
+
+/**
+ * ─── A new blog post starts with the house outline ─────────────────────────
+ *
+ * Posts use the block editor and a new one opened empty. Nothing on that
+ * screen said that the H2 headings are what build the sticky "On this page"
+ * list beside the article (src/pages/blog/[slug].astro:57 — H2 and H3 only),
+ * or that every published post is shaped the same way: an opening paragraph
+ * with no heading, six to thirteen H2 sections with H3s under some of them, a
+ * bulleted list or two, and a closing section. A post written without any H2
+ * simply has no side list, with nothing to say why.
+ *
+ * So a NEW post is pre-filled with that shape, every placeholder in square
+ * brackets saying what goes there. WordPress's `default_content` filter runs
+ * only inside get_default_post_to_edit() — the auto-draft an "Add Post" click
+ * creates — so an existing post is never touched, and an author who wants a
+ * blank page selects all and deletes. Block markup, because the post type
+ * keeps the block editor (pages_use_classic_editor() switches only pages).
+ */
+function new_post_outline( string $content, $post ): string {
+	if ( '' !== trim( $content ) || ! $post || 'post' !== $post->post_type ) {
+		return $content;
+	}
+
+	$p  = static fn( string $t ): string => "<!-- wp:paragraph -->\n<p>" . $t . "</p>\n<!-- /wp:paragraph -->\n\n";
+	$h2 = static fn( string $t ): string => "<!-- wp:heading -->\n<h2 class=\"wp-block-heading\">" . $t . "</h2>\n<!-- /wp:heading -->\n\n";
+	$h3 = static fn( string $t ): string => "<!-- wp:heading {\"level\":3} -->\n<h3 class=\"wp-block-heading\">" . $t . "</h3>\n<!-- /wp:heading -->\n\n";
+	$ul = static fn( array $items ): string => "<!-- wp:list -->\n<ul class=\"wp-block-list\">"
+		. implode( '', array_map( static fn( string $i ): string => "<!-- wp:list-item -->\n<li>" . $i . "</li>\n<!-- /wp:list-item -->", $items ) )
+		. "</ul>\n<!-- /wp:list -->\n\n";
+
+	return $p( '[Two or three sentences that say, in plain words, what this post answers and who it is for. No heading above this — it sits under the title.]' )
+		. $h2( '[The first thing a reader wants to know — write it as a heading, e.g. “What does a dental implant actually cost?”]' )
+		. $p( '[Answer it directly in the first sentence, then explain. Short paragraphs read better on a phone.]' )
+		. $h2( '[The second question — each H2 becomes a line in the “On this page” list beside the article]' )
+		. $h3( '[A smaller point under it — H3s appear indented in that list]' )
+		. $p( '[A paragraph or two.]' )
+		. $h3( '[Another smaller point]' )
+		. $p( '[A paragraph or two.]' )
+		. $h2( '[The third question]' )
+		. $p( '[If there are several options or steps, a list is easier to scan than a paragraph:]' )
+		. $ul( [ '[First option or step]', '[Second]', '[Third]' ] )
+		. $h2( 'Conclusion' )
+		. $p( '[Two or three sentences: what to take away, and the one next step — the booking form and the phone number are already under every post, so there is no need to type them here.]' );
+}
+add_filter( 'default_content', __NAMESPACE__ . '\\new_post_outline', 10, 2 );

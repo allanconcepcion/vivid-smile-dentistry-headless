@@ -321,6 +321,21 @@ instead of restating the rule, and the per-row photo hints handle the new `team`
 under Pages → About → Team → <name>) — the project's image policy, deliberately: a card with no
 picture is not something to ship silently.
 
+## 2026-09-07 — a new blog post starts with the house outline (Allan: "a default blog template")
+
+Posts use the block editor (pages use classic, via `pages_use_classic_editor()`), and "Add Post"
+opened empty. Nothing said that H2 headings are what build the sticky "On this page" list beside
+the article (`src/pages/blog/[slug].astro:57`, H2 + H3 only), so a post written without any H2 had
+no side list and no explanation. Every one of the 14 published posts has the same shape — opening
+paragraph, 6–13 H2s with H3s under some, a list or two, a Conclusion.
+
+`new_post_outline()` in `vs-editor-guide.php` pre-fills a NEW post with that shape as block markup,
+every placeholder in square brackets saying what goes there. It hangs on WordPress's
+`default_content`, which fires only inside `get_default_post_to_edit()` — the auto-draft an "Add
+Post" click creates — so existing posts are never touched (measured: post 53 still opens with its
+own first block). Verified on Add Post: 14 blocks — 1 intro paragraph, 4 H2, 2 H3, 1 list, Conclusion.
+The post intro message now says the outline is there and why the headings matter.
+
 ## The verification method this project learned
 
 Each sweep exists because the previous set reported clean while something real was broken.

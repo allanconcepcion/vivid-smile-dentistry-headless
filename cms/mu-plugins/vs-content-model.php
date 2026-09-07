@@ -1071,7 +1071,7 @@ function register_field_groups(): void {
 						. "<strong>Categories</strong> for the label on the card · "
 						. "<strong>Excerpt</strong> for the summary line on the blog list — if you leave it "
 						. "empty the site uses the opening of the article.\n"
-						. "The two boxes below are the only extras. Everything else about a post's "
+						. "A new post opens with a ready-made outline in the editor — keep the headings and replace the bracketed hints, because the H2 headings become the “On this page” list beside the article. The two boxes below are the only extras. Everything else about a post's "
 						. "layout — the share buttons, the related posts, the booking strip at the "
 						. "bottom — is the same on every post and is not edited here.\n"
 						. "Changes go live on the next site build.",
