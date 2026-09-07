@@ -12,12 +12,16 @@ import { Image } from "astro:assets";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import Button from "../../components/Button.astro";
 import FinalBand from "../../components/FinalBand.astro";
-import { phoneHref, phoneLabel, phoneE164, addressStreet, addressCity, addressState, addressZip } from "../../data/contact";
+import { phoneHref, phoneLabel, phoneE164, addressStreet, addressCity, addressState, addressZip, membershipFee, membershipFeeDigits, membershipDiscount, membershipJoinHref } from "../../data/contact";
 
 // Membership-specific NexHealth join URL — distinct from the site-wide
 // bookNowHref. The long query string is a Google-referral attribution token
 // (rwg_token / gei) the user supplied so click-source survives the redirect.
-const joinHref = "https://app.nexhealth.com/appt/vivid-smiles?gei=SNOCZ9DYI4iz0PEP4pGiwAE&hl=en-US&lid=135014&rwg_token=AJKvS9UCpCLqLfgKhJQnz7rWoeDCbQ7_4jB31UUUncy7-eeuYYpuTjjp2NDySX2gPYqlQfi7W1lrikNOJ7pN5SiEvTSWaWjcYQ%3D%3D";
+const joinHref = membershipJoinHref;
+// The at-a-glance price sits on its own line under the card label. Built here and
+// shipped as ONE flush expression: the whitespace before it compresses to "\n"
+// before plain text but to a space before an expression (measured, f903b36).
+const priceLine = "\n" + membershipFee;
 
 import { getPageContent } from '../../lib/page-content';
 // Section copy is edited in WordPress (Pages -> this page -> Section copy).
@@ -30,7 +34,7 @@ const storyBullets = [
   "2 fluoride treatments per year",
   "Unlimited digital x-rays",
   "Oral cancer screenings",
-  "15% off most other treatments",
+  `${membershipDiscount} off most other treatments`,
 ];
 
 const processSteps = [
@@ -47,7 +51,7 @@ const processSteps = [
     num: "02",
     tagline: "Use it the same day.",
     title: "Come in",
-    body: "Book your two yearly cleanings and exams — already paid for. For anything beyond preventive — fillings, veneers, Invisalign, implants — we apply the 15% member discount automatically at checkout. Nothing to file.",
+    body: `Book your two yearly cleanings and exams — already paid for. For anything beyond preventive — fillings, veneers, Invisalign, implants — we apply the ${membershipDiscount} member discount automatically at checkout. Nothing to file.`,
     label: "Step Two",
     img: image("step2Img"),
     alt: "Hygienist polishing a patient's teeth during a cleaning",
@@ -97,11 +101,11 @@ const faqs = [
   },
   {
     q: "Is there a waiting period or pre-approval?",
-    a: "No to both. Your membership is active the moment you enroll, and there are no exclusions for pre-existing conditions, prior treatment, or specific procedures. The 15% member discount applies to whatever's clinically planned — including work scheduled the same day you sign up.",
+    a: `No to both. Your membership is active the moment you enroll, and there are no exclusions for pre-existing conditions, prior treatment, or specific procedures. The ${membershipDiscount} member discount applies to whatever's clinically planned — including work scheduled the same day you sign up.`,
   },
   {
     q: "What happens if I have a dental emergency?",
-    a: `Emergency visits aren't covered in full, but you get the 15% member discount on the visit and any treatment that follows. We hold same-day spots open every day for emergencies — call us at <a class="vs-link" href="${phoneHref}">${phoneLabel}</a> and tell the front desk you're a member.`,
+    a: `Emergency visits aren't covered in full, but you get the ${membershipDiscount} member discount on the visit and any treatment that follows. We hold same-day spots open every day for emergencies — call us at <a class="vs-link" href="${phoneHref}">${phoneLabel}</a> and tell the front desk you're a member.`,
   },
   {
     q: "Is there a family option?",
@@ -109,7 +113,7 @@ const faqs = [
   },
   {
     q: "What's actually covered vs. discounted?",
-    a: "<b>Fully covered (no additional charge):</b> two cleanings and exams a year, two fluoride treatments, unlimited digital x-rays as clinically needed, oral cancer screenings, and complimentary consultations. <b>Discounted at 15%:</b> Invisalign and clear aligners, additional cleanings, fillings, crowns, veneers, whitening, implants, full-arch work, and emergency visits. The plan covers one adult; family pricing is available on request.",
+    a: `<b>Fully covered (no additional charge):</b> two cleanings and exams a year, two fluoride treatments, unlimited digital x-rays as clinically needed, oral cancer screenings, and complimentary consultations. <b>Discounted at ${membershipDiscount}:</b> Invisalign and clear aligners, additional cleanings, fillings, crowns, veneers, whitening, implants, full-arch work, and emergency visits. The plan covers one adult; family pricing is available on request.`,
   },
 ];
 
@@ -141,7 +145,7 @@ const faqs = [
             Year-round care, without insurance <em class="vs-italic-word">getting in the way.</em>
           </h1>}
           {hero.sub ? <p class="vs-lede">{hero.sub}</p> : <p class="vs-lede">
-            A flat $500 a year. Two cleanings, exams, x-rays — and 15% off everything
+            A flat {membershipFee} a year. Two cleanings, exams, x-rays — and {membershipDiscount} off everything
             else we do, from Invisalign to implants. No claims to file, no waiting
             periods, no pre-approvals. Built for the patients who'd rather work with
             us directly.
@@ -179,8 +183,7 @@ const faqs = [
         <aside class="story-card" aria-label="Plan at a glance">
           <span class="story-card__label">— At a glance</span>
           <h3>Vivid Smiles <em>Membership</em></h3>
-          <div class="story-card__price">
-            $500<span class="story-card__cadence">/ year</span>
+          <div class="story-card__price">{priceLine}<span class="story-card__cadence">/ year</span>
           </div>
           <p class="story-card__sub">One adult · <b>renews annually</b></p>
           <ul>
@@ -242,7 +245,7 @@ const faqs = [
 
               <div class="plan-price-block">
                 <div class="plan-price">
-                  <span class="dollar">$</span>500<span class="cadence">/ year, per adult</span>
+                  <span class="dollar">$</span>{membershipFeeDigits}<span class="cadence">/ year, per adult</span>
                 </div>
                 <p class="plan-fineline">
                   <b>Activates immediately</b> — no waiting period, no pre-approval. Family pricing available; ask the front desk for the per-additional-member rate.
@@ -273,11 +276,11 @@ const faqs = [
 
               <div class="plan-col">
                 <p class="plan-col__sub">— Member discount</p>
-                <h4>15% off everything else</h4>
+                <h4>{membershipDiscount} off everything else</h4>
                 <ul>
                   {discounted.map((i) => (
                     <li>
-                      <span class="glyph glyph-pct" aria-hidden="true">15%</span>
+                      <span class="glyph glyph-pct" aria-hidden="true">{membershipDiscount}</span>
                       <span>
                         <b>{i.title}</b>
                         <span class="item-note">{i.note}</span>
@@ -294,7 +297,7 @@ const faqs = [
 
             <div class="plan-foot">
               <div class="plan-foot__stat">
-                <span class="plan-foot__num">$500</span>
+                <span class="plan-foot__num">{membershipFee}</span>
                 <span>covers your two cleanings, exams, x-rays, and screenings for the year — and unlocks the member rate on everything beyond.</span>
               </div>
               <Button variant="light" href={joinHref} hoverLabel="Enroll Today">Enroll Today</Button>
@@ -349,7 +352,7 @@ const faqs = [
       "@type": "Service",
       "name": "Vivid Smiles Dental Membership Plan",
       "serviceType": "Dental membership plan",
-      "description": "Flat $500/year in-house dental membership covering two cleanings, two fluoride treatments, unlimited digital x-rays, oral cancer screenings, comprehensive exams, and complimentary consultations — plus 15% off all other treatments.",
+      "description": `Flat ${membershipFee}/year in-house dental membership covering two cleanings, two fluoride treatments, unlimited digital x-rays, oral cancer screenings, comprehensive exams, and complimentary consultations — plus ${membershipDiscount} off all other treatments.`,
       "provider": {
         "@type": "Dentist",
         "name": "Vivid Smiles Dentistry",
@@ -367,7 +370,7 @@ const faqs = [
       "areaServed": { "@type": "City", "name": "Parker, CO" },
       "offers": {
         "@type": "Offer",
-        "price": "500",
+        "price": membershipFeeDigits,
         "priceCurrency": "USD",
         "category": "Annual membership",
         "eligibleDuration": { "@type": "QuantitativeValue", "value": 12, "unitCode": "MON" },

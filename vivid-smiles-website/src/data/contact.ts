@@ -58,3 +58,26 @@ export const consultTypeformId = settings.consultTypeformId;
  */
 export const googleRating = settings.googleRating || "5.0";
 export const googleReviewCount = settings.googleReviewCount || "300+";
+
+/**
+ * The membership plan's three facts — Practice Settings → Membership plan.
+ * The fee is typed as it should read ("$500"); `membershipFeeDigits` is the
+ * same number without the sign, for the markup that draws the "$" itself and
+ * for the JSON-LD price. The join link was a literal in the page with NexHealth
+ * attribution tokens nobody in wp-admin could repair; it stays the fallback.
+ */
+const feeRaw = (settings.membershipFee || "$500").trim();
+export const membershipFeeDigits = feeRaw.replace(/[^\d.,]/g, "") || "500";
+export const membershipFee = "$" + membershipFeeDigits;
+export const membershipDiscount = (settings.membershipDiscount || "15%").trim();
+export const membershipJoinHref = settings.membershipJoinHref || "https://app.nexhealth.com/appt/vivid-smiles?gei=SNOCZ9DYI4iz0PEP4pGiwAE&hl=en-US&lid=135014&rwg_token=AJKvS9UCpCLqLfgKhJQnz7rWoeDCbQ7_4jB31UUUncy7-eeuYYpuTjjp2NDySX2gPYqlQfi7W1lrikNOJ7pN5SiEvTSWaWjcYQ%3D%3D";
+
+/**
+ * The texting programme's support line, printed in Terms & Conditions §22 —
+ * deliberately not the practice phone (terms-conditions/index.astro:31-33 kept
+ * it separate for that reason). Typed as it should read; the tel: href is
+ * derived from its digits, so a blank box keeps both literals exactly.
+ */
+export const smsHelpLabel = (settings.smsHelpPhone || "(303) 276-9932").trim();
+const smsDigits = smsHelpLabel.replace(/\D/g, "");
+export const smsHelpHref = "tel:+" + (smsDigits.length === 10 ? "1" + smsDigits : smsDigits);

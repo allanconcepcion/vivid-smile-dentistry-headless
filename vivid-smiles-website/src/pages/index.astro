@@ -22,6 +22,8 @@ import {
   addressCity,
   addressState,
   addressZip,
+  membershipFee,
+  membershipDiscount,
 } from "../data/contact";
 import { openingHoursSpecification } from "../data/hours";
 import "../styles/pages/home.css";
@@ -574,12 +576,12 @@ const trustTrack = [...trustBar, ...trustBar];
           <span class="membership-eyebrow">No Insurance? No Problem</span>
           <h3 class="membership-heading" id="membership-heading">Become a Vivid Smiles Dentistry Member</h3>
           <div class="membership-price-line">
-            <span class="amt">$500</span>
+            <span class="amt">{membershipFee}</span>
             <span class="per">/year</span>
           </div>
-          <p class="membership-desc">While it is not a requirement, we offer patients the option to join our Exclusive Dental Membership Plan for just $500 annually and experience exceptional dental care at an affordable price.</p>
+          <p class="membership-desc">While it is not a requirement, we offer patients the option to join our Exclusive Dental Membership Plan for just {membershipFee} annually and experience exceptional dental care at an affordable price.</p>
           <div class="membership-benefits">
-            <div class="membership-benefit">15% Discount Off Treatment</div>
+            <div class="membership-benefit">{membershipDiscount} Discount Off Treatment</div>
             <div class="membership-benefit">Oral Cancer Screening</div>
             <div class="membership-benefit">2 Cleanings Per Year</div>
             <div class="membership-benefit">10% Off Clear Aligners</div>

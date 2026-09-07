@@ -141,6 +141,16 @@ function register_fields(): void {
 						. 'Leave it blank and the site keeps what it shows today.',
 				],
 				[
+					'key'          => 'field_vs_sms_help_phone',
+					'label'        => 'Text-message help line',
+					'name'         => 'sms_help_phone',
+					'type'         => 'text',
+					'placeholder'  => '(303) 276-9932',
+					'instructions' => 'The number printed in the Terms & Conditions under text messaging (“reply HELP or call…”). '
+						. 'It is NOT the practice phone above — it is the texting programme’s support line. Type it '
+						. 'the way it should read, with the area code. Leave it blank and the page keeps the number it shows today.',
+				],
+				[
 					'key'   => 'field_vs_addr_tab',
 					'label' => 'Address',
 					'type'  => 'tab',
@@ -338,6 +348,39 @@ function register_fields(): void {
 					 */
 					'instructions' => 'The free virtual-consult form in the closing band on the service pages. '
 						. 'Leave it alone unless Typeform has given you a new form ID.',
+				],
+				[
+					'key'   => 'field_vs_membership_tab',
+					'label' => 'Membership plan',
+					'type'  => 'tab',
+				],
+				[
+					'key'          => 'field_vs_membership_fee',
+					'label'        => 'Annual fee',
+					'name'         => 'membership_fee',
+					'type'         => 'text',
+					'placeholder'  => '$500',
+					'instructions' => 'The yearly price of the membership plan, as it should read — $500. It is the big number '
+						. 'on the Membership Plan page, the price card on the home page, and what Google reads as the '
+						. 'plan’s price. Leave it blank and the site keeps the price it shows today.',
+				],
+				[
+					'key'          => 'field_vs_membership_discount',
+					'label'        => 'Member discount',
+					'name'         => 'membership_discount',
+					'type'         => 'text',
+					'placeholder'  => '15%',
+					'instructions' => 'The discount members get on other treatment, as it should read — 15%. '
+						. 'Leave it blank and the site keeps what it shows today.',
+				],
+				[
+					'key'          => 'field_vs_membership_join_href',
+					'label'        => 'Join link',
+					'name'         => 'membership_join_href',
+					'type'         => 'url',
+					'instructions' => 'Where every “Join the plan” and “Sign up now” button sends people — the NexHealth '
+						. 'enrolment address. Paste the whole address, including everything after the question mark. '
+						. 'Leave it blank and the buttons keep the link they use today.',
 				],
 			],
 		]

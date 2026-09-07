@@ -30,6 +30,10 @@ const SETTINGS_QUERY = /* GraphQL */ `
         consultTypeformId
         googleRating
         googleReviewCount
+        membershipFee
+        membershipDiscount
+        membershipJoinHref
+        smsHelpPhone
         officeHours {
           label
           days
@@ -88,6 +92,12 @@ export type PracticeSettings = {
   /** The review line's two numbers — "5.0" and "300+". Blank in wp-admin = keep the literal. */
   googleRating: string | null;
   googleReviewCount: string | null;
+  /** Membership plan tab — fee "$500", discount "15%", the NexHealth join link. Blank = keep the literal. */
+  membershipFee: string | null;
+  membershipDiscount: string | null;
+  membershipJoinHref: string | null;
+  /** The texting programme's support number on the Terms page — not the practice phone. */
+  smsHelpPhone: string | null;
   officeHours: WpHoursRow[];
   smileGallery: { nodes: WpMedia[] } | null;
   logoLightBg: { node: WpMedia | null } | null;

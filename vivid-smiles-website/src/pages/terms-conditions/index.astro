@@ -19,6 +19,8 @@ import {
   emailAddress,
   emailHref,
   phoneE164,
+  smsHelpLabel,
+  smsHelpHref,
 } from "../../data/contact";
 import "../../styles/pages/terms-conditions.css";
 import { getPageContent } from '../../lib/page-content';
@@ -31,8 +33,6 @@ const { tocLinks, section, seo } = await getPageContent(Astro.url.pathname);
 // SMS support line in section 22 — distinct from the practice's main phone line
 // (legacy doc references a vendor / SMS HELP routing). Inlined here rather than
 // added to contact.ts because it's specific to the SMS messaging program.
-const smsHelpLabel = "(303) 276-9932";
-const smsHelpHref = "tel:+13032769932";
 
 
 ---
