@@ -1,15 +1,15 @@
 <?php
 /**
  * Plugin Name:  Vivid Smiles — Page content migration
- * Description:  Runs the `blocks` back-fill and the `hero` copy back-fill, one
- *               route at a time, from Tools, for administrators only, on a host
- *               with no shell.
+ * Description:  Runs the `blocks` back-fill, the `hero` copy back-fill and the
+ *               `closing` copy back-fill, one route at a time, from Tools, for
+ *               administrators only, on a host with no shell.
  * Author:       Concepcion.Work
- * Version:      0.2.0
+ * Version:      0.3.0
  *
  * WHAT THIS IS FOR
  *
- * Two back-fills, on one screen, both of which move wording that is currently
+ * Three back-fills, on one screen, all of which move wording that is currently
  * in the front end's templates into WordPress so the owner can edit it:
  *
  *   Page sections  cms/import/backfill-blocks.php turns a page's existing
@@ -17,45 +17,56 @@
  *   Hero copy      cms/import/backfill-hero.php fills the `hero` group with the
  *                  eyebrow, headline, sub-heading and buttons the page already
  *                  renders, so the Hero tab holds real words instead of blanks.
+ *   Closing copy   cms/import/backfill-closing.php fills the `closing` group
+ *                  with the consultation invite's small line, headline and
+ *                  paragraph, and the booking strip's sentence, that the page
+ *                  already renders, so the Bottom of page tab holds real words
+ *                  too.
  *
- * Both were written for `wp eval-file`, and the hosted CMS (GoDaddy Managed
- * WordPress) offers no SSH and therefore no WP-CLI. Without this screen neither
- * can be run at all. docs/PAGE-BLOCKS.md, phases 2 and 3.
+ * All three were written for `wp eval-file`, and the hosted CMS (GoDaddy
+ * Managed WordPress) offers no SSH and therefore no WP-CLI. Without this screen
+ * none of them can be run at all. docs/PAGE-BLOCKS.md, phases 2 and 3, and the
+ * "Bottom of page" item in docs/SESSION-HANDOFF.md for the third.
  *
  * This is a front end and nothing else. It decides nothing: every judgement
  * about which section row becomes which layout, and every character of hero
- * copy, stays in the two engines and their two JSON payloads, which this file
- * includes and calls. Two copies of that logic writing to the same live CMS is
- * the failure mode worth more than any convenience — a dry run in one and a
- * write in the other would disagree, and nobody would find out until a page
- * rendered wrong.
+ * and closing copy, stays in the three engines and their three JSON payloads,
+ * which this file includes and calls. Two copies of that logic writing to the
+ * same live CMS is the failure mode worth more than any convenience — a dry run
+ * in one and a write in the other would disagree, and nobody would find out
+ * until a page rendered wrong.
  *
  * That principle is honoured unevenly and it is worth knowing which is which.
  * The hero mode has exactly one writer: render_hero() calls vs_hb_apply_route()
  * and so does the WP-CLI driver, so a dry run here is evidence about a run
- * anywhere. The sections mode does NOT — run() below re-implements the write
- * that backfill-blocks.php already contains, and the two have to be kept in
- * agreement by hand. If the sections mode is ever touched again, that is the
- * thing to fix, and vs_hb_apply_route() is the shape to copy.
+ * anywhere. The closing mode is built the same way: render_closing() calls
+ * vs_cb_apply_route() and so does its driver. The sections mode does NOT —
+ * run() below re-implements the write that backfill-blocks.php already
+ * contains, and the two have to be kept in agreement by hand. If the sections
+ * mode is ever touched again, that is the thing to fix, and
+ * vs_hb_apply_route() is the shape to copy.
  *
- * THE TWO MODES ARE INDEPENDENT, deliberately. Each has its own engine file and
- * its own payload, both hand-uploaded, and either can be missing. A mode whose
- * files are absent reports that and takes itself off the screen; the other one
- * keeps working. Nothing is shared but the URL, the nonce, the capability check
- * and the notice renderer.
+ * THE THREE MODES ARE INDEPENDENT, deliberately. Each has its own engine file
+ * and its own payload, all hand-uploaded, and any of them can be missing. A
+ * mode whose files are absent reports that and takes itself off the screen;
+ * the others keep working, so a host missing one engine can still run the
+ * other two. Nothing is shared but the URL, the nonce, the capability check and
+ * the notice renderer.
  *
  * WHEN TO DELETE IT
  *
- * When both jobs are done: the pages in block-map.json all migrated and the map
- * no longer growing, and the routes in hero-payload.json all filled. Realistically
- * the end of Phase 3. At that point this is a tool that writes page content on a
- * live, internet-facing admin and has no remaining job, which is the definition
- * of attack surface kept for sentiment. Delete this file, delete the uploaded
- * vs-migrate/ directory beside it, and re-deploy. Nothing else references either.
+ * When all three jobs are done: the pages in block-map.json all migrated and
+ * the map no longer growing, and the routes in hero-payload.json and in
+ * closing-payload.json all filled. Realistically the end of Phase 3. At that
+ * point this is a tool that writes page content on a live, internet-facing
+ * admin and has no remaining job, which is the definition of attack surface
+ * kept for sentiment. Delete this file, delete the uploaded vs-migrate/
+ * directory beside it, and re-deploy. Nothing else references either.
  *
- * Note that the deletion date now covers two jobs rather than one, so check both
- * before deleting: an unfilled hero is a screen still worth having, even if
- * every section has long since been migrated.
+ * Note that the deletion date now covers three jobs rather than one, so check
+ * all three before deleting: an unfilled hero, or an unfilled closing, is a
+ * screen still worth having, even if every section has long since been
+ * migrated.
  *
  * Delete it sooner if the host ever gains SSH: WP-CLI is the better runner,
  * because it cannot be reached by an HTTP request at all.
@@ -73,19 +84,20 @@
  *     and is validated back against that list with a strict in_array(). No path,
  *     no file name and no code ever arrives from the request. An admin screen
  *     that accepted a path would be an arbitrary-file-include hole on a live CMS.
- *   - Dry run is the default and a separate button, on both forms. A request
- *     that names no button, or an unrecognised one, plans and reports; only the
- *     button called `vs_write` writes.
+ *   - Dry run is the default and a separate button, on all three forms. A
+ *     request that names no button, or an unrecognised one, plans and reports;
+ *     only the button called `vs_write` writes.
  *   - A page whose `blocks` is already non-empty is refused unless a separate
  *     checkbox is ticked in the same POST. Emptying `blocks` un-migrates a page
  *     with no deploy and no code change, so almost everything here is
  *     reversible — an editor's arrangement is the exception, because nothing
  *     anywhere records what the order used to be.
- *   - A page whose hero already holds different wording is refused the same way,
- *     and refused WHOLE: not one of its fields is written, so no page is ever
- *     left half from the payload and half from an editor. That refusal is the
- *     kinder one, because the plan prints the wording it would replace beside
- *     the wording it would write, before anybody agrees to anything.
+ *   - A page whose hero — or whose closing — already holds different wording is
+ *     refused the same way, and refused WHOLE: not one of its fields is written,
+ *     so no page is ever left half from the payload and half from an editor.
+ *     That refusal is the kinder one, because the plan prints the wording it
+ *     would replace beside the wording it would write, before anybody agrees to
+ *     anything.
  *   - The mode is a hidden field and nothing more. It picks which form's
  *     submission is being read; it is not a permission and it is checked after
  *     the nonce and the capability, never instead of them.
@@ -104,21 +116,24 @@
  *   wp-content/mu-plugins/vs-migrate/
  *   wp-content/vs-import/bin/
  *
- * and the four files are:
+ * and the six files are:
  *
- *   backfill-blocks.php + block-map.json      the sections mode
- *   backfill-hero.php   + hero-payload.json   the hero mode
+ *   backfill-blocks.php  + block-map.json        the sections mode
+ *   backfill-hero.php    + hero-payload.json     the hero mode
+ *   backfill-closing.php + closing-payload.json  the closing mode
  *
  * The first directory is preferred and is checked first. A .php file in a
  * SUBDIRECTORY of mu-plugins is not auto-loaded by WordPress — only top-level
  * files are — so putting it there does not silently start running it on every
  * request. Both directories are web-readable on this host, which is worth
- * knowing and is not a leak: requested directly, either engine defines its
- * functions and stops (see the guard described below), and both payloads hold
- * page copy that is already published — hero-payload.json in particular is the
- * wording every one of those pages is serving right now, and holds no phone
- * number, booking URL, address or key by construction. Add a deny rule for the
- * directory if the host offers one.
+ * knowing and is not a leak: requested directly, each engine defines its
+ * functions and stops (see the guard described below), and all three payloads
+ * hold page copy that is already published — hero-payload.json and
+ * closing-payload.json in particular are the wording every one of those pages
+ * is serving right now. None holds a booking URL, a phone number or a key by
+ * construction; two closing notes do carry the practice's street address, which
+ * is on every page's footer already. Add a deny rule for the directory if the
+ * host offers one.
  */
 
 declare( strict_types=1 );
@@ -148,6 +163,15 @@ const LIBRARY_SENTINEL = 'VS_BACKFILL_LIBRARY';
  * about each of them on its own.
  */
 const HERO_LIBRARY_SENTINEL = 'VS_HERO_BACKFILL_LIBRARY';
+
+/**
+ * The same marker again, for the closing mode's engine.
+ *
+ * A third name for the reason there is a second: backfill-closing.php is its
+ * own upload and can be the one that is missing, so "is the library there" has
+ * to be answerable about it specifically.
+ */
+const CLOSING_LIBRARY_SENTINEL = 'VS_CLOSING_BACKFILL_LIBRARY';
 
 /**
  * The bookkeeping meta backfill-blocks.php writes after a successful run.
@@ -486,6 +510,165 @@ function hero_preflight(): array {
 	return [ \vs_hb_group_shape( $field ), '' ];
 }
 
+// ---------------------------------------------------------------------------
+// The closing mode's three equivalents, a third time over. Same shapes, same
+// failure style, and once more separate functions rather than a parameter on
+// the hero's: backfill-closing.php is its own upload, and the state where it
+// arrived and backfill-hero.php did not — or the reverse — has to leave the
+// other mode working.
+// ---------------------------------------------------------------------------
+
+/**
+ * Make backfill-closing.php's planner and writer callable, or explain why not.
+ *
+ * The arrangement hero_engine() describes, for the same reasons: the file was
+ * written as a library from the start, so its WP-CLI guard is at the bottom and
+ * no edit is needed to make it includable. The sentinel is still checked in the
+ * SOURCE before anything is included — the only other way to find out whether a
+ * file exits on include is to include it and lose the request.
+ *
+ * Nothing here runs at plugin load. The include happens inside the Tools screen.
+ */
+function closing_engine(): array {
+	if ( function_exists( 'vs_cb_plan_route' ) && function_exists( 'vs_cb_apply_route' ) ) {
+		return [ true, [] ];
+	}
+
+	$path = locate( 'backfill-closing.php' );
+
+	if ( '' === $path ) {
+		return [
+			false,
+			[
+				'backfill-closing.php is not on this install, so there is no closing back-fill engine to run.',
+				'Upload cms/import/backfill-closing.php and cms/import/closing-payload.json into '
+					. 'wp-content/mu-plugins/vs-migrate/, beside the files the other two modes use. '
+					. 'cms/bin/deploy-mu-plugins.sh copies mu-plugins/*.php only, so this is a manual upload.',
+			],
+		];
+	}
+
+	$source = (string) file_get_contents( $path );
+
+	if ( false === strpos( $source, CLOSING_LIBRARY_SENTINEL ) ) {
+		return [
+			false,
+			[
+				sprintf( 'Found a closing engine at %s, but it is not the one this screen knows how to load.', $path ),
+				'Expected it to announce itself as a library by defining ' . CLOSING_LIBRARY_SENTINEL
+					. ' when it is not running under WP-CLI. Without that marker there is no way to tell, '
+					. 'short of including it, whether it exits at the top or runs a migration on include. '
+					. 'Refusing rather than finding out.',
+			],
+		];
+	}
+
+	require_once $path;
+
+	// Every vs_cb_ function this screen calls, not just the two writers: the
+	// preflight and the status table call six more, and an engine that left
+	// only the writers behind would fatal halfway down the page.
+	$needed = [
+		'vs_cb_plan_route',
+		'vs_cb_apply_route',
+		'vs_cb_group_key',
+		'vs_cb_group_shape',
+		'vs_cb_writable_fields',
+		'vs_cb_page_by_route',
+		'vs_cb_receipt_meta',
+		'vs_cb_stored',
+	];
+	$missing = array_filter( $needed, static fn( string $fn ): bool => ! function_exists( $fn ) );
+
+	if ( ! defined( CLOSING_LIBRARY_SENTINEL ) || $missing ) {
+		return [
+			false,
+			[
+				sprintf( 'Loaded %s, but it did not leave the engine behind.', $path ),
+				'Expected the constant ' . CLOSING_LIBRARY_SENTINEL . ' and the functions '
+					. implode( ', ', array_map( static fn( string $fn ): string => $fn . '()', $needed ) )
+					. ( $missing ? ' — missing: ' . implode( ', ', $missing ) : '' )
+					. '. Refusing to run rather than half-calling a file that is not '
+					. 'what this screen expects.',
+			],
+		];
+	}
+
+	return [ true, [] ];
+}
+
+/**
+ * closing-payload.json, parsed.
+ *
+ * Returns [ 'error' => string ] or the payload plus the fingerprint the CLI
+ * prints and the receipt records, which is the only way a reader can tell two
+ * runs apart when the payload has been regenerated between them.
+ *
+ * The file may carry a `_` block of provenance beside `routes`; that is prose
+ * for a reader and nothing here looks at it. Inside a route any of the four
+ * boxes may be absent, and absent is a decision rather than a gap: the engine
+ * leaves that box blank so the template keeps its own wording. A page with no
+ * invite section has no invite boxes to fill, and a paragraph or sentence that
+ * carries a real link or the phone number stays on the template.
+ */
+function read_closing_payload(): array {
+	$path = locate( 'closing-payload.json' );
+
+	if ( '' === $path ) {
+		return [
+			'error' => 'closing-payload.json is not on this install. Upload cms/import/closing-payload.json into '
+				. 'wp-content/mu-plugins/vs-migrate/ beside the engine.',
+		];
+	}
+
+	$raw     = (string) file_get_contents( $path );
+	$payload = json_decode( $raw, true );
+
+	if ( ! is_array( $payload ) || empty( $payload['routes'] ) || ! is_array( $payload['routes'] ) ) {
+		return [ 'error' => sprintf( '%s is empty or malformed — it has no `routes` object.', $path ) ];
+	}
+
+	return [
+		'path'   => $path,
+		'raw'    => $raw,
+		'routes' => $payload['routes'],
+		'sha'    => substr( sha1( $raw ), 0, 12 ),
+	];
+}
+
+/**
+ * The registered shape of the `closing` group, or the reason there is none.
+ *
+ * The group's key is field_vs_page_closing, read through vs_cb_group_key() so
+ * this screen and the engine cannot disagree about it. Read off the live
+ * registration for the reason hero_preflight() gives, which applies unchanged:
+ * ACF's group writer iterates the sub-fields it KNOWS and never looks at an
+ * array key that matches none of them. A payload naming a sub-field this
+ * install has not got would write nothing at all and report success.
+ */
+function closing_preflight(): array {
+	if ( ! function_exists( 'acf_get_field' ) || ! function_exists( 'update_field' ) ) {
+		return [
+			[],
+			'Secure Custom Fields is not active on this install, so there is no `closing` group to write into.',
+		];
+	}
+
+	$field = \acf_get_field( \vs_cb_group_key() );
+
+	if ( ! is_array( $field ) || empty( $field['sub_fields'] ) ) {
+		return [
+			[],
+			'The `closing` group is not registered here. It is declared in '
+				. 'cms/mu-plugins/vs-content-model.php and has to be on this host before anything can be '
+				. 'written into it. Deploy that file, confirm `closing` appears on PageFields in GraphQL, '
+				. 'then reload this screen.',
+		];
+	}
+
+	return [ \vs_cb_group_shape( $field ), '' ];
+}
+
 /**
  * Plan one route and, if asked and allowed, write it.
  *
@@ -745,10 +928,10 @@ function submission( array $routes, string $mode ): ?array {
 	// where a failed check falls through into the handler below.
 	check_admin_referer( NONCE_ACTION );
 
-	// WHICH OF THE TWO FORMS ON THIS SCREEN WAS SUBMITTED.
+	// WHICH OF THE THREE FORMS ON THIS SCREEN WAS SUBMITTED.
 	//
 	// The screen draws a form per mode and each renderer calls this with its own
-	// name; a POST from the other form is not this renderer's business and is
+	// name; a POST from another form is not this renderer's business and is
 	// ignored here rather than being validated against the wrong route list. It
 	// sits below the nonce and capability checks deliberately — those are the
 	// gate, and a request that fails them must die at them, not fall through to a
@@ -768,7 +951,7 @@ function submission( array $routes, string $mode ): ?array {
 	// Validated against the payload's own keys with a strict comparison. The
 	// request cannot introduce a route, only choose one the mode's own JSON file
 	// already describes — which is also why there is no free-text path field
-	// anywhere on either form.
+	// on any of the three forms.
 	if ( '' === $posted || ! in_array( $posted, array_keys( $routes ), true ) ) {
 		return [
 			'route'     => '',
@@ -776,7 +959,11 @@ function submission( array $routes, string $mode ): ?array {
 			'overwrite' => false,
 			'error'     => sprintf(
 				'That route is not in %s. Choose one from the list and try again.',
-				'hero' === $mode ? 'hero-payload.json' : 'block-map.json'
+				[
+					'sections' => 'block-map.json',
+					'hero'     => 'hero-payload.json',
+					'closing'  => 'closing-payload.json',
+				][ $mode ] ?? 'block-map.json'
 			),
 		];
 	}
@@ -949,18 +1136,20 @@ function render_notice( string $class, array $lines ): void {
 }
 
 /**
- * The screen itself: one page, one nonce, one capability check, two migrations.
+ * The screen itself: one page, one nonce, one capability check, three
+ * migrations.
  *
- * The two are drawn as separate <form>s rather than as a mode switch, which is
- * what keeps this a small addition instead of a rewrite. There is no
+ * The three are drawn as separate <form>s rather than as a mode switch, which
+ * is what keeps each addition small instead of a rewrite. There is no
  * round-trip to change mode and no JavaScript; each form carries its own route
  * list, its own buttons and its own overwrite confirmation, and submission()
  * tells them apart by a hidden field. Above all, each is rendered by its own
  * function, so the sections mode's early returns — a missing engine, a missing
  * map, an unregistered field — take the sections mode off the screen and leave
- * the hero mode working. That independence is the point: the two engines are
- * separate manual uploads to a host with no shell, and the state where one
- * arrived and the other did not is the normal state, not the exception.
+ * the hero and closing modes working, and the same holds for each of the other
+ * two. That independence is the point: the three engines are separate manual
+ * uploads to a host with no shell, and the state where one arrived and another
+ * did not is the normal state, not the exception.
  */
 function render(): void {
 	// The lock that matters. add_management_page()'s capability argument governs
@@ -972,9 +1161,9 @@ function render(): void {
 
 	echo '<div class="wrap">';
 	echo '<h1>Page content migration</h1>';
-	echo '<p>Two one-way jobs that move a page&rsquo;s wording out of its template and into WordPress, one '
-		. 'route at a time. Both write to the live CMS, both refuse a page somebody has already edited, and '
-		. 'both have a dry run that writes nothing. Use it.</p>';
+	echo '<p>Three one-way jobs that move a page&rsquo;s wording out of its template and into WordPress, one '
+		. 'route at a time. All three write to the live CMS, all three refuse a page somebody has already '
+		. 'edited, and all three have a dry run that writes nothing. Use it.</p>';
 
 	echo '<h2 style="margin-top:1.5em">Page sections</h2>';
 	render_sections();
@@ -983,6 +1172,11 @@ function render(): void {
 
 	echo '<h2>Hero copy</h2>';
 	render_hero();
+
+	echo '<hr style="margin:3em 0">';
+
+	echo '<h2>Bottom of page copy</h2>';
+	render_closing();
 
 	echo '</div>';
 }
@@ -1058,9 +1252,9 @@ function render_sections(): void {
 	echo '<form method="post" action="' . esc_url( admin_url( 'tools.php?page=' . MENU_SLUG ) ) . '">';
 	wp_nonce_field( NONCE_ACTION );
 
-	// Which of the screen's two forms this is. Not a security control — the nonce
+	// Which of the screen's three forms this is. Not a security control — the nonce
 	// and the capability check are — just the thing that stops one mode reading
-	// the other mode's submission and validating a route against the wrong list.
+	// another mode's submission and validating a route against the wrong list.
 	echo '<input type="hidden" name="vs_mode" value="sections">';
 
 	echo '<table class="form-table" role="presentation"><tbody>';
@@ -1409,4 +1603,306 @@ function render_hero_status( array $routes, array $shape ): void {
 	echo '</tbody></table>';
 	echo '<p class="description">A dash is an empty box, which is not a fault: the fields a route '
 		. 'deliberately leaves out stay empty for good, and the page keeps its template wording for them.</p>';
+}
+
+/**
+ * The closing mode.
+ *
+ * Built the way the hero mode is, for the reason its docblock gives: every
+ * decision and every write lives in backfill-closing.php and is reached through
+ * vs_cb_plan_route() and vs_cb_apply_route(), which the WP-CLI driver calls too.
+ * This function draws a form, reads a submission and prints a result, and there
+ * is exactly one writer for the closing group.
+ *
+ * ONE PROMISE THE HERO MODE MAKES DOES NOT CARRY OVER. A correct hero run
+ * changes no rendered byte. A correct closing run changes no rendered WORD, and
+ * the weaker claim is deliberate: the templates render their multi-line
+ * fallbacks with the source's own newlines and indentation baked into the HTML,
+ * and a clean one-line value from WordPress does not reproduce that whitespace.
+ * Measured 2026-09-04 (docs/SESSION-HANDOFF.md, the "Bottom of page" item): 45
+ * of the payload's values are byte-exact against the live page and 25 differ in
+ * whitespace only, so roughly twenty routes change bytes without changing a
+ * word. The screen says so, because a byte diff nobody was warned about reads
+ * as a regression to whoever runs the four sweeps next. Emptying a box puts the
+ * template back exactly, whitespace included.
+ */
+function render_closing(): void {
+	echo '<p>Fills each page&rsquo;s <strong>Bottom of page</strong> boxes with the wording that page already '
+		. 'renders &mdash; the consultation invite&rsquo;s small line, headline and paragraph, and the booking '
+		. 'strip&rsquo;s sentence &mdash; so the owner edits real words instead of blank ones. The templates fall '
+		. 'back to these same words while the boxes are empty, so a correct run changes no word on the site. It '
+		. 'can change spacing inside the built page on routes whose template wording ran over several lines; '
+		. 'that is expected, and emptying a box puts the template back exactly. It writes at most four fields '
+		. 'on one page and never touches the four numbered steps, the photo-upload form or the buttons, which '
+		. 'stay in the template.</p>';
+
+	list( $engine_ok, $engine_notes ) = closing_engine();
+
+	if ( ! $engine_ok ) {
+		render_notice( 'notice-error', $engine_notes );
+
+		return;
+	}
+
+	$payload = read_closing_payload();
+
+	if ( isset( $payload['error'] ) ) {
+		render_notice( 'notice-error', [ (string) $payload['error'] ] );
+
+		return;
+	}
+
+	$routes = (array) $payload['routes'];
+
+	list( $shape, $preflight_error ) = closing_preflight();
+
+	if ( '' !== $preflight_error ) {
+		render_notice( 'notice-error', [ $preflight_error ] );
+
+		return;
+	}
+
+	$submission = submission( $routes, 'closing' );
+	$plan       = null;
+	$result     = null;
+
+	if ( is_array( $submission ) && '' !== (string) $submission['error'] ) {
+		render_notice( 'notice-error', [ (string) $submission['error'] ] );
+	} elseif ( is_array( $submission ) ) {
+		$route = (string) $submission['route'];
+
+		$plan = \vs_cb_plan_route( $route, (array) $routes[ $route ], $shape );
+
+		$result = \vs_cb_apply_route(
+			$plan,
+			$shape,
+			(bool) $submission['write'],
+			(bool) $submission['overwrite'],
+			(string) $payload['sha']
+		);
+
+		$class = [
+			'written'   => 'notice-success',
+			'unchanged' => 'notice-info',
+			'planned'   => 'notice-info',
+			'refused'   => 'notice-warning',
+			'failed'    => 'notice-error',
+		][ $result['outcome'] ] ?? 'notice-info';
+
+		render_notice(
+			$class,
+			array_merge(
+				[ sprintf( '%s — %s', (string) $result['route'], strtoupper( (string) $result['outcome'] ) ) ],
+				(array) $result['messages']
+			)
+		);
+	}
+
+	$selected = is_array( $submission ) ? (string) $submission['route'] : (string) array_key_first( $routes );
+
+	echo '<form method="post" action="' . esc_url( admin_url( 'tools.php?page=' . MENU_SLUG ) ) . '">';
+	wp_nonce_field( NONCE_ACTION );
+
+	echo '<input type="hidden" name="vs_mode" value="closing">';
+
+	echo '<table class="form-table" role="presentation"><tbody>';
+
+	echo '<tr><th scope="row"><label for="vs_closing_route">Route</label></th><td>';
+	echo '<select name="vs_route" id="vs_closing_route">';
+	foreach ( array_keys( $routes ) as $route ) {
+		printf(
+			'<option value="%s"%s>%s</option>',
+			esc_attr( (string) $route ),
+			selected( (string) $route, $selected, false ),
+			esc_html( (string) $route )
+		);
+	}
+	echo '</select>';
+	echo '<p class="description">' . esc_html(
+		sprintf( 'The %d route(s) closing-payload.json describes. Nothing else can be filled from here.', count( $routes ) )
+	) . '</p>';
+	echo '</td></tr>';
+
+	echo '<tr><th scope="row">Overwrite</th><td>';
+	// Never pre-ticked, for the reason the other two forms give: confirming an
+	// overwrite is a decision about one page on one run, not a mode to leave on.
+	echo '<label><input type="checkbox" name="vs_overwrite_confirmed" value="yes"> ';
+	echo 'Replace bottom-of-page wording somebody has already typed on this page.</label>';
+	echo '<p class="description">Leave this alone unless a run has told you to. A page whose boxes already '
+		. 'hold different wording is refused without it &mdash; and refused whole, so none of its fields are '
+		. 'written. Like the hero and unlike the sections list, this one is recoverable: the wording it would '
+		. 'replace is printed below before you agree to it.</p>';
+	echo '</td></tr>';
+
+	echo '</tbody></table>';
+
+	echo '<p class="submit">';
+	echo '<button type="submit" name="vs_dry_run" value="1" class="button button-primary button-large">'
+		. 'Dry run &mdash; show me what it would write</button> ';
+	echo '<button type="submit" name="vs_write" value="1" class="button button-large">'
+		. 'Run it for real</button>';
+	echo '</p>';
+	echo '<p class="description">Dry run first, every time. It reads the page and reports, and writes '
+		. 'nothing.</p>';
+
+	echo '</form>';
+
+	if ( is_array( $plan ) ) {
+		render_closing_plan( $plan );
+	}
+
+	echo '<hr style="margin:2em 0">';
+
+	render_closing_status( $routes, $shape );
+
+	echo '<p class="description">';
+	echo esc_html( sprintf( 'Payload: %s (sha1 %s)', (string) $payload['path'], (string) $payload['sha'] ) );
+	echo '<br>';
+	echo esc_html( sprintf( 'Closing sub-fields registered on this install: %s', implode( ', ', array_keys( $shape['fields'] ) ) ) );
+	echo '<br>';
+	echo esc_html( sprintf( 'Writable from here: %s', implode( ', ', \vs_cb_writable_fields() ) ) );
+	echo '</p>';
+}
+
+/**
+ * The per-field plan, field by field, in full.
+ *
+ * The hero's renderer restated for the closing group rather than shared with
+ * it, because the two differ in the one paragraph that matters most — why a
+ * box is being left alone — and a shared renderer would have to be told which
+ * story to tell. The rest is the same for the same reasons: the value sits in a
+ * <pre> between markers, because these values are compared byte for byte and a
+ * trailing space is the difference between a write and a refusal, invisible
+ * without something either side of it; and everything goes through esc_html(),
+ * because the invite headlines carry <em>.
+ */
+function render_closing_plan( array $plan ): void {
+	if ( ! empty( $plan['errors'] ) ) {
+		echo '<h2>Why this cannot run</h2>';
+		echo '<p>Nothing was written. Each of these is a fault in the payload or in what this page holds, '
+			. 'and none of them is worked around by trying again.</p>';
+		echo '<ul class="ul-disc">';
+		foreach ( (array) $plan['errors'] as $error ) {
+			echo '<li>' . esc_html( (string) $error ) . '</li>';
+		}
+		echo '</ul>';
+
+		return;
+	}
+
+	echo '<h2>What this would write</h2>';
+	echo '<p>' . esc_html(
+		sprintf(
+			'Page %d. Values are shown between [ and ] so a leading or trailing space is visible; a '
+				. 'newline inside one is shown as \n.',
+			(int) $plan['post_id']
+		)
+	) . '</p>';
+
+	echo '<table class="widefat striped" style="max-width:70em"><thead><tr>';
+	echo '<th style="width:8em">Field</th><th style="width:9em">What happens</th><th>Value</th>';
+	echo '</tr></thead><tbody>';
+
+	foreach ( (array) $plan['fields'] as $field ) {
+		$action = (string) $field['action'];
+
+		$says = [
+			'write'    => 'written &mdash; the box is empty',
+			'same'     => 'skipped &mdash; already exactly this',
+			'conflict' => '<strong>in the way</strong> &mdash; holds something else',
+		][ $action ] ?? esc_html( $action );
+
+		echo '<tr>';
+		echo '<td><code>' . esc_html( (string) $field['name'] ) . '</code></td>';
+		echo '<td>' . $says . '</td>';
+		echo '<td><pre style="white-space:pre-wrap;margin:0;font-size:12px">';
+		echo esc_html( '[' . (string) $field['canonical'] . ']' );
+		echo '</pre>';
+
+		if ( 'conflict' === $action ) {
+			echo '<p style="margin:.6em 0 .2em"><strong>Currently on the page:</strong></p>';
+			echo '<pre style="white-space:pre-wrap;margin:0;font-size:12px;background:#fcf9e8">';
+			echo esc_html( '[' . (string) $field['stored'] . ']' );
+			echo '</pre>';
+		}
+
+		echo '</td>';
+		echo '</tr>';
+	}
+
+	echo '</tbody></table>';
+
+	if ( ! empty( $plan['omitted'] ) ) {
+		$escaped = array_map(
+			static function ( $name ): string {
+				return '<code>' . esc_html( (string) $name ) . '</code>';
+			},
+			(array) $plan['omitted']
+		);
+
+		echo '<p style="margin-top:1em"><strong>Deliberately not written:</strong> ' . implode( ', ', $escaped ) . '.</p>';
+		echo '<p>Those boxes are left exactly as they are. Where one is blank that is the correct stored '
+			. 'value and not an oversight &mdash; the template keeps its own wording, which for these is '
+			. 'the only rendering that is right. A paragraph or a booking-strip sentence that carries a real '
+			. 'link or the phone number cannot be stored in a plain-text box without publishing the tags or a '
+			. 'number that goes out of date, and a page with no invite section has no invite boxes to fill.</p>';
+	}
+
+	foreach ( (array) $plan['warnings'] as $warning ) {
+		echo '<div class="notice notice-warning inline" style="margin:1em 0"><p>'
+			. esc_html( (string) $warning ) . '</p></div>';
+	}
+}
+
+/**
+ * Where every route in the payload currently stands. Read-only.
+ *
+ * The receipt is `_vs_closing_backfill`, read through vs_cb_receipt_meta() for
+ * the reason the hero's is: two spellings of one meta key is how two runners
+ * stop recognising each other's work.
+ */
+function render_closing_status( array $routes, array $shape ): void {
+	$writable = \vs_cb_writable_fields();
+
+	echo '<h2>Where the pages stand</h2>';
+	echo '<p>What each page&rsquo;s bottom-of-page boxes hold right now &mdash; read straight out of the '
+		. 'database, not from any record of a previous run.</p>';
+
+	echo '<table class="widefat striped" style="max-width:70em"><thead><tr>';
+	echo '<th>Route</th><th>Page</th>';
+	foreach ( $writable as $name ) {
+		echo '<th>' . esc_html( $name ) . '</th>';
+	}
+	echo '<th>Filled</th>';
+	echo '</tr></thead><tbody>';
+
+	foreach ( array_keys( $routes ) as $route ) {
+		$post_id  = \vs_cb_page_by_route( (string) $route );
+		$previous = $post_id
+			? json_decode( (string) get_post_meta( $post_id, \vs_cb_receipt_meta(), true ), true )
+			: null;
+
+		echo '<tr>';
+		echo '<td><code>' . esc_html( (string) $route ) . '</code></td>';
+		echo '<td>' . ( $post_id ? esc_html( (string) $post_id ) : '<strong>not found</strong>' ) . '</td>';
+
+		foreach ( $writable as $name ) {
+			$stored = $post_id ? \vs_cb_stored( $post_id, $name, $shape ) : '';
+
+			echo '<td>' . ( '' === $stored ? '&mdash;' : '&#10003;' ) . '</td>';
+		}
+
+		echo '<td>' . esc_html(
+			is_array( $previous ) && isset( $previous['when'] )
+				? (string) $previous['when'] . ' (payload ' . (string) ( $previous['payload'] ?? '?' ) . ')'
+					. ( ! empty( $previous['forced'] ) ? ' FORCED' : '' )
+				: '—'
+		) . '</td>';
+		echo '</tr>';
+	}
+
+	echo '</tbody></table>';
+	echo '<p class="description">A dash is an empty box, which is not a fault: the boxes a route '
+		. 'deliberately leaves out stay empty for good, and the page keeps its template wording for them. A '
+		. 'page with no invite section shows a dash under all three invite boxes, and that is the whole story.</p>';
 }

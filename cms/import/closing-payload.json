@@ -1,0 +1,133 @@
+{
+  "_": {
+    "what": "Back-fill payload for the ACF `closing` group (field_vs_page_closing): consult_eyebrow, consult_headline, consult_body, note — one entry per route, keyed by route.",
+    "source": "Extracted 2026-09-07 from the JSX fallbacks in vivid-smiles-website/src/pages/**/*.astro (the `closing.consultX ? ... : <>fallback</>` branches). JSX whitespace collapsed to single spaces.",
+    "measured": "All 70 values checked against the built dist/: 45 byte-exact, 25 identical after whitespace normalisation (Astro bakes JSX source indentation into the HTML), 0 differing in a word. Writing them therefore changes bytes on ~20 routes but no words.",
+    "left_on_template": [
+      "/implant-dentistry/all-on-4-single-arch/ consult_body",
+      "/implant-dentistry/bone-grafting/ consult_body",
+      "/implant-dentistry/full-mouth-dental-implants/ consult_body",
+      "/implant-dentistry/full-mouth-dental-implants/ note",
+      "/implant-dentistry/single-tooth-dental-implants/ consult_body",
+      "/implant-dentistry/sinus-lift/ note",
+      "/referral-program/ note"
+    ],
+    "why_left": "consult_body and note render as plain text (no set:html); these seven carry an inline <a> or a {phoneLabel} expression, so a stored value would show markup. Absent key = deliberately blank = template fallback keeps rendering."
+  },
+  "routes": {
+    "/about-us/": {
+      "consult_eyebrow": "Free virtual consultation",
+      "consult_headline": "Begin your <em>Vivid Smile.</em>",
+      "consult_body": "Whether it's a smile makeover, a second opinion, or just a question — Dr. Richardson personally records a custom video reply for every consultation request."
+    },
+    "/cosmetic-dentistry/": {
+      "consult_eyebrow": "Free cosmetic dentistry consultation",
+      "consult_headline": "Free cosmetic dentistry <em>consultation.</em>",
+      "consult_body": "Taking the first step toward your smile has never been easier. Nothing to schedule — Dr. Richardson personally records a custom video response for every consultation request. Photos in, video out.",
+      "note": "Vivid Smiles is located in Parker, CO and has earned 300+ five-star Google reviews from patients who wanted natural, lasting cosmetic results and got them."
+    },
+    "/cosmetic-dentistry/clear-aligners/": {
+      "consult_eyebrow": "Free aligners consultation",
+      "consult_headline": "Free aligners <em>consultation.</em>",
+      "consult_body": "Wondering whether Spark aligners are right for your smile? Skip the office visit — Dr. Richardson personally records a custom video previewing your alignment options, your projected timeline, and what to expect from candidacy through the final tray, all from a few photos you submit below.",
+      "note": "17167 Cedar Gulch Pkwy Ste 102, Parker, CO 80134. Patients welcome locally and from out of state."
+    },
+    "/cosmetic-dentistry/full-mouth-rehabilitation/": {
+      "consult_eyebrow": "Free full-mouth rehab consultation",
+      "consult_headline": "Free full-mouth rehab <em>consultation.</em>",
+      "consult_body": "Curious about full-mouth rehabilitation? Skip the office visit — Dr. Richardson personally records a custom video reviewing your situation, the path that fits your case, and what's possible with implants, cosmetic work, or a hybrid plan, all from photos you submit below.",
+      "note": "Vivid Smiles Dentistry in Parker, Colorado, offers the specialized training, technology, and in-house coordination that full-mouth cases require."
+    },
+    "/cosmetic-dentistry/gum-contouring/": {
+      "consult_eyebrow": "Free gum contouring consultation",
+      "consult_headline": "Free gum contouring <em>consultation.</em>",
+      "consult_body": "Gum contouring is one of the most efficient cosmetic procedures available: immediate results, minimal recovery, and a lasting change to the way your smile looks. If you have ever wondered whether your gum line is affecting the way your teeth appear, a consultation with Dr. Richardson will give you a clear answer and a preview of what is possible before any commitment is made.",
+      "note": "Free cosmetic consultations at 17167 Cedar Gulch Pkwy, Suite 102, Parker, CO 80134."
+    },
+    "/cosmetic-dentistry/porcelain-veneers/": {
+      "consult_eyebrow": "Free veneers consultation",
+      "consult_headline": "Free veneers <em>consultation.</em>",
+      "consult_body": "Curious about your veneer options? Skip the office visit — Dr. Richardson personally records a custom video reviewing your smile, the changes you're imagining, and what's possible with no-prep or minimal-prep porcelain veneers, all from photos you submit below.",
+      "note": "Patients welcome locally and from out of state."
+    },
+    "/cosmetic-dentistry/smile-makeover/": {
+      "consult_eyebrow": "Free smile makeover consultation",
+      "consult_headline": "Free smile makeover <em>consultation.</em>",
+      "consult_body": "If you have spent years wanting to fix your smile, the next step is a consultation, not a commitment. At Vivid Smiles Dentistry, Dr. Richardson starts every smile makeover with a comprehensive analysis and a digital preview so you can see exactly what your results will look like before any treatment begins.",
+      "note": "Vivid Smiles is located in Parker, CO and has earned 300+ five-star Google reviews from patients who wanted natural, lasting results and got them."
+    },
+    "/cosmetic-dentistry/teeth-whitening/": {
+      "consult_eyebrow": "Free whitening consultation",
+      "consult_headline": "Free whitening <em>consultation.</em>",
+      "consult_body": "Getting a noticeably whiter smile in Parker starts with a consultation built around your specific staining type and shade goals. KOR's treatment levels cover nearly every case, and digital smile design gives you a preview of results before treatment begins.",
+      "note": "Schedule your consultation and take the first step toward lasting whitening results."
+    },
+    "/dental-membership-plan/": {
+      "note": "Join today and use the benefits this afternoon. No paperwork, no waiting period, no surprises."
+    },
+    "/emergency-dentistry/": {
+      "note": "Vivid Smiles Dentistry in Parker offers same-day emergency dental care backed by CBCT 3D imaging, in-house milling, and a dual-doctor team with 600+ hours of advanced surgical training."
+    },
+    "/general-dentistry/": {
+      "consult_eyebrow": "Free general dentistry consultation",
+      "consult_headline": "Free general dentistry <em>consultation.</em>",
+      "consult_body": "New to the practice or returning after years away? Send a few photos and we'll record a custom video response with findings, next steps, and a recommended visit cadence. Photos in, video out — no commitments.",
+      "note": "Vivid Smiles Dentistry in Parker offers comprehensive general care from a dual-doctor team backed by advanced diagnostic technology and 300+ five-star Google reviews."
+    },
+    "/implant-dentistry/": {
+      "consult_eyebrow": "Free dental implant consultation",
+      "consult_headline": "Free dental implant <em>consultation.</em>",
+      "consult_body": "Considering implants? Send a few photos and Dr. Richardson personally records a custom video response with candidacy assessment, treatment options, and next steps. Photos in, video out — no commitments.",
+      "note": "Vivid Smiles Dentistry in Parker offers robotic-guided placement and in-house surgical + restorative care, backed by 600-plus hours of advanced training and 300+ five-star Google reviews."
+    },
+    "/implant-dentistry/all-on-4-single-arch/": {
+      "consult_eyebrow": "Free All-on-4 consultation",
+      "consult_headline": "Free All-on-4 <em>consultation.</em>",
+      "note": "Dr. Bryce Richardson combines robotic precision with 600-plus hours of advanced surgical training to deliver All-on-4 outcomes built to last decades."
+    },
+    "/implant-dentistry/bone-grafting/": {
+      "consult_eyebrow": "Free bone grafting consultation",
+      "consult_headline": "Free bone grafting <em>consultation.</em>",
+      "note": "Dr. Bryce Richardson combines CBCT-guided planning with 600-plus hours of advanced surgical training to deliver bone grafting outcomes built to support implants for the long term."
+    },
+    "/implant-dentistry/full-mouth-dental-implants/": {
+      "consult_eyebrow": "Free full mouth implant consultation",
+      "consult_headline": "Free full mouth implant <em>consultation.</em>"
+    },
+    "/implant-dentistry/single-tooth-dental-implants/": {
+      "consult_eyebrow": "Free single tooth implant consultation",
+      "consult_headline": "Free single tooth implant <em>consultation.</em>",
+      "note": "Dr. Bryce Richardson pairs robotic precision with 600-plus hours of advanced surgical training to deliver single tooth implant outcomes built to last decades."
+    },
+    "/implant-dentistry/sinus-lift/": {
+      "consult_eyebrow": "Free sinus lift consultation",
+      "consult_headline": "Free sinus lift <em>consultation.</em>",
+      "consult_body": "Curious whether a sinus lift is the right next step toward upper-jaw implants? Skip the office visit — Dr. Richardson personally records a custom video reviewing your case, your candidacy, and what's possible at Vivid Smiles Dentistry, all from photos you submit below."
+    },
+    "/new-patients/": {
+      "consult_eyebrow": "Ready when you are",
+      "consult_headline": "Let's get you <em>scheduled.</em>",
+      "consult_body": "Book online, give us a call, or send a quick virtual consult with a photo or two — whatever's easiest. We'll take it from there."
+    },
+    "/our-office/": {
+      "consult_eyebrow": "Plan your first visit",
+      "consult_headline": "Plan your <em>first visit.</em>",
+      "consult_body": "Book online, give us a call, or send a quick virtual consult with a photo or two — whatever's easiest. Our team will take it from there."
+    },
+    "/patient-testimonials/": {
+      "consult_eyebrow": "Free virtual consultation",
+      "consult_headline": "Ready to write <em>your story?</em>",
+      "consult_body": "Every transformation on this page started the same way — a few photos, a few questions, and a custom video back from Dr. Richardson. Skip the office visit for the first conversation and see what's possible for your smile."
+    },
+    "/services/": {
+      "consult_eyebrow": "Free virtual consultation",
+      "consult_headline": "Free virtual <em>consultation.</em>",
+      "consult_body": "Taking the first step toward your smile has never been easier. Nothing to schedule — Dr. Richardson personally records a custom video response for every consultation request. Photos in, video out."
+    },
+    "/smile-gallery/": {
+      "consult_eyebrow": "Begin Your Case",
+      "consult_headline": "Your smile <em>could be next.</em>",
+      "consult_body": "Every smile in the gallery above started with one conversation. Skip the office visit and Dr. Richardson personally records a custom video reviewing your smile, the changes you're imagining, and what's possible, all from photos you submit below."
+    }
+  }
+}
