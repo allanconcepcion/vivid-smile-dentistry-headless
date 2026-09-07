@@ -13,6 +13,12 @@
 import { getEntry } from "astro:content";
 import { getImage } from "astro:assets";
 import { isRegisteredLayout } from "../blocks/manifest";
+// Type-only, so nothing of the loader (or src/lib/wp.ts behind it) is pulled
+// into a page's module graph; the four ids are declared once, next to the
+// selection that fetches them, and re-exported below for the template.
+import type { TeamGroup } from "../loaders/pages";
+
+export type { TeamGroup };
 
 export type TocLink = { href: string; label: string };
 export type ProcessStep = { tag: string; num: string; title: string; body: string };
@@ -39,6 +45,39 @@ export type PageImage = {
   width: number;
   height: number;
   alt: string;
+};
+
+/**
+ * A team member's photo: PageImage without the slot. A person is placed by
+ * name and group, never looked up by slot, so there is nothing for one to say.
+ */
+export type TeamPhoto = { url: string; width: number; height: number; alt: string };
+
+/**
+ * One person on the About page's team band, as the editor arranged them in
+ * the Team tab.
+ *
+ * `photo.alt` is the text to render. The loader has already applied the rule
+ * — the editor's own alt text if typed, else "<name>, <role> at Vivid Smiles"
+ * — through the same fallback chain the `images` rows use, so a template reads
+ * one field and never restates the rule. `photoAlt` beside it is the raw box:
+ * what the editor typed, "" when they typed nothing.
+ *
+ * `group` is one of four closed ids (TEAM_GROUPS in src/loaders/pages.ts).
+ * The loader has refused any other value, so a template may index a
+ * Record<TeamGroup, …> of headings with no default branch; a group nobody is
+ * in is simply not drawn.
+ */
+export type TeamMember = {
+  /** Plain text, escaped on output. Never "" — the loader skips a nameless row. */
+  name: string;
+  /** Plain text. May be "": only the name is required in wp-admin. */
+  role: string;
+  /** Plain text, escaped on output. */
+  bio: string;
+  group: TeamGroup;
+  photoAlt: string;
+  photo: TeamPhoto;
 };
 
 export type HeroCta = { label: string; href: string };
@@ -203,6 +242,23 @@ export type PageContent = {
    * a deliberately blanked band. See `Closing`.
    */
   closing: Closing;
+  /**
+   * The team roster, in the order an editor arranged it in wp-admin.
+   *
+   * Empty on every page but /about-us/, and empty there too until the Team
+   * tab is filled — and empty is the rollback path, exactly as an empty
+   * `blocks` is: the About template renders its own literal roster whenever
+   * this list is empty, byte-identically, so emptying the tab in wp-admin
+   * rolls the band back with no deploy and no code change. Empty ALSO when
+   * WordPress has no `team` field yet (its own probe, cmsSupportsTeam in
+   * src/loaders/pages.ts), which has to look exactly like "nobody has filled
+   * it in", never like a failure.
+   *
+   * Passed through unchanged. Every row has a name, a group off the closed
+   * list and a placeable photo — the loader refused everything else — so a
+   * template has nothing to gate on but `team.length`.
+   */
+  team: TeamMember[];
   section: (id: string) => Section;
   /**
    * A page image by slot, for <Image src={…} width={…} height={…} />.
@@ -386,6 +442,9 @@ export async function getPageContent(route: string): Promise<PageContent> {
       // Ungated: a typed booking-strip sentence is simply a typed sentence.
       note: c.note,
     },
+    // No gate and no reshaping: an empty list already means what it should
+    // (see PageContent.team), and every row was checked in the loader.
+    team: entry.data.team,
     section: (sectionId: string) =>
       sections.find((s) => s.section_id === sectionId) ?? EMPTY_SECTION,
     image: (slot: string) => {

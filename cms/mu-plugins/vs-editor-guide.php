@@ -131,7 +131,8 @@ const PAGES = [
 	79 => [ // About Us
 		'route'    => '/about-us/',
 		'kind'     => 'template',
-		'liveTabs' => [ 'Hero', 'Section copy', 'Images', 'Bottom of page (the consultation invite)' ],
+		'liveTabs' => [ 'Hero', 'Section copy', 'Images', 'Team', 'Bottom of page (the consultation invite)' ],
+		'orientationNote' => 'The people in the team section are edited on the Team tab — one row per person. Add a row to add someone, drag rows to reorder, delete a row when someone leaves.',
 		'images'   => [
 			[ 'slot' => 'heroTeam', 'where' => 'the photo beside the headline at the very top — Dr. Annie and Dr. Bryce together', 'status' => 'live' ],
 			[ 'slot' => 'storyOffice', 'where' => 'the photo in the Our Story area — the neon smile sign inside the office', 'status' => 'live' ],
@@ -139,15 +140,15 @@ const PAGES = [
 			[ 'slot' => 'drBryceInset', 'where' => 'the small photo overlapping Dr. Richardson’s portrait — him working in surgical loupes', 'status' => 'live' ],
 			[ 'slot' => 'drAnnieMain', 'where' => 'the large portrait of Dr. Annie in the Meet the Doctors area', 'status' => 'live' ],
 			[ 'slot' => 'drAnnieInset', 'where' => 'the small photo overlapping Dr. Annie’s portrait', 'status' => 'live' ],
-			[ 'slot' => 'teamSara', 'where' => 'Sara’s photo (Office Manager) in the team area', 'status' => 'live' ],
-			[ 'slot' => 'teamKt', 'where' => 'KT’s photo (Patient Care & Office Coordinator) in the team area', 'status' => 'live' ],
-			[ 'slot' => 'teamCarol', 'where' => 'Carol’s photo (Patient Coordinator) in the team area', 'status' => 'live' ],
-			[ 'slot' => 'teamMandy', 'where' => 'Mandy’s photo (Dental Hygienist) in the team area', 'status' => 'live' ],
-			[ 'slot' => 'teamSammie', 'where' => 'Sammie’s photo (Dental Hygienist) in the team area', 'status' => 'live' ],
-			[ 'slot' => 'teamLinh', 'where' => 'Linh’s photo (Dental Assistant) in the team area', 'status' => 'live' ],
-			[ 'slot' => 'teamTina', 'where' => 'Tina’s photo (Dental Assistant) in the team area', 'status' => 'live' ],
-			[ 'slot' => 'teamKnox', 'where' => 'Knox’s photo (the dog, Director of Smiles) in the team area', 'status' => 'live' ],
-			[ 'slot' => 'teamBirdie', 'where' => 'Birdie’s photo (the dog, Chief Comfort Officer) in the team area', 'status' => 'live' ],
+			[ 'slot' => 'teamSara', 'where' => 'Sara’s photo (Office Manager) in the team area', 'status' => 'team' ],
+			[ 'slot' => 'teamKt', 'where' => 'KT’s photo (Patient Care & Office Coordinator) in the team area', 'status' => 'team' ],
+			[ 'slot' => 'teamCarol', 'where' => 'Carol’s photo (Patient Coordinator) in the team area', 'status' => 'team' ],
+			[ 'slot' => 'teamMandy', 'where' => 'Mandy’s photo (Dental Hygienist) in the team area', 'status' => 'team' ],
+			[ 'slot' => 'teamSammie', 'where' => 'Sammie’s photo (Dental Hygienist) in the team area', 'status' => 'team' ],
+			[ 'slot' => 'teamLinh', 'where' => 'Linh’s photo (Dental Assistant) in the team area', 'status' => 'team' ],
+			[ 'slot' => 'teamTina', 'where' => 'Tina’s photo (Dental Assistant) in the team area', 'status' => 'team' ],
+			[ 'slot' => 'teamKnox', 'where' => 'Knox’s photo (the dog, Director of Smiles) in the team area', 'status' => 'team' ],
+			[ 'slot' => 'teamBirdie', 'where' => 'Birdie’s photo (the dog, Chief Comfort Officer) in the team area', 'status' => 'team' ],
 			[ 'slot' => 'yomiImg', 'where' => 'the photo in the technology area — a treatment room', 'status' => 'live' ],
 			[ 'slot' => 'aacdLogo', 'where' => 'the AACD logo card in the credentials area near the bottom', 'status' => 'live' ],
 			[ 'slot' => 'aaidLogo', 'where' => 'the AAID logo card in the credentials area', 'status' => 'live' ],
@@ -825,6 +826,11 @@ function guide_line( array $row, string $code_key, bool $mixed, bool $is_photo )
 		$line .= ' <em>Now ' . $verb . ' in Page sections — open the section “' . esc_html( $target ) . '”.</em>';
 	} elseif ( 'dead' === $state ) {
 		$line .= ' <em>Part of the design now — this row saves, but changes nothing; ask us if it should say something different.</em>';
+	} elseif ( 'team' === $state ) {
+		// The Team tab carries this person's photo now. This row is the copy the
+		// template's built-in roster still reads if the Team list is ever emptied,
+		// so it stays — but changing it here changes nothing while the list has rows.
+		$line .= ' <em>Changed on the Team tab now — this row is only the fallback copy; leave it.</em>';
 	} elseif ( 'unused' === $state ) {
 		// Distinct from 'dead': a dead row's picture was absorbed into the
 		// design, so something is still on the page. An unused row's code is
@@ -1610,6 +1616,7 @@ add_filter( 'acf/prepare_field', __NAMESPACE__ . '\\group_section_fields', 30 );
 const REPEATER_ROW_TITLE = [
 	'field_vs_process_steps' => 'field_vs_step_title', // process_steps → title
 	'field_vs_sections' => 'field_vs_section_heading', // sections → heading
+	'field_vs_team' => 'field_vs_team_name', // team → name
 	'field_vs_cards' => 'field_vs_card_title', // cards → title
 	'field_vs_faqs' => 'field_vs_faq_q', // faqs → question
 	'field_vs_blk_faq_items' => 'field_vs_blk_faq_q', // items → question
@@ -1642,11 +1649,16 @@ function collapse_repeater_rows( $field ) {
 
 	$sub = REPEATER_ROW_TITLE[ $field['key'] ?? '' ] ?? null;
 
-	if ( null === $sub || ! empty( $field['collapsed'] ) ) {
+	if ( null === $sub ) {
 		return $field;
 	}
 
-	$field['collapsed'] = $sub;
+	// A repeater the content model already declares `collapsed` for (the Team
+	// list is the first) keeps its own setting — but it still gets the
+	// first-load fold below, or it would be the one list that arrives open.
+	if ( empty( $field['collapsed'] ) ) {
+		$field['collapsed'] = $sub;
+	}
 
 	// No stored preference means this editor has never folded this repeater,
 	// so fold it for them once — see print_first_load_collapse() below.
@@ -1776,6 +1788,7 @@ const TAB_FIELDS = [
 	'Process'        => [ 'field_vs_process_tab',  [ 'field_vs_process_note', 'field_vs_process_steps' ] ],
 	'Section copy'   => [ 'field_vs_sections_tab', [ 'field_vs_sections_note', 'field_vs_sections' ] ],
 	'Images'         => [ 'field_vs_images_tab',   [ 'field_vs_images' ] ],
+	'Team'           => [ 'field_vs_team_tab',     [ 'field_vs_team_intro', 'field_vs_team' ] ],
 	'Cards & lists'  => [ 'field_vs_cards_tab',    [ 'field_vs_cards' ] ],
 	'FAQ'            => [ 'field_vs_faq_tab',      [ 'field_vs_faqs' ] ],
 	'Hero'           => [ 'field_vs_hero_tab',     [ 'field_vs_hero_intro', 'field_vs_page_hero' ] ],
@@ -1792,6 +1805,7 @@ const TAB_META = [
 	'Process'        => [ 'count', 'process_steps' ],
 	'Section copy'   => [ 'count', 'sections' ],
 	'Images'         => [ 'count', 'images' ],
+	'Team'           => [ 'count', 'team' ],
 	'Cards & lists'  => [ 'count', 'cards' ],
 	'FAQ'            => [ 'count', 'faqs' ],
 	'Page sections'  => [ 'count', 'blocks' ],
@@ -2243,6 +2257,8 @@ function print_image_row_hints(): void {
 
 		if ( 'moved' === $state ) {
 			$where .= ' — changed in Page sections now, in the section “' . $target . '”';
+		} elseif ( 'team' === $state ) {
+			$where .= ' — changed on the Team tab now; this row is only the fallback copy, leave it';
 		} elseif ( 'dead' === $state ) {
 			$where .= ' — part of the design now; this row changes nothing';
 		}

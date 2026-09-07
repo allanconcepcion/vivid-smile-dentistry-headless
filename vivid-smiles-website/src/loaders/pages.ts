@@ -139,7 +139,71 @@ const CLOSING_SELECTION = `          closing {
             note
           }`;
 
-function pagesQuery(includeBlocks: boolean, includeClosing: boolean): string {
+/**
+ * The four groups a team member can belong to — the VALUES of the `group`
+ * select in the Team tab (cms/mu-plugins/vs-content-model.php,
+ * field_vs_team_group), in the order the About page draws them.
+ *
+ * Mirrored here rather than read from the CMS, the way KNOWN_CATEGORIES is in
+ * src/loaders/blog.ts — but unlike that list this one is CLOSED. The front end
+ * owns a heading for each id ("Patient <em>Coordination</em>", "Dental
+ * <em>Hygienists</em>" …), and a select value with no branch in the component
+ * is this project's most-repeated defect, twin to a field read by nothing. So
+ * src/content.config.ts makes the list the schema's enum, and the loader below
+ * refuses a row whose group is not on it, naming the page, the person and the
+ * two places a new group has to be added. Only a developer adding a choice in
+ * PHP can trip it — an editor cannot pick a value the select does not offer.
+ */
+export const TEAM_GROUPS = ["coordination", "hygienists", "assistants", "comfort"] as const;
+
+export type TeamGroup = (typeof TEAM_GROUPS)[number];
+
+function isTeamGroup(value: string): value is TeamGroup {
+  return (TEAM_GROUPS as readonly string[]).includes(value);
+}
+
+/**
+ * The `team` selection, indented to sit inside `pageFields { … }`.
+ *
+ * One row per person on the About page's team band — the nine cards under
+ * "The people who make every visit feel easy." that have been a literal array
+ * in src/pages/about-us/index.astro until now. Like `hero` and `closing` it
+ * sits outside the `blocks` choice: page-level content one template reads by
+ * name, and an empty list means "the template keeps its own roster",
+ * byte-identical — which is the rollback path.
+ *
+ * `photo` is selected in exactly the shape the `images` repeater selects its
+ * picture in, and that is not a coincidence: both go through placeImage()
+ * below, so one attachment yields one url/width/height — and so one built
+ * asset — whichever tab it was chosen from.
+ *
+ * `group` is an ACF select, and WPGraphQL returns every ACF select as a
+ * ONE-ELEMENT LIST (`["coordination"]`, never `"coordination"`); the loader
+ * unwraps it. unwrapSelects() in src/lib/page-content.ts does the same for
+ * block rows and records the live defect that taught us.
+ *
+ * NOT gated on the blocks/hero probe, nor on the closing one — see
+ * cmsSupportsTeam below.
+ */
+const TEAM_SELECTION = `          team {
+            name
+            role
+            bio
+            photoAlt
+            group
+            photo {
+              node {
+                sourceUrl
+                altText
+                mediaDetails {
+                  width
+                  height
+                }
+              }
+            }
+          }`;
+
+function pagesQuery(includeBlocks: boolean, includeClosing: boolean, includeTeam: boolean): string {
   return /* GraphQL */ `
   query Pages($first: Int!, $after: String) {
     pages(first: $first, after: $after, where: { status: PUBLISH }) {
@@ -163,6 +227,7 @@ function pagesQuery(includeBlocks: boolean, includeClosing: boolean): string {
 ${includeBlocks ? BLOCKS_SELECTION : ""}
 ${includeBlocks ? HERO_SELECTION : ""}
 ${includeClosing ? CLOSING_SELECTION : ""}
+${includeTeam ? TEAM_SELECTION : ""}
           tocLinks {
             label
             anchor
@@ -453,6 +518,86 @@ ${CLOSING_SELECTION}
 }
 
 /**
+ * The team probe's answer, kept for the life of the process — same lifetime
+ * and same reasoning as blocksSupport above.
+ */
+let teamSupport: boolean | undefined;
+
+/**
+ * Ask the CMS whether its schema carries `team` yet.
+ *
+ * A THIRD probe, for the same structural reason cmsSupportsClosing is a
+ * second. `team` is the FOURTH page-level field this loader selects and the
+ * second to arrive on its own schedule: this code lands first, the mu-plugin
+ * that adds the Team tab is hand-deployed after it, and for a window of
+ * unknown length the schema has blocks, hero and closing and no team. Fold
+ * `team` into either existing probe and that window has the two wrong endings
+ * the closing docblock describes — teach that probe's benign regex the word
+ * and it answers false for everything it guards, silently rendering every
+ * migrated page (or every closing band) from template literals until the PHP
+ * lands; leave it untaught and every build throws as a mismatch. A probe of
+ * its own is the identical pattern at the identical cost — one POST, ~0.4s,
+ * cached per process — and degrades only `team`, which degrades to the About
+ * page's own literal roster, byte-identical to today.
+ */
+async function cmsSupportsTeam(logger: LoaderContext["logger"]): Promise<boolean> {
+  if (teamSupport !== undefined) return teamSupport;
+
+  const query = /* GraphQL */ `
+  query PageTeamProbe {
+    pages(first: 1) {
+      nodes {
+        pageFields {
+${TEAM_SELECTION}
+        }
+      }
+    }
+  }
+`;
+
+  try {
+    await wpQuery(query, {}, "team probe");
+    logger.info("Team: available in WordPress.");
+    teamSupport = true;
+    return teamSupport;
+  } catch (error) {
+    const detail = error instanceof Error ? error.message : String(error);
+
+    // The one benign answer: the mu-plugin on the host predates the field.
+    if (/Cannot query field ["']team["']/i.test(detail)) {
+      logger.info(
+        "Team: not in WordPress yet, so the About page keeps its built-in roster. " +
+          "Deploy cms/mu-plugins/vs-content-model.php to add it.",
+      );
+      teamSupport = false;
+      return teamSupport;
+    }
+
+    // A wrong SUB-field (say photoAltText for photoAlt) is our mistake — fail
+    // loudly, exactly as the closing probe does.
+    if (/Cannot query field/i.test(detail)) {
+      throw new Error(
+        "WordPress has the team fields, but this build asked for a sub-field " +
+          "it does not have — a mismatch between TEAM_SELECTION in " +
+          "src/loaders/pages.ts and cms/mu-plugins/vs-content-model.php.\n\n" +
+          detail,
+      );
+    }
+
+    // Transport-class failure: the About template ships wired to this field,
+    // so once the CMS holds the roster a guessed "false" would silently revert
+    // every edit to it. Refuse to guess — same policy as the closing probe. In
+    // practice unreachable unless the network died between probes: two have
+    // already succeeded by the time this runs.
+    throw new Error(
+      "Could not determine whether WordPress has the team fields. " +
+        "Refusing to build the About page from its built-in roster on a guess. " +
+        `Reason: ${detail}`,
+    );
+  }
+}
+
+/**
  * Rows are carried in the registry's own BlockNode shape — `__typename` plus
  * whatever else the selection set asked for.
  *
@@ -489,6 +634,17 @@ function usableBlocks(
 
   return usable;
 }
+
+/**
+ * A Media Library item as WPGraphQL hands it over — the one shape both the
+ * `images` repeater and the `team` repeater select their picture in, so that
+ * one function (placeImage below) turns either into what <Image> needs.
+ */
+type MediaNode = {
+  sourceUrl: string | null;
+  altText: string | null;
+  mediaDetails: { width: number | null; height: number | null } | null;
+};
 
 type PageNode = {
   /** Canonical Astro route from the importer — see vs-content-model.php. */
@@ -560,13 +716,21 @@ type PageNode = {
     images: Array<{
       slot: string | null;
       alt: string | null;
-      image: {
-        node: {
-          sourceUrl: string | null;
-          altText: string | null;
-          mediaDetails: { width: number | null; height: number | null } | null;
-        } | null;
-      } | null;
+      image: { node: MediaNode | null } | null;
+    }> | null;
+    /**
+     * Optional for the same reason closing is — its PHP ships after this code
+     * and it is gated on its OWN probe (see cmsSupportsTeam). `group` is typed
+     * the way WPGraphQL actually sends an ACF select, as a list, so the unwrap
+     * in the loader is a real branch and not a cast.
+     */
+    team?: Array<{
+      name: string | null;
+      role: string | null;
+      bio: string | null;
+      photoAlt: string | null;
+      group: string[] | string | null;
+      photo: { node: MediaNode | null } | null;
     }> | null;
   } | null;
 };
@@ -618,6 +782,80 @@ function whyNoDimensions(url: string): string {
   );
 }
 
+/**
+ * A picture the templates can hand to <Image>: src as a URL STRING plus the
+ * explicit dimensions a remote source must carry (PageContent.image in
+ * src/lib/page-content.ts records why the shape is this and not ImageMetadata).
+ */
+type PlacedImage = { url: string; width: number; height: number; alt: string };
+
+/**
+ * Whether a media field has a picture chosen at all.
+ *
+ * A type guard rather than a bare truthiness test so the narrowing survives
+ * into placeImage(): after `if (!hasPicture(media)) continue;` the compiler
+ * knows `sourceUrl` is a string, and neither caller has to assert it.
+ */
+function hasPicture(
+  media: MediaNode | null | undefined,
+): media is MediaNode & { sourceUrl: string } {
+  return Boolean(media?.sourceUrl);
+}
+
+/**
+ * The one road from a Media Library item to a PlacedImage.
+ *
+ * Both repeaters that carry a picture — `images` and `team` — come through
+ * here, and that is the point of the function rather than a tidiness. Astro
+ * names a built asset from the source URL and the transform it was asked for,
+ * so an attachment chosen under the Images tab and the same attachment chosen
+ * under the Team tab have to arrive with the same url, width and height or the
+ * same photo can build into two files. One function, one derivation.
+ *
+ * `preferredAlt` is the editor's own text for THIS use of the picture; the
+ * Media Library's alt is the fallback, and "" — the WAI convention for a
+ * decorative image — the fallback's fallback. This is exactly what the
+ * `images` loop did inline before it was factored out; nothing about that
+ * path changed, and the `images` rows it produces are the same rows.
+ *
+ * Returns null when WordPress recorded no size. The caller turns that into a
+ * report naming the page, the slot or the person, the file and the fix — the
+ * fix differs by caller (an Images row is re-picked under one tab, a team
+ * member under another), so the message is not built here.
+ */
+function placeImage(
+  media: MediaNode & { sourceUrl: string },
+  preferredAlt: string | null | undefined,
+): PlacedImage | null {
+  const width = media.mediaDetails?.width ?? 0;
+  const height = media.mediaDetails?.height ?? 0;
+
+  // This is the case that used to take the whole deploy down. The old code
+  // defaulted a missing dimension to 0, which the schema rejects as not a
+  // positive integer — producing a Zod error that named the field but neither
+  // the page nor the file, for a reader whose only sight of it was a Vercel
+  // build log. Caught here, while the caller still has the page, the slot and
+  // the file name in hand.
+  if (width < 1 || height < 1) return null;
+
+  return {
+    url: media.sourceUrl,
+    width,
+    height,
+    alt: (preferredAlt || media.altText || "").trim(),
+  };
+}
+
+/**
+ * Alt text for a team photo whose editor left the alt box blank: "<name>,
+ * <role> at Vivid Smiles", the wording the literal roster used for its people.
+ * Only the name is required in wp-admin, so a blank role is legal — and gets
+ * "<name> at Vivid Smiles" rather than a stray ", " nobody meant.
+ */
+function teamPhotoAlt(name: string, role: string): string {
+  return role ? `${name}, ${role} at Vivid Smiles` : `${name} at Vivid Smiles`;
+}
+
 export function pagesLoader(): Loader {
   return {
     name: "wordpress-pages",
@@ -626,12 +864,14 @@ export function pagesLoader(): Loader {
       logger.info("Fetching pages from WordPress");
 
       const includeBlocks = await cmsSupportsBlocks(logger);
-      // The closing group lives in the same mu-plugin as blocks and hero:
-      // without them its field cannot exist, so don't spend a POST asking.
+      // The closing group and the team repeater live in the same mu-plugin as
+      // blocks and hero: without them neither field can exist, so don't spend
+      // a POST asking.
       const includeClosing = includeBlocks && (await cmsSupportsClosing(logger));
+      const includeTeam = includeBlocks && (await cmsSupportsTeam(logger));
 
       const nodes = await wpQueryAll<PageNode>(
-        pagesQuery(includeBlocks, includeClosing),
+        pagesQuery(includeBlocks, includeClosing, includeTeam),
         (data) => data.pages,
         "pages",
       );
@@ -672,13 +912,7 @@ export function pagesLoader(): Loader {
         const pageName = node.title?.trim() || node.slug;
         const where = `${pageName} (${route})`;
 
-        const images: Array<{
-          slot: string;
-          url: string;
-          width: number;
-          height: number;
-          alt: string;
-        }> = [];
+        const images: Array<PlacedImage & { slot: string }> = [];
 
         for (const row of f?.images ?? []) {
           const media = row.image?.node;
@@ -689,7 +923,7 @@ export function pagesLoader(): Loader {
           // quietly by doing so: if a template actually needs that slot,
           // image() in src/lib/page-content.ts already fails with a message
           // naming the slot and the page.
-          if (!row.slot || !media?.sourceUrl) {
+          if (!row.slot || !hasPicture(media)) {
             const which = row.slot ? `slot "${row.slot}"` : "a row with no slot";
             logger.warn(`${where}: ${which} has no picture chosen — nothing to load.`);
             continue;
@@ -697,16 +931,9 @@ export function pagesLoader(): Loader {
 
           imageCount++;
 
-          const width = media.mediaDetails?.width ?? 0;
-          const height = media.mediaDetails?.height ?? 0;
+          const placed = placeImage(media, row.alt);
 
-          // This is the case that used to take the whole deploy down. The old
-          // code defaulted a missing dimension to 0, which the schema rejects
-          // as not a positive integer — producing a Zod error that named the
-          // field but neither the page nor the file, for a reader whose only
-          // sight of it was a Vercel build log. Catch it here, where the page,
-          // the slot and the file name are all still in hand.
-          if (width < 1 || height < 1) {
+          if (!placed) {
             badImages.push(
               `  ${where}\n` +
                 `    slot "${row.slot}" -> ${mediaFileName(media.sourceUrl)}\n` +
@@ -716,13 +943,101 @@ export function pagesLoader(): Loader {
             continue;
           }
 
-          images.push({
-            slot: row.slot,
-            url: media.sourceUrl,
-            width,
-            height,
-            alt: (row.alt || media.altText || "").trim(),
-          });
+          images.push({ slot: row.slot, ...placed });
+        }
+
+        // The people on the About page's team band. Every row is a card with
+        // a photo, so the picture is NOT optional the way an Images row's is:
+        // a person with no picture chosen is a content error the editor must
+        // see, and it goes into the same report the Images rows use — never
+        // dropped, for the reason the failure policy at the top of this file
+        // gives for every picture. A person quietly missing from the live
+        // page is worse than a build that names them and says where to look.
+        const team: Array<{
+          name: string;
+          role: string;
+          bio: string;
+          group: TeamGroup;
+          photoAlt: string;
+          photo: PlacedImage;
+        }> = [];
+
+        for (const [i, row] of (f?.team ?? []).entries()) {
+          const name = row.name?.trim() ?? "";
+
+          // ACF marks the name required, so wp-admin will not save a row
+          // without one; a nameless row can only come from somewhere else (an
+          // import script, a database edit). Nothing can be drawn or even
+          // named from it, so it is skipped and reported by position — the
+          // way usableBlocks() treats a section with no layout name.
+          if (!name) {
+            logger.warn(`${where}: team member ${i + 1} has no name — skipping it.`);
+            continue;
+          }
+
+          const role = row.role?.trim() ?? "";
+          const bio = row.bio?.trim() ?? "";
+          const photoAlt = row.photoAlt?.trim() ?? "";
+
+          // WPGraphQL returns an ACF select as a one-element list. Unwrapped
+          // here, at the boundary, so the schema and the template see the
+          // value the editor picked and not a list of one.
+          const rawGroup = Array.isArray(row.group) ? row.group[0] : row.group;
+          const group = typeof rawGroup === "string" ? rawGroup.trim() : "";
+
+          // A value off the closed list is a developer's doing, never an
+          // editor's — see TEAM_GROUPS — and it fails the page rather than
+          // filing the person under a heading they do not belong to, or under
+          // none. The message says where the two halves of a new group go.
+          if (!isTeamGroup(group)) {
+            badPages.push(
+              `  ${where}\n` +
+                `    team member "${name}" is in ` +
+                (group ? `a group this build has no heading for ("${group}")` : "no group") +
+                `.\n    A new group needs its value added to TEAM_GROUPS in src/loaders/pages.ts ` +
+                `and a heading in src/pages/about-us/index.astro. Until then, pick one of the ` +
+                `existing groups under Pages -> ${pageName} -> Team -> ${name}.`,
+            );
+            continue;
+          }
+
+          const media = row.photo?.node;
+
+          // Counted whether or not a picture was chosen: every person on the
+          // band is a picture the page needs, so "N of M pictures" counts
+          // them all.
+          imageCount++;
+
+          if (!hasPicture(media)) {
+            badImages.push(
+              `  ${where}\n` +
+                `    team member "${name}" -> no picture chosen\n` +
+                `    Everyone on the team is shown with a photo, so the page cannot be built without one.\n` +
+                `    Choose it under Pages -> ${pageName} -> Team -> ${name}.`,
+            );
+            continue;
+          }
+
+          // THE ALT RULE: the editor's own text if typed, else "<name>, <role>
+          // at Vivid Smiles". Handed to placeImage() as the PREFERRED alt so
+          // it runs through the same fallback chain the Images rows use; the
+          // Media Library's own alt is never reached, because the generated
+          // text is never empty. `photo.alt` is therefore the one a template
+          // renders — `photoAlt` beside it is the raw box, kept so the row
+          // says what the editor typed and what the page will say.
+          const placed = placeImage(media, photoAlt || teamPhotoAlt(name, role));
+
+          if (!placed) {
+            badImages.push(
+              `  ${where}\n` +
+                `    team member "${name}" -> ${mediaFileName(media.sourceUrl)}\n` +
+                `    ${whyNoDimensions(media.sourceUrl)}\n` +
+                `    Then pick it under Pages -> ${pageName} -> Team -> ${name}.`,
+            );
+            continue;
+          }
+
+          team.push({ name, role, bio, group, photoAlt, photo: placed });
         }
 
         // parseData applies the Zod schema. Anything it rejects that was not
@@ -840,6 +1155,13 @@ export function pagesLoader(): Loader {
               // them — one that could not is in `badImages` and will fail the
               // build below, rather than being quietly left out of the page.
               images,
+              // The team roster, in the editor's order. Empty on every page
+              // but /about-us/, and empty there too until the Team tab is
+              // filled — and empty is the rollback path: the About template
+              // keeps its own literal roster whenever this list is empty.
+              // Every row here has a name, a group off the closed list and a
+              // placeable photo; anything else is in badPages or badImages.
+              team,
             },
           });
 
@@ -856,9 +1178,9 @@ export function pagesLoader(): Loader {
       // addressed to that reader — no stack, no field paths, no jargon.
       if (badImages.length > 0) {
         throw new WordPressError(
-          `${badImages.length} of ${imageCount} pictures on the site have no width and ` +
-            `height recorded in the WordPress Media Library, so the build cannot place ` +
-            `them:\n\n${badImages.join("\n\n")}\n\n` +
+          `${badImages.length} of ${imageCount} pictures on the site cannot be placed — ` +
+            `either no picture was chosen, or the WordPress Media Library has no width ` +
+            `and height recorded for it:\n\n${badImages.join("\n\n")}\n\n` +
             `Nothing has been published. The site that is online right now is unchanged ` +
             `and still serving — fix the pictures above and deploy again.`,
         );

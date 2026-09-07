@@ -1187,6 +1187,7 @@ function register_field_groups(): void {
 						. "consultation invite and the booking strip above the footer). If <em>Page sections</em> "
 						. "has rows, that is this page — edit the words there. <em>Images</em>, "
 						. "<em>Cards &amp; lists</em> and <em>FAQ</em> work on every page.\n"
+						. "<em>Team</em> only matters on the About page.\n"
 						. "<em>On this page</em>, <em>Process</em> and <em>Section copy</em> only still matter on "
 						. "the few pages where <em>Page sections</em> is empty — each of those tabs explains this "
 						. "at the top.\n"
@@ -1428,6 +1429,164 @@ function register_field_groups(): void {
 							'name'         => 'alt',
 							'type'         => 'text',
 							'instructions' => 'Leave blank to use the alt text stored on the file in the Media Library.',
+						],
+					],
+				],
+				[
+					'key'   => 'field_vs_team_tab',
+					'label' => 'Team',
+					'type'  => 'tab',
+				],
+				[
+					'key'       => 'field_vs_team_intro',
+					'label'     => '',
+					'name'      => '',
+					'type'      => 'message',
+					'message'   => "<strong>Only the About page shows the team.</strong> One row per person, "
+						. "the dogs included, in the order they should appear. Drag a row up or down to move "
+						. "someone within their group. <em>Which group</em> decides the heading they are "
+						. "listed under — Patient Coordination, Dental Hygienists, Dental Assistants or Comfort "
+						. "Officers — and those four headings always appear in that order.\n"
+						. "The photo is a square-ish portrait, like the ones on the page today. Leave "
+						. "<em>Describe the photo</em> blank and the site writes “Name, Job title at Vivid "
+						. "Smiles” itself.\n"
+						. "While this list is empty the About page keeps its built-in team. The first row you "
+						. "add replaces that whole team with this list, so add everyone before you publish. "
+						. "Changes go live on the next site build.",
+					'esc_html'  => 0,
+					'new_lines' => 'wpautop',
+				],
+				/**
+				 * The team roster — the one list on the site that is people, not
+				 * copy.
+				 *
+				 * Read by exactly one route, src/pages/about-us/index.astro, whose
+				 * `#team` band draws four titled groups of portrait cards. The
+				 * page keeps its nine-person roster (seven staff, two dogs) as
+				 * literal data in its own frontmatter and renders from it whenever
+				 * this list is empty. That literal copy is the rollback path
+				 * (CLAUDE.md, non-negotiable 6) and is deliberately NOT moved in
+				 * here: emptying the repeater in wp-admin must always put the page
+				 * back exactly as it is today, byte for byte, and a roster that
+				 * lived only in the CMS would have nothing to fall back to. When
+				 * the list has rows it replaces the roster whole — there is no
+				 * merging of CMS rows into the literal ones, which is why the
+				 * message above tells the editor to add everyone.
+				 *
+				 * THE GROUPS ARE CODE, NOT CONTENT. `group` is a closed select
+				 * whose four values are ids the template already owns: each is
+				 * the `id` of a `.aus-team-group`, the two-word heading with its
+				 * italic second word ("Patient <em>Coordination</em>"), and the
+				 * fixed order the groups appear in — front office first, then
+				 * chair-side, then the dogs, which is the order a patient meets
+				 * them. A free-text group would let an editor type a heading the
+				 * page has no markup, no id and no CSS for; this select cannot.
+				 * A group with no members is simply not drawn. The select is
+				 * `return_format` value, and WPGraphQL for ACF hands ANY select
+				 * back as a one-element list, so the loader unwraps ["comfort"]
+				 * to "comfort" — see pages.ts. It also drives the section lede:
+				 * the page counts rows outside `comfort` as teammates and rows in
+				 * it as dogs, which is how "seven teammates, and two very good
+				 * dogs" keeps being true after a hire.
+				 *
+				 * The photo is block_image_field() for the reason its docblock
+				 * gives — URL plus intrinsic dimensions, and a mime list sharp can
+				 * decode. The loader then maps it through the SAME helper the
+				 * Images repeater rows go through, so an attachment picked here
+				 * builds to the same hashed asset it would from the Images tab.
+				 * `photo_alt` is optional because the site composes "Name, Job
+				 * title at Vivid Smiles" when it is blank — the shape every staff
+				 * alt on the page has today. The two dogs' alts are worded
+				 * differently ("Knox, the Vivid Smiles dog and Director of
+				 * Smiles"); an editor who wants that kept types it in.
+				 *
+				 * SHIPS BEFORE ITS READER. src/loaders/pages.ts selects this field
+				 * only when its own capability probe (cmsSupportsTeam, a third
+				 * beside cmsSupportsBlocks and cmsSupportsClosing, with its own
+				 * benign regex) says the schema has it. So this PHP goes to the
+				 * host first, the manifest asks for `team` second, and a build
+				 * caught between the two selects nothing it cannot query — all 48
+				 * routes still build. A top-level repeater named `team` mints
+				 * PageFieldsTeam; nothing else in this file uses the word, so
+				 * assert_unique_graphql_type_names() has nothing to say.
+				 *
+				 * `collapsed` names the sub-field a folded row shows. Six fields
+				 * in a row layout make each person a tall card; folded, the list
+				 * reads as names, which is what an editor reordering it needs.
+				 */
+				[
+					'key'          => 'field_vs_team',
+					'label'        => 'Team',
+					'name'         => 'team',
+					'type'         => 'repeater',
+					'layout'       => 'row',
+					'button_label' => 'Add a person',
+					'collapsed'    => 'field_vs_team_name',
+					'instructions' => 'One row per person, dogs included. Within each group, people appear on '
+						. 'the page in the order they are listed here.',
+					'sub_fields'   => [
+						[
+							'key'          => 'field_vs_team_name',
+							'label'        => 'Name',
+							'name'         => 'name',
+							'type'         => 'text',
+							'required'     => 1,
+							'instructions' => 'What the page calls them. First name is enough — that is what it shows '
+								. 'today, like “Sara” or “Knox”.',
+						],
+						[
+							'key'          => 'field_vs_team_role',
+							'label'        => 'Job title',
+							'name'         => 'role',
+							'type'         => 'text',
+							'instructions' => 'The small line above the name, like “Office Manager” or “Registered '
+								. 'Dental Hygienist”.',
+						],
+						[
+							'key'          => 'field_vs_team_bio',
+							'label'        => 'A sentence or two about them',
+							'name'         => 'bio',
+							'type'         => 'textarea',
+							'rows'         => 3,
+							'instructions' => 'Plain text. Two short sentences fit the card best; the ones on the page '
+								. 'today are a good length to copy.',
+						],
+						block_image_field(
+							'field_vs_team_photo',
+							'Photo',
+							'photo',
+							'A portrait, taller than it is wide — the page crops it to a 4-by-5 shape, so keep '
+								. 'the face near the middle. Choose a picture already in the Media Library, or '
+								. 'upload one. JPG, PNG or WebP.'
+						),
+						[
+							'key'          => 'field_vs_team_photo_alt',
+							'label'        => 'Describe the photo (optional)',
+							'name'         => 'photo_alt',
+							'type'         => 'text',
+							'instructions' => 'What a screen reader says for the picture. Leave it blank and the site '
+								. 'writes “Name, Job title at Vivid Smiles” itself, which is right for almost '
+								. 'everyone.',
+						],
+						[
+							'key'           => 'field_vs_team_group',
+							'label'         => 'Which group',
+							'name'          => 'group',
+							'type'          => 'select',
+							'choices'       => [
+								'coordination' => 'Patient Coordination (front desk)',
+								'hygienists'   => 'Dental Hygienists',
+								'assistants'   => 'Dental Assistants',
+								'comfort'      => 'Comfort Officers (the dogs)',
+							],
+							'default_value' => 'coordination',
+							'return_format' => 'value',
+							'allow_null'    => 0,
+							'multiple'      => 0,
+							'ui'            => 0,
+							'instructions'  => 'The heading this person is listed under. These four groups are fixed '
+								. '— their headings and their layout are part of the page design — so if a new '
+								. 'group is ever needed, ask us rather than picking the nearest one.',
 						],
 					],
 				],

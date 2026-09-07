@@ -5,7 +5,7 @@ import type { ZodLiteral, ZodObject } from "astro/zod";
 import { glob } from "astro/loaders";
 import { reviewsLoader } from "./loaders/reviews";
 import { blogLoader } from "./loaders/blog";
-import { pagesLoader } from "./loaders/pages";
+import { pagesLoader, TEAM_GROUPS } from "./loaders/pages";
 
 /**
  * Reviews / testimonials — sourced from WordPress.
@@ -369,6 +369,45 @@ const pages = defineCollection({
           width: z.number().int().positive(),
           height: z.number().int().positive(),
           alt: z.string(),
+        }),
+      )
+      .default([]),
+    // The people on the About page's team band — one row per person, in the
+    // order the editor arranged them, each with a photo. As with `hero`, this
+    // declaration is the wiring, not documentation: z.object STRIPS undeclared
+    // keys silently, so a loader that fetched `team` without this would hand
+    // the template nothing and report no error at all.
+    //
+    // The constraints are tight on purpose, the way the blog schema's are: the
+    // loader has already refused every row it could not use (no name, no
+    // picture, no recorded size, a group with no heading) and reported each
+    // one by page and person, so a failure HERE is a loader bug, not editor
+    // input. `photo` is the `images` shape minus the slot, under the same
+    // rules for the same reason — <Image> refuses a remote source without
+    // dimensions — and is built by the same function in the loader, so the
+    // same attachment yields the same asset from either tab. `group` is the
+    // CLOSED list the loader exports, so a template can index a heading per
+    // id without a default branch.
+    //
+    // `.default([])` covers a CMS whose mu-plugin predates the Team tab — its
+    // own probe, cmsSupportsTeam in src/loaders/pages.ts, its own deployment
+    // window — and empty is the rollback path: the About template renders its
+    // own literal roster whenever this list is empty, byte-identically, so
+    // emptying the tab in wp-admin rolls the band back with no deploy.
+    team: z
+      .array(
+        z.object({
+          name: z.string().min(1),
+          role: z.string(),
+          bio: z.string(),
+          group: z.enum(TEAM_GROUPS),
+          photoAlt: z.string(),
+          photo: z.object({
+            url: z.string().url(),
+            width: z.number().int().positive(),
+            height: z.number().int().positive(),
+            alt: z.string(),
+          }),
         }),
       )
       .default([]),

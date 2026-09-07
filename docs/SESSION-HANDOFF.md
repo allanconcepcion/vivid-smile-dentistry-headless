@@ -4,7 +4,7 @@ Written to hand this work to a fresh session — human, or an AI of any model �
 re-deriving any of it. **If this file and `git log` disagree, `git log` wins**; this file was
 last brought fully in line with the tree at the commit below.
 
-**State this file describes:** branch `main`, HEAD `0235c83` on `origin/main` (2026-09-07). The
+**State this file describes:** branch `main`, HEAD on `origin/main` (2026-09-07, team roster round — see the section below). The
 repo, the live CMS and this file agree: every mu-plugin on the host is byte-identical to the file
 here, and the closing back-fill has run and been measured.
 Everything before them is merged —
@@ -280,6 +280,46 @@ remembered last folder yourself and reload: `localStorage['/wp-admin/admin.php-e
 = 'l1_' + base64url(path)` (`d3AtY29udGVudC9tdS1wbHVnaW5z` is `wp-content/mu-plugins`,
 `d3AtY29udGVudC92cy1pbXBvcnQvYmlu` is `wp-content/vs-import/bin`), then confirm the upload dialog's
 title names the folder and check the deployed byte size. A wedged tab does not recover; open a new one.
+
+## 2026-09-07 — the team roster is editable (Allan: "what if I need to add another staff")
+
+Until today the About page's team was a literal in `src/pages/about-us/index.astro`: four groups,
+each person's name, job title, bio, photo slot and alt text, and even the lede ("seven teammates,
+and two very good dogs") — so a client could not add a person, and the orphan `teamAlly` photo row
+was a client trying.
+
+**Now:** a **Team** tab on the About page (`field_vs_team`, repeater, one row per person: Name,
+Job title, A sentence or two about them, Photo, Describe the photo (optional), Which group). The
+four groups and their headings stay in code (`TEAM_GROUPS` in `src/loaders/pages.ts`, the tier table
+in the template) because their headings and the 3/2/3/2 column cadence are design; adding a fifth
+group is a code change. The lede is computed from the rows (words for 1–12, dog/dogs) and reproduces
+the old literal exactly for 7 + 2.
+
+**The literal roster stays in the template as the rollback path** (rule 6): with the CMS list empty
+the page renders from it, byte-identical. The nine `team*` rows on the Images tab are that
+fallback's photos — marked "changed on the Team tab now; leave it" in the guide — so do not delete
+them.
+
+**How it shipped, in order, each gate measured:** PHP first (the field group), gated in the loader
+by its own probe `cmsSupportsTeam` (fourth page-level field, second to arrive on its own schedule —
+same reasoning as the closing probe). Gate 1, CMS without `team`: 47 routes byte-identical, about-us
+differing only in its stylesheet hash (about-us.css gained grid rules for 1/4/5/6 cards). Gate 2, field
+live but empty: 48/48 identical to gate 1. Backfill of the nine rows through the edit screen (photo
+IDs 172,173,174,167,168,169,170,175,176 — the same attachments the Images rows hold; KT's and the two
+dogs' alts typed verbatim because they do not follow the "Name, Job title at Vivid Smiles" fallback).
+Read back through GraphQL: nine rows in order, `group` array-wrapped as expected and unwrapped by the
+loader, every photo the same attachment as its Images row, alts verbatim, block schema unchanged at
+37 types / 325 fields plus the new `PageFieldsTeam`. Gate 3, CMS roster: **48/48 byte-identical to
+the literal build** — nine cards, lede verbatim, same image hashes.
+
+**Built by** three agents on disjoint files (PHP; loader+zod+page-content; template+CSS), six
+adversarial reviewers plus a cross-side contract check, zero must-fix on the first round. Two
+advisory items taken: the template now reads the alt the loader already resolved (`m.photo.alt`)
+instead of restating the rule, and the per-row photo hints handle the new `team` status.
+
+**A person with no photo fails the build** (named in the aggregated image report, with the fix
+under Pages → About → Team → <name>) — the project's image policy, deliberately: a card with no
+picture is not something to ship silently.
 
 ## The verification method this project learned
 

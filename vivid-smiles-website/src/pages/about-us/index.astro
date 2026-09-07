@@ -9,6 +9,11 @@
  * (team/dr-annie.webp is Dr. Westermeier at the neon smile wall, team/
  * dr-bryce-richardson.webp is Dr. Richardson). Both ImageFrame insets are real
  * frames of the same doctor rather than generic scene imagery.
+ *
+ * Team roster: edited in WordPress (Pages -> About Us -> Team tab) when that
+ * list has anyone in it, and drawn from the literal roster in this file when
+ * it is empty. The literal is the rollback path and stays byte-identical in
+ * output — see the TEAM block in the frontmatter for the rules.
  */
 import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
@@ -32,9 +37,10 @@ import '../../styles/pages/about-us.css';
 // Credential logos.
 
 // Team headshots (10 — hygienists, assistants, coordination, comfort officers).
-import { getPageContent, schemaImageUrl } from '../../lib/page-content';
+import { getPageContent, schemaImageUrl, type PageImage } from '../../lib/page-content';
 // Section copy is edited in WordPress (Pages -> this page -> Section copy).
-const { hero, closing, section, image, seo } = await getPageContent(Astro.url.pathname);
+// `team` is the Team tab on the same screen; the TEAM block below reads it.
+const { hero, closing, section, image, seo, team } = await getPageContent(Astro.url.pathname);
 
 // Person schema must reference this site's optimized copy, not the
 // WordPress media URL — the CMS host is noindexed and is not where
@@ -135,7 +141,7 @@ const techItems = [
 // Team roster — 4 tier groups, ordered front-office → hygienists → assistants → comfort
 // (the order patients meet the team in real life: phone/check-in first, then chair-side).
 // The 3 → 2 → 3 → 2 column cadence also gives the section a deliberate visual rhythm.
-const teamGroups = [
+const templateTeamGroups = [
   {
     id: 'coordination',
     titleStart: 'Patient',
@@ -228,6 +234,111 @@ const teamGroups = [
     ],
   },
 ];
+
+/**
+ * ---------- TEAM from WordPress (Pages -> About Us -> Team tab) ----------
+ *
+ * `templateTeamGroups` above is THE ROLLBACK PATH. Empty the Team list in
+ * wp-admin and this page renders those nine cards, byte for byte, exactly as
+ * it did before the tab existed — the same rule every template holds for
+ * `blocks` (docs/PAGE-BLOCKS.md 2.3). Nothing below may delete, reorder or
+ * reformat that literal; it was renamed and nothing else.
+ *
+ * A row arrives as getPageContent() shapes it (src/lib/page-content.ts,
+ * TeamMember): `name`, `role`, `bio` and `photoAlt` as trimmed text; `group`
+ * already unwrapped from the one-element array WPGraphQL sends for every ACF
+ * select (the same defect unwrapSelects() documents for `blocks`) to a plain
+ * id; and `photo` as the same {url, width, height} the Images tab produces —
+ * one placeImage() in src/loaders/pages.ts, so a given attachment builds to
+ * the same hashed asset whichever tab it was chosen from. A photo is always
+ * there: a member without one fails the build in the loader with a message
+ * naming the person and the box to fix, the way an Images row with no
+ * dimensions does, so this template never has to draw a card with no
+ * picture.
+ *
+ * The four tiers are fixed here, not in the CMS. An editor picks a tier per
+ * person from a select whose four values are exactly the ids below
+ * (vs-content-model.php, field_vs_team_group); the tier's heading, its
+ * accent word, its anchor id and the order the tiers appear in are design,
+ * so they stay in code. A tier nobody is in is not drawn at all — no orphan
+ * heading over an empty grid. Every select value has a branch: an id this
+ * table does not name cannot be chosen, because the select allows no null
+ * and offers nothing else.
+ *
+ * The grid class is derived from the member count (`aus-team-grid-${n}`), so
+ * a count the hand-written roster never produced needs a rule in
+ * about-us.css or the tier collapses to one column. 1 and 4–6 have their own
+ * rules there; larger counts fall to a low-specificity default.
+ */
+// Named "roster" so they cannot be mistaken for the loader's TeamMember /
+// TeamPhoto / TeamGroup, which describe a CMS row; these describe a card.
+type RosterPhoto = Pick<PageImage, 'url' | 'width' | 'height'>;
+type RosterMember = { name: string; role: string; bio: string; image: RosterPhoto; alt: string };
+type RosterTier = { id: string; titleStart: string; titleAccent: string; members: RosterMember[] };
+
+const TEAM_TIERS: Array<Pick<RosterTier, 'id' | 'titleStart' | 'titleAccent'>> = [
+  { id: 'coordination', titleStart: 'Patient', titleAccent: 'Coordination' },
+  { id: 'hygienists', titleStart: 'Dental', titleAccent: 'Hygienists' },
+  { id: 'assistants', titleStart: 'Dental', titleAccent: 'Assistants' },
+  { id: 'comfort', titleStart: 'Comfort', titleAccent: 'Officers' },
+];
+
+const cmsTeam = team.length > 0;
+
+const teamGroups: RosterTier[] = cmsTeam
+  ? TEAM_TIERS.flatMap((tier) => {
+      const members = team
+        .filter((row) => row.group === tier.id)
+        .map((row) => ({
+          name: row.name,
+          role: row.role,
+          bio: row.bio,
+          image: row.photo,
+          // The Photo description box wins when typed; otherwise the alt is
+          // written the way every literal card's alt already reads. The
+          // loader resolves the same words into photo.alt (teamPhotoAlt in
+          // src/loaders/pages.ts); the rule is stated here as well because
+          // every other alt on this page is the template's, not the CMS's.
+          alt: row.photo.alt,
+        }));
+      return members.length > 0 ? [{ ...tier, members }] : [];
+    })
+  : templateTeamGroups;
+
+/**
+ * The lede counts the room, and with the CMS list in play it is rebuilt from
+ * the rows so that "seven teammates" cannot go stale the day an eighth is
+ * added: H is every row outside the comfort tier, D is the comfort tier.
+ *
+ * PROOF it reproduces today's words. The nine literal cards are 7 humans and
+ * 2 dogs; countWord(7) is "seven", countWord(2) is "two", D is not 1 so
+ * "dogs", and three clauses take the serial-comma join — giving
+ *   "Two doctors, seven teammates, and two very good dogs — hand-picked …"
+ * which is TEMPLATE_TEAM_LEDE character for character, including the U+2014
+ * dash. Measured in the forced-value smoke into dist/, not only read.
+ *
+ * One to twelve are spelled out, the way the lede has always spelled "seven"
+ * and "two"; beyond that the digits stand, rather than teaching this file to
+ * spell arbitrary numbers. The contract leaves a count of zero undefined, so
+ * a clause for nobody is dropped instead of reading "zero very good dogs",
+ * and the join degrades to "Two doctors and seven teammates".
+ */
+const TEMPLATE_TEAM_LEDE =
+  'Two doctors, seven teammates, and two very good dogs — hand-picked for skill, for warmth, and for the quiet way they turn a long appointment into a short one.';
+
+const COUNT_WORDS = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
+const countWord = (n: number): string => COUNT_WORDS[n] || String(n);
+
+function teamLedeFor(humans: number, dogs: number): string {
+  const who = ['Two doctors'];
+  if (humans > 0) who.push(`${countWord(humans)} ${humans === 1 ? 'teammate' : 'teammates'}`);
+  if (dogs > 0) who.push(`${countWord(dogs)} very good ${dogs === 1 ? 'dog' : 'dogs'}`);
+  const list = who.length === 3 ? `${who[0]}, ${who[1]}, and ${who[2]}` : who.join(' and ');
+  return `${list} — hand-picked for skill, for warmth, and for the quiet way they turn a long appointment into a short one.`;
+}
+
+const teamDogs = team.filter((row) => row.group === 'comfort').length;
+const teamLede = cmsTeam ? teamLedeFor(team.length - teamDogs, teamDogs) : TEMPLATE_TEAM_LEDE;
 
 // Patient Voices — full reviews collection (newest first), rendered in a
 // seamless marquee. Mirrors the home-page testimonials section.
@@ -478,7 +589,7 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
             eyebrow="The team"
             heading="The people who make"
             headingItalic="every visit feel easy."
-            lede="Two doctors, seven teammates, and two very good dogs — hand-picked for skill, for warmth, and for the quiet way they turn a long appointment into a short one."
+            lede={teamLede}
             centered
             class="aus-section-head"
           />

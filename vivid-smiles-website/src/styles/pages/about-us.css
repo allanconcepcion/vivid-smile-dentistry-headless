@@ -268,6 +268,30 @@
   margin-inline: auto;
 }
 
+/* Counts the CMS can produce that the hand-written roster never did. The
+   class is derived from the member count in about-us/index.astro
+   (`aus-team-grid-${group.members.length}`), so every count an editor can
+   reach needs a rule here or the tier collapses to one enormous column.
+     1      a single card, centred and capped so it reads as a portrait
+            rather than a banner (440px ≈ one cell of the 3-col grid).
+     4      one row of four; the 4/5 portrait still reads at ~270px.
+     5, 6   three across, wrapping. A 5 leaves one empty cell on the second
+            row, which is the lesser evil against five 230px cards.
+     7+     the :where() rule. Its specificity is (0,1,0), deliberately below
+            every per-count rule in this file at (0,2,0), so it only ever
+            fills a gap and can never override the -2/-3 rules above — and
+            the same holds inside the breakpoints below, where the per-count
+            rules are restated at (0,2,0). */
+.aus .aus-team-grid-1 {
+  grid-template-columns: 1fr;
+  max-width: 440px;
+  margin-inline: auto;
+}
+.aus .aus-team-grid-4 { grid-template-columns: repeat(4, 1fr); }
+.aus .aus-team-grid-5,
+.aus .aus-team-grid-6 { grid-template-columns: repeat(3, 1fr); }
+.aus :where(.aus-team-grid) { grid-template-columns: repeat(3, 1fr); }
+
 .aus .aus-team-card {
   background: var(--paper);
   border: 1px solid var(--line);
@@ -429,6 +453,13 @@
   .aus .aus-team-grid { gap: 24px; }
   .aus .aus-team-grid-3 { grid-template-columns: repeat(2, 1fr); }
   /* `.aus-team-grid-2` stays 2-col under its 880px cap (wrap shrinks naturally). */
+  /* CMS-only counts: four across becomes two rows of two; 5 and 6 wrap in
+     pairs; `.aus-team-grid-1` keeps its single 440px column at every width.
+     The :where() catch-all steps down with them for 7+. */
+  .aus .aus-team-grid-4,
+  .aus .aus-team-grid-5,
+  .aus .aus-team-grid-6 { grid-template-columns: repeat(2, 1fr); }
+  .aus :where(.aus-team-grid) { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 780px) {
@@ -444,6 +475,13 @@
   .aus .aus-team-grid { gap: 20px; }
   .aus .aus-team-grid-3,
   .aus .aus-team-grid-2 { grid-template-columns: 1fr; max-width: none; }
+  /* CMS-only counts: everything is one column on a phone, and the 440px cap
+     on a single card comes off so it fills the wrap like every other card. */
+  .aus .aus-team-grid-1,
+  .aus .aus-team-grid-4,
+  .aus .aus-team-grid-5,
+  .aus .aus-team-grid-6 { grid-template-columns: 1fr; max-width: none; }
+  .aus :where(.aus-team-grid) { grid-template-columns: 1fr; }
   .aus .aus-team-group { margin-bottom: 60px; }
   .aus .aus-team-group-title { margin-bottom: 28px; padding-bottom: 14px; }
 
