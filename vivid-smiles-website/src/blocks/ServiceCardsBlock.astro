@@ -39,6 +39,37 @@
  * `tag` have no rendering in the features shape and are ignored there, which is
  * recorded rather than hidden — see `cardStyle` in Props.
  *
+ * ── PORTRAITS, the fourth shape (blocks wave, plan decision D2) ──────────
+ * The home page's notable-patients band (src/pages/index.astro:358-390) is a
+ * `<figure class="notable-card">`: a 4/5 photo in `.notable-photo` over a
+ * `<figcaption>` of `span.notable-tag` → `<h3>` → an italic `<p>`. No link, no
+ * arrow, no hover-reveal; `href` has no rendering here and is ignored, exactly
+ * as `features` ignores it. `card_style` value `portraits` selects it. The grid
+ * carries `.portraits` beside `cols-N`, and the band's `<section>` gains
+ * `aria-labelledby="{id}-heading"` with the matching `id` on the `<h2>`
+ * (index.astro:358,:362) — only under this value, so no other band's markup
+ * moves. Its `<Image>` widths are index.astro:369's (the second card's extra
+ * 1000 candidate is a recorded srcset delta).
+ *
+ * ── FEATURED, the full-row tile (blocks wave) ───────────────────────────
+ * The home services grid (index.astro:180-195) draws its first tile as
+ * `<a class="svc-card featured">`: spanning the whole row, 480px tall, a sage
+ * star tag and a bigger title. A per-row true_false `featured` selects it. The
+ * FIRST row switched on is honoured and any later one is drawn as a normal
+ * tile — two full-width cards stacked is a shape no page has — and it applies
+ * to the tile shapes only (`tiles`, `tiles-heading-first`): a feature card and
+ * a portrait have no featured form. The featured card takes its own `<Image>`
+ * inputs (index.astro:182: widths 800/1200/1600, sizes 100vw), because it is
+ * as wide as the grid.
+ *
+ * ── SPLIT, the two-column head (blocks wave, plan decision D3) ───────────
+ * `head_align` value `split` draws index.astro:168-176: `.section-head.split`
+ * holding `.left` (eyebrow, h2) and `.right` (intro paragraph, ONE ghost
+ * button). The button is the layout's first cta drawn inside `.right`; the
+ * in-head `.cta-row` is NOT drawn under split, and `cta_label_2`,
+ * `cta_href_2`, `cta_hover_2` and `cta_note` have no rendering there —
+ * recorded here and in Props rather than hidden.
+ *
  * ── `href` blank means the tile is not a link ────────────────────────────
  * An `<a>` with no href is not a link, and an arrow badge on something that
  * goes nowhere advertises a destination that does not exist. So a tile with a
@@ -147,6 +178,12 @@ export interface ServiceCard {
   /** Alt override. Falls back to the alt stored on the file in WordPress. */
   imageAlt?: string | null;
   image?: ServiceCardsImage | null;
+  /**
+   * The full-row tile (`field_vs_blk_svc_card_featured`, a true_false). Read
+   * for TRUTH like `nested`: an unsaved one arrives null. Only the FIRST row
+   * that is on is drawn featured, and only in the tile shapes — see the header.
+   */
+  featured?: boolean | null;
 }
 
 interface Props {
@@ -171,6 +208,12 @@ interface Props {
    * 60ch, so the heading column grew by about a third and re-wrapped. Measured
    * in a browser against the built pages: 760px against 587.355px. A word diff
    * and a section-class diff are both blind to it.
+   *
+   * "split" is the home page's two-column head (index.astro:168-176) —
+   * `.left` (eyebrow, h2) beside `.right` (paragraph, one ghost button). Under
+   * split the first cta is that button; the in-head `.cta-row` is not drawn,
+   * and `ctaLabel2`/`ctaHref2`/`ctaHover2`/`ctaNote` are IGNORED. Ignored in
+   * nested mode like every other head field.
    */
   headAlign?: string | null;
   eyebrow?: string | null;
@@ -184,9 +227,13 @@ interface Props {
    */
   nested?: boolean | null;
   /**
-   * "tiles" | "features". NULL means tiles: the tile is the shape five of the
-   * six live bands ship, and a row saved by any path that skips the select must
-   * degrade to the common case rather than to the one page's exception.
+   * "tiles" | "tiles-heading-first" | "features" | "portraits". NULL means
+   * tiles: the tile is the shape five of the six live bands ship, and a row
+   * saved by any path that skips the select must degrade to the common case
+   * rather than to the one page's exception. `portraits` ignores `href` and
+   * every row's `featured`, and takes no `collapseAt` ladder — a two-across
+   * portraits grid stacks at 991px, which is the home page's own stop
+   * (home.css:753-758).
    */
   cardStyle?: string | null;
   /** "2" | "3" | "4" | "5" — ACF returns a select's value as a string. */
@@ -295,6 +342,27 @@ const IMAGE_SPEC: Record<string, { widths: number[]; sizes: string }> = {
     widths: [300, 480, 640],
     sizes: "(max-width: 640px) 100vw, (max-width: 1100px) 50vw, 25vw",
   },
+  /* The full-row tile is as wide as the grid at every width — index.astro:182.
+     Keyed by shape, not by column count, because the count does not change
+     its rendered width. */
+  "tiles-featured": { widths: [800, 1200, 1600], sizes: "100vw" },
+  /* index.astro:369 — the notable-patients portrait. Two across is the only
+     count that ships; the other counts take the same widths with the `sizes`
+     the generic ladder in <style> implies (1100px -> two across, 640px -> one),
+     as the tile counts no page ships do. */
+  "portraits-2": { widths: [420, 600, 800], sizes: "(max-width: 780px) 90vw, 480px" },
+  "portraits-3": {
+    widths: [420, 600, 800],
+    sizes: "(max-width: 640px) 100vw, (max-width: 1100px) 50vw, 33vw",
+  },
+  "portraits-4": {
+    widths: [420, 600, 800],
+    sizes: "(max-width: 640px) 100vw, (max-width: 1100px) 50vw, 25vw",
+  },
+  "portraits-5": {
+    widths: [420, 600, 800],
+    sizes: "(max-width: 640px) 100vw, (max-width: 1100px) 50vw, 33vw",
+  },
 };
 
 const {
@@ -322,7 +390,12 @@ const {
 /* See the `headAlign` prop. Unknown values fall back to today's class, never to
    a band that centres itself by accident. */
 const headKey = String(headAlign ?? "").trim().toLowerCase();
-const headClass = headKey === "center" || headKey === "narrow" ? headKey : undefined;
+const headClass =
+  headKey === "center" || headKey === "narrow" || headKey === "split" ? headKey : undefined;
+
+/* The two-column head — a different interior, not just a different class. See
+   the header and the `headAlign` prop. */
+const isSplit = headKey === "split";
 
 
 /** Trim once, here, so every guard below tests for real content rather than for
@@ -355,6 +428,11 @@ const isFeatures = text(cardStyle) === "features";
    is the same failure `ctaHide` was. */
 const isHeadingFirst = text(cardStyle) === "tiles-heading-first";
 
+/* The fourth shape — the home page's `figure.notable-card` (index.astro:367-389).
+   Neither existing shape draws it: `tiles` overlays the caption on the photo
+   behind a hover reveal, `features` drops the tag and re-crops 4/5 to 4/3. */
+const isPortraits = text(cardStyle) === "portraits";
+
 /**
  * The column count, and the class that carries it.
  *
@@ -376,13 +454,20 @@ const isHeadingFirst = text(cardStyle) === "tiles-heading-first";
  * `svc-grid-4`) so the un-migrated hub sheets keep styling the band during the
  * transition, exactly as CardGridBlock keeps `.why-grid`.
  *
- * Default 3 for tiles and 4 for features: the count each shape actually ships,
- * so a row that somehow saved without a `columns` value degrades to the layout
- * the markup already has rather than to the editor-facing default.
+ * Default 3 for tiles, 4 for features and 2 for portraits: the count each
+ * shape actually ships, so a row that somehow saved without a `columns` value
+ * degrades to the layout the markup already has rather than to the
+ * editor-facing default.
  */
 const COLUMN_CHOICES = ["2", "3", "4", "5"];
 const rawColumns = String(columns ?? "").trim();
-const cols = COLUMN_CHOICES.includes(rawColumns) ? rawColumns : isFeatures ? "4" : "3";
+const cols = COLUMN_CHOICES.includes(rawColumns)
+  ? rawColumns
+  : isFeatures
+    ? "4"
+    : isPortraits
+      ? "2"
+      : "3";
 const colsClass = `cols-${cols}`;
 
 /* The templates key their grids off the CARD COUNT, not the column count —
@@ -397,7 +482,13 @@ const rawCollapse = String(collapseAt ?? "").trim();
 const collapseWidth =
   rawCollapse === "780" || rawCollapse === "479" ? rawCollapse : "640";
 
-let imageSpec = IMAGE_SPEC[`${isFeatures ? "features" : "tiles"}-${cols}`];
+const shapeKey = isFeatures ? "features" : isPortraits ? "portraits" : "tiles";
+let imageSpec = IMAGE_SPEC[`${shapeKey}-${cols}`];
+
+/* The featured tile's own inputs — see IMAGE_SPEC. Looked up once here; the
+   tile map below picks it for the one featured row and `imageSpec` for the
+   rest. */
+const featuredSpec = IMAGE_SPEC["tiles-featured"];
 
 /* THE SIZES HINT TRACKS THE COLLAPSE, because on every page the two agree:
    a band that goes one-column at 780 (services/index.astro:190,:234) also
@@ -407,8 +498,9 @@ let imageSpec = IMAGE_SPEC[`${isFeatures ? "features" : "tiles"}-${cols}`];
    that can contradict each other. Wrong `sizes` is not a layout bug — it makes
    the browser pick the wrong candidate, so the image is soft or wasteful — but
    it is still a change to a live page, which is why it is not left as a
-   constant. */
-if (collapseWidth === "780" && !isFeatures) {
+   constant. Portraits are excluded with features: their `sizes` is the home
+   page's own string (index.astro:369), not a tile ladder. */
+if (collapseWidth === "780" && !isFeatures && !isPortraits) {
   imageSpec = {
     widths: imageSpec.widths,
     sizes: cols === "2" ? "(max-width: 991px) 100vw, 50vw" : "(max-width: 991px) 100vw, 33vw",
@@ -421,7 +513,7 @@ if (collapseWidth === "780" && !isFeatures) {
    one page shipping it also ships its own widths, transcribed here so the
    built `srcset` is the template's and not a near-miss.
    Source: new-patients/index.astro:194-195. */
-if (collapseWidth === "479" && !isFeatures) {
+if (collapseWidth === "479" && !isFeatures && !isPortraits) {
   imageSpec = {
     widths: [320, 520, 720, 960],
     sizes: "(max-width: 479px) 100vw, (max-width: 991px) 50vw, 25vw",
@@ -454,6 +546,9 @@ const rows = (Array.isArray(svcCards) ? svcCards : [])
       tag: text(row?.tag),
       href: text(row?.href),
       imagePos: text(row?.imagePos),
+      /* Truthiness, like `nested`: null when never saved, and an importer may
+         write 1. */
+      featured: Boolean(row?.featured),
       /* Editor override first, then the alt text stored on the file itself. */
       alt: text(row?.imageAlt) || text(node?.altText),
       src,
@@ -468,6 +563,15 @@ const rows = (Array.isArray(svcCards) ? svcCards : [])
     };
   })
   .filter((card) => card.title !== "" || card.body !== "" || card.tag !== "" || card.hasImage);
+
+/**
+ * The one featured row: the FIRST that is on, by index into the drawn rows
+ * (after the filter above, so an abandoned blank row cannot shift it). -1 when
+ * none is on, and always -1 for features and portraits, which have no featured
+ * form (vs-content-model.php `field_vs_blk_svc_card_featured`: "it does nothing
+ * on feature cards or portrait photos").
+ */
+const featuredAt = isFeatures || isPortraits ? -1 : rows.findIndex((card) => card.featured);
 
 const missingImages = rows.filter((card) => !card.hasImage).length;
 
@@ -509,8 +613,13 @@ const label2 = isPhone(ctaHref2) ? callLabel : text(ctaLabel2);
  */
 const hasCta = text(ctaLabel) !== "";
 const hasCta2 = text(ctaLabel2) !== "";
-const hasCtaRow = (hasCta || hasCta2) && !isNested;
+const hasCtaRow = (hasCta || hasCta2) && !isNested && !isSplit;
 const ctaNoteText = text(ctaNote);
+
+/* Under split the first cta is the ghost button inside `.right`
+   (index.astro:175) and there is no `.cta-row` at all; the second cta and the
+   note are ignored there — see the header. */
+const hasSplitCta = isSplit && hasCta && !isNested;
 
 /**
  * Button variants follow the band, and the pairing is read off the two live
@@ -525,7 +634,18 @@ const isLightGround = bandKey === "paper" || bandKey === "cream";
 const primaryVariant = isLightGround ? "sage" : "light";
 const secondaryVariant = isLightGround ? "ghost" : "ghost-light";
 
-const hasHead = eyebrowText !== "" || headingHtml !== "" || bodyText !== "" || hasCtaRow;
+const hasHead =
+  eyebrowText !== "" || headingHtml !== "" || bodyText !== "" || hasCtaRow || hasSplitCta;
+
+/**
+ * index.astro:358,:362 — the notable band's `<section aria-labelledby>` and the
+ * `<h2 id>` it points at. Only under portraits, only on a band (a guest has no
+ * section of its own), and only when there is an id and a heading to pair:
+ * undefined otherwise, which Astro renders as no attribute at all, so every
+ * other band's `<section>` and `<h2>` are byte-identical to before.
+ */
+const headingId =
+  isPortraits && !isNested && id && headingHtml !== "" ? `${id}-heading` : undefined;
 
 /**
  * A row with nothing in it draws nothing at all — not even the band.
@@ -542,6 +662,7 @@ const hasContent =
   headingHtml !== "" ||
   bodyText !== "" ||
   hasCtaRow ||
+  hasSplitCta ||
   rows.length > 0 ||
   subFootHtml !== "";
 
@@ -581,7 +702,42 @@ const hasNestedHead = isNested && hasNestedHeadCopy;
 
     const cards =
       rows.length > 0 &&
-      (isFeatures ? (
+      (isPortraits ? (
+        /* index.astro:366-388 — the notable-patients portraits. A `<figure>`
+           with the photo in `.notable-photo` and a `<figcaption>` of tag,
+           title and italic line; no link, no arrow, no reveal. `href` and
+           `featured` have no rendering here. The picture's conditional and
+           the caption's are flushed `}{`, and the three caption parts too,
+           on the features branch's rule: an absent part must not leave a
+           text node behind. */
+        <div class:list={["svc-grid", countClass, colsClass, "portraits", isNested && "nested"]}>
+          {rows.map((card) => (
+            <figure class="notable-card">
+              {card.hasImage && (
+                <div class="notable-photo">
+                  <Image
+                    src={card.src}
+                    width={card.width}
+                    height={card.height}
+                    alt={card.alt}
+                    widths={imageSpec.widths}
+                    sizes={imageSpec.sizes}
+                    style={card.imagePos ? `object-position: ${card.imagePos}` : undefined}
+                  />
+                </div>
+              )}{
+                (card.tag !== "" || card.title !== "" || card.body !== "") && (
+                  <figcaption>
+                    {card.tag !== "" && <span class="notable-tag">{card.tag}</span>}{
+                      card.title !== "" && <h3>{card.title}</h3>
+                    }{card.body !== "" && <p set:html={card.body} />}
+                  </figcaption>
+                )
+              }
+            </figure>
+          ))}
+        </div>
+      ) : isFeatures ? (
         /* general-dentistry.astro:261-278. A feature is an article, has no
            link, no tag and no arrow: the four fields a tile uses for its
            affordance have no rendering in this shape. */
@@ -625,12 +781,18 @@ const hasNestedHead = isNested && hasNestedHeadCopy;
            implant-dentistry.astro:347-365 — the same tile to the character,
            plus the `.svc-tag` services.astro:274 adds on `#everyday`. */
         <div class:list={["svc-grid", countClass, colsClass, collapseWidth === "780" && "at-780", collapseWidth === "479" && "at-479", isNested && "nested"]}>
-          {rows.map((card) => {
+          {rows.map((card, index) => {
             /* An `<a>` with no href is not a link — see the header. The badge
                and `data-vs-arrow` go with it, because both exist to promise a
                destination. */
             const linked = card.href !== "";
             const hasRowBot = card.title !== "" || linked;
+
+            /* The one full-row tile (index.astro:180-195) — by index, so only
+               the first row that is on takes it; see `featuredAt`. It ships its
+               own `<Image>` inputs because it is as wide as the grid. */
+            const featured = index === featuredAt;
+            const spec = featured ? featuredSpec : imageSpec;
 
             /* The interior is built ONCE and the two elements below are two
                literal tags rather than one `<Tag>` variable. A dynamic tag name
@@ -647,8 +809,8 @@ const hasNestedHead = isNested && hasNestedHeadCopy;
                       width={card.width}
                       height={card.height}
                       alt={card.alt}
-                      widths={imageSpec.widths}
-                      sizes={imageSpec.sizes}
+                      widths={spec.widths}
+                      sizes={spec.sizes}
                       style={card.imagePos ? `object-position: ${card.imagePos}` : undefined}
                     />
                   </div>
@@ -688,8 +850,18 @@ const hasNestedHead = isNested && hasNestedHeadCopy;
               </Fragment>
             );
 
+            /* Four literal tags rather than one with a computed class, on the
+               same reasoning as the two above: nothing on the non-featured path
+               goes through a runtime serialiser it did not go through before.
+               `svc-card featured` is index.astro:180's class string. */
             return linked ? (
-              <a class="svc-card compact" href={card.href} data-vs-arrow>{inner}</a>
+              featured ? (
+                <a class="svc-card featured" href={card.href} data-vs-arrow>{inner}</a>
+              ) : (
+                <a class="svc-card compact" href={card.href} data-vs-arrow>{inner}</a>
+              )
+            ) : featured ? (
+              <article class="svc-card featured">{inner}</article>
             ) : (
               <article class="svc-card compact">{inner}</article>
             );
@@ -738,14 +910,45 @@ const hasNestedHead = isNested && hasNestedHeadCopy;
        not a per-card stagger. Moving it to the grid would be a different
        animation. */
     return (
-      <section class:list={["section", bandClass]} id={id} data-vs-reveal-batch>
+      <section class:list={["section", bandClass]} id={id} aria-labelledby={headingId} data-vs-reveal-batch>
         <div class="wrap">
-          {hasHead && (
+          {hasHead && (isSplit ? (
+            /* index.astro:168-176 — the two-column head. `.left` holds the
+               eyebrow and heading, `.right` the paragraph and the first cta as
+               a ghost button; no `.cta-row`. Either column is drawn only when
+               it has something to hold, and the two are flushed against each
+               other. The button's variant follows the band like the in-head
+               row's secondary does (ghost on paper and cream, which is what
+               index.astro:175 spells; ghost-light on the dark bands, where a
+               ghost button would be invisible). */
+            <div class:list={["section-head", headClass]}>
+              {(eyebrowText !== "" || headingHtml !== "") && (
+                <div class="left">
+                  {eyebrowText !== "" && (
+                    <span class:list={["eyebrow", eyebrowLight && "light"]}>{eyebrowText}</span>
+                  )}
+                  {headingHtml !== "" && <h2><Fragment set:html={headingHtml} /></h2>}
+                </div>
+              )}{
+                (bodyText !== "" || hasSplitCta) && (
+                  <div class="right">
+                    {bodyText !== "" && <p>{bodyText}</p>}{
+                      hasSplitCta && (
+                        <Button variant={secondaryVariant} href={cta1.href} hoverLabel={cta1.hover}>
+                          {label1}
+                        </Button>
+                      )
+                    }
+                  </div>
+                )
+              }
+            </div>
+          ) : (
             <div class:list={["section-head", headClass]}>
               {eyebrowText !== "" && (
                 <span class:list={["eyebrow", eyebrowLight && "light"]}>{eyebrowText}</span>
               )}
-              {headingHtml !== "" && <h2><Fragment set:html={headingHtml} /></h2>}
+              {headingHtml !== "" && <h2 id={headingId}><Fragment set:html={headingHtml} /></h2>}
               {bodyText !== "" && <p>{bodyText}</p>}{
                 /* services.astro:168-177 — the buttons live INSIDE the head,
                    under the intro. Flush against the body paragraph because
@@ -774,7 +977,7 @@ const hasNestedHead = isNested && hasNestedHeadCopy;
                 )
               }
             </div>
-          )}
+          ))}
 
           {cards}{outro}
         </div>
@@ -982,6 +1185,63 @@ const hasNestedHead = isNested && hasNestedHeadCopy;
   }
   .section-head.sub p {
     font-size: 16px;
+  }
+
+  /* ---------- the two-column head ----------
+     home.css:224-231 (`.home .services-head`) and :950 (780px), plus the three
+     page primitives the head's children take on that page and would otherwise
+     lose to a tie: the bare `.home .eyebrow` (:45-49) has NO hairlines — only
+     `.eyebrow.center` does (:51-54) — so the family's `::before/::after` are
+     switched off; `.home h2` (:56-61) is SAGE at clamp(34px, 4.6vw, 60px),
+     line-height 1.08, and `.home h2` (0,1,1) would only tie this file's `h2`
+     (0,1,1) and leave the colour to bundle order; `.home p` inherits body's
+     1.65 (global.css:23) where this file's `.section-head p` says 1.7. All
+     three restated under `.section-head.split`, (0,2,0) plus scope, clear of
+     both sheets. The paragraph's COLOUR is not restated: it is `--vs-ink-soft`
+     from `.section-head p` on the light bands and the band inversions above
+     on the dark ones, exactly as the centred head. The button is the global
+     Button component. */
+  .section-head.split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 60px;
+    align-items: end;
+    max-width: none;
+    margin: 0 0 56px;
+    text-align: left;
+  }
+  .section-head.split .left .eyebrow {
+    display: block;
+    margin-bottom: 18px;
+  }
+  .section-head.split .left .eyebrow::before,
+  .section-head.split .left .eyebrow::after {
+    display: none;
+  }
+  .section-head.split h2 {
+    font-size: clamp(34px, 4.6vw, 60px);
+    line-height: 1.08;
+    letter-spacing: -0.022em;
+    color: var(--vs-sage);
+    max-width: 14ch;
+    margin: 0;
+  }
+  .section-head.split .right {
+    padding-bottom: 10px;
+  }
+  .section-head.split .right p {
+    font-size: 17px;
+    line-height: 1.65;
+    max-width: 44ch;
+    margin: 0 0 22px;
+  }
+  @media (max-width: 780px) {
+    /* home.css:950 */
+    .section-head.split {
+      grid-template-columns: 1fr;
+      gap: 24px;
+      margin-bottom: 36px;
+    }
   }
 
   /* ---------- band inversions ----------
@@ -1234,6 +1494,113 @@ const hasNestedHead = isNested && hasNestedHeadCopy;
     min-height: 380px;
   }
 
+  /* ---------- the featured tile ----------
+     home.css:301-329, :922-928 and :950-957, with the page's local aliases
+     resolved to the `--vs-*` tokens (`--sage` -> `--vs-sage`, home.css:18).
+     Written under `.svc-grid` like the rest of the tile family, so every rule
+     is at least (0,3,0) plus scope and outranks both the home sheet's
+     `.home .svc-card.featured` (0,3,0) and this file's own `.compact` rules.
+     Only a card carrying `featured` matches any of them; no existing band
+     writes that class.
+
+     The 1100px `.compact:last-child` span (home.css:926) is gated on a
+     FEATURED SIBLING — `.featured ~ .compact:last-child` — because the home
+     sheet applies it to a grid that always has one, and an unconditional
+     copy would re-lay-out every three-tile grid on the hubs between 640 and
+     1100px. Same gate on the `(hover: none)` always-open rule (home.css:322-
+     327): the home sheet gives it to every tile on the page, this block gives
+     it to the featured tile and the tiles that follow it, and the hub bands
+     keep their hover-reveal on touch as they have today.
+
+     The arrow is `:global(.vs-arrow)`: ArrowBadge renders it with ITS scope
+     attribute, so a scoped `.vs-arrow` here would compile to a selector that
+     never matches. */
+  .svc-grid .svc-card.featured {
+    grid-column: 1 / -1;
+    min-height: 480px;
+  }
+  .svc-grid .svc-card.featured .svc-tag {
+    background: var(--vs-sage);
+    border-color: transparent;
+    color: #fff;
+    padding: 8px 14px 8px 12px;
+  }
+  .svc-grid .svc-card.featured .svc-tag::before {
+    content: "★";
+    font-size: 11px;
+    letter-spacing: 0;
+    color: #fff;
+  }
+  /* `.svc-body h3` covers both interiors — `.svc-row-bot h3` under tiles and
+     the bare h3 under tiles-heading-first — at (0,5,0), clear of the family's
+     `.svc-row-bot h3` rule above. */
+  .svc-grid .svc-card.featured .svc-body h3 {
+    font-size: clamp(36px, 3.2vw, 46px);
+  }
+  .svc-grid .svc-card.featured .svc-desc {
+    font-size: 17px;
+  }
+  .svc-grid .svc-card.featured:hover .svc-desc,
+  .svc-grid .svc-card.featured:focus-visible .svc-desc {
+    max-height: 240px;
+  }
+  @media (hover: none) {
+    .svc-grid .svc-card.featured .svc-desc,
+    .svc-grid .svc-card.featured ~ .svc-card .svc-desc {
+      max-height: 400px;
+      opacity: 1;
+      transform: none;
+    }
+  }
+  .svc-grid .svc-card.featured .svc-body {
+    padding: 32px 36px 32px;
+    gap: 16px;
+  }
+  .svc-grid .svc-card.featured :global(.vs-arrow) {
+    width: 46px;
+    height: 46px;
+    font-size: 18px;
+  }
+  @media (max-width: 1100px) {
+    /* home.css:924-928 */
+    .svc-grid .svc-card.featured {
+      grid-column: 1 / -1;
+      min-height: 420px;
+    }
+    .svc-grid .svc-card.featured ~ .svc-card.compact:last-child {
+      grid-column: 1 / -1;
+    }
+    .svc-grid .svc-card.featured .svc-body h3 {
+      font-size: 36px;
+    }
+  }
+  @media (max-width: 780px) {
+    /* home.css:952-957. The span resets to one column; the compact tile keeps
+       this file's own 780px box (aspect-ratio, 320px), which the pagemap
+       records as an accepted delta from the home sheet's 280px. */
+    .svc-grid .svc-card.featured,
+    .svc-grid .svc-card.featured ~ .svc-card.compact:last-child {
+      grid-column: span 1;
+    }
+    .svc-grid .svc-card.featured {
+      min-height: 360px;
+    }
+    .svc-grid .svc-card.featured .svc-body {
+      padding: 26px 24px 26px;
+    }
+    .svc-grid .svc-card.featured .svc-body h3 {
+      font-size: 28px;
+      max-width: none;
+    }
+    .svc-grid .svc-card.featured .svc-desc {
+      max-height: 400px;
+      opacity: 1;
+      font-size: 17px;
+      transform: none;
+      max-width: none;
+    }
+  }
+
   /* ---------- the feature card ----------
      general-dentistry.css:549-606. Always-visible copy, no hover-reveal: the
      Emergency card's body carries a link, and a link that only appears on hover
@@ -1299,6 +1666,115 @@ const hasNestedHead = isNested && hasNestedHeadCopy;
     line-height: 1.7;
     color: var(--vs-ink-soft);
     margin: 0;
+  }
+
+  /* ---------- the portrait card ----------
+     home.css:708-768 (`.home .notable-grid`, `.notable-card`, `.notable-photo`,
+     `.notable-tag`, the figcaption and its 991/780px stops), aliases resolved
+     (`--r-lg` -> `--vs-r-lg`, `--shadow-lg` -> `--vs-shadow-lg`, `--sage` ->
+     `--vs-sage`, `--ink` -> `--vs-ink`, `--f-display` -> `--vs-font-display`;
+     home.css:18-37). Rooted on `.svc-grid.portraits`, (0,2,0) plus scope, so
+     the grid's own gap and measure beat this file's single-compound
+     `.svc-grid { gap: 22px }` and its 780px `gap: 18px` outright, and nothing
+     here can match a tiles or features grid. The column pattern is the shared
+     `.cols-N` rule above (1fr 1fr = home.css:709) and the 991px stack for two
+     across is the shared rule too (= home.css:753-757); the two max-width caps
+     are keyed to `.cols-2` because they belong to a stacked pair, and no other
+     count ships. Margin is left/right only: `margin-top` is the nested/not
+     pair's above. */
+  .svc-grid.portraits {
+    gap: 56px;
+    max-width: 980px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .svc-grid.portraits .notable-card {
+    margin: 0;
+  }
+  .svc-grid.portraits .notable-photo {
+    position: relative;
+    aspect-ratio: 4/5;
+    background: var(--vs-cream-warm);
+    border-radius: var(--vs-r-lg);
+    overflow: hidden;
+    box-shadow: var(--vs-shadow-lg);
+  }
+  .svc-grid.portraits .notable-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.6s ease;
+  }
+  .svc-grid.portraits .notable-card:hover .notable-photo img {
+    transform: scale(1.03);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .svc-grid.portraits .notable-photo img {
+      transition: none;
+    }
+    .svc-grid.portraits .notable-card:hover .notable-photo img {
+      transform: none;
+    }
+  }
+  .svc-grid.portraits .notable-card figcaption {
+    padding: 24px 4px 0;
+    text-align: left;
+  }
+  .svc-grid.portraits .notable-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 10.5px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-ink-soft);
+    margin-bottom: 12px;
+  }
+  .svc-grid.portraits .notable-tag::before {
+    content: "";
+    width: 22px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+  .svc-grid.portraits .notable-card h3 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    font-size: 26px;
+    color: var(--vs-ink);
+    letter-spacing: -0.01em;
+    margin: 0 0 6px;
+  }
+  .svc-grid.portraits .notable-card figcaption p {
+    font-family: var(--vs-font-display);
+    font-style: italic;
+    font-weight: 300;
+    font-size: 17px;
+    color: var(--vs-sage);
+    line-height: 1.3;
+    margin: 0;
+  }
+  @media (max-width: 991px) {
+    /* home.css:756-758 */
+    .svc-grid.portraits.cols-2 {
+      gap: 56px;
+      max-width: 480px;
+    }
+  }
+  @media (max-width: 780px) {
+    /* home.css:764-766 */
+    .svc-grid.portraits {
+      gap: 48px;
+    }
+    .svc-grid.portraits.cols-2 {
+      max-width: 460px;
+    }
+    .svc-grid.portraits .notable-card figcaption {
+      padding-top: 22px;
+    }
+    .svc-grid.portraits .notable-card h3 {
+      font-size: 24px;
+    }
   }
 
   /* ---------- the closing line ----------

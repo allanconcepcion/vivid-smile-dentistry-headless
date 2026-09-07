@@ -48,6 +48,26 @@
  * in a build diff, the fix is a dynamic import here, not a new indirection in
  * manifest.ts — the manifest must keep importing zero .astro files.
  *
+ * The blocks wave (/, /patient-testimonials/, /about-us/) adds twelve more
+ * component imports below, so the PageBlocks CSS bundle grows for every route
+ * that imports PageBlocks. That hash change is the ONE accepted residue of the
+ * wave's inert build (e12299f precedent); it is not a reason to move the
+ * imports.
+ *
+ * ── Route-scoped bands (plan decision D1, 2026-09-08) ─────────────────────
+ * Wave B froze copy: every string a band drew became a prop in this table.
+ * The blocks wave does NOT. A band keyed to ONE route may read its own page's
+ * Section copy, Images, Team and Cards rows LIVE, through
+ * getPageContent(Astro.url.pathname), guarded by a `route` prop in its entry
+ * below: on that route it reads exactly what the template read; placed on any
+ * other page it renders NOTHING and console.warns. So the code_section row is
+ * only the band's PLACE in the order — the words keep coming from the tabs
+ * they always came from, and nothing in the entry is copy. The entries that
+ * carry more than `route` (the three TestimonialsBand keys, the divider, the
+ * visit band) carry only what the template itself held as literals: the
+ * Google button, the marquee label, the template's own fallbacks, one aside's
+ * fixed sentence.
+ *
  * ── Do not let the band render twice ──────────────────────────────────────
  * A page whose template still calls the component directly AND carries a
  * `code_section` row for it renders the band twice. The template's bespoke
@@ -57,7 +77,7 @@
  * Spec: docs/PAGE-BLOCKS.md 1.3, 2.2, 2.4, 7.
  */
 import type { AstroComponentFactory } from "astro/runtime/server/index.js";
-import { googleRating, googleReviewCount } from "../data/contact";
+import { bookNowHref, googleRating, googleReviewCount, phoneHref } from "../data/contact";
 
 import LocalTrust from "../components/LocalTrust.astro";
 // Wave A (Phase 4, hub pages). These three are NEW components, created by the
@@ -95,6 +115,25 @@ import PaymentBand from "../components/PaymentBand.astro";
 import ScenarioBand from "../components/ScenarioBand.astro";
 import PreventBand from "../components/PreventBand.astro";
 import ReviewsBand from "../components/ReviewsBand.astro";
+// Blocks wave — /, /patient-testimonials/ and /about-us/. Twelve NEW
+// components, alphabetical, each landing in the same commit as its entry
+// below (the same rule the Wave B comment states: an entry and its import
+// move together, always). StoryVideoModal.astro is NOT here — it is page
+// chrome the template draws once, not a band; and the home notable-patients
+// band is NOT here — it is a service_cards row with card_style `portraits`
+// (D2), so it needs no key.
+import AboutTechnologyBand from "../components/AboutTechnologyBand.astro";
+import CredentialsBand from "../components/CredentialsBand.astro";
+import DividerStrip from "../components/DividerStrip.astro";
+import DoctorsBand from "../components/DoctorsBand.astro";
+import HomeDoctorBand from "../components/HomeDoctorBand.astro";
+import HomeProcessBand from "../components/HomeProcessBand.astro";
+import HomeTechnologyBand from "../components/HomeTechnologyBand.astro";
+import MembershipBand from "../components/MembershipBand.astro";
+import StoryBand from "../components/StoryBand.astro";
+import TeamBand from "../components/TeamBand.astro";
+import TestimonialsBand from "../components/TestimonialsBand.astro";
+import TrustStrip from "../components/TrustStrip.astro";
 
 /** One registered bespoke band. */
 interface CodeBand {
@@ -547,6 +586,256 @@ const BANDS: Record<string, CodeBand> = {
       eyebrow: `Patient Stories · ${googleReviewCount} Five-Star Reviews`,
       heading: "Why Parker keeps <em>coming back</em>.",
       body: "We don't push five-star reviews — they happen on their own. Drag through a few, in our patients' own words.",
+    },
+  },
+
+  /**
+   * ── Blocks wave — /, /patient-testimonials/ and /about-us/ ────────────────
+   *
+   * Fifteen keys, the same fifteen BLOCK_CODE_BANDS carries
+   * (cms/mu-plugins/vs-content-model.php:283-329), in the same order. NOTHING
+   * BELOW IS FROZEN COPY — see "Route-scoped bands" in the header: each
+   * route-keyed band reads its own page live through
+   * getPageContent(Astro.url.pathname) and draws nothing off-route. The
+   * `route` prop is the guard, and it is the WHOLE entry for eleven of the
+   * fifteen; the other four hold only what the template itself held as
+   * literals, cited on each.
+   *
+   * The three TestimonialsBand keys are one component keyed per page, exactly
+   * as the four `_area` keys above are one AreaBand: the Section-copy key
+   * (`sectionId`) and the template's own fallbacks differ per page, so one
+   * shared key would put the home fallbacks under an about-us heading.
+   *
+   * THE GOOGLE BUTTON IS A PROP ON PURPOSE. Its href is a literal in all three
+   * templates (index.astro:610, about-us/index.astro:743,
+   * patient-testimonials/index.astro:395) and the HREF policy (cta.ts:14-18)
+   * keeps external hrefs out of fields; D7 backlogs a Practice-Settings URL
+   * for it. Until then it lives here, once per key, as the templates had it.
+   */
+
+  /**
+   * / `trust` — the "Accredited by" logo strip under the hero
+   * (index.astro:143-163; six slots from the Images tab, :68-75). The section
+   * has no id in the template (`<section class="trust" aria-label=…>`, :143),
+   * so `anchorProp: null` keeps the bytes; an anchor typed on the row feeds the
+   * "on this page" rail only.
+   */
+  home_trust: {
+    component: TrustStrip,
+    props: { route: "/" },
+    anchorProp: null,
+  },
+
+  /**
+   * / `#technology` — the Yomi robot photo beside the stamp and four numbered
+   * items (index.astro:461-508). Reads section("technology") and the two
+   * photo slots live; the four items are template literals inside the
+   * component, as they were inside the template.
+   */
+  home_technology: {
+    component: HomeTechnologyBand,
+    props: { route: "/" },
+  },
+
+  /**
+   * / `#membership` — the membership offer aside (index.astro:570-598). Reads
+   * image("heroBg") live; fee, discount and the phone button come from
+   * src/data/contact.ts inside the component, never from here.
+   */
+  home_membership: {
+    component: MembershipBand,
+    props: { route: "/" },
+  },
+
+  /**
+   * / testimonials — the `.testi` band (index.astro:601-614). The template
+   * reads section("testimonials") with three literal fallbacks (:604-607,
+   * the row did not exist until 2026-09-08); those fallbacks are the
+   * `*Fallback` props, byte-for-byte. The section has NO id in the template
+   * (:601), hence `anchorProp: null`; the sibling keys below do carry one.
+   */
+  home_testimonials: {
+    component: TestimonialsBand,
+    props: {
+      route: "/",
+      sectionId: "testimonials",
+      eyebrowFallback: "Testimonials",
+      headingFallback: "5-Star <em>Smiles</em>",
+      bodyFallback:
+        "Hear from some of our happy patients. Vivid Smiles Dentistry is the only dentist with a 5-star rating in Parker, CO.",
+      ctaLabel: "Read More on Google",
+      ctaHref: "https://share.google/CletN4Tfk51TpK4It",
+      ctaHover: "See Reviews",
+      marqueeLabel: "Patient testimonials",
+    },
+    anchorProp: null,
+  },
+
+  /**
+   * / `#doctor` — Dr. Richardson's portrait, signature, review badge, bio and
+   * credentials (index.astro:393-430). A code band by MEASUREMENT (D4): at
+   * 1440 the portrait is 521.9x652.4 and media_split's 5/4 frame would crop it
+   * to 521.9x417.5, starting at the chest. Reads section("doctor") and
+   * image("drPortrait") live.
+   */
+  home_doctor: {
+    component: HomeDoctorBand,
+    props: { route: "/" },
+  },
+
+  /**
+   * / process — the three numbered steps and the signature plate
+   * (index.astro:511-567). Everything there is literal today, so keeping it
+   * in code loses no editability (D5); the small portrait is image("drPortrait")
+   * read live. No id in the template (`<section class="process">`, :511),
+   * hence `anchorProp: null`.
+   */
+  home_process: {
+    component: HomeProcessBand,
+    props: { route: "/" },
+    anchorProp: null,
+  },
+
+  /**
+   * /patient-testimonials/ divider — the sage stars-and-one-line strip
+   * (patient-testimonials/index.astro:375-383). The one band in this wave
+   * that reads no page at all: its sentence is the aside's own literal, and
+   * the two numbers in it are `{rating}` / `{reviews}` tokens the component
+   * fills from googleRating / googleReviewCount (contact.ts:59-60) — the
+   * template shipped "5.0" and "300+" as literals (:380), and the tokens are
+   * byte-identical while Practice Settings hold those defaults. An
+   * `<aside>` with an aria-label and no id: `anchorProp: null`.
+   */
+  patient_testimonials_divider: {
+    component: DividerStrip,
+    props: {
+      text: "Trusted by patients locally and from out of state · {rating} on Google · {reviews} reviews",
+      ariaLabel: "Practice trust signals",
+    },
+    anchorProp: null,
+  },
+
+  /**
+   * /patient-testimonials/ `#reviews` — the `.testi` band
+   * (patient-testimonials/index.astro:386-399). Reads section("reviews") live
+   * with NO fallbacks, because the template has none (:389-392). Same Google
+   * button and marquee label as the home key.
+   */
+  patient_testimonials_reviews: {
+    component: TestimonialsBand,
+    props: {
+      route: "/patient-testimonials/",
+      sectionId: "reviews",
+      ctaLabel: "Read More on Google",
+      ctaHref: "https://share.google/CletN4Tfk51TpK4It",
+      ctaHover: "See Reviews",
+      marqueeLabel: "Patient testimonials",
+    },
+  },
+
+  /**
+   * /patient-testimonials/ `#visit` — the fourth LocalTrust instance, props
+   * verbatim from patient-testimonials/index.astro:402-412. Unlike the three
+   * above it passes `eyebrow`, `id` and a custom `ctas` pair (Book Online →
+   * bookNowHref, Call the Office → phoneHref, both from src/data/contact.ts
+   * so the number and the booking URL keep one home). `id: "visit"` is kept
+   * because the template passes it: the row's anchor spreads AFTER these props
+   * and wins when set, and when the anchor is blank the band still gets the
+   * id it has always had instead of LocalTrust's "local" default.
+   */
+  patient_testimonials_visit: {
+    component: LocalTrust,
+    props: {
+      id: "visit",
+      eyebrow: "Visit the studio",
+      heading: "Where every",
+      headingItalic: "story starts.",
+      intro:
+        "Every patient on this page began with one conversation at our Parker studio. Stop by, take a tour, and meet the team.",
+      body: "We're an independently owned cosmetic and implant practice in Parker, Colorado. Patients come to us locally and from out of state for full-arch implant work, smile makeovers, and complex cosmetic cases.",
+      ctas: [
+        { label: "Book Online", href: bookNowHref, variant: "sage", hoverLabel: "Book Now" },
+        { label: "Call the Office", href: phoneHref, variant: "ghost", hoverLabel: "Tap to Call" },
+      ],
+    },
+  },
+
+  /**
+   * /about-us/ `#story` — intro, neon-sign photo and founding philosophy
+   * (about-us/index.astro:420-463). Reads section("story-intro"),
+   * section("story") and image("storyOffice") live.
+   */
+  about_us_story: {
+    component: StoryBand,
+    props: { route: "/about-us/" },
+  },
+
+  /**
+   * /about-us/ `#doctors` — intro and both doctor profiles
+   * (about-us/index.astro:466-594). Code band this round, byte-identical (D6);
+   * the media_split extension is a later round. Reads section("doctors-intro"),
+   * section("doctors") and the four doctor image slots live; Dr. Annie's copy
+   * stays literal inside the component because no row exists for it yet.
+   */
+  about_us_doctors: {
+    component: DoctorsBand,
+    props: { route: "/about-us/" },
+  },
+
+  /**
+   * /about-us/ `#team` — intro and the tiered photo roster
+   * (about-us/index.astro:601-650). Reads `team` and section("team-intro")
+   * live; the roster logic (:253-347) moved into the component and the
+   * template keeps its own copy for the rollback branch.
+   */
+  about_us_team: {
+    component: TeamBand,
+    props: { route: "/about-us/" },
+  },
+
+  /**
+   * /about-us/ `#technology` — intro, treatment-room photo and the four items
+   * (about-us/index.astro:653-698). Reads section("technology-intro"),
+   * section("technology"), image("yomiImg") AND the four `techItems` Cards
+   * rows live (D9 — the rows that nothing read before), with the template's
+   * literal array (:133-154) as the fallback when the group is empty.
+   */
+  about_us_technology: {
+    component: AboutTechnologyBand,
+    props: { route: "/about-us/" },
+  },
+
+  /**
+   * /about-us/ `#credentials` — intro and the eight logo badges
+   * (about-us/index.astro:701-729). Reads section("credentials-intro") and
+   * the eight logo slots live; the badge words are the template's literals
+   * (:57-121) inside the component this round (D8).
+   */
+  about_us_credentials: {
+    component: CredentialsBand,
+    props: { route: "/about-us/" },
+  },
+
+  /**
+   * /about-us/ `#voices` — the third `.testi` band
+   * (about-us/index.astro:732-749). Reads section("voices") live; the
+   * template's ONLY fallback is the eyebrow (:735), so that is the only
+   * `*Fallback` here. This page draws the eyebrow through <Eyebrow center>
+   * and marks the h2 `data-vs-reveal-lines` and the stars aria-hidden
+   * (:735-737) where the other two pages use a bare `span.eyebrow` — the
+   * `eyebrowComponent` flag is TestimonialsBand's switch for that variant.
+   */
+  about_us_voices: {
+    component: TestimonialsBand,
+    props: {
+      route: "/about-us/",
+      sectionId: "voices",
+      eyebrowFallback: "Testimonials",
+      eyebrowComponent: true,
+      ctaLabel: "Read More on Google",
+      ctaHref: "https://share.google/CletN4Tfk51TpK4It",
+      ctaHover: "See Reviews",
+      marqueeLabel: "Patient testimonials",
     },
   },
 };

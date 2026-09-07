@@ -1,0 +1,289 @@
+---
+/**
+ * /about-us/ `#story` — the centred intro, the neon-sign photo and the
+ * founding-philosophy column (about-us/index.astro:420-463).
+ *
+ * A code_section band, registered as `about_us_story` in
+ * src/blocks/CodeSectionBlock.astro. It is a code band and not a media_split
+ * row because the shape has three things no layout field can hold: the centred
+ * <SectionIntro> preamble ABOVE the two-column grid (media_split's one head
+ * trio is the in-column one), the `.story-sig` plate, and the "Parker, CO"
+ * badge on the picture. The plan's page map records each of those as a loss
+ * on media_split; this component keeps all three.
+ *
+ * ── D1: a route-scoped band reads its own page ────────────────────────────
+ * Everything an editor changes here lives on the about-us page entry in
+ * wp-admin: the `story-intro` and `story` Section-copy rows and the
+ * `storyOffice` Images slot. A code band receives props only
+ * (CodeSectionBlock.astro:896-900), so freezing those into the BANDS entry
+ * would make three live boxes dead. This component therefore calls
+ * `getPageContent(Astro.url.pathname)` itself — the read the template runs at
+ * index.astro:49 — guarded by the `route` prop: on any other route it renders
+ * NOTHING and warns, because the rows and slot it asks for exist only on the
+ * about-us entry. Decision D1, 2026-09-08 (precedent: TrustStrip.astro).
+ *
+ * ── What is live and what is literal ──────────────────────────────────────
+ * Live: the intro trio through introFrom() with the template's own fallbacks
+ * (index.astro:352, copied verbatim); the `story` row's eyebrow (fallback
+ * "Founding philosophy", :442), heading (set:html, :443) and body (:444); the
+ * picture's url/width/height/alt (:433-435). Literal: the "Parker, CO" badge
+ * (:439), the link paragraph (:445-455) and the `.story-sig` plate (:456-459),
+ * exactly as the template holds them.
+ *
+ * ── Markup ────────────────────────────────────────────────────────────────
+ * Verbatim from index.astro:420-463: `section.section#story` > `.wrap`
+ * [data-vs-reveal-batch] > <SectionIntro centered class="aus-section-head"> +
+ * `.story-grid` > `.story-img[data-vs-reveal]` (<Image> + `span.badge`) +
+ * `.story-text[data-vs-reveal-batch]` (<Eyebrow>, `h2.vs-h2` set:html, `<p>`
+ * body, the literal `<p>` with three `a.vs-link`, `.story-sig` + `<small>`).
+ * The reveal batch stays on `.wrap`, where the template has it (:421). The
+ * only substitution is `id="story"` -> `id={id}`, so CodeSectionBlock can hand
+ * the band the row's deduped anchor.
+ *
+ * ── CSS ───────────────────────────────────────────────────────────────────
+ * about-us.css:136-179 and the story rules of the 1100px (:436-442, :448-449)
+ * and 780px (:466, :469) blocks, restated below, plus the page primitives the
+ * band sits in (`.aus .section` :103, `.aus .wrap` :31) and the page-wide type
+ * rules its h2/em/p rely on (`.aus h2` :37-39 + :41 + :495, `.aus h2 em` :42,
+ * `.aus p` :45) — those differ from the global `.vs-h2` (tokens.css:59 is
+ * clamp(34px, 4.6vw, 58px); the page draws clamp(32px, 4.2vw, 54px)), so the
+ * band must own them. Astro scopes by attribute, so a bare `.story-grid` would
+ * tie the page sheet's `.aus .story-grid` at (0,2,0) and leave bundle order to
+ * decide (CodeSectionBlock.astro:437-439, ScenarioBand's rule); everything
+ * below is rooted at `.section`, and the section rule itself is written
+ * `section.section` so it outranks `.aus .section` rather than tying it. The
+ * page sheet's `.aus` aliases (`--sage`, `--line`, `--muted`, `--r-xl`,
+ * `--f-display`, `--f-body`, about-us.css:12-28) map 1:1 to `--vs-*` tokens
+ * and are written as the tokens here; `--shadow` (about-us.css:21) is a page-
+ * LOCAL literal, not a token, so its value is inlined. Same computed values.
+ *
+ * `:global()` where the element is not this component's own: SectionIntro's
+ * root `div.aus-section-head`, its `h2.vs-h2` and the `<em>` it wraps, its
+ * `p.vs-lede`, and the `<em>` that arrives inside the story heading through
+ * set:html — none of those carry this component's scope attribute
+ * (AreaBand.astro:416-418, LocalTrust.astro:178).
+ */
+import { Image } from "astro:assets";
+import Eyebrow from "./Eyebrow.astro";
+import SectionIntro from "./SectionIntro.astro";
+import { getPageContent, introFrom } from "../lib/page-content";
+
+interface Props {
+  /**
+   * The route this band belongs to ("/about-us/"). It reads that page's
+   * Section-copy rows and image slot, so on any other route it renders nothing
+   * and warns.
+   */
+  route: string;
+  /** The DOM id. CodeSectionBlock overrides it with the row's deduped anchor. */
+  id?: string;
+}
+
+const { route, id = "story" } = Astro.props;
+
+// trailingSlash is 'always' (astro.config.mjs:21); normalise both sides anyway
+// so "/about-us" and "/about-us/" name the same page, as page-content.ts does.
+const withSlash = (p: string) => (p.endsWith("/") ? p : `${p}/`);
+const here = Astro.url.pathname;
+const onRoute = withSlash(here) === withSlash(route);
+
+if (!onRoute) {
+  console.warn(
+    `[blocks] StoryBand is scoped to ${route} and was asked to render on ${here} — it reads that page's "story-intro" and "story" sections and the storyOffice image slot, so it renders nothing here`,
+  );
+}
+
+type PageImage = { url: string; width: number; height: number; alt: string };
+type SectionCopy = { eyebrow: string; heading: string; body: string };
+type Intro = { eyebrow: string; heading: string; headingItalic: string; lede: string };
+
+// index.astro:49 — the same read the template runs, only on this route.
+// index.astro:352 — the story-intro row with the template literal as fallback.
+let storyIntro: Intro = { eyebrow: "", heading: "", headingItalic: "", lede: "" };
+let story: SectionCopy = { eyebrow: "", heading: "", body: "" };
+let office: PageImage | null = null;
+if (onRoute) {
+  const { section, image } = await getPageContent(here);
+  storyIntro = introFrom(section("story-intro"), { eyebrow: "Our Story", heading: "A practice built on", headingItalic: "precision and warmth.", lede: "Vivid Smiles was founded to raise the standard of cosmetic dentistry in Colorado, blending the discipline of master craftsmanship with the ease of a modern, hospitality-minded experience." });
+  story = section("story");
+  office = image("storyOffice");
+}
+---
+
+{
+  onRoute && office && (
+    <section class="section" id={id}>
+      <div class="wrap" data-vs-reveal-batch>
+        <SectionIntro
+          eyebrow={storyIntro.eyebrow}
+          heading={storyIntro.heading}
+          headingItalic={storyIntro.headingItalic}
+          lede={storyIntro.lede}
+          centered
+          class="aus-section-head"
+        />
+
+        <div class="story-grid">
+          <div class="story-img" data-vs-reveal>
+            <Image
+              src={office.url} width={office.width} height={office.height}
+              alt={office.alt || "The neon smile sign inside Vivid Smiles Dentistry in Parker, CO"}
+              widths={[480, 720, 1080]}
+              sizes="(max-width: 991px) 100vw, 45vw"
+            />
+            <span class="badge">Parker, CO</span>
+          </div>
+          <div class="story-text" data-vs-reveal-batch>
+            <Eyebrow>{story.eyebrow || "Founding philosophy"}</Eyebrow>
+            <h2 class="vs-h2"><Fragment set:html={story.heading} /></h2>
+            <p>{story.body}</p>
+            <p>
+              Patients travel locally and from out of state for <a
+                class="vs-link"
+                href="/cosmetic-dentistry/smile-makeover/">smile makeovers</a
+              >, <a class="vs-link" href="/cosmetic-dentistry/full-mouth-rehabilitation/"
+                >full-mouth rehabilitations</a
+              >, and <a class="vs-link" href="/cosmetic-dentistry/porcelain-veneers/"
+                >no-prep veneers</a
+              >. What they find in Parker is a small, focused practice that treats every case like
+              a signature piece, never a production line.
+            </p>
+            <div class="story-sig">
+              Smile boldly. Live vividly.
+              <small>Our promise to every patient</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  /* about-us.css:103. Paper band — padding only. `section.section` rather than
+     `.section` so the scoped rule is (0,2,1) against the page sheet's
+     `.aus .section` (0,2,0) — a win, not a tie. */
+  section.section {
+    padding: 110px 0;
+  }
+  /* about-us.css:31 */
+  .section .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  /* about-us.css:136 — SectionIntro's root carries this class and not this
+     component's scope attribute, hence :global. The `centered` prop supplies
+     the centring (SectionIntro.astro:96-100); this is the margin and width. */
+  .section :global(.aus-section-head) {
+    margin: 0 auto 64px;
+    max-width: 760px;
+  }
+  /* about-us.css:37-39 + :41 (size, tracking) + :495 (ink): the page's h2,
+     which is NOT the global .vs-h2 — the sizes differ. Applied to the intro's
+     h2 through :global for the reason above. */
+  .section :global(.aus-section-head h2) {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    color: var(--vs-ink);
+    margin: 0;
+    line-height: 1.1;
+    letter-spacing: -0.022em;
+    font-size: clamp(32px, 4.2vw, 54px);
+  }
+  /* about-us.css:42 — `.aus h2 em` outranks the global .vs-italic-word
+     (font-weight: inherit, global.css:535-538); the page draws 300. */
+  .section :global(.aus-section-head h2 em) {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+  /* about-us.css:45 — `.aus p` colour; the global p reset (global.css:28-30)
+     already zeroes the margin. */
+  .section :global(.aus-section-head p) {
+    margin: 0;
+    color: var(--vs-ink-soft);
+  }
+
+  /* about-us.css:139-142 */
+  .section .story-grid {
+    display: grid; grid-template-columns: 1fr 1.05fr;
+    gap: 80px; align-items: center;
+  }
+  /* about-us.css:143-150. `--shadow` is the page-local literal at
+     about-us.css:21, inlined; `--r-xl` is the --vs-r-xl alias (:26). */
+  .section .story-img {
+    position: relative;
+    aspect-ratio: 4/5;
+    border-radius: var(--vs-r-xl);
+    overflow: hidden;
+    box-shadow: 0 24px 60px -30px rgba(40, 40, 30, 0.25), 0 8px 20px -10px rgba(40, 40, 30, 0.08);
+  }
+  .section .story-img img { width: 100%; height: 100%; object-fit: cover; }
+  /* about-us.css:151-160 */
+  .section .story-img .badge {
+    position: absolute; left: 22px; top: 22px;
+    background: rgba(255, 255, 255, 0.94);
+    backdrop-filter: blur(6px);
+    border: 1px solid var(--vs-line);
+    border-radius: 999px;
+    padding: 7px 14px;
+    font-size: 10.5px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--vs-sage); font-weight: 500;
+  }
+  /* about-us.css:161 (margin, width) on top of the page's h2 type
+     (:37-39, :41, :495) — see the intro h2 above for why the type is restated. */
+  .section .story-text h2 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    color: var(--vs-ink);
+    line-height: 1.1;
+    letter-spacing: -0.022em;
+    font-size: clamp(32px, 4.2vw, 54px);
+    margin: 18px 0 26px; max-width: 16ch;
+  }
+  /* about-us.css:42 — the `<em>` arrives through set:html and carries no scope
+     attribute, hence :global (AreaBand.astro:416-418). */
+  .section .story-text h2 :global(em) {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+  /* about-us.css:162-165, with the `.aus p` colour (:45). */
+  .section .story-text p {
+    font-size: 16px; line-height: 1.85; max-width: 56ch;
+    margin: 0; color: var(--vs-ink-soft);
+  }
+  .section .story-text p + p { margin-top: 18px; }
+  /* about-us.css:166-179 */
+  .section .story-sig {
+    margin-top: 38px; padding-top: 30px;
+    border-top: 1px solid var(--vs-line);
+    font-family: var(--vs-font-display); font-style: italic; font-weight: 300;
+    font-size: 26px; color: var(--vs-sage);
+    line-height: 1.35; letter-spacing: -0.005em;
+    max-width: 28ch;
+  }
+  .section .story-sig small {
+    display: block; margin-top: 10px;
+    font-family: var(--vs-font-body); font-style: normal;
+    font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--vs-muted);
+  }
+
+  /* about-us.css:436-442 and :448-449 — the story rules of the 1100 block. */
+  @media (max-width: 1100px) {
+    .section .story-grid {
+      grid-template-columns: 1fr;
+      gap: 50px;
+    }
+    .section .story-img { max-width: 540px; margin: 0 auto; width: 100%; }
+  }
+
+  /* about-us.css:466 and :469 — the 780 block changes the shell only. */
+  @media (max-width: 780px) {
+    .section .wrap { padding: 0 22px; }
+    section.section { padding: 70px 0; }
+  }
+</style>

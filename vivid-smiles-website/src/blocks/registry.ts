@@ -34,6 +34,7 @@ import ProcessStepsBlock from "./ProcessStepsBlock.astro";
 import ServiceCardsBlock from "./ServiceCardsBlock.astro";
 import StatCalloutBlock from "./StatCalloutBlock.astro";
 import TechGridBlock from "./TechGridBlock.astro";
+import VideoCardsBlock from "./VideoCardsBlock.astro";
 
 import { BLOCK_MANIFEST, isRegisteredLayout, type BlockManifestEntry } from "./manifest";
 
@@ -73,6 +74,13 @@ const COMPONENTS: Record<string, AstroComponentFactory> = {
   // the "visit us" band /contact/ and /our-office/ both ship — copy column,
   // address card, embedded map.
   PageFieldsBlocksMapVisitLayout: MapVisitBlock,
+
+  // Blocks wave, Phase 2. Same rule, same commit as src/blocks/VideoCardsBlock.astro:
+  // `video_cards` (vs-content-model.php `layout_vs_blk_video_cards`) draws the
+  // patient-story video cards — three tall, three wide, or one big video beside
+  // copy. The <dialog> and the player script it needs are NOT in the block; the
+  // page chrome (src/components/StoryVideoModal.astro) renders them once per page.
+  PageFieldsBlocksVideoCardsLayout: VideoCardsBlock,
 
   // The escape hatch. Unlike every entry above, this component draws no band of
   // its own — it looks its row's `band_key` up in its own BANDS map and renders

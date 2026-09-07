@@ -1,0 +1,265 @@
+---
+/**
+ * Home `#technology` — the Yomi robot photo and veneer-shell inset beside the
+ * "FDA / Cleared robotic system" stamp, with the section copy and four
+ * numbered items in the other column.
+ *
+ * A code_section band, registered as `home_technology` in
+ * src/blocks/CodeSectionBlock.astro. The template hard-codes `id="technology"`
+ * (index.astro:461), so `id` defaults to that and CodeSectionBlock overrides it
+ * with the row's deduped anchor when one is typed.
+ *
+ * ── D1: a route-scoped band reads its own page ────────────────────────────
+ * The eyebrow, heading and lead paragraph are the `technology` Section-copy
+ * row and the two pictures are Images-tab slots (techYomi, techVeneerShells),
+ * all edited in wp-admin under Pages -> Home. A code band receives props only
+ * (CodeSectionBlock.astro:897-900), so freezing them in the BANDS entry would
+ * turn three live fields and two live slots dead. This component therefore
+ * calls `getPageContent(Astro.url.pathname)` itself — the read the template
+ * runs at index.astro:54 — guarded by the `route` prop: on any other route it
+ * renders NOTHING and warns, because the row and slots it asks for exist only
+ * on the home page entry. Decision D1, 2026-09-08 (TrustStrip.astro is the
+ * first instance of the pattern; this is the second).
+ *
+ * ── What is live and what is literal ──────────────────────────────────────
+ * Live: section("technology").eyebrow / .heading (set:html, may carry <em>) /
+ * .body (index.astro:470-472); image("techYomi") and image("techVeneerShells")
+ * url/width/height/alt (:466-467), with the template's own alt fallbacks kept
+ * verbatim. Literal: the stamp's "FDA" + "Cleared robotic system" (:465) and
+ * the four numbered items (:475-502) — frozen below as TECH_ITEMS, exactly as
+ * they were literal in the template. The pagemap's proposed `tech_split`
+ * layout would make the items rows; that is a later round.
+ *
+ * ── Markup ────────────────────────────────────────────────────────────────
+ * Verbatim from index.astro:461-508: `section.tech#technology` > `.wrap` >
+ * `.tech-grid` > `.tech-imagery[data-vs-reveal]` (`.stamp` > b + small,
+ * `.ph-a[data-vs-parallax][data-parallax="-50"]` > <Image techYomi
+ * widths=[600,900,1200] sizes="50vw">, `.ph-b[data-vs-parallax]
+ * [data-parallax="30"]` > <Image techVeneerShells widths=[400,800]
+ * sizes="30vw">) + `.tech-copy[data-vs-reveal-batch]` (span.eyebrow, h2 via
+ * set:html, p.lead, `.tech-list[data-vs-reveal-batch]` of four
+ * `.tech-item` > `.idx` + div(h4, p)). The four items are drawn by a map over
+ * TECH_ITEMS; each item is element-only, so no text node is introduced
+ * between siblings and compressHTML has nothing new to collapse. None of the
+ * eight item strings contains a character Astro's expression escaping would
+ * rewrite (checked: no & < > " '), so `{t.title}` ships the same bytes the
+ * literal did.
+ *
+ * ── CSS ───────────────────────────────────────────────────────────────────
+ * home.css:506-553 (the band) and the 780px rules at :977 and :983-986,
+ * restated below. Astro scopes by attribute, so a bare `.tech-grid` would tie
+ * the page sheet's `.home .tech-grid` at (0,2,0) and leave bundle order to
+ * decide (CodeSectionBlock.astro:437-439); everything below is rooted at
+ * `.tech`, and the section rule itself is written `section.tech` so it
+ * outranks `.home .tech` rather than tying it. The page primitives the band's
+ * elements sit on — `.wrap` (:41, :935), `.eyebrow` (:45-49), h2 (:56-61 with
+ * the :995 ink override), h4 (:56-59, :63), p (:64), em (:65) — are restated
+ * too, so the box is whole without the page sheet.
+ *
+ * The page sheet's `.home` aliases (home.css:14-38) map 1:1 to `--vs-*`
+ * tokens and the token names are used here — with ONE exception: `--shadow`
+ * (home.css:30) is a raw value on `.home`, NOT an alias of `--vs-shadow`
+ * (tokens.css:40 is a different shadow). The `.stamp` uses it, so its value is
+ * written out literally below. Same computed values either way.
+ *
+ * The `<em>` inside the heading arrives through set:html and carries no scope
+ * attribute, so its rule is written `.tech h2 :global(em)` — the only place
+ * injected markup can appear in this band (the lead is an escaped expression).
+ */
+import { Image } from "astro:assets";
+import { getPageContent } from "../lib/page-content";
+
+interface Props {
+  /**
+   * The route this band belongs to ("/"). It reads that page's `technology`
+   * Section-copy row and two image slots, so on any other route it renders
+   * nothing and warns.
+   */
+  route: string;
+  /** The DOM id. CodeSectionBlock overrides it with the row's deduped anchor. */
+  id?: string;
+}
+
+const { route, id = "technology" } = Astro.props;
+
+// trailingSlash is 'always' (astro.config.mjs:21); normalise both sides anyway
+// so "/about-us" and "/about-us/" name the same page, as page-content.ts does.
+const withSlash = (p: string) => (p.endsWith("/") ? p : `${p}/`);
+const here = Astro.url.pathname;
+const onRoute = withSlash(here) === withSlash(route);
+
+if (!onRoute) {
+  console.warn(
+    `[blocks] HomeTechnologyBand is scoped to ${route} and was asked to render on ${here} — it reads that page's "technology" section and image slots, so it renders nothing here`,
+  );
+}
+
+// index.astro:475-502 — the four literal items, in DOM order, with their
+// numerals (:476, :483, :490, :497).
+const TECH_ITEMS = [
+  {
+    idx: "01",
+    title: "Yomi-Robot Assisted Implants",
+    body: "The only FDA-cleared robotic system for dental implants: sub-millimeter accuracy, smaller incisions, and faster recovery.",
+  },
+  {
+    idx: "02",
+    title: "Digital Smile Design",
+    body: "Facially-driven design software lets us preview your exact result before a tooth is ever touched.",
+  },
+  {
+    idx: "03",
+    title: "3D CBCT Imaging",
+    body: "High-resolution 3D scans replace guesswork with certainty for implants, airway analysis, and reconstruction.",
+  },
+  {
+    idx: "04",
+    title: "Intra-Oral Scanning",
+    body: "Goodbye to gooey impressions. Digital scans capture your mouth in seconds with micron-level fidelity.",
+  },
+] as const;
+
+type PageImage = { url: string; width: number; height: number; alt: string };
+type SectionCopy = { eyebrow: string; heading: string; body: string };
+
+// index.astro:54 — the same read the template runs, only on this route.
+let tech: SectionCopy = { eyebrow: "", heading: "", body: "" };
+let yomi: PageImage | null = null;
+let shells: PageImage | null = null;
+if (onRoute) {
+  const { section, image } = await getPageContent(here);
+  tech = section("technology");
+  yomi = image("techYomi");
+  shells = image("techVeneerShells");
+}
+---
+
+{
+  onRoute && yomi && shells && (
+    <section class="tech" id={id}>
+      <div class="wrap">
+        <div class="tech-grid">
+          <div class="tech-imagery" data-vs-reveal>
+            <div class="stamp"><b>FDA</b><small>Cleared robotic system</small></div>
+            <div class="ph-a" data-vs-parallax data-parallax="-50"><Image src={yomi.url} width={yomi.width} height={yomi.height} alt={yomi.alt || "Dr. Bryce Richardson placing a dental implant with the Yomi robotic arm at Vivid Smiles Dentistry"} widths={[600, 900, 1200]} sizes="50vw" /></div>
+            <div class="ph-b" data-vs-parallax data-parallax="30"><Image src={shells.url} width={shells.width} height={shells.height} alt={shells.alt || "Porcelain veneer shells seated on a dental model, lit against white"} widths={[400, 800]} sizes="30vw" /></div>
+          </div>
+          <div class="tech-copy" data-vs-reveal-batch>
+            <span class="eyebrow">{tech.eyebrow}</span>
+            <h2><Fragment set:html={tech.heading} /></h2>
+            <p class="lead">{tech.body}</p>
+
+            <div class="tech-list" data-vs-reveal-batch>
+              {TECH_ITEMS.map((t) => (
+                <div class="tech-item">
+                  <div class="idx">{t.idx}</div>
+                  <div>
+                    <h4>{t.title}</h4>
+                    <p>{t.body}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  /* ── Page primitives the band sits on (home.css:41-65, :995) ─────────── */
+  /* home.css:41 */
+  .tech .wrap { max-width: 1240px; margin: 0 auto; padding: 0 40px; }
+  /* home.css:45-49 */
+  .tech .eyebrow {
+    font-family: var(--vs-font-body);
+    font-size: 12px; letter-spacing: .28em; text-transform: uppercase;
+    color: var(--vs-sage); font-weight: 500;
+  }
+  /* home.css:56-59 + :61, with the :995 h2 → ink override folded in. */
+  .tech h2 {
+    font-family: var(--vs-font-display); font-weight: 400; color: var(--vs-ink);
+    margin: 0; line-height: 1.08; letter-spacing: -0.022em;
+    font-size: clamp(34px, 4.6vw, 60px);
+  }
+  /* home.css:56-59 + :63 */
+  .tech h4 {
+    font-family: var(--vs-font-display); font-weight: 500; color: var(--vs-ink);
+    margin: 0; line-height: 1.08; letter-spacing: 0;
+    font-size: 17px;
+  }
+  /* home.css:64 */
+  .tech p { margin: 0; color: var(--vs-ink-soft); }
+  /* home.css:65 — the <em> arrives through set:html, unscoped, hence :global. */
+  .tech h2 :global(em) { font-style: italic; color: var(--vs-sage-soft); font-weight: 300; }
+
+  /* ── The band (home.css:506-553) ─────────────────────────────────────── */
+  /* home.css:506. `section.tech` rather than `.tech` so the scoped rule is
+     (0,2,1) against the page sheet's `.home .tech` (0,2,0) — a win, not a
+     tie. Values are the same either way. */
+  section.tech { padding: 140px 0; background: var(--vs-paper); }
+  /* home.css:507-511 */
+  .tech .tech-grid {
+    display: grid; grid-template-columns: 1fr 1.1fr; gap: 90px; align-items: center;
+  }
+  .tech .tech-grid .tech-copy { order: 1; }
+  .tech .tech-grid .tech-imagery { order: 2; }
+  /* home.css:512-529 */
+  .tech .tech-imagery { position: relative; aspect-ratio: 5/5; }
+  .tech .tech-imagery .ph-a {
+    position: absolute; inset: 0 18% 22% 0;
+    border-radius: var(--vs-r-xl);
+    overflow: hidden;
+    box-shadow: var(--vs-shadow-lg);
+  }
+  .tech .tech-imagery .ph-a img { width: 100%; height: 100%; object-fit: cover; }
+  .tech .tech-imagery .ph-b {
+    position: absolute; right: 0; bottom: 0;
+    width: 56%; height: 56%;
+    border-radius: var(--vs-r-lg);
+    overflow: hidden;
+    box-shadow: var(--vs-shadow-lg);
+    background: #fff;
+    border: 6px solid #fff;
+  }
+  .tech .tech-imagery .ph-b img { width: 100%; height: 100%; object-fit: cover; border-radius: calc(var(--vs-r-lg) - 6px); }
+  /* home.css:530-539. `--shadow` is home.css:30's raw value, not a token —
+     written out so the plate keeps its shadow without the `.home` block. */
+  .tech .tech-imagery .stamp {
+    position: absolute; left: -12px; top: 6%;
+    background: #fff; border: 1px solid var(--vs-line);
+    padding: 14px 18px;
+    border-radius: var(--vs-r-md);
+    box-shadow: 0 24px 60px -30px rgba(40, 40, 30, 0.25), 0 8px 20px -10px rgba(40, 40, 30, 0.08);
+    z-index: 3;
+  }
+  .tech .tech-imagery .stamp b { font-family: var(--vs-font-display); font-size: 22px; color: var(--vs-sage); display: block; line-height: 1; font-weight: 500; }
+  .tech .tech-imagery .stamp small { font-size: 10px; letter-spacing: .22em; text-transform: uppercase; color: var(--vs-muted); }
+
+  /* home.css:541-553 */
+  .tech .tech-copy .eyebrow { display: inline-flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+  .tech .tech-copy .eyebrow::before { content: ""; width: 28px; height: 1px; background: var(--vs-sage); }
+  .tech .tech-copy h2 { margin-bottom: 26px; max-width: 14ch; }
+  .tech .tech-copy .lead { font-size: 17px; line-height: 1.65; }
+  .tech .tech-list { margin-top: 38px; display: grid; gap: 0; }
+  .tech .tech-item {
+    display: grid; grid-template-columns: 52px 1fr; gap: 20px; align-items: start;
+    padding: 22px 0; border-top: 1px solid var(--vs-line);
+  }
+  .tech .tech-item:last-child { border-bottom: 1px solid var(--vs-line); }
+  .tech .tech-item .idx { font-family: var(--vs-font-display); font-size: 22px; color: var(--vs-sage); padding-top: 2px; font-weight: 400; }
+  .tech .tech-item h4 { margin: 0 0 4px; font-family: var(--vs-font-body); font-size: 15px; font-weight: 500; color: var(--vs-ink); letter-spacing: .02em; }
+  .tech .tech-item p { font-size: 14px; line-height: 1.7; }
+
+  /* home.css:934-989 — the 780 block: :935 (wrap), :977 (padding), :983-986. */
+  @media (max-width: 780px) {
+    .tech .wrap { padding: 0 22px; }
+    section.tech { padding: 80px 0; }
+    .tech .tech-grid { grid-template-columns: 1fr; gap: 50px; }
+    .tech .tech-grid .tech-copy { order: 2; }
+    .tech .tech-grid .tech-imagery { order: 1; }
+    .tech .tech-imagery { max-width: 520px; margin: 0 auto; width: 100%; }
+  }
+</style>

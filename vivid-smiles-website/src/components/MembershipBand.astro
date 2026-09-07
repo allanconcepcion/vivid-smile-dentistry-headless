@@ -1,0 +1,264 @@
+---
+/**
+ * Home `#membership` — the membership offer aside: a full-bleed 38%/62% split,
+ * the team photo on the left beside a pale-sage panel with the eyebrow, the
+ * heading, the price line, one paragraph, eight ✓ benefits and a sage button
+ * to the phone.
+ *
+ * A code_section band, registered as `home_membership` in
+ * src/blocks/CodeSectionBlock.astro. CodeSectionBlock emits this component
+ * and NOTHING ELSE, so this file owns the `<aside>`, its ground and its
+ * padding; the row's anchor arrives as `id` and defaults to the id the
+ * template has always shipped (index.astro:570), the LocalTrust/PaymentBand
+ * pattern for a row saved with a blank anchor.
+ *
+ * ── D1: a route-scoped band reads its own page ────────────────────────────
+ * The PICTURE is the `heroBg` Images-tab slot — the same photo as the hero,
+ * reused lower down (index.astro:58 `teamPhoto = image("heroBg")`, :573) —
+ * and a code band receives props only (CodeSectionBlock.astro:607-611).
+ * Freezing the attachment here would make a `live` slot dead. So this
+ * component calls `getPageContent(Astro.url.pathname)` itself — exactly the
+ * read the template runs at index.astro:54 — guarded by the `route` prop: on
+ * any other route it renders NOTHING and warns, because the slot it asks for
+ * exists only on the home page entry. Decision D1, 2026-09-08; the precedent
+ * is TrustStrip.astro, the same round.
+ *
+ * ── What is live and what is literal ──────────────────────────────────────
+ * Live: the photo (url/width/height off the slot); the fee and the discount
+ * (Practice Settings → Membership plan, via src/data/contact.ts:69-72 —
+ * `membershipFee` is "$" + digits, `membershipDiscount` is the typed string,
+ * with the defaults "$500" / "15%" the template has always shown); and the
+ * button's tel: href (contact.ts phoneHref). Literal: every other word —
+ * the eyebrow, the heading, "/year", the paragraph around the fee, the seven
+ * fixed benefit lines, the button labels and the photo's alt — template
+ * literals at index.astro:573-594, frozen here as the page map records
+ * ("its numbers are Practice Settings now").
+ *
+ * ── Markup ────────────────────────────────────────────────────────────────
+ * Verbatim from index.astro:570-598: `aside.membership-band[id][aria-labelledby
+ * ="membership-heading"]` > `.wrap` > `.membership-visual[data-vs-reveal]` >
+ * <Image widths=[480,800,1200] sizes="(max-width: 991px) 100vw, 50vw"> +
+ * `.membership-content[data-vs-reveal-batch]` > `span.membership-eyebrow`,
+ * `h3.membership-heading#membership-heading`, `.membership-price-line` >
+ * `span.amt` + `span.per`, `p.membership-desc`, `.membership-benefits` > eight
+ * `.membership-benefit`, `.membership-actions` > sage <Button hoverLabel="Tap
+ * to Call">. The expressions sit where the template put them — flush inside
+ * `.amt`, mid-sentence in the paragraph, at the head of the first benefit —
+ * so the text nodes beside them compress exactly as they did.
+ *
+ * ── CSS ───────────────────────────────────────────────────────────────────
+ * home.css:770-868 and the 780px rules at :972-975, restated below in full.
+ * Astro scopes by attribute (astro.config default, Astro 6), stamping
+ * `[data-astro-cid-…]` on EVERY compound — measured with the compiler's
+ * transform, 2026-09-08 — so a bare `.membership-visual` would build as
+ * (0,2,0) and tie the page sheet's `.home .membership-visual`, leaving bundle
+ * order to decide (CodeSectionBlock.astro:437-439). Everything below is
+ * rooted at `.membership-band`, which builds as (0,4,0) against the page's
+ * (0,2,0). The two rules the page sheet itself writes three compounds deep
+ * (`.home .membership-band .wrap`, :780 and :972, (0,3,0)) are written
+ * `aside.membership-band .wrap` here and build as (0,4,1); the aside rule is
+ * `aside.membership-band`, (0,2,1) against `.home .membership-band` (0,2,0).
+ * Wins, not ties, everywhere. The page sheet's `.home` aliases (`--cream`,
+ * `--f-display`, home.css:14-38) each map 1:1 to a `--vs-*` token; the
+ * `--vs-*` names are used here so the band owns its values whether or not the
+ * alias block is in the cascade. Same computed values.
+ */
+import { Image } from "astro:assets";
+import Button from "./Button.astro";
+import { getPageContent } from "../lib/page-content";
+import { phoneHref, membershipFee, membershipDiscount } from "../data/contact";
+
+interface Props {
+  /**
+   * The route this band belongs to ("/"). It reads that page's `heroBg` image
+   * slot, so on any other route it renders nothing and warns.
+   */
+  route: string;
+  /**
+   * The aside's anchor, passed down by CodeSectionBlock from the (already
+   * deduplicated) row anchor. Defaults to the id the template has always
+   * shipped (index.astro:570) so `aria-labelledby` and any `#membership` link
+   * keep resolving if a row is ever saved with a blank anchor.
+   */
+  id?: string;
+}
+
+const { route, id = "membership" } = Astro.props;
+
+// trailingSlash is 'always' (astro.config.mjs:21); normalise both sides anyway
+// so "/about-us" and "/about-us/" name the same page, as page-content.ts does.
+const withSlash = (p: string) => (p.endsWith("/") ? p : `${p}/`);
+const here = Astro.url.pathname;
+const onRoute = withSlash(here) === withSlash(route);
+
+if (!onRoute) {
+  console.warn(
+    `[blocks] MembershipBand is scoped to ${route} and was asked to render on ${here} — it reads that page's heroBg image slot, so it renders nothing here`,
+  );
+}
+
+// index.astro:58 — the same photo as the hero, reused lower down.
+let teamPhoto: { url: string; width: number; height: number } | null = null;
+if (onRoute) {
+  const { image } = await getPageContent(here);
+  teamPhoto = image("heroBg");
+}
+---
+
+{
+  onRoute && teamPhoto && (
+    <aside class="membership-band" id={id} aria-labelledby="membership-heading">
+      <div class="wrap">
+        <div class="membership-visual" data-vs-reveal>
+          <Image src={teamPhoto.url} width={teamPhoto.width} height={teamPhoto.height} alt="The Vivid Smiles Dentistry team" widths={[480, 800, 1200]} sizes="(max-width: 991px) 100vw, 50vw" />
+        </div>
+        <div class="membership-content" data-vs-reveal-batch>
+          <span class="membership-eyebrow">No Insurance? No Problem</span>
+          <h3 class="membership-heading" id="membership-heading">Become a Vivid Smiles Dentistry Member</h3>
+          <div class="membership-price-line">
+            <span class="amt">{membershipFee}</span>
+            <span class="per">/year</span>
+          </div>
+          <p class="membership-desc">While it is not a requirement, we offer patients the option to join our Exclusive Dental Membership Plan for just {membershipFee} annually and experience exceptional dental care at an affordable price.</p>
+          <div class="membership-benefits">
+            <div class="membership-benefit">{membershipDiscount} Discount Off Treatment</div>
+            <div class="membership-benefit">Oral Cancer Screening</div>
+            <div class="membership-benefit">2 Cleanings Per Year</div>
+            <div class="membership-benefit">10% Off Clear Aligners</div>
+            <div class="membership-benefit">Comprehensive Exam</div>
+            <div class="membership-benefit">Complimentary Consults</div>
+            <div class="membership-benefit">Unlimited Digital X-Rays</div>
+            <div class="membership-benefit">2 Fluoride Treatments</div>
+          </div>
+          <div class="membership-actions">
+            <Button variant="sage" href={phoneHref} hoverLabel="Tap to Call">Ask About Membership</Button>
+          </div>
+        </div>
+      </div>
+    </aside>
+  )
+}
+
+<style>
+  /* home.css:770-779. `aside.membership-band` rather than `.membership-band`
+     so the scoped rule builds as (0,2,1) against the page sheet's
+     `.home .membership-band` (0,2,0) — a win, not a tie. Same values. */
+  aside.membership-band {
+    background: var(--vs-cream);
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+    /* No top/bottom margin — band butts directly against .stories (charcoal) above
+       and .testi (paper) below. The 80px gap left a stranded white strip between
+       dark stories and the band's split visual/sage panels. */
+    margin: 0;
+  }
+  /* home.css:780-787. The page sheet writes this one three compounds deep
+     (`.home .membership-band .wrap`, (0,3,0)); with the scope attribute on
+     both compounds this builds as (0,4,1), so it wins outright, and the
+     page's own `.home .wrap` (:41, (0,2,0)) never reaches it. */
+  aside.membership-band .wrap {
+    display: grid;
+    grid-template-columns: 38% 1fr;
+    gap: 0;
+    max-width: 100%;
+    padding: 0; margin: 0;
+    align-items: stretch;
+  }
+  /* home.css:788-797 */
+  .membership-band .membership-visual {
+    position: relative;
+    background: var(--vs-cream-warm);
+    overflow: hidden;
+    min-height: 420px;
+  }
+  .membership-band .membership-visual svg,
+  .membership-band .membership-visual img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+  /* home.css:798-812 */
+  .membership-band .membership-content {
+    background: var(--vs-sage-pale);
+    padding: 50px 60px 50px 56px;
+    display: flex; flex-direction: column; justify-content: center;
+    position: relative;
+  }
+  .membership-band .membership-content::before {
+    content: "";
+    position: absolute; top: 50%; right: -120px;
+    transform: translateY(-50%);
+    width: 280px; height: 280px;
+    border: 1px solid rgba(40, 40, 30, .12);
+    border-radius: 50%;
+    pointer-events: none;
+  }
+  /* home.css:813-822 */
+  .membership-band .membership-eyebrow {
+    font-size: 10.5px; letter-spacing: .28em; text-transform: uppercase;
+    color: var(--vs-ink-soft);
+    font-weight: 500;
+    margin-bottom: 18px;
+    display: inline-flex; align-items: center; gap: 12px;
+  }
+  .membership-band .membership-eyebrow::before {
+    content: ""; width: 24px; height: 1px; background: var(--vs-ink-soft);
+  }
+  /* home.css:823-830 */
+  .membership-band .membership-heading {
+    font-family: var(--vs-font-display); font-weight: 400;
+    font-size: clamp(26px, 2.8vw, 36px);
+    line-height: 1.12; letter-spacing: -0.015em;
+    color: var(--vs-ink); margin: 0 0 14px;
+    max-width: 22ch;
+  }
+  .membership-band .membership-heading em { color: var(--vs-sage); }
+  /* home.css:831-842 */
+  .membership-band .membership-price-line {
+    display: flex; align-items: baseline; gap: 10px; margin-bottom: 22px;
+  }
+  .membership-band .membership-price-line .amt {
+    font-family: var(--vs-font-display); font-weight: 300;
+    font-size: clamp(38px, 4.2vw, 56px);
+    line-height: 1; letter-spacing: -0.03em;
+    color: var(--vs-ink);
+  }
+  .membership-band .membership-price-line .per {
+    font-size: 14px; letter-spacing: .04em; color: var(--vs-ink-soft); font-weight: 400;
+  }
+  /* home.css:843-847 */
+  .membership-band .membership-desc {
+    font-size: 15px; line-height: 1.7;
+    color: var(--vs-ink-soft);
+    margin-bottom: 26px; max-width: 52ch;
+  }
+  /* home.css:848-864 */
+  .membership-band .membership-benefits {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 14px 20px;
+    margin-bottom: 32px;
+  }
+  .membership-band .membership-benefit {
+    display: flex; align-items: flex-start; gap: 10px;
+    font-size: 13.5px; color: var(--vs-ink); line-height: 1.5;
+  }
+  .membership-band .membership-benefit::before {
+    content: "✓";
+    width: 20px; height: 20px; border-radius: 50%;
+    background: rgba(255, 255, 255, .6);
+    border: 1px solid rgba(40, 40, 30, .18);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; color: var(--vs-sage-deep); flex-shrink: 0; margin-top: 1px;
+  }
+  /* home.css:865-868 */
+  .membership-band .membership-actions {
+    display: flex; gap: 14px; align-items: center; flex-wrap: wrap;
+  }
+
+  /* home.css:972-975 — the 780 block. */
+  @media (max-width: 780px) {
+    aside.membership-band .wrap { grid-template-columns: 1fr; }
+    .membership-band .membership-visual { min-height: 300px; }
+    .membership-band .membership-content { padding: 40px 28px; }
+    .membership-band .membership-benefits { grid-template-columns: 1fr; gap: 12px; }
+  }
+</style>

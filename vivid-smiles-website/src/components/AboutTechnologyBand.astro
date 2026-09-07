@@ -1,0 +1,380 @@
+---
+/**
+ * /about-us/ `#technology` — the centred intro, the Yomi treatment-room photo
+ * with its "Yomi / FDA-Cleared Robotics" stamp, and the copy column with the
+ * four numbered instruments (about-us/index.astro:653-698).
+ *
+ * A code_section band, registered as `about_us_technology` in
+ * src/blocks/CodeSectionBlock.astro. It is a code band and not a media_split
+ * row because the shape has four things no layout field can hold (the plan's
+ * page map records each as a loss on media_split): the centred <SectionIntro>
+ * preamble ABOVE the grid, the `.stamp` on the picture, the 5/6 plate, and
+ * the `.tech-item` list (h4 + p, drawn AFTER the lead paragraph). This
+ * component keeps all four.
+ *
+ * ── D1: a route-scoped band reads its own page ────────────────────────────
+ * Everything an editor changes here lives on the about-us page entry in
+ * wp-admin: the `technology-intro` and `technology` Section-copy rows, the
+ * `yomiImg` Images slot and the four `techItems` rows on the Cards tab. A code
+ * band receives props only (CodeSectionBlock.astro:896-900), so freezing those
+ * into the BANDS entry would make three live boxes, a live slot and four live
+ * rows dead. This component therefore calls `getPageContent(Astro.url.pathname)`
+ * itself — the read the template runs at index.astro:49 — guarded by the
+ * `route` prop: on any other route it renders NOTHING and warns, because the
+ * rows and slot it asks for exist only on the about-us entry. Decision D1,
+ * 2026-09-08 (precedent: TrustStrip.astro; StoryBand.astro is the sibling on
+ * this page).
+ *
+ * ── D9: the techItems rows are read live ──────────────────────────────────
+ * The template draws the LITERAL `techItems` array (index.astro:123-154) and
+ * never reads the four `cards` rows in group `techItems` that wp-admin stores
+ * for this page (meta "01"-"04", titles and bodies identical to the literal) —
+ * the page's only stored-and-unread repeater. Decision D9 closes that: the
+ * rows are read through `cards.techItems` (page-content.ts:196, one Card per
+ * row: group/title/body/meta/href) and mapped to {num: meta, title, body}. The
+ * literal array is kept below as TECH_ITEMS and drawn only when the group is
+ * EMPTY, which is the rollback path (non-negotiable 6). Because the stored
+ * rows equal the literal today, the built page is byte-identical either way.
+ *
+ * ── What is live and what is literal ──────────────────────────────────────
+ * Live: the intro trio through introFrom() with the template's own fallbacks
+ * (index.astro:355, copied verbatim); the `technology` row's eyebrow (fallback
+ * "In our operatory", :678), heading (set:html, :679) and body (:680); the
+ * picture's url/width/height/alt with the template's alt fallback (:666-670);
+ * the four items (:682-694, from the rows). Literal: the stamp's "Yomi" +
+ * "FDA-Cleared Robotics" (:672-675), exactly as the template holds them.
+ *
+ * ── Markup ────────────────────────────────────────────────────────────────
+ * Verbatim from index.astro:653-698: `section.section#technology` > `.wrap`
+ * [data-vs-reveal-batch] > <SectionIntro centered class="aus-section-head"> +
+ * `.tech-grid` > `.tech-img[data-vs-reveal]` (<Image> + `.stamp` > b + small)
+ * + `.tech-text[data-vs-reveal-batch]` (<Eyebrow>, `h2.vs-h2` set:html,
+ * `p.lead`, `.tech-list[data-vs-reveal-batch]` of `.tech-item` > `.idx` +
+ * div(h4, p)). The reveal batch stays on `.wrap`, where the template has it
+ * (:654). The only substitutions are `id="technology"` -> `id={id}`, so
+ * CodeSectionBlock can hand the band the row's deduped anchor, and the map
+ * source `techItems` -> `items`. Each item is element-only, so no text node
+ * is introduced between siblings and compressHTML has nothing new to collapse;
+ * the item strings ship through `{t.title}` / `{t.body}` exactly as the
+ * template's expressions did.
+ *
+ * ── CSS ───────────────────────────────────────────────────────────────────
+ * about-us.css:348-404 (the band) and its rules in the 1100px (:439-442,
+ * :449) and 780px (:466, :469) blocks, restated below, plus the page
+ * primitives the band sits in (`.aus .section` :103, `.aus .wrap` :32,
+ * `.aus .aus-section-head` :136) and the page-wide type rules its h2/h4/em/p
+ * rely on (`.aus h1, h2, h3, h4` :34-37, `.aus h2` :40 + :495, `.aus h2 em`
+ * :41, `.aus h4` :43, `.aus p` :44, `.aus em` :45) — the page's h2 is NOT the
+ * global `.vs-h2` (the sizes differ), so the band must own it. Astro scopes by
+ * attribute, so a bare `.tech-grid` would tie the page sheet's
+ * `.aus .tech-grid` at (0,2,0) and leave bundle order to decide
+ * (CodeSectionBlock.astro:437-439); everything below is rooted at `.section`,
+ * and the section rule itself is written `section.section` so it outranks
+ * `.aus .section` rather than tying it. The page sheet's `.aus` aliases
+ * (`--sage`, `--sage-soft`, `--ink`, `--ink-soft`, `--muted`, `--line`,
+ * `--r-md`, `--r-xl`, `--f-display`, `--f-body`, about-us.css:12-28) map 1:1
+ * to `--vs-*` tokens and are written as the tokens here; `--shadow`
+ * (about-us.css:21) is a page-LOCAL literal, not a token, so its value is
+ * inlined. Same computed values.
+ *
+ * `:global()` where the element is not this component's own: SectionIntro's
+ * root `div.aus-section-head`, its `h2.vs-h2` and the `<em>` it wraps, its
+ * `p.vs-lede`, and the `<em>` that arrives inside the technology heading
+ * through set:html — none of those carry this component's scope attribute
+ * (AreaBand.astro:416-418, LocalTrust.astro:178, StoryBand.astro). <Image>
+ * spreads its rest props onto the <img>, so `.tech-img img` needs none.
+ */
+import { Image } from "astro:assets";
+import Eyebrow from "./Eyebrow.astro";
+import SectionIntro from "./SectionIntro.astro";
+import { getPageContent, introFrom } from "../lib/page-content";
+
+interface Props {
+  /**
+   * The route this band belongs to ("/about-us/"). It reads that page's
+   * Section-copy rows, image slot and techItems card rows, so on any other
+   * route it renders nothing and warns.
+   */
+  route: string;
+  /** The DOM id. CodeSectionBlock overrides it with the row's deduped anchor. */
+  id?: string;
+}
+
+const { route, id = "technology" } = Astro.props;
+
+// trailingSlash is 'always' (astro.config.mjs:21); normalise both sides anyway
+// so "/about-us" and "/about-us/" name the same page, as page-content.ts does.
+const withSlash = (p: string) => (p.endsWith("/") ? p : `${p}/`);
+const here = Astro.url.pathname;
+const onRoute = withSlash(here) === withSlash(route);
+
+if (!onRoute) {
+  console.warn(
+    `[blocks] AboutTechnologyBand is scoped to ${route} and was asked to render on ${here} — it reads that page's "technology-intro" and "technology" sections, the yomiImg image slot and the techItems card rows, so it renders nothing here`,
+  );
+}
+
+type TechItem = { num: string; title: string; body: string };
+
+// index.astro:123-154 — the literal array, in DOM order. The rollback path:
+// drawn only when the techItems cards group is empty.
+const TECH_ITEMS: TechItem[] = [
+  {
+    num: '01',
+    title: 'Yomi Robot-Assisted Implants',
+    body: 'The only FDA-cleared robotic system for dental implants. Sub-millimeter accuracy, smaller incisions, and faster recovery.',
+  },
+  {
+    num: '02',
+    title: 'Digital Smile Design',
+    body: 'Facially-driven design software lets us preview your exact result, so nothing is left to chance.',
+  },
+  {
+    num: '03',
+    title: '3D CBCT Imaging',
+    body: 'High-resolution 3D scans replace guesswork with certainty for implants, airway analysis, and reconstruction.',
+  },
+  {
+    num: '04',
+    title: 'Intra-Oral Scanning',
+    body: 'Goodbye to gooey impressions. Digital scans capture your mouth in seconds with micron-level fidelity.',
+  },
+];
+
+type PageImage = { url: string; width: number; height: number; alt: string };
+type SectionCopy = { eyebrow: string; heading: string; body: string };
+type Intro = { eyebrow: string; heading: string; headingItalic: string; lede: string };
+
+// index.astro:49 — the same read the template runs, only on this route.
+// index.astro:355 — the technology-intro row with the template literal as fallback.
+let technologyIntro: Intro = { eyebrow: "", heading: "", headingItalic: "", lede: "" };
+let tech: SectionCopy = { eyebrow: "", heading: "", body: "" };
+let yomi: PageImage | null = null;
+let items: TechItem[] = TECH_ITEMS;
+if (onRoute) {
+  const { section, image, cards } = await getPageContent(here);
+  technologyIntro = introFrom(section("technology-intro"), { eyebrow: "Advanced Technology", heading: "Clinical precision,", headingItalic: "at the leading edge.", lede: "Cosmetic artistry is only half of the equation. The other half is technology, and at Vivid Smiles we invest in the instruments that make treatment safer, faster, and measurably more precise than traditional dentistry." });
+  tech = section("technology");
+  yomi = image("yomiImg");
+  // D9: the Cards-tab rows in group techItems, in the order an editor arranged
+  // them; `meta` is the numeral box ("01"…). A row whose numeral box is blank
+  // takes its position, two digits, so the `.idx` cell is never empty.
+  const rows = cards.techItems ?? [];
+  if (rows.length > 0) {
+    items = rows.map((c, i) => ({
+      num: c.meta || String(i + 1).padStart(2, "0"),
+      title: c.title,
+      body: c.body,
+    }));
+  }
+}
+---
+
+{
+  onRoute && yomi && (
+    <section class="section" id={id}>
+      <div class="wrap" data-vs-reveal-batch>
+        <SectionIntro
+          eyebrow={technologyIntro.eyebrow}
+          heading={technologyIntro.heading}
+          headingItalic={technologyIntro.headingItalic}
+          lede={technologyIntro.lede}
+          centered
+          class="aus-section-head"
+        />
+
+        <div class="tech-grid">
+          <div class="tech-img" data-vs-reveal>
+            <Image
+              src={yomi.url} width={yomi.width} height={yomi.height}
+              alt={yomi.alt || "A treatment room at Vivid Smiles Dentistry in Parker, CO"}
+              widths={[480, 720, 1080]}
+              sizes="(max-width: 991px) 100vw, 50vw"
+            />
+            <div class="stamp">
+              <b>Yomi</b>
+              <small>FDA-Cleared Robotics</small>
+            </div>
+          </div>
+          <div class="tech-text" data-vs-reveal-batch>
+            <Eyebrow>{tech.eyebrow || "In our operatory"}</Eyebrow>
+            <h2 class="vs-h2"><Fragment set:html={tech.heading} /></h2>
+            <p class="lead">{tech.body}</p>
+
+            <div class="tech-list" data-vs-reveal-batch>
+              {
+                items.map((t) => (
+                  <div class="tech-item">
+                    <div class="idx">{t.num}</div>
+                    <div>
+                      <h4>{t.title}</h4>
+                      <p>{t.body}</p>
+                    </div>
+                  </div>
+                ))
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  /* about-us.css:103. Paper band — padding only. `section.section` rather than
+     `.section` so the scoped rule is (0,2,1) against the page sheet's
+     `.aus .section` (0,2,0) — a win, not a tie. */
+  section.section {
+    padding: 110px 0;
+  }
+  /* about-us.css:32 */
+  .section .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  /* about-us.css:136 — SectionIntro's root carries this class and not this
+     component's scope attribute, hence :global. The `centered` prop supplies
+     the centring (SectionIntro.astro:96-100); this is the margin and width. */
+  .section :global(.aus-section-head) {
+    margin: 0 auto 64px;
+    max-width: 760px;
+  }
+  /* about-us.css:34-37 + :40 (size, tracking) + :495 (ink): the page's h2,
+     which is NOT the global .vs-h2 — the sizes differ. Applied to the intro's
+     h2 through :global for the reason above. */
+  .section :global(.aus-section-head h2) {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    color: var(--vs-ink);
+    margin: 0;
+    line-height: 1.1;
+    letter-spacing: -0.022em;
+    font-size: clamp(32px, 4.2vw, 54px);
+  }
+  /* about-us.css:41 (`.aus h2 em`) + :45 (`.aus em`) — both outrank the global
+     .vs-italic-word (font-weight: inherit, global.css:535-538); the page
+     draws 300. */
+  .section :global(.aus-section-head h2 em) {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+  /* about-us.css:44 — `.aus p` colour; the global p reset (global.css:28-30)
+     already zeroes the margin. */
+  .section :global(.aus-section-head p) {
+    margin: 0;
+    color: var(--vs-ink-soft);
+  }
+
+  /* about-us.css:348-351 */
+  .section .tech-grid {
+    display: grid; grid-template-columns: 1.1fr 1fr;
+    gap: 80px; align-items: center;
+  }
+  /* about-us.css:352-358. `--shadow` is the page-local literal at
+     about-us.css:21, inlined; `--r-xl` is the --vs-r-xl alias (:26). */
+  .section .tech-img {
+    position: relative;
+    aspect-ratio: 5/6;
+    border-radius: var(--vs-r-xl);
+    overflow: hidden;
+    box-shadow: 0 24px 60px -30px rgba(40, 40, 30, 0.25), 0 8px 20px -10px rgba(40, 40, 30, 0.08);
+  }
+  /* about-us.css:359 */
+  .section .tech-img img { width: 100%; height: 100%; object-fit: cover; }
+  /* about-us.css:360-368 */
+  .section .tech-img .stamp {
+    position: absolute; left: 22px; top: 22px;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(8px);
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-md);
+    padding: 14px 18px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+  }
+  /* about-us.css:369-373 */
+  .section .tech-img .stamp b {
+    font-family: var(--vs-font-display);
+    font-size: 22px; color: var(--vs-sage);
+    display: block; line-height: 1; font-weight: 500;
+  }
+  /* about-us.css:374-377 */
+  .section .tech-img .stamp small {
+    font-size: 10px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--vs-muted);
+  }
+  /* about-us.css:378 (margin, width) on top of the page's h2 type
+     (:34-37, :40, :495) — see the intro h2 above for why the type is restated. */
+  .section .tech-text h2 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    color: var(--vs-ink);
+    line-height: 1.1;
+    letter-spacing: -0.022em;
+    font-size: clamp(32px, 4.2vw, 54px);
+    margin: 18px 0 26px; max-width: 16ch;
+  }
+  /* about-us.css:41 + :45 — the `<em>` arrives through set:html and carries no
+     scope attribute, hence :global (AreaBand.astro:416-418). */
+  .section .tech-text h2 :global(em) {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+  /* about-us.css:379-381, with the `.aus p` colour (:44). */
+  .section .tech-text .lead {
+    font-size: 16.5px; line-height: 1.75; max-width: 50ch;
+    margin: 0; color: var(--vs-ink-soft);
+  }
+  /* about-us.css:382-385 */
+  .section .tech-list {
+    margin-top: 38px;
+    display: grid; gap: 0;
+  }
+  /* about-us.css:386-391 */
+  .section .tech-item {
+    display: grid; grid-template-columns: 52px 1fr;
+    gap: 20px; align-items: start;
+    padding: 22px 0;
+    border-top: 1px solid var(--vs-line);
+  }
+  /* about-us.css:392 */
+  .section .tech-item:last-child { border-bottom: 1px solid var(--vs-line); }
+  /* about-us.css:393-397 */
+  .section .tech-item .idx {
+    font-family: var(--vs-font-display);
+    font-size: 22px; color: var(--vs-sage);
+    padding-top: 2px; font-weight: 400;
+  }
+  /* about-us.css:398-403 on top of the page's h4 base (:34-37 + :43): the
+     base gives display font / weight 500 / ink / margin 0 / line-height 1.1 /
+     letter-spacing 0 / 17px, and this rule overrides everything but the
+     line-height, which is carried here so the box is whole. */
+  .section .tech-item h4 {
+    margin: 0 0 4px;
+    font-family: var(--vs-font-body);
+    font-size: 15px; font-weight: 500;
+    color: var(--vs-ink); letter-spacing: 0.02em;
+    line-height: 1.1;
+  }
+  /* about-us.css:404, with the `.aus p` colour and margin (:44). */
+  .section .tech-item p { font-size: 14px; margin: 0; color: var(--vs-ink-soft); }
+
+  /* about-us.css:439-442 and :449 — the technology rules of the 1100 block. */
+  @media (max-width: 1100px) {
+    .section .tech-grid {
+      grid-template-columns: 1fr;
+      gap: 50px;
+    }
+    .section .tech-img { max-width: 540px; margin: 0 auto; width: 100%; }
+  }
+
+  /* about-us.css:466 and :469 — the 780 block changes the shell only. */
+  @media (max-width: 780px) {
+    .section .wrap { padding: 0 22px; }
+    section.section { padding: 70px 0; }
+  }
+</style>

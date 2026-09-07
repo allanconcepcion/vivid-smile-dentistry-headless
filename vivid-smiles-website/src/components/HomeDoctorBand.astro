@@ -1,0 +1,272 @@
+---
+/**
+ * Home `#doctor` — "Meet the doctor": the 4/5 editorial portrait with the sage
+ * "— Dr. Bryce" signature pill and the white five-star badge on the left, the
+ * section copy, bio paragraph, three credentials and one sage button on the
+ * right.
+ *
+ * A code_section band, registered as `home_doctor` in
+ * src/blocks/CodeSectionBlock.astro. The template hard-codes `id="doctor"`
+ * (index.astro:393), so `id` defaults to that and CodeSectionBlock overrides it
+ * with the row's deduped anchor when one is typed.
+ *
+ * ── Why code and not media_split (D4, 2026-09-08) ─────────────────────────
+ * Measured at 1440: `.doc-portrait` is 521.9x652.4 today; under media_split's
+ * `.what-img { aspect-ratio: 5/4 }` it becomes 521.9x417.5 and object-fit
+ * cover starts the frame at the doctor's chest — the head is cut off. The
+ * layout cannot draw this band without losing the face, so it stays in code.
+ *
+ * ── D1: a route-scoped band reads its own page ────────────────────────────
+ * The eyebrow, heading and lead paragraph are the `doctor` Section-copy row
+ * and the portrait is the Images-tab slot `drPortrait`, both edited in
+ * wp-admin under Pages -> Home. A code band receives props only
+ * (CodeSectionBlock.astro:897-900), so freezing them in the BANDS entry would
+ * turn three live fields and one live slot dead. This component therefore
+ * calls `getPageContent(Astro.url.pathname)` itself — the read the template
+ * runs at index.astro:54 — guarded by the `route` prop: on any other route it
+ * renders NOTHING and warns, because the row and slot it asks for exist only
+ * on the home page entry. Decision D1, 2026-09-08 (TrustStrip.astro and
+ * HomeTechnologyBand.astro are the earlier instances of the pattern).
+ *
+ * ── What is live and what is literal ──────────────────────────────────────
+ * Live: section("doctor").eyebrow / .heading (set:html, may carry <em>) /
+ * .body (index.astro:408-410); image("drPortrait") url/width/height/alt
+ * (:398), with the template's own alt fallback kept verbatim; and the badge
+ * line, built from Practice Settings as `${googleReviewCount} five-star`
+ * (contact.ts:60 — the default is "300+", so the string is byte-identical to
+ * the template's literal "300+ five-star" at index.astro:403 until someone
+ * types a new figure; the page map lists that literal as a pre-existing
+ * Practice-Settings gap, closed here). Literal: the signature "— Dr. Bryce"
+ * (:400), "Google Verified" (:404), the bio paragraph (:411-415), the three
+ * credentials (:419-421) and the button (:425) — template literals, frozen
+ * here exactly as they were literal in the template.
+ *
+ * ── Markup ────────────────────────────────────────────────────────────────
+ * Verbatim from index.astro:393-430: `section.doc#doctor` > `.wrap` >
+ * `.doc-grid` > `.doc-imagery[data-vs-reveal]` (`.doc-portrait[data-vs-parallax]
+ * [data-parallax="-40"]` > <Image drPortrait widths=[600,900,1200]
+ * sizes="(max-width: 780px) 100vw, 50vw">, `.signature`, `.badge` > span.stars
+ * + span.b-text + small) + `.doc-copy[data-vs-reveal-batch]` (span.eyebrow, h2
+ * via set:html, p.lead, p.bio, `.doc-credentials` of three `.cred` > `.k` +
+ * `.v`, `.doc-actions` > one sage Button). The template's blank lines inside
+ * `.doc-copy` (:416, :423) and the multi-line `p.bio` text node are kept at
+ * the same indentation, so compressHTML collapses the same runs it collapses
+ * today. The only expression that replaces a literal is the badge line, and
+ * it sits flush inside its <span> (no text node beside it), built in the
+ * frontmatter as ONE string.
+ *
+ * ── CSS ───────────────────────────────────────────────────────────────────
+ * home.css:425-473 (the band), the 1100px rules at :926-928 and the 780px
+ * rules at :935 and :954-960, restated below. Astro scopes by attribute, so a
+ * bare `.doc-grid` would tie the page sheet's `.home .doc-grid` at (0,2,0)
+ * and leave bundle order to decide (CodeSectionBlock.astro:437-439);
+ * everything below is rooted at `.doc`, and the section rule itself is
+ * written `section.doc` so it outranks `.home .doc` rather than tying it. The
+ * page primitives the band's elements sit on — `.wrap` (:41, :935), `.eyebrow`
+ * (:45-49), h2 (:56-61 with the :995 ink override), p (:64), em (:65) — are
+ * restated too, so the box is whole without the page sheet.
+ *
+ * The page sheet's `.home` aliases (home.css:14-38) map 1:1 to `--vs-*`
+ * tokens and the token names are used here — with ONE exception: `--shadow`
+ * (home.css:30) is a raw value on `.home`, NOT an alias of `--vs-shadow`
+ * (tokens.css:40 is a different shadow). The badge and the signature use it,
+ * so its value is written out literally below. `--shadow-lg` IS the alias of
+ * `--vs-shadow-lg` (home.css:31). Same computed values either way.
+ *
+ * The `<em>` and the optional `.period` span inside the heading arrive
+ * through set:html and carry no scope attribute, so their rules are written
+ * `.doc h2 :global(em)` / `.doc .doc-copy h2 :global(.period)` — the only
+ * place injected markup can appear in this band (the lead is an escaped
+ * expression, the bio a literal).
+ */
+import { Image } from "astro:assets";
+import Button from "./Button.astro";
+import { getPageContent } from "../lib/page-content";
+import { googleReviewCount } from "../data/contact";
+
+interface Props {
+  /**
+   * The route this band belongs to ("/"). It reads that page's `doctor`
+   * Section-copy row and the `drPortrait` image slot, so on any other route
+   * it renders nothing and warns.
+   */
+  route: string;
+  /** The DOM id. CodeSectionBlock overrides it with the row's deduped anchor. */
+  id?: string;
+}
+
+const { route, id = "doctor" } = Astro.props;
+
+// trailingSlash is 'always' (astro.config.mjs:21); normalise both sides anyway
+// so "/about-us" and "/about-us/" name the same page, as page-content.ts does.
+const withSlash = (p: string) => (p.endsWith("/") ? p : `${p}/`);
+const here = Astro.url.pathname;
+const onRoute = withSlash(here) === withSlash(route);
+
+if (!onRoute) {
+  console.warn(
+    `[blocks] HomeDoctorBand is scoped to ${route} and was asked to render on ${here} — it reads that page's "doctor" section and drPortrait image slot, so it renders nothing here`,
+  );
+}
+
+type PageImage = { url: string; width: number; height: number; alt: string };
+type SectionCopy = { eyebrow: string; heading: string; body: string };
+
+// index.astro:54 — the same read the template runs, only on this route.
+let doctor: SectionCopy = { eyebrow: "", heading: "", body: "" };
+let portrait: PageImage | null = null;
+if (onRoute) {
+  const { section, image } = await getPageContent(here);
+  doctor = section("doctor");
+  portrait = image("drPortrait");
+}
+
+// index.astro:403 — "300+ five-star", with the figure from Practice Settings.
+// One string, shipped as one flush expression inside its <span>.
+const badgeText = `${googleReviewCount} five-star`;
+---
+
+{
+  onRoute && portrait && (
+    <section class="doc" id={id}>
+      <div class="wrap">
+        <div class="doc-grid">
+          <div class="doc-imagery" data-vs-reveal>
+            <div class="doc-portrait" data-vs-parallax data-parallax="-40">
+              <Image src={portrait.url} width={portrait.width} height={portrait.height} alt={portrait.alt || "Dr. Bryce Richardson — editorial portrait"} widths={[600, 900, 1200]} sizes="(max-width: 780px) 100vw, 50vw" />
+            </div>
+            <div class="signature">— Dr. Bryce</div>
+            <div class="badge">
+              <span class="stars">★★★★★</span>
+              <span class="b-text">{badgeText}</span>
+              <small>Google Verified</small>
+            </div>
+          </div>
+          <div class="doc-copy" data-vs-reveal-batch>
+            <span class="eyebrow">{doctor.eyebrow}</span>
+            <h2><Fragment set:html={doctor.heading} /></h2>
+            <p class="lead">{doctor.body}</p>
+            <p class="bio">
+              A distinguished graduate of Indiana University School of Dentistry, Dr. Richardson has completed
+              more than 600 hours of advanced postgraduate training in esthetics, veneers, full-mouth rehab,
+              and surgical dentistry. He is the creator of the Vivid Smile Cosmetic Process and a clinical
+              mentor at Full Arch Masters, one of the nation's premier implant education programs.
+            </p>
+
+            <div class="doc-credentials">
+              <div class="cred"><div class="k">IU</div><div class="v">School of Dentistry Graduate</div></div>
+              <div class="cred"><div class="k">600+</div><div class="v">Hours Postgrad Training</div></div>
+              <div class="cred"><div class="k">FAM</div><div class="v">Full Arch Masters Mentor</div></div>
+            </div>
+
+            <div class="doc-actions">
+              <Button variant="sage" href="#virtualConsult" hoverLabel="Schedule Now">Get a Video Reply from Dr. Richardson</Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  /* ── Page primitives the band sits on (home.css:41-65, :995) ─────────── */
+  /* home.css:41 */
+  .doc .wrap { max-width: 1240px; margin: 0 auto; padding: 0 40px; }
+  /* home.css:45-49 */
+  .doc .eyebrow {
+    font-family: var(--vs-font-body);
+    font-size: 12px; letter-spacing: .28em; text-transform: uppercase;
+    color: var(--vs-sage); font-weight: 500;
+  }
+  /* home.css:56-59 + :61, with the :995 h2 → ink override folded in. */
+  .doc h2 {
+    font-family: var(--vs-font-display); font-weight: 400; color: var(--vs-ink);
+    margin: 0; line-height: 1.08; letter-spacing: -0.022em;
+    font-size: clamp(34px, 4.6vw, 60px);
+  }
+  /* home.css:64 */
+  .doc p { margin: 0; color: var(--vs-ink-soft); }
+  /* home.css:65 — the <em> arrives through set:html, unscoped, hence :global. */
+  .doc h2 :global(em) { font-style: italic; color: var(--vs-sage-soft); font-weight: 300; }
+
+  /* ── The band (home.css:425-473) ─────────────────────────────────────── */
+  /* home.css:425. `section.doc` rather than `.doc` so the scoped rule is
+     (0,2,1) against the page sheet's `.home .doc` (0,2,0) — a win, not a
+     tie. Values are the same either way. */
+  section.doc { padding: 150px 0; background: var(--vs-paper); position: relative; overflow: hidden; }
+  /* home.css:426-428 */
+  .doc .doc-grid {
+    display: grid; grid-template-columns: 1fr 1.05fr; gap: 90px; align-items: center;
+  }
+  /* home.css:429-434 */
+  .doc .doc-copy .eyebrow { display: inline-flex; align-items: center; gap: 14px; margin-bottom: 22px; }
+  .doc .doc-copy .eyebrow::before { content: ""; width: 28px; height: 1px; background: var(--vs-sage); }
+  .doc .doc-copy h2 { margin-bottom: 28px; max-width: 14ch; }
+  /* home.css:432 — `.period` would arrive through set:html, unscoped, hence :global. */
+  .doc .doc-copy h2 :global(.period) { color: var(--vs-sage-soft); font-style: normal; }
+  .doc .doc-copy .lead { font-size: 17px; color: var(--vs-ink); line-height: 1.65; }
+  .doc .doc-copy .bio { margin-top: 18px; font-size: 15px; line-height: 1.8; }
+  /* home.css:435-441 */
+  .doc .doc-credentials {
+    margin-top: 42px; padding-top: 34px; border-top: 1px solid var(--vs-line);
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 28px;
+  }
+  .doc .cred .k { font-family: var(--vs-font-display); font-size: 38px; color: var(--vs-sage); line-height: 1; font-weight: 400; letter-spacing: -0.01em; }
+  .doc .cred .v { font-size: 11.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--vs-muted); margin-top: 12px; line-height: 1.5; }
+  .doc .doc-actions { margin-top: 40px; display: flex; gap: 14px; flex-wrap: wrap; }
+
+  /* home.css:443-450 */
+  .doc .doc-imagery { position: relative; aspect-ratio: 4/5; }
+  .doc .doc-portrait {
+    position: absolute; inset: 0;
+    border-radius: var(--vs-r-xl);
+    overflow: hidden;
+    box-shadow: var(--vs-shadow-lg);
+  }
+  .doc .doc-portrait img { width: 100%; height: 100%; object-fit: cover; }
+  /* home.css:451-463. `--shadow` is home.css:30's raw value, not a token —
+     written out so the badge keeps its shadow without the `.home` block. */
+  .doc .doc-imagery .badge {
+    position: absolute; left: -28px; bottom: 60px; z-index: 3;
+    background: #fff;
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-md);
+    padding: 18px 22px;
+    box-shadow: 0 24px 60px -30px rgba(40, 40, 30, 0.25), 0 8px 20px -10px rgba(40, 40, 30, 0.08);
+    display: flex; flex-direction: column; gap: 4px;
+    min-width: 180px;
+  }
+  .doc .doc-imagery .badge .stars { color: var(--vs-sage); letter-spacing: .14em; font-size: 13px; }
+  .doc .doc-imagery .badge .b-text { font-family: var(--vs-font-display); font-size: 16px; color: var(--vs-ink); font-weight: 500; }
+  .doc .doc-imagery .badge small { font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--vs-muted); }
+  /* home.css:464-473 — same raw `--shadow` value. */
+  .doc .doc-imagery .signature {
+    position: absolute; right: -10px; top: 30px; z-index: 3;
+    background: var(--vs-sage);
+    border-radius: 999px;
+    padding: 14px 20px;
+    font-family: var(--vs-font-display); font-style: italic; color: #fff;
+    font-size: 16px; font-weight: 300;
+    box-shadow: 0 24px 60px -30px rgba(40, 40, 30, 0.25), 0 8px 20px -10px rgba(40, 40, 30, 0.08);
+    letter-spacing: -0.005em;
+  }
+
+  /* home.css:919-929 — the 1100 block: :926-928. */
+  @media (max-width: 1100px) {
+    .doc .doc-grid { grid-template-columns: 1fr 1fr; gap: 50px; }
+    .doc .doc-imagery .badge { left: -12px; }
+    .doc .doc-imagery .signature { right: -4px; }
+  }
+
+  /* home.css:934-989 — the 780 block: :935 (wrap), :954-960. */
+  @media (max-width: 780px) {
+    .doc .wrap { padding: 0 22px; }
+    section.doc { padding: 80px 0; }
+    .doc .doc-grid { grid-template-columns: 1fr; gap: 80px; }
+    .doc .doc-imagery { max-width: 480px; margin: 0 auto; width: 100%; }
+    .doc .doc-imagery .badge { left: 12px; }
+    .doc .doc-imagery .signature { right: 12px; }
+    .doc .doc-credentials { grid-template-columns: 1fr 1fr; }
+  }
+</style>

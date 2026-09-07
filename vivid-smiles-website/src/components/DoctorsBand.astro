@@ -1,0 +1,501 @@
+---
+/**
+ * About Us `#doctors` — the charcoal band that introduces the two doctors: a
+ * centred SectionIntro over two alternating `article.doc-grid`s, each an
+ * <ImageFrame> (main portrait + inset) beside a `.doc-copy` column of eyebrow,
+ * h2, `.role` line, lead, two bios, three credential tiles and two buttons.
+ *
+ * A code_section band, registered as `about_us_doctors` in
+ * src/blocks/CodeSectionBlock.astro (plan decision D6, 2026-09-08: this band
+ * stays code, byte-identical; a media_split extension that could hold the
+ * inset, the role line and the intro trio is a later round). The section's id
+ * arrives as `id`, the prop name CodeSectionBlock defaults to, and defaults to
+ * the "doctors" the template has always rendered — the hero's second CTA links
+ * `#doctors` (about-us/index.astro:389), so the default must hold when a row is
+ * saved with a blank anchor.
+ *
+ * ── D1: a route-scoped band reads its own page ────────────────────────────
+ * Everything the template reads from WordPress on this band is read here the
+ * same way, through `getPageContent(Astro.url.pathname)` — the read the page
+ * runs at about-us/index.astro:49 — guarded by the `route` prop: on any other
+ * route the band renders NOTHING and warns, because the rows and slots it
+ * asks for exist only on the About Us entry (plan decision D1, 2026-09-08;
+ * TrustStrip.astro is the first precedent, this is the same idiom).
+ *
+ * ── What is live and what is literal ──────────────────────────────────────
+ * Live (Pages -> About Us in wp-admin):
+ *   - Section copy row `doctors-intro` through introFrom() with the template's
+ *     literals as the fallback (about-us/index.astro:353; introFrom is
+ *     src/lib/page-content.ts:503-521) → the SectionIntro's eyebrow, heading,
+ *     headingItalic and lede.
+ *   - Section copy row `doctors`: `heading` (set:html, "Dr. Bryce
+ *     <em>Richardson</em>" live) and `body` (Dr. Richardson's `p.lead`) —
+ *     about-us/index.astro:495 and :497. The row's eyebrow is NOT read; the
+ *     template never read it either (the eyebrow is the literal at :494).
+ *   - Images slots drBryceMain, drBryceInset, drAnnieMain, drAnnieInset
+ *     (url/width/height; about-us/index.astro:480-491 and :579-590).
+ * Literal, exactly as the template has them: both eyebrows (:494, :535), both
+ * `.role` lines (:496, :537), the four image alts (:484, :490, :583, :589 —
+ * every one of these slots carries alt null live, so the template's words
+ * are the only alts there are), Dr. Richardson's two bios (:498-512), ALL of
+ * Dr. Annie's copy (:536-555 — no Section-copy row exists for her; recorded
+ * in plan-decisions.json owner_side_not_gating), the six credential tiles
+ * (:513-523, :557-570) and the four buttons (:525-526, :573-576).
+ *
+ * ── Markup ────────────────────────────────────────────────────────────────
+ * Verbatim from about-us/index.astro:466-594 — element order, class strings,
+ * attributes, entities — plus 58 `{" "}` whitespace shims that exist for one
+ * measured reason:
+ *
+ * THE ROOT-EXPRESSION WHITESPACE RULE (measured through @astrojs/compiler
+ * 3.0.1 with `compact: true`, the flag Astro passes from compressHTML,
+ * 2026-09-08). At a template's top level, compressHTML collapses every
+ * whitespace-only run between two tags to ONE space — that is why
+ * dist/about-us/index.html reads `<section …> <div class="wrap" …> <div class=
+ * "vs-intro-triad …`. Inside an expression that holds the template's FIRST
+ * element (`{band && (<section>…)}` here; the same shape as PaymentBand's
+ * `{hasBand && (…)}`, whose band ships `<section …><div class="wrap"…>` with
+ * no spaces on /general-dentistry/), the compiler STRIPS those runs instead.
+ * No byte-free predecessor flips it back (a leading <style>, <slot />, HTML
+ * comment, <Fragment />, or `{false && <i />}` were each tried; only a real
+ * root element does, and a real element is bytes). So every run the template
+ * ships as a space is written here as an explicit `{" "}` — a string-literal
+ * expression renders exactly one space, and it does not touch the text-node
+ * rules below — and the two runs the template ships as TWO spaces (either
+ * side of the JSX comment expressions "Dr. Richardson — image LEFT" at :477
+ * and "Dr. Annie — image RIGHT" at :532; a comment expression renders
+ * nothing but keeps the whitespace on both sides of itself) are written
+ * `{" "}` + the same comment + `{" "}`. (The comment delimiters are not
+ * spelled out in this header: a star-slash inside a JSDoc block ends the
+ * block early and the compiled module stops parsing — caught by
+ * `node --check` on the compiled output, which the compiler's own
+ * diagnostics do not cover.) Proof: the band compiled through the same compiler is
+ * byte-identical to lines 466-594 of the template compiled the same way, with
+ * every `${…}` normalised (3381 = 3381 bytes; the two D1 reads are the only
+ * expressions that differ in source).
+ *
+ * The multi-line text nodes (lead, bios, one `.v` tile) keep their
+ * continuation lines at the template's 16 spaces: compressHTML collapses only
+ * the leading and trailing whitespace run of a text node to "\n" and ships
+ * every interior "\n" + indentation run as-is, so the indentation of those
+ * lines IS output. They are literal text, not expressions, for a second
+ * reason: an expression HTML-escapes the apostrophes ("patient's" would ship
+ * as "patient&#39;s") and the second bio carries `<em>Full Arch Masters</em>`
+ * inline.
+ *
+ * ── CSS ───────────────────────────────────────────────────────────────────
+ * Every about-us.css rule that reaches an element on this band is restated
+ * below with the value that WINS on the charcoal band today, rooted at least
+ * two compounds deep. Astro compiles ATTRIBUTE scoping, so a bare `.doc-grid`
+ * would be `.doc-grid[data-astro-cid-…]` = (0,2,0), a dead tie with the
+ * sheet's `.aus .doc-grid` decided by bundle order (CodeSectionBlock.astro:
+ * 437-439 records the precedent; PaymentBand.astro carries the same note).
+ * Rooting at `.section` puts every rule at (0,4,0)+ and the band owns its box
+ * whether or not the page sheet is in the cascade. Elements drawn by child
+ * components (SectionIntro's triad, h2 and lede; ImageFrame's `.vs-frame`;
+ * the `<em>` inside a set:html heading) carry no scope attribute, so those
+ * compounds are written `:global(…)` — the scoped root still carries the
+ * attribute and the specificity.
+ *
+ * NOT restated, on purpose: global.css rules (.vs-h2, .vs-lede, .vs-eyebrow,
+ * .vs-frame, .vs-btn-*, .vs-intro-triad) — they are global on every route and
+ * the page sheet does not override them except where restated here; and
+ * about-us.css:114-116 (`.section.alt .eyebrow`), which matches NO element on
+ * this band — every eyebrow here is the <Eyebrow> component's `.vs-eyebrow`
+ * (the page map records the same grep: 0 matches for class `eyebrow`).
+ */
+import Button from "./Button.astro";
+import Eyebrow from "./Eyebrow.astro";
+import SectionIntro from "./SectionIntro.astro";
+import ImageFrame from "./ImageFrame.astro";
+import { getPageContent, introFrom, type PageImage } from "../lib/page-content";
+import { bookNowHref } from "../data/contact";
+
+interface Props {
+  /**
+   * The route this band belongs to ("/about-us/"). It reads that page's
+   * Section copy and image slots, so on any other route it renders nothing
+   * and warns.
+   */
+  route: string;
+  /**
+   * The DOM id. Defaults to "doctors" (about-us/index.astro:466), which the
+   * hero's second CTA links. CodeSectionBlock overrides it with the row's
+   * deduplicated anchor — that override is the point of its `anchorProp`.
+   */
+  id?: string;
+}
+
+const { route, id = "doctors" } = Astro.props;
+
+// trailingSlash is 'always' (astro.config.mjs:21); normalise both sides anyway
+// so "/about-us" and "/about-us/" name the same page, as page-content.ts does.
+const withSlash = (p: string) => (p.endsWith("/") ? p : `${p}/`);
+const here = Astro.url.pathname;
+const onRoute = withSlash(here) === withSlash(route);
+
+if (!onRoute) {
+  console.warn(
+    `[blocks] DoctorsBand is scoped to ${route} and was asked to render on ${here} — it reads that page's Section copy and image slots, so it renders nothing here`,
+  );
+}
+
+type Band = {
+  intro: { eyebrow: string; heading: string; headingItalic: string; lede: string };
+  /** sections[doctors].heading — html-bearing, rendered with set:html. */
+  heading: string;
+  /** sections[doctors].body — Dr. Richardson's `p.lead`. */
+  lead: string;
+  drBryceMain: PageImage;
+  drBryceInset: PageImage;
+  drAnnieMain: PageImage;
+  drAnnieInset: PageImage;
+};
+
+let band: Band | null = null;
+if (onRoute) {
+  const { section, image } = await getPageContent(here);
+  band = {
+    // about-us/index.astro:353 — the same defaults, so the page is
+    // byte-identical until the row is edited in wp-admin.
+    intro: introFrom(section("doctors-intro"), { eyebrow: "Meet the Doctors", heading: "Two practitioners.", headingItalic: "One philosophy.", lede: "Dr. Bryce Richardson and Dr. Annelise Westermeier lead a small, focused team. Together they bring cosmetic mastery and holistic surgical care under one roof, so every patient finds the right hands for the right work." }),
+    heading: section("doctors").heading,
+    lead: section("doctors").body,
+    drBryceMain: image("drBryceMain"),
+    drBryceInset: image("drBryceInset"),
+    drAnnieMain: image("drAnnieMain"),
+    drAnnieInset: image("drAnnieInset"),
+  };
+}
+---
+
+{
+  band && (
+      <section class="section alt" id={id}>{" "}
+        <div class="wrap" data-vs-reveal-batch>{" "}
+          <SectionIntro
+            eyebrow={band.intro.eyebrow}
+            heading={band.intro.heading}
+            headingItalic={band.intro.headingItalic}
+            lede={band.intro.lede}
+            centered
+            class="aus-section-head"
+          />{" "}
+
+          {/* Dr. Richardson — image LEFT */}{" "}
+          <article class="doc-grid" id="dr-richardson">{" "}
+            <ImageFrame
+              primary={{
+                src: band.drBryceMain.url,
+                width: band.drBryceMain.width,
+                height: band.drBryceMain.height,
+                alt: 'Dr. Bryce Richardson, founder of Vivid Smiles Dentistry',
+              }}
+              inset={{
+                src: band.drBryceInset.url,
+                width: band.drBryceInset.width,
+                height: band.drBryceInset.height,
+                alt: 'Dr. Richardson performing precise dental work in surgical loupes',
+              }}
+            />{" "}
+            <div class="doc-copy" data-vs-reveal-batch>{" "}
+              <Eyebrow>Founder &amp; Cosmetic Lead</Eyebrow>{" "}
+              <h2 class="vs-h2"><Fragment set:html={band.heading} /></h2>{" "}
+              <div class="role">Cosmetic, full-arch &amp; implant dentistry</div>{" "}
+              <p class="lead">{band.lead}</p>{" "}
+              <p class="bio">
+                A graduate of Indiana University School of Dentistry, Dr. Richardson has completed
+                more than 600 hours of advanced postgraduate training in esthetics, veneers,
+                full-mouth rehabilitation, and surgical dentistry. His cosmetic philosophy centers
+                on designing smiles that harmonize with each patient's facial features, personality,
+                and lifestyle, so the final result feels effortless, youthful, and authentically
+                you.
+              </p>{" "}
+              <p class="bio">
+                He also serves as a mentor for <em>Full Arch Masters</em>, one of the nation's
+                premier implant education programs, training doctors across the country in advanced
+                surgical and full-arch procedures. Outside the office, Dr. Richardson enjoys
+                traveling, playing golf, and spending time with his wife and their three dogs.
+              </p>{" "}
+
+              <div class="doc-credentials">{" "}
+                <div class="cred">{" "}
+                  <div class="k">IU</div><div class="v">School of Dentistry Graduate</div>{" "}
+                </div>{" "}
+                <div class="cred">{" "}
+                  <div class="k">600+</div><div class="v">Hours Postgrad Training</div>{" "}
+                </div>{" "}
+                <div class="cred">{" "}
+                  <div class="k">FAM</div><div class="v">Full Arch Masters Mentor</div>{" "}
+                </div>{" "}
+              </div>{" "}
+
+              <div class="doc-actions">{" "}
+                <Button variant="light" href={bookNowHref}>Book Online</Button>{" "}
+                <Button variant="ghost-light" href="/smile-gallery/">See Case Portfolio</Button>{" "}
+              </div>{" "}
+            </div>{" "}
+          </article>{" "}
+
+          {/* Dr. Annie — image RIGHT */}{" "}
+          <article class="doc-grid image-right" id="dr-annie">{" "}
+            <div class="doc-copy" data-vs-reveal-batch>{" "}
+              <Eyebrow>General &amp; Holistic Care</Eyebrow>{" "}
+              <h2 class="vs-h2">Dr. Annelise<br /><em>Westermeier</em></h2>{" "}
+              <div class="role">Known to patients as <em>Dr. Annie</em></div>{" "}
+              <p class="lead">
+                A fourth-generation dentist practicing with the warmth of family tradition and the
+                rigor of modern clinical training.
+              </p>{" "}
+              <p class="bio">
+                Dr. Annie attended the University at Buffalo School of Dental Medicine in her
+                hometown of Buffalo, NY, alongside her brother, before completing her Advanced
+                Education in General Dentistry at Virginia Commonwealth University. That residency
+                deepened her expertise in surgery, implants, and the care of medically complex
+                patients.
+              </p>{" "}
+              <p class="bio">
+                Her approach is holistic: she treats the mouth as inseparable from the rest of the
+                body, and the patient as a person first. She is passionate about making every visit
+                feel comfortable, unhurried, and collaborative, and will undoubtedly coax a smile
+                from even the most nervous of patients. Whether you are in pain or simply want to
+                eat and smile more freely, Dr. Annie is eager to care for you.
+              </p>{" "}
+
+              <div class="doc-credentials">{" "}
+                <div class="cred">{" "}
+                  <div class="k">UB</div><div class="v">Buffalo School of Dental Medicine</div>{" "}
+                </div>{" "}
+                <div class="cred">{" "}
+                  <div class="k">VCU</div><div class="v">
+                    Advanced Education in General Dentistry
+                  </div>{" "}
+                </div>{" "}
+                <div class="cred">{" "}
+                  <div class="k">4th</div><div class="v">Generation Dentist</div>{" "}
+                </div>{" "}
+              </div>{" "}
+
+              <div class="doc-actions">{" "}
+                <Button variant="light" href={bookNowHref}>Book with Dr. Annie</Button>{" "}
+                <Button variant="ghost-light" href="/general-dentistry/"
+                  >Learn About Holistic Care</Button
+                >{" "}
+              </div>{" "}
+            </div>{" "}
+            <ImageFrame
+              primary={{
+                src: band.drAnnieMain.url,
+                width: band.drAnnieMain.width,
+                height: band.drAnnieMain.height,
+                alt: 'Dr. Annelise Westermeier, general & holistic dentist at Vivid Smiles',
+              }}
+              inset={{
+                src: band.drAnnieInset.url,
+                width: band.drAnnieInset.width,
+                height: band.drAnnieInset.height,
+                alt: 'Dr. Annelise Westermeier in the Vivid Smiles Dentistry office',
+              }}
+            />{" "}
+          </article>{" "}
+        </div>{" "}
+      </section>
+  )
+}
+
+<style>
+  /*
+   * Copied out of src/styles/pages/about-us.css — every rule cited by line,
+   * carrying the value that wins on the charcoal `.section.alt` band today.
+   * The page sheet is NOT edited; these duplicates outrank it (see the CSS
+   * note in the header), so the band draws the same box from either sheet.
+   */
+
+  /* ---- band chrome ---- */
+
+  /* css:103 (`.aus .section`). `section.section` rather than `.section` so the
+     scoped rule is (0,2,1) against the sheet's (0,2,0) — a win, not a tie.
+     global.css:642-644 pads every <section> by --vs-section-pad; the sheet's
+     110px has always beaten that here and does again. */
+  section.section {
+    padding: 110px 0;
+  }
+  /* css:107 */
+  section.section.alt {
+    background: var(--vs-charcoal-green);
+  }
+  /* css:32 */
+  .section .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+  /* css:136 — the SectionIntro's box. Its root is a child component's
+     element, hence :global. SectionIntro.astro's own global
+     `.vs-intro-triad-center { margin-inline: auto }` is (0,1,0) and has
+     always lost the margin to this (0,2,0) rule; same value either way. */
+  .section :global(.aus-section-head) {
+    margin: 0 auto 64px;
+    max-width: 760px;
+  }
+
+  /* ---- typography the band inherits from the page's h2 / p / em rules ----
+     Both h2s on this band carry `.vs-h2` (global.css:489-497); the page sheet
+     out-specifies it on font-size and letter-spacing (css:34-40) and the
+     charcoal band on colour (css:108-113). The SectionIntro's h2, lede and em
+     are child-component elements, so the element compounds are :global. */
+
+  /* css:34-40 with css:108-110's `#fff` — the value that wins inside .alt.
+     `.aus h2 { color: var(--vs-ink) }` at css:495 is (0,1,1) and loses to
+     (0,3,1) here as it does in the sheet. */
+  .section.alt .wrap :global(h2) {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    font-size: clamp(32px, 4.2vw, 54px);
+    color: #fff;
+    margin: 0;
+    line-height: 1.1;
+    letter-spacing: -0.022em;
+  }
+  /* css:41 + css:44 (italic, weight 300) with css:111-112's colour. Covers
+     the intro h2's `em.vs-italic-word` (global.css:535-538 says
+     `font-weight: inherit`, and `.aus h2 em` at (0,1,2) has always beaten it
+     to 300), the set:html `<em>Richardson</em>`, `<em>Westermeier</em>`, the
+     two `.role` ems and the bio's `<em>Full Arch Masters</em>`. */
+  .section.alt .wrap :global(em) {
+    font-style: italic;
+    color: var(--vs-eyebrow-on-sage);
+    font-weight: 300;
+  }
+  /* css:43 with css:113's colour. The lede (`.vs-lede`, global.css:518-524,
+     ink-soft at (0,1,0)) has always taken this colour from (0,3,1). */
+  .section.alt .wrap :global(p) {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  /* ---- the two doctor rows ---- */
+
+  /* css:185-189 */
+  .section .doc-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.05fr;
+    gap: 80px;
+    align-items: center;
+    margin-bottom: 110px;
+  }
+  /* css:190 */
+  .section .doc-grid:last-of-type {
+    margin-bottom: 0;
+  }
+  /* css:191 */
+  .section .doc-grid.image-right {
+    grid-template-columns: 1.05fr 1fr;
+  }
+
+  /* css:193 — must beat the `margin: 0` restated above, as it does in the
+     sheet. Rooted with `.alt` so it is (0,6,1) against that rule's (0,5,1):
+     a win, not a same-file tie left to source order. */
+  .section.alt .doc-copy h2 {
+    margin-bottom: 14px;
+    margin-top: 14px;
+  }
+  /* css:194-199 with css:211's charcoal colour. */
+  .section.alt .doc-copy .role {
+    font-family: var(--vs-font-display);
+    font-style: italic;
+    font-weight: 300;
+    color: var(--vs-eyebrow-on-sage);
+    font-size: 18px;
+    margin-bottom: 22px;
+    letter-spacing: -0.005em;
+  }
+  /* css:200-202 with css:212's `#fff`. */
+  .section.alt .doc-copy .lead {
+    font-size: 17px;
+    color: #fff;
+    line-height: 1.6;
+  }
+  /* css:203-206 with css:213's colour. */
+  .section.alt .doc-copy .bio {
+    margin-top: 18px;
+    font-size: 15px;
+    line-height: 1.8;
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  /* css:214-218 with css:231's rule colour. */
+  .section.alt .doc-credentials {
+    margin-top: 42px;
+    padding-top: 34px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 28px;
+  }
+  /* css:219-223 with css:232's colour. */
+  .section.alt .doc-credentials .cred .k {
+    font-family: var(--vs-font-display);
+    font-size: 36px;
+    color: var(--vs-eyebrow-on-sage);
+    line-height: 1;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+  }
+  /* css:224-228 with css:233's colour. */
+  .section.alt .doc-credentials .cred .v {
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.7);
+    margin-top: 10px;
+    line-height: 1.5;
+  }
+  /* css:234-237 */
+  .section .doc-actions {
+    margin-top: 40px;
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  /* ---- responsive ---- */
+
+  /* css:433-446 */
+  @media (max-width: 1100px) {
+    .section .doc-grid,
+    .section .doc-grid.image-right {
+      grid-template-columns: 1fr;
+      gap: 50px;
+    }
+    /* When the doctor grid stacks, the image must always sit ABOVE the copy —
+       even in the .image-right variant where DOM order has copy first.
+       `.vs-frame` is ImageFrame's root, hence :global. */
+    .section .doc-grid.image-right > .doc-copy {
+      order: 2;
+    }
+    .section .doc-grid.image-right > :global(.vs-frame) {
+      order: 1;
+    }
+  }
+
+  /* css:465-472 */
+  @media (max-width: 780px) {
+    .section .wrap {
+      padding: 0 22px;
+    }
+    section.section {
+      padding: 70px 0;
+    }
+    .section .doc-grid {
+      margin-bottom: 70px;
+    }
+    .section.alt .doc-credentials {
+      grid-template-columns: 1fr 1fr;
+      gap: 22px;
+    }
+    .section.alt .doc-credentials .cred .k {
+      font-size: 30px;
+    }
+  }
+</style>

@@ -1,0 +1,1032 @@
+---
+/**
+ * VideoCardsBlock — the `video_cards` layout: the patient-story video bands
+ * that ship on / and /patient-testimonials/.
+ *
+ * EXTRACTED, NOT DESIGNED. Four live bands, read element for element:
+ *
+ *   src/pages/index.astro:249-298                       `#stories`, charcoal,
+ *       `.stories-grid` three across, three PORTRAIT cards (3:4 stills,
+ *       `data-video-short="true"`).
+ *   src/pages/patient-testimonials/index.astro:105-213  `#veneer-stories`,
+ *       sage-pale, `.veneer-stories-grid` — seven PORTRAIT cards on a six-column
+ *       grid, the orphan seventh centred.
+ *   src/pages/patient-testimonials/index.astro:216-265  `#stories`, charcoal,
+ *       `.stories-grid` three across, three LANDSCAPE cards (4:3 stills, no
+ *       `data-video-short`).
+ *   src/pages/patient-testimonials/index.astro:335-373  `#featured-story`,
+ *       paper, `.featured-grid` — ONE 16:9 video beside the copy column.
+ *
+ * ── THREE SHAPES, ONE FIELD ──────────────────────────────────────────────
+ * `cardShape` is the only thing that differs between the four bands beyond
+ * their words: `portrait` and `landscape` are the same card in the same grid
+ * family and differ in the still's aspect, the column pattern and whether the
+ * card carries `data-video-short` (the modal opens a 9:16 frame for it);
+ * `featured` is the split band. Every registered value has a branch, and a
+ * blank or unknown value draws `portrait` — the select's default — so a row
+ * saved before anyone opened the select renders the same as one saved with it.
+ *
+ * `title`, `body` and `label` are drawn by the two grid shapes only; `body2`,
+ * `caption` and the six button fields by the featured shape only. Those are
+ * recorded here rather than hidden: a field with no rendering in a shape is
+ * ignored in that shape, and wp-admin says so on the field.
+ *
+ * ── THE MODAL IS NOT HERE ────────────────────────────────────────────────
+ * A `.story-card` or `.featured-video` is only a `<button data-video-id>` with
+ * a play glyph. The dialog element `.story-video-modal#story-video-modal` and
+ * the `is:inline` player script that opens it live in
+ * src/components/StoryVideoModal.astro — page chrome, rendered ONCE per page
+ * by the template outside the migration switch (and by [...slug].astro when
+ * any row is a video_cards row). Two rows on one page would otherwise emit two
+ * elements with the same id, and nothing under src/blocks ships a script
+ * element. A page that places this row without the chrome has dead play
+ * buttons; that dependency is named here and in manifest.ts so nobody "fixes"
+ * it by adding a script element to this file.
+ *
+ * ── REVEAL ATTRIBUTES: A DOCUMENTED DEPARTURE FROM THE HOUSE SHELL ──────
+ * Every other block puts `data-vs-reveal-batch` on its `<section>`. This one
+ * does NOT, because the four templates never do: they batch the head's three
+ * children and the cards separately (index.astro:251,:257;
+ * patient-testimonials/index.astro:107,:113,:218,:224), and animations.js:34
+ * staggers `[data-vs-reveal-batch] > *`. On the section the stagger would apply
+ * to the one `.wrap` — one fade of the whole band instead of a per-card
+ * stagger — a motion change no sweep can see. The featured shape keeps the
+ * template's `data-vs-reveal` on the button and `data-vs-reveal-batch` on
+ * `.featured-copy` (:344, :357).
+ *
+ * ── WHITESPACE IS PART OF THE MARKUP ─────────────────────────────────────
+ * Measured against dist/ this week: the compressor collapses static whitespace
+ * between two tags to ONE space (`</div> <div class="story-body"> <h4>`), keeps
+ * a newline before a text node, and emits nothing between two flush
+ * expressions. A conditional on a line of its own therefore leaves a double
+ * space when it is false, and a flush `}{` chain leaves no space when it is
+ * true. So every conditional element below is written flush and carries its
+ * own leading `{" "}` inside its Fragment — the CalloutListBlock /
+ * MediaSplitBlock idiom — which yields exactly one space whether it renders or
+ * not, and the templates' bytes when every field is filled.
+ *
+ * ── OPTIONAL EVERYTHING, EXCEPT INSIDE `.story-body` ─────────────────────
+ * A row with no YouTube code is skipped — the script ignores an empty id
+ * (patient-testimonials/index.astro:288) and a card that opens nothing is a
+ * broken promise. A card with no usable picture keeps its play glyph on the
+ * ink-deep ground: a video without a still is still playable. `.story-body`
+ * is drawn when ANY of title / body / label is set and then carries all three
+ * elements, a blank one empty, so a filled card's markup is the template's to
+ * the byte (the videoCardsSpec rule).
+ *
+ * NOTHING HERE THROWS. Same rule as PageBlocks.astro and every sibling: an
+ * editor triggers deploys and never sees the output.
+ *
+ * Styles are co-located per docs/PAGE-BLOCKS.md 2.5 — every rule below names
+ * the sheet and line it was copied out of, rooted at least two compounds deep
+ * (memory: page CSS cannot beat block CSS — a bare `.story-card` compiles to
+ * (0,2,0) and TIES `.home .story-card`).
+ *
+ * Spec: scratchpad plan-videoCardsSpec.md; docs/PAGE-BLOCKS.md, blocks wave.
+ */
+import { Image } from "astro:assets";
+import Button from "../components/Button.astro";
+import { resolveCta } from "./cta";
+
+/** The card's image sub-field, as wpgraphql-acf returns an ACF image. Same
+    shape as ServiceCardsBlock.astro:122-128: the manifest selects
+    `image { node { sourceUrl altText mediaDetails { width height } } }`. */
+export interface VideoCardsImage {
+  node?: {
+    sourceUrl?: string | null;
+    altText?: string | null;
+    mediaDetails?: { width?: number | null; height?: number | null } | null;
+  } | null;
+}
+
+/** One row of the layout's `video_cards` repeater. Every sub-field is optional
+    at the schema level — ACF returns null for anything never saved. */
+export interface VideoCard {
+  /** `<h4>` on the card. Grid shapes only. */
+  title?: string | null;
+  /** `<p>` under the title. Grid shapes only. */
+  body?: string | null;
+  /** `span.label` — the hairline-prefixed capitals line. Grid shapes only. */
+  label?: string | null;
+  /** The YouTube id. A row without one is skipped. */
+  videoId?: string | null;
+  /** `data-video-title` — the iframe's accessible title in the modal. */
+  videoTitle?: string | null;
+  /** `aria-label` of the button. Blank derives `Play {videoTitle}`. */
+  ariaLabel?: string | null;
+  /** `span.featured-runtime` over the big video. Featured shape only. */
+  caption?: string | null;
+  /** Alt override. Falls back to the alt stored on the file in WordPress. */
+  imageAlt?: string | null;
+  image?: VideoCardsImage | null;
+}
+
+interface Props {
+  /** DOM id, already deduplicated by PageBlocks.astro. */
+  id?: string;
+  /** The same value as `id`. Accepted so the spread in PageBlocks is lossless. */
+  anchor?: string | null;
+  /** Rail label. Read by the page that builds the rail, not by this band. */
+  navLabel?: string | null;
+  /** "paper" | "cream" | "sage-pale" | "sage" | "charcoal". Blank = paper. */
+  band?: string | null;
+  eyebrow?: string | null;
+  /** May contain `<em>`, and nothing else (docs/PAGE-BLOCKS.md, Fact 3). */
+  heading?: string | null;
+  /**
+   * The head paragraph on the grid shapes; the italic `p.featured-quote` on
+   * the featured shape. The stored quote carries its own quotation marks —
+   * this block adds none.
+   */
+  body?: string | null;
+  /**
+   * "portrait" | "landscape" | "featured". NULL, blank and anything else draw
+   * `portrait` — the select's default and the shape three of the four live
+   * bands ship.
+   */
+  cardShape?: string | null;
+  /** The plain paragraph under the quote. Featured shape only. */
+  body2?: string | null;
+  videoCards?: (VideoCard | null)[] | null;
+  /** block_cta_fields('video') minus `cta_note`. Featured shape only. */
+  ctaLabel?: string | null;
+  ctaHref?: string | null;
+  /** Hover override. Blank falls back to ./cta.ts's destination table. */
+  ctaHover?: string | null;
+  ctaLabel2?: string | null;
+  ctaHref2?: string | null;
+  ctaHover2?: string | null;
+}
+
+/**
+ * band value -> the modifier class the pages' markup already uses. The same
+ * table as ServiceCardsBlock.astro:246-252, for the same reason: `alt` and
+ * `dark` are inherited names, so every colour in <style> is written against
+ * the band VALUE and the class is only the hook.
+ *
+ * The eyebrow is ALWAYS bare `.eyebrow` here, never `light`: the sage-pale
+ * consumer (#veneer-stories) spells `class="eyebrow"` and paints it sage with
+ * sage hairlines (patient-testimonials.css:267-274), and the charcoal consumers
+ * paint --vs-eyebrow-on-sage with white hairlines (:114-121; home.css:914-916).
+ * Both are stated in <style> per band; a `light` token would be a class-level
+ * diff on a live band.
+ */
+const BAND_CLASS: Record<string, string | undefined> = {
+  paper: undefined,
+  cream: "cream",
+  "sage-pale": "dark",
+  sage: "sage",
+  charcoal: "alt",
+};
+
+/**
+ * `<Image>` inputs by shape — the templates' own values: index.astro:260 and
+ * patient-testimonials/index.astro:116/:227 for the cards, :349-350 for the
+ * featured still. Both grid shapes share one spec because both templates do.
+ */
+const IMAGE_SPEC = {
+  card: { widths: [400, 800], sizes: "(max-width: 780px) 100vw, 33vw" },
+  featured: { widths: [600, 900, 1300], sizes: "(max-width: 991px) 100vw, 50vw" },
+};
+
+const {
+  id,
+  band = "paper",
+  eyebrow,
+  heading,
+  body,
+  cardShape,
+  body2,
+  videoCards,
+  ctaLabel,
+  ctaHref,
+  ctaHover,
+  ctaLabel2,
+  ctaHref2,
+  ctaHover2,
+} = Astro.props;
+
+/** Trim once, here, so every guard below tests for real content rather than for
+ *  a field an editor left as a single space. */
+const text = (input: unknown): string => (typeof input === "string" ? input.trim() : "");
+
+const bandKey = typeof band === "string" && band !== "" ? band : "paper";
+const bandClass = BAND_CLASS[bandKey];
+
+/* See `cardShape` in Props: two registered values branch, everything else is
+   the default. */
+const shapeKey = text(cardShape);
+const shape = shapeKey === "landscape" || shapeKey === "featured" ? shapeKey : "portrait";
+const isFeatured = shape === "featured";
+const isPortrait = shape === "portrait";
+
+const where = `${Astro.url.pathname}${id ? ` at #${id}` : ""}`;
+
+/**
+ * CMS rows -> cards. `Array.isArray` first because an unqueried repeater
+ * arrives `undefined` and one an editor never opened arrives `null`.
+ *
+ * The filter drops a row with no YouTube code — see the header. Everything else
+ * is optional and degrades: no picture keeps the play glyph, a blank aria-label
+ * derives from the video title.
+ */
+const allRows = (Array.isArray(videoCards) ? videoCards : []).map((row) => {
+  const node = row?.image?.node ?? null;
+  const src = typeof node?.sourceUrl === "string" ? node.sourceUrl : "";
+  const width = node?.mediaDetails?.width ?? 0;
+  const height = node?.mediaDetails?.height ?? 0;
+  const videoTitle = text(row?.videoTitle);
+  const title = text(row?.title);
+  const cardBody = text(row?.body);
+  const label = text(row?.label);
+
+  return {
+    videoId: text(row?.videoId),
+    videoTitle,
+    /* The field first; blank says "Play" followed by the video title, which is
+       what the wp-admin instruction promises. */
+    ariaLabel: text(row?.ariaLabel) || (videoTitle !== "" ? `Play ${videoTitle}` : "Play"),
+    title,
+    body: cardBody,
+    label,
+    hasBody: title !== "" || cardBody !== "" || label !== "",
+    caption: text(row?.caption),
+    /* Editor override first, then the alt text stored on the file itself. */
+    alt: text(row?.imageAlt) || text(node?.altText),
+    src,
+    width,
+    height,
+    /* `<Image>` refuses a remote source without explicit intrinsic dimensions —
+       the rule ServiceCardsBlock:462-467 and MediaSplitBlock run on. */
+    hasImage: src !== "" && width > 0 && height > 0,
+  };
+});
+
+const skipped = allRows.filter((card) => card.videoId === "").length;
+if (skipped > 0) {
+  console.warn(
+    `[blocks] video_cards on ${where} has ${skipped} row(s) with no YouTube code — skipping those rows`,
+  );
+}
+
+const playable = allRows.filter((card) => card.videoId !== "");
+
+/* The featured shape draws the FIRST playable row only; the rest are reported,
+   not silently dropped. */
+if (isFeatured && playable.length > 1) {
+  console.warn(
+    `[blocks] video_cards featured on ${where} has ${playable.length} rows; only the first is drawn`,
+  );
+}
+
+const rows = isFeatured ? playable.slice(0, 1) : playable;
+const featured = isFeatured ? rows[0] : undefined;
+
+const missingImages = rows.filter((card) => !card.hasImage).length;
+if (missingImages > 0) {
+  console.warn(
+    `[blocks] video_cards on ${where} has ${missingImages} card(s) with no usable picture — drawing those without a still`,
+  );
+}
+
+const eyebrowText = text(eyebrow);
+const headingHtml = text(heading);
+const bodyText = text(body);
+const body2Text = text(body2);
+
+const hasHead = eyebrowText !== "" || headingHtml !== "" || bodyText !== "";
+
+/* The token map, hover table and resolvers live in ./cta.ts — ONE copy for
+   every block that draws a CTA row. */
+const cta1 = resolveCta(ctaHref, ctaHover);
+const cta2 = resolveCta(ctaHref2, ctaHover2);
+const label1 = text(ctaLabel);
+const label2 = text(ctaLabel2);
+const hasCta = label1 !== "";
+const hasCta2 = label2 !== "";
+const hasCtaRow = hasCta || hasCta2;
+
+/* Button variants follow the band, the pairing GalleryMarqueeBlock.astro:200-202
+   uses: light + ghost-light on the two dark bands, sage + ghost on the light
+   ones — which on paper is the template's own `sage` + `ghost`
+   (patient-testimonials/index.astro:367-368). */
+const isDarkBand = bandKey === "charcoal" || bandKey === "sage";
+const primaryVariant = isDarkBand ? "light" : "sage";
+const secondaryVariant = isDarkBand ? "ghost-light" : "ghost";
+
+const hasCopy = hasHead || body2Text !== "" || hasCtaRow;
+
+/* The template's `aria-labelledby="featured-heading"` / `<h2 id="featured-heading">`
+   pair (:335, :359), keyed off this band's id so two featured rows on one page
+   cannot share a heading id. No heading, no pair: an aria-labelledby that
+   points at nothing is worse than none. */
+const headingId = id && headingHtml !== "" ? `${id}-heading` : undefined;
+---
+
+{isFeatured ? (
+  /* patient-testimonials/index.astro:335-373. `section` and the band class are
+     the block's shell tokens (the template's own `featured` token is kept);
+     NO data-vs-reveal-batch on the section — see the header. */
+  <section class:list={["section", bandClass, "featured"]} id={id} aria-labelledby={headingId}>
+    <div class="wrap">
+      <div class="featured-grid">{
+        featured && (
+          <Fragment>{" "}<button type="button" class="featured-video" data-video-id={featured.videoId} data-video-title={featured.videoTitle || undefined} aria-label={featured.ariaLabel} data-vs-reveal>{
+            featured.hasImage && (
+              <Fragment>{" "}<Image src={featured.src} width={featured.width} height={featured.height} alt={featured.alt} widths={IMAGE_SPEC.featured.widths} sizes={IMAGE_SPEC.featured.sizes} /></Fragment>
+            )
+          }
+            <span class="featured-play" aria-hidden="true">
+              <svg viewBox="0 0 24 24" focusable="false"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+            </span>{
+            featured.caption !== "" && (
+              <Fragment>{" "}<span class="featured-runtime" aria-hidden="true">{featured.caption}</span></Fragment>
+            )
+          }
+          </button></Fragment>
+        )
+      }{
+        hasCopy && (
+          <Fragment>{" "}<div class="featured-copy" data-vs-reveal-batch>{
+            eyebrowText !== "" && <Fragment>{" "}<span class="eyebrow">{eyebrowText}</span></Fragment>
+          }{
+            headingHtml !== "" && <Fragment>{" "}<h2 id={headingId}><Fragment set:html={headingHtml} /></h2></Fragment>
+          }{
+            bodyText !== "" && <Fragment>{" "}<p class="featured-quote">{bodyText}</p></Fragment>
+          }{
+            body2Text !== "" && <Fragment>{" "}<p>{body2Text}</p></Fragment>
+          }{
+            hasCtaRow && (
+              <Fragment>{" "}<div class="featured-actions">{
+                hasCta && <Fragment>{" "}<Button variant={primaryVariant} href={cta1.href} hoverLabel={cta1.hover}>{label1}</Button></Fragment>
+              }{
+                hasCta2 && <Fragment>{" "}<Button variant={secondaryVariant} href={cta2.href} hoverLabel={cta2.hover}>{label2}</Button></Fragment>
+              }
+              </div></Fragment>
+            )
+          }
+          </div></Fragment>
+        )
+      }
+      </div>
+    </div>
+  </section>
+) : (
+  /* index.astro:249-298 and patient-testimonials/index.astro:105-213, :216-265.
+     The head is `.section-head` where the templates spell `.stories-head` /
+     `.veneer-stories-head`; the grid is `.video-grid.shape-*` where they spell
+     `.stories-grid` / `.veneer-stories-grid` — the section-level class deltas
+     every migrated band accepts. The card is the templates' to the byte. */
+  <section class:list={["section", bandClass]} id={id}>
+    <div class="wrap">{
+      hasHead && (
+        <Fragment>{" "}<div class="section-head" data-vs-reveal-batch>{
+          eyebrowText !== "" && <Fragment>{" "}<span class="eyebrow">{eyebrowText}</span></Fragment>
+        }{
+          headingHtml !== "" && <Fragment>{" "}<h2><Fragment set:html={headingHtml} /></h2></Fragment>
+        }{
+          bodyText !== "" && <Fragment>{" "}<p>{bodyText}</p></Fragment>
+        }
+        </div></Fragment>
+      )
+    }{
+      rows.length > 0 && (
+        <Fragment>{" "}<div class:list={["video-grid", `shape-${shape}`]} data-vs-reveal-batch>{
+          rows.map((card) => (
+            <Fragment>{" "}<button type="button" class="story-card" data-video-id={card.videoId} data-video-short={isPortrait ? "true" : undefined} data-video-title={card.videoTitle || undefined} aria-label={card.ariaLabel}>
+              <div class="story-photo">{
+                card.hasImage && (
+                  <Fragment>{" "}<Image src={card.src} width={card.width} height={card.height} alt={card.alt} widths={IMAGE_SPEC.card.widths} sizes={IMAGE_SPEC.card.sizes} /></Fragment>
+                )
+              }
+                <span class="play-btn" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" focusable="false"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
+                </span>
+              </div>{
+                card.hasBody && (
+                  <Fragment>{" "}<div class="story-body">
+                    <h4>{card.title}</h4>
+                    <p>{card.body}</p>
+                    <span class="label">{card.label}</span>
+                  </div></Fragment>
+                )
+              }
+            </button></Fragment>
+          ))
+        }
+        </div></Fragment>
+      )
+    }
+    </div>
+  </section>
+)}
+
+<style>
+  /* ══ WHERE THESE RULES COME FROM ═══════════════════════════════════════════
+     Copied out of home.css and patient-testimonials.css with the page prefix
+     stripped and each sheet's local aliases resolved back to the `--vs-*`
+     tokens they alias one for one (home.css:14-38, patient-testimonials.css:12-31).
+
+     `--shadow` is NOT one of those aliases. Both sheets define it locally as a
+     two-layer shadow that is not `--vs-shadow` (home.css:30 ==
+     patient-testimonials.css:23), so the card's hover shadow is written out
+     literally — the same exception ServiceCardsBlock's <style> header records.
+
+     SPECIFICITY. Astro compiles scoped rules to an ATTRIBUTE per compound, so
+     a bare `.story-card` here is (0,2,0) and TIES `.home .story-card` /
+     `.patient-testimonials .story-card`, leaving bundle order to decide a live
+     page. Every rule below is therefore rooted under `.section` (two compounds
+     minimum), and the shell itself is written `section.section` — type plus
+     class, (0,2,1) — so it clears `.wp-blocks .section` and every
+     `.<ns> .section.alt` at (0,3,0) rather than tying them. Same lift as
+     ServiceCardsBlock's `p.svc-outro`.
+
+     VALUES NOT COPIED FROM A SIBLING SHELL, because these bands differ from the
+     family and the sheets are the authority: padding 130 not 110
+     (home.css:556, patient-testimonials.css:112/:259/:322); head 820px /
+     margin-bottom 60px not 760 / 64 (home.css:557, patient-testimonials.css:113/:265).
+
+     THREE PLACES THE TWO SHEETS DISAGREE, and what won (all recorded in the
+     writer's report; none is a word):
+       1. `h2` type — patient-testimonials.css:51 clamp(32px,4.2vw,54px)
+          line-height 1.1 (:47), home.css:61 clamp(34px,4.6vw,60px) line-height
+          1.08 (:58). The family value wins (every sibling block states it;
+          two of the three grid consumers sit on that sheet). Home's #stories
+          heading re-sizes at migration; the words do not move.
+       2. `h4` line-height — 1.1 (patient-testimonials.css:47) vs 1.08
+          (home.css:58). 1.1, same reasoning.
+       3. `.wrap` at ≤780 — 22px (patient-testimonials.css:520) vs home, which
+          keeps 40px (home.css:41 has no 780 rule). 22px: the sheet plus the
+          whole block family.
+
+     ONE CASCADE RESULT REPRODUCED AS MEASURED, NOT AS INTENDED.
+     `.patient-testimonials .featured-copy p` (0,2,1) outranks
+     `.patient-testimonials .featured-quote` (0,2,0), so the quote's
+     clamp(20px,2.2vw,26px) / 1.45 / 38ch / margin 26px (css:424-435) and its
+     780px 18px (css:540) never render — the live quote is 15.5px / 1.8 / 52ch /
+     margin-bottom 18px. The block states what renders and leaves the intended
+     values to a later round that can measure the change. */
+
+  /* ---------- band shell ----------
+     home.css:556; patient-testimonials.css:112, :259-263, :320-325. `margin: 0`
+     is FinalBand.astro's rule: the band owns its rhythm. */
+  section.section {
+    margin: 0;
+    padding: 130px 0;
+    background: var(--vs-paper);
+  }
+  section.section.cream {
+    background: var(--vs-cream);
+  }
+  section.section.dark {
+    background: var(--vs-sage-pale);
+    color: var(--vs-ink);
+  }
+  section.section.sage {
+    background: var(--vs-sage);
+  }
+  section.section.alt {
+    background: var(--vs-charcoal-green);
+  }
+
+  /* ServiceCardsBlock.astro:863-865 — the anchor clears the nav and, on pages
+     that declare one, the rail. */
+  section.section[id] {
+    scroll-margin-top: calc(var(--nav-h, 77px) + var(--toc-h, 0px) + 12px);
+  }
+
+  /* home.css:41; patient-testimonials.css:34 */
+  .section .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  /* ---------- section head (grid shapes) ----------
+     home.css:557-563; patient-testimonials.css:113-124, :264-279. Eyebrow type
+     from home.css:45-49 / patient-testimonials.css:36-40; h2 type from
+     patient-testimonials.css:42-52 with the trailing ink override :554 (see the
+     header for the home delta); `p` inherits the body line-height, 1.65
+     (global.css body), stated so a client sheet cannot lift it. */
+  .section .section-head {
+    text-align: center;
+    max-width: 820px;
+    margin: 0 auto 60px;
+  }
+  .section .section-head .eyebrow {
+    font-family: var(--vs-font-body);
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .section .section-head .eyebrow::before,
+  .section .section-head .eyebrow::after {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+  .section .section-head h2 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    color: var(--vs-ink);
+    margin: 22px 0 22px;
+    line-height: 1.1;
+    letter-spacing: -0.022em;
+    font-size: clamp(32px, 4.2vw, 54px);
+  }
+  /* `:global()` because the `<em>` arrives through `set:html` and carries no
+     scope attribute — ServiceCardsBlock.astro:897-905. */
+  .section .section-head h2 :global(em) {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+  .section .section-head p {
+    font-size: 17px;
+    line-height: 1.65;
+    max-width: 60ch;
+    margin: 0 auto;
+    color: var(--vs-ink-soft);
+  }
+
+  /* ---------- band inversions, head ----------
+     sage-pale: patient-testimonials.css:267-279 — the eyebrow stays SAGE with
+     sage hairlines (not the ink-soft a sibling shell would give it).
+     charcoal: patient-testimonials.css:114-124; home.css:914-919. The sage band
+     takes the charcoal pairing, as ServiceCardsBlock.astro:996-1017 does. */
+  .section.dark .section-head .eyebrow {
+    color: var(--vs-sage);
+  }
+  .section.dark .section-head .eyebrow::before,
+  .section.dark .section-head .eyebrow::after {
+    background: var(--vs-sage);
+  }
+  .section.dark .section-head h2 {
+    color: var(--vs-ink);
+  }
+  .section.dark .section-head h2 :global(em) {
+    color: var(--vs-sage);
+    font-style: italic;
+  }
+  .section.dark .section-head p {
+    color: var(--vs-ink-soft);
+  }
+
+  .section.alt .section-head .eyebrow,
+  .section.sage .section-head .eyebrow {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .section.alt .section-head .eyebrow::before,
+  .section.alt .section-head .eyebrow::after,
+  .section.sage .section-head .eyebrow::before,
+  .section.sage .section-head .eyebrow::after {
+    background: rgba(255, 255, 255, 0.6);
+  }
+  .section.alt .section-head h2,
+  .section.sage .section-head h2 {
+    color: #fff;
+  }
+  .section.alt .section-head h2 :global(em),
+  .section.sage .section-head h2 :global(em) {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .section.alt .section-head p,
+  .section.sage .section-head p {
+    color: rgba(255, 255, 255, 0.85);
+  }
+
+  /* ---------- the grids ----------
+     landscape: home.css:565-567 / patient-testimonials.css:126-128.
+     portrait: patient-testimonials.css:283-300 — six columns, each card spans
+     two, and the orphan is centred. The sheet's `:nth-child(7)` is generalised
+     to "the last card when it opens a row": 7 cards centre the seventh, 4 the
+     fourth, 3 and 6 are untouched. home's three-card portrait grid is a plain
+     `repeat(3, 1fr)` (home.css:566) — three spans of two on six columns is the
+     same geometry, so it is not a second rule. */
+  .section .video-grid {
+    display: grid;
+    gap: 30px;
+  }
+  .section .video-grid.shape-landscape {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .section .video-grid.shape-portrait {
+    grid-template-columns: repeat(6, 1fr);
+  }
+  .section .video-grid.shape-portrait > .story-card {
+    grid-column: span 2;
+  }
+  .section .video-grid.shape-portrait > .story-card:nth-child(3n + 1):last-child {
+    grid-column: 3 / span 2;
+  }
+  /* home.css:585 and patient-testimonials.css:298-300 (3:4);
+     patient-testimonials.css:145 (4:3). */
+  .section .video-grid.shape-portrait .story-photo {
+    aspect-ratio: 3 / 4;
+  }
+  .section .video-grid.shape-landscape .story-photo {
+    aspect-ratio: 4 / 3;
+  }
+
+  /* ---------- the card ----------
+     home.css:568-630 == patient-testimonials.css:129-190, value for value. The
+     button reset is the sheets' own (global.css:463-468 already zeroes border,
+     background and padding; the sheets restate the rest). */
+  .section .story-card {
+    background: #fff;
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-lg);
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    padding: 0;
+    cursor: pointer;
+    width: 100%;
+    display: block;
+  }
+  .section .story-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 24px 60px -30px rgba(40, 40, 30, 0.25), 0 8px 20px -10px rgba(40, 40, 30, 0.08);
+  }
+  .section .story-card:focus-visible {
+    outline: 2px solid var(--vs-sage);
+    outline-offset: 3px;
+  }
+  .section .story-photo {
+    position: relative;
+    background: var(--vs-ink-deep);
+    overflow: hidden;
+  }
+  .section .story-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+  .section .story-card:hover .story-photo img {
+    transform: scale(1.04);
+  }
+  .section .story-photo::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 50%, rgba(0, 0, 0, 0.4) 100%);
+  }
+  .section .story-photo .play-btn {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 68px;
+    height: 68px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.92);
+    color: var(--vs-ink-deep, #1d2620);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+    z-index: 1;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+  }
+  .section .story-photo .play-btn svg {
+    width: 26px;
+    height: 26px;
+    transform: translateX(2px);
+  }
+  .section .story-card:hover .play-btn,
+  .section .story-card:focus-visible .play-btn {
+    transform: scale(1.08);
+    background: #fff;
+  }
+  .section .story-body {
+    padding: 24px 26px 26px;
+  }
+  /* h4 type: home.css:621-624 / patient-testimonials.css:181-184 over the
+     sheets' heading group (line-height — see the header). */
+  .section .story-body h4 {
+    margin: 0 0 10px;
+    font-family: var(--vs-font-display);
+    font-weight: 500;
+    font-size: 22px;
+    line-height: 1.1;
+    color: var(--vs-ink);
+    letter-spacing: -0.005em;
+  }
+  .section .story-body p {
+    margin: 0;
+    font-size: 14.5px;
+    line-height: 1.7;
+    color: var(--vs-ink-soft);
+  }
+  .section .story-body .label {
+    font-size: 10.5px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--vs-muted);
+    margin-top: 16px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section .story-body .label::before {
+    content: "";
+    width: 20px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+
+  /* ---------- the featured band ----------
+     patient-testimonials.css:320-446. The `::before` radial gradient (:326-331)
+     is carried so the decoration is not lost to the migration. */
+  section.section.featured {
+    position: relative;
+    overflow: hidden;
+  }
+  .section.featured::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(ellipse 700px 400px at 12% 88%, rgba(107, 122, 84, 0.06), transparent 60%);
+    pointer-events: none;
+  }
+  .section .featured-grid {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+  .section .featured-video {
+    position: relative;
+    aspect-ratio: 16 / 9;
+    width: 100%;
+    display: block;
+    padding: 0;
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-xl);
+    overflow: hidden;
+    background: var(--vs-ink-deep);
+    box-shadow: var(--vs-shadow-lg);
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+  .section .featured-video:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 30px 70px -28px rgba(40, 40, 30, 0.35), 0 10px 24px -10px rgba(40, 40, 30, 0.12);
+  }
+  .section .featured-video:focus-visible {
+    outline: 2px solid var(--vs-sage);
+    outline-offset: 3px;
+  }
+  .section .featured-video img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.6s ease;
+  }
+  .section .featured-video:hover img {
+    transform: scale(1.04);
+  }
+  .section .featured-video::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, transparent 45%, rgba(0, 0, 0, 0.55) 100%);
+    pointer-events: none;
+  }
+  .section .featured-play {
+    position: absolute;
+    inset: 0;
+    margin: auto;
+    width: 84px;
+    height: 84px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.94);
+    color: var(--vs-ink-deep, #1d2620);
+    box-shadow: 0 14px 40px rgba(0, 0, 0, 0.35);
+    z-index: 1;
+    transition: transform 0.3s ease, background-color 0.3s ease;
+  }
+  .section .featured-play svg {
+    width: 32px;
+    height: 32px;
+    transform: translateX(3px);
+  }
+  .section .featured-video:hover .featured-play,
+  .section .featured-video:focus-visible .featured-play {
+    transform: scale(1.08);
+    background: #fff;
+  }
+  .section .featured-runtime {
+    position: absolute;
+    left: 22px;
+    bottom: 18px;
+    z-index: 1;
+    font-family: var(--vs-font-body);
+    font-size: 11.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(255, 255, 255, 0.95);
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section .featured-runtime::before {
+    content: "";
+    width: 22px;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.7);
+  }
+
+  /* The copy column: patient-testimonials.css:414-446. The eyebrow carries a
+     `::before` hairline ONLY (:417-419) — no `::after`, unlike the grid heads.
+     h2 type and ink colour as the head above; the `<em>` :global for the same
+     reason. */
+  .section .featured-copy .eyebrow {
+    font-family: var(--vs-font-body);
+    font-size: 12px;
+    letter-spacing: 0.28em;
+    text-transform: uppercase;
+    color: var(--vs-sage);
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .section .featured-copy .eyebrow::before {
+    content: "";
+    width: 28px;
+    height: 1px;
+    background: var(--vs-sage);
+  }
+  .section .featured-copy h2 {
+    font-family: var(--vs-font-display);
+    font-weight: 400;
+    color: var(--vs-ink);
+    line-height: 1.1;
+    letter-spacing: -0.022em;
+    font-size: clamp(32px, 4.2vw, 54px);
+    margin: 22px 0 24px;
+    max-width: 18ch;
+  }
+  .section .featured-copy h2 :global(em) {
+    font-style: italic;
+    color: var(--vs-sage-soft);
+    font-weight: 300;
+  }
+  /* `.featured-copy p` first, then the quote: the quote IS a `p`, and on the
+     live page the `p` rule's size, line-height, measure and bottom margin win
+     over the quote's (see the header). Written in the same order with the
+     quote carrying only the declarations that actually paint. */
+  .section .featured-copy p {
+    font-size: 15.5px;
+    line-height: 1.8;
+    margin: 0 0 18px;
+    max-width: 52ch;
+    color: var(--vs-ink-soft);
+  }
+  .section .featured-copy p:last-of-type {
+    margin-bottom: 0;
+  }
+  .section .featured-copy .featured-quote {
+    font-family: var(--vs-font-display);
+    font-style: italic;
+    font-weight: 300;
+    color: var(--vs-sage);
+    padding-left: 22px;
+    border-left: 2px solid var(--vs-sage-soft);
+  }
+  .section .featured-actions {
+    margin-top: 32px;
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  /* ---------- band inversions, featured copy ----------
+     No page ships a featured row on a dark band. The values mirror the head
+     inversions above so a row an editor drags onto charcoal or sage stays
+     legible; the quote takes the eyebrow tint for the same reason. */
+  .section.alt .featured-copy .eyebrow,
+  .section.sage .featured-copy .eyebrow {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .section.alt .featured-copy .eyebrow::before,
+  .section.sage .featured-copy .eyebrow::before {
+    background: rgba(255, 255, 255, 0.6);
+  }
+  .section.alt .featured-copy h2,
+  .section.sage .featured-copy h2 {
+    color: #fff;
+  }
+  .section.alt .featured-copy h2 :global(em),
+  .section.sage .featured-copy h2 :global(em) {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .section.alt .featured-copy p,
+  .section.sage .featured-copy p {
+    color: rgba(255, 255, 255, 0.85);
+  }
+  .section.alt .featured-copy .featured-quote,
+  .section.sage .featured-copy .featured-quote {
+    color: var(--vs-eyebrow-on-sage);
+  }
+  .section.dark .featured-copy h2 :global(em) {
+    color: var(--vs-sage);
+  }
+
+  /* ---------- motion ----------
+     home.css:615-619 / patient-testimonials.css:175-179 and :406-413. */
+  @media (prefers-reduced-motion: reduce) {
+    .section .story-photo img,
+    .section .story-photo .play-btn {
+      transition: none;
+    }
+    .section .story-card:hover .story-photo img {
+      transform: none;
+    }
+    .section .featured-video,
+    .section .featured-video img,
+    .section .featured-play {
+      transition: none;
+    }
+    .section .featured-video:hover {
+      transform: none;
+    }
+    .section .featured-video:hover img {
+      transform: none;
+    }
+    .section .featured-video:hover .featured-play {
+      transform: none;
+    }
+  }
+
+  /* ---------- responsive ----------
+     patient-testimonials.css:508-516 */
+  @media (max-width: 991px) {
+    .section .featured-grid {
+      grid-template-columns: 1fr;
+      gap: 50px;
+    }
+    .section .featured-video {
+      max-width: 640px;
+      margin: 0 auto;
+      width: 100%;
+    }
+  }
+
+  /* home.css:977-981; patient-testimonials.css:304-317, :520, :534-541.
+     The 440px cap is the PORTRAIT grid's (both sheets cap the 3:4 cards and
+     neither caps the landscape grid, :534-536), so it is written per shape. */
+  @media (max-width: 780px) {
+    section.section {
+      padding: 80px 0;
+    }
+    .section .wrap {
+      padding: 0 22px;
+    }
+    .section .section-head {
+      margin-bottom: 40px;
+    }
+    .section .video-grid.shape-portrait,
+    .section .video-grid.shape-landscape {
+      grid-template-columns: 1fr;
+      gap: 22px;
+    }
+    .section .video-grid.shape-portrait > .story-card,
+    .section .video-grid.shape-portrait > .story-card:nth-child(3n + 1):last-child {
+      grid-column: auto;
+      max-width: 440px;
+      margin: 0 auto;
+    }
+    .section .featured-grid {
+      gap: 36px;
+    }
+    /* The sheet's 18px here loses to `.featured-copy p` too (header); only the
+       padding paints. */
+    .section .featured-copy .featured-quote {
+      padding-left: 16px;
+    }
+    .section .featured-actions {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+    }
+  }
+</style>

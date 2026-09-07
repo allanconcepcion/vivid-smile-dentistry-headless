@@ -1,0 +1,179 @@
+---
+/**
+ * StoryVideoModal — the patient-story video lightbox: one `<dialog>`, its
+ * close button, the frame the YouTube iframe is injected into, and the
+ * inline script that wires EVERY `[data-video-id]` element on the page to it.
+ *
+ * ONE PER PAGE — id is a singleton; the template renders this outside the
+ * migration switch; VideoCardsBlock depends on it and cannot emit it.
+ *
+ * EXTRACTED, NOT DESIGNED. Element for element from
+ *   src/pages/patient-testimonials/index.astro:267-272  the `<dialog>`,
+ *       `<button data-video-close>` (× svg) and `<div data-video-frame>`;
+ *   src/pages/patient-testimonials/index.astro:274-331  the `<script is:inline>`
+ *       — the DOMContentLoaded-wrapped `[data-video-id]` variant, which is the
+ *       superset of home's `.story-card[data-video-id]` IIFE at
+ *       src/pages/index.astro:307-354: it also catches `.featured-video`, and
+ *       it finds cards that appear AFTER the script in the DOM.
+ * The markup and the script are copied verbatim, indentation included, so a
+ * template that swaps its inline copy for `<StoryVideoModal />` at the same
+ * position ships the same bytes EXCEPT the `data-astro-cid-*` scope attribute
+ * this component's `<style>` puts on its five elements (dialog, button, svg,
+ * path, div) — the pages have no `<style>` of their own, so today's built
+ * `<dialog>` carries none. The raw-`<body>` sweep must expect that one
+ * attribute per element and nothing else; the words, classes and script are
+ * unchanged.
+ *
+ * WHY CHROME AND NOT A BLOCK. Two video_cards rows on one page would emit two
+ * `id="story-video-modal"` (the script's getElementById at :279 finds the
+ * first only) and two unhashed inline scripts; nothing under src/blocks ships
+ * a <script> or a <dialog>. So the modal is page furniture: index.astro and
+ * patient-testimonials/index.astro render it once, immediately before
+ * <VirtualConsult>, on BOTH sides of their migration switch, and
+ * [...slug].astro renders it when any row is a video_cards row. A page that
+ * places a video_cards row without this component has dead play buttons.
+ *
+ * CSS: patient-testimonials.css:193-252 restated below, every selector rooted
+ * `dialog.story-video-modal …` (two compounds deep, then Astro's scope
+ * attribute on top), so a page sheet's `.patient-testimonials .story-video-*`
+ * / `.home .story-video-*` at (0,2,x) never wins a tie against it — and the
+ * values are identical to home.css:633-692, so whichever sheet paints, the
+ * pixel is the same. The one resolved token: the page sheets' `--r-lg` is a
+ * page-root alias of `--vs-r-lg` (patient-testimonials.css:27, home.css:34);
+ * a client-made [...slug] page has no page root, so this sheet reads
+ * `--vs-r-lg` (tokens.css:47) directly — same 28px on every page.
+ * `:global(iframe)` because the iframe is created by the script at runtime
+ * and carries no scope attribute (the BlogShareButtons.astro:124 idiom).
+ *
+ * No props, no slots. Nothing here is CMS content.
+ */
+---
+
+      <dialog class="story-video-modal" id="story-video-modal" aria-label="Patient story video">
+        <button type="button" class="story-video-close" data-video-close aria-label="Close video">
+          <svg viewBox="0 0 24 24" focusable="false" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <div class="story-video-frame" data-video-frame></div>
+      </dialog>
+
+      <script is:inline>
+        // Wrap in DOMContentLoaded so the selector picks up [data-video-id]
+        // elements that appear AFTER this script in the DOM (e.g. the
+        // featured Wayne video card in the next section).
+        const initStoryVideoModal = () => {
+          const modal = document.getElementById("story-video-modal");
+          if (!modal) return;
+          const frame = modal.querySelector("[data-video-frame]");
+          const closeBtn = modal.querySelector("[data-video-close]");
+          // Any element with data-video-id opens the modal — the 3 story cards
+          // above + the featured Wayne video card below.
+          const cards = document.querySelectorAll("[data-video-id]");
+
+          const openVideo = (id, title, isShort) => {
+            if (!id) return;
+            const iframe = document.createElement("iframe");
+            iframe.src = `https://www.youtube-nocookie.com/embed/${id}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
+            iframe.title = title || "Patient story video";
+            iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+            iframe.allowFullscreen = true;
+            iframe.loading = "lazy";
+            frame.replaceChildren(iframe);
+            modal.classList.toggle("is-short", !!isShort);
+            if (typeof modal.showModal === "function") modal.showModal();
+            else modal.setAttribute("open", "");
+            document.body.style.overflow = "hidden";
+          };
+
+          const closeVideo = () => {
+            frame.replaceChildren();
+            modal.classList.remove("is-short");
+            if (typeof modal.close === "function" && modal.open) modal.close();
+            else modal.removeAttribute("open");
+            document.body.style.overflow = "";
+          };
+
+          cards.forEach((card) => {
+            card.addEventListener("click", () => {
+              openVideo(card.dataset.videoId, card.dataset.videoTitle, card.dataset.videoShort === "true");
+            });
+          });
+
+          closeBtn?.addEventListener("click", closeVideo);
+          modal.addEventListener("click", (e) => {
+            if (e.target === modal) closeVideo();
+          });
+          modal.addEventListener("close", closeVideo);
+          modal.addEventListener("cancel", (e) => {
+            e.preventDefault();
+            closeVideo();
+          });
+        };
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", initStoryVideoModal);
+        } else {
+          initStoryVideoModal();
+        }
+      </script>
+
+<style>
+  /* Patient story video modal — patient-testimonials.css:193-252 (== home.css:633-692) */
+  dialog.story-video-modal {
+    border: 0; padding: 0; background: transparent;
+    width: min(960px, 92vw);
+    max-width: 960px;
+    max-height: 90vh;
+    border-radius: var(--vs-r-lg);
+    overflow: visible;
+    color: #fff;
+  }
+  dialog.story-video-modal::backdrop {
+    background: rgba(15, 22, 18, .85);
+    backdrop-filter: blur(4px);
+  }
+  dialog.story-video-modal .story-video-frame {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    background: #000;
+    border-radius: var(--vs-r-lg);
+    overflow: hidden;
+    box-shadow: 0 30px 80px rgba(0, 0, 0, .5);
+  }
+  dialog.story-video-modal .story-video-frame :global(iframe) {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    border: 0;
+  }
+  dialog.story-video-modal .story-video-close {
+    position: absolute;
+    top: -52px; right: 0;
+    width: 40px; height: 40px;
+    display: inline-flex; align-items: center; justify-content: center;
+    background: transparent; color: #fff;
+    border: 1px solid rgba(255, 255, 255, .35);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: background-color .25s ease, border-color .25s ease;
+  }
+  dialog.story-video-modal .story-video-close:hover,
+  dialog.story-video-modal .story-video-close:focus-visible {
+    background: rgba(255, 255, 255, .12);
+    border-color: rgba(255, 255, 255, .8);
+    outline: none;
+  }
+  dialog.story-video-modal .story-video-close svg { width: 18px; height: 18px; }
+
+  /* Vertical 9:16 modal variant for YouTube shorts — applied via .is-short class
+     set by the script when a card with data-video-short="true" is clicked. */
+  dialog.story-video-modal.is-short {
+    width: auto;
+    max-width: 92vw;
+  }
+  dialog.story-video-modal.is-short .story-video-frame {
+    aspect-ratio: 9 / 16;
+    height: min(82vh, 720px);
+    width: auto;
+    max-width: 92vw;
+    margin: 0 auto;
+  }
+</style>

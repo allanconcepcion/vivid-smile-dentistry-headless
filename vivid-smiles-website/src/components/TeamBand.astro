@@ -1,0 +1,591 @@
+---
+/**
+ * /about-us/ `#team` — the centred intro and the four-tier support-staff
+ * roster (Patient Coordination → Dental Hygienists → Dental Assistants →
+ * Comfort Officers) of paper portrait cards on the sage-pale band.
+ *
+ * A code_section band, registered as `about_us_team` in
+ * src/blocks/CodeSectionBlock.astro. The template hard-codes `id="team"`
+ * (about-us/index.astro:601), so `id` defaults to that and CodeSectionBlock
+ * overrides it with the row's deduped anchor when one is typed. The four
+ * tier ids (coordination / hygienists / assistants / comfort) stay inside the
+ * component, as they stay inside the template.
+ *
+ * ── D1: a route-scoped band reads its own page ────────────────────────────
+ * THE TEAM TAB IS THE ONE PEOPLE-LIST ON THE SITE and it is already editable:
+ * `team` (nine rows live) is the Team tab under Pages -> About Us, and the
+ * intro is the `team-intro` Section-copy row. A code band receives props
+ * only, so freezing nine people into the BANDS entry would undo the tab —
+ * the plan calls that mandatory (plan-phases Phase 2, dependsOn D1). This
+ * component therefore calls `getPageContent(Astro.url.pathname)` itself —
+ * the read the template runs at about-us/index.astro:49 — guarded by the
+ * `route` prop: on any other route it renders NOTHING and warns, because the
+ * rows and the ten image slots it asks for exist only on the About page
+ * entry. Decision D1, 2026-09-08 (TrustStrip.astro is the first instance of
+ * the pattern).
+ *
+ * ── What moved here, and what the template keeps ──────────────────────────
+ * The roster logic is a COPY of about-us/index.astro:244-354 — TEAM_TIERS
+ * (:285-290), cmsTeam / teamGroups (:292-312), TEMPLATE_TEAM_LEDE, countWord
+ * and teamLedeFor (:332-344), teamDogs / teamLede (:346-347), and the
+ * `teamIntro` introFrom() call (:354) with its literal fallbacks — plus the
+ * literal roster `templateTeamGroups` (:147-242), which reads the ten team
+ * image slots teamSara … teamBirdie and is the rollback when the Team tab is
+ * empty. Here the literal is wrapped in a function that takes `image`,
+ * because the read only happens on-route; every name, role, bio, slot and
+ * alt is the template's, in the template's order. The template keeps its own
+ * copy of all of it for the un-migrated branch (non-negotiable 6) — nothing
+ * was deleted there.
+ *
+ * ── Markup ────────────────────────────────────────────────────────────────
+ * Verbatim from about-us/index.astro:601-650: `section.section.dark#team` >
+ * `.wrap[data-vs-reveal-batch]` > <SectionIntro centered
+ * class="aus-section-head"> (eyebrow / heading / headingItalic / lede from
+ * teamIntro) + one `div.aus-team-group#<tier>` per tier that has members:
+ * `h3.aus-team-group-title` ("{titleStart} <em>{titleAccent}</em>") and
+ * `div.aus-team-grid.aus-team-grid-<n>[data-vs-reveal-batch]` (the inner
+ * batch staggers the cards independently of the outer one, mirroring the
+ * .creds-grid pattern) of `article.aus-team-card` > `.aus-team-pic` > <Image
+ * widths=[360,540,720] sizes="(min-width: 1100px) 380px, (min-width: 780px)
+ * 50vw, 100vw" loading="lazy" decoding="async"> + `.aus-team-body` >
+ * `span.aus-team-role` + h4 + p. data-vs-reveal-batch stays on `.wrap`, as
+ * the template has it — not on the section. The lines are copied, not
+ * retyped.
+ *
+ * ONE MEASURED WHITESPACE FACT. The band sits in a ROOT-LEVEL expression
+ * (`{onRoute && (…)}`), and @astrojs/compiler 3.0.1 in compact mode drops
+ * every whitespace-only text node inside a root-level expression instead of
+ * collapsing it to one space as it does under an element (the template's
+ * band sits under <main>). Between elements that is invisible — the same
+ * residue TrustStrip, HomeTechnologyBand and every Wave B band ship. Inside
+ * the tier title it is not: the template's `{group.titleStart} <em>` loses
+ * its literal space and would ship "Patient<em>Coordination</em>", so the
+ * space travels inside the expression — `{`${group.titleStart} `}<em>` —
+ * and ships "Patient <em>Coordination</em>", the template's words. No
+ * zero-byte construction restores the element-context behaviour (a leading
+ * <style>, <slot />, <Fragment />, comment or expression does not; only a
+ * real sibling element does, and a wrapper is exactly what CodeSectionBlock
+ * forbids). Compiled with `transform(..., { compact: true })`, the call
+ * astro/dist/core/compile/compile.js:19 makes.
+ *
+ * ── CSS ───────────────────────────────────────────────────────────────────
+ * about-us.css restated below: `.section` padding (:103, :469), the
+ * `.section.dark` band and its ink overrides (:121-132), `.aus-section-head`
+ * (:136), the whole TEAM block (:239-345), the 1100px team rules (:453-462)
+ * and the 780px rules (:466, :475-486). The page primitives the band's own
+ * elements sit on — `.wrap` (:32), the h3/h4 base (:34-37, :41-42), `p`
+ * (:43) and `em` (:44) — are folded into the team rules so the box is whole
+ * without the page sheet. Astro scopes by attribute, so a bare
+ * `.aus-team-card` would tie the page sheet's `.aus .aus-team-card` at
+ * (0,2,0) and leave bundle order to decide (CodeSectionBlock.astro, the
+ * "Why there is no <style> block" note; TrustBand.astro's <style> header);
+ * everything below is rooted at `.section`, and the section rule itself is
+ * written `section.section.dark` so it outranks `.aus .section.dark` rather
+ * than tying it.
+ *
+ * The SectionIntro's children (`.aus-section-head`, `.vs-eyebrow`, `h2.vs-h2`,
+ * `em.vs-italic-word`, `p.vs-lede`) are rendered by another component and
+ * carry no scope attribute, so their page-sheet rules are written through
+ * `:global()` under `section.section.dark` — the same reason
+ * HomeTechnologyBand writes `.tech h2 :global(em)`. Their site-wide base
+ * (global.css:489-497 .vs-h2, :518-524 .vs-lede, :535-538 .vs-italic-word,
+ * :546-560 .vs-eyebrow, :647-654 .vs-intro-triad) is BaseLayout's, not the
+ * page's, and is not restated. The page sheet's `.aus` aliases (about-us.css
+ * :10-29) map 1:1 to `--vs-*` tokens and the token names are used here —
+ * with ONE exception: `--shadow` (:21) is a raw value on `.aus`, NOT an alias
+ * of `--vs-shadow`, so the card's hover shadow is written out literally.
+ * Same computed values either way.
+ */
+import { Image } from "astro:assets";
+import SectionIntro from "./SectionIntro.astro";
+import { getPageContent, introFrom, type PageContent, type PageImage } from "../lib/page-content";
+
+interface Props {
+  /**
+   * The route this band belongs to ("/about-us/"). It reads that page's
+   * Team tab, `team-intro` Section-copy row and ten team image slots, so on
+   * any other route it renders nothing and warns.
+   */
+  route: string;
+  /** The DOM id. CodeSectionBlock overrides it with the row's deduped anchor. */
+  id?: string;
+}
+
+const { route, id = "team" } = Astro.props;
+
+// trailingSlash is 'always' (astro.config.mjs:21); normalise both sides anyway
+// so "/about-us" and "/about-us/" name the same page, as page-content.ts does.
+const withSlash = (p: string) => (p.endsWith("/") ? p : `${p}/`);
+const here = Astro.url.pathname;
+const onRoute = withSlash(here) === withSlash(route);
+
+if (!onRoute) {
+  console.warn(
+    `[blocks] TeamBand is scoped to ${route} and was asked to render on ${here} — it reads that page's Team tab, "team-intro" section and team image slots, so it renders nothing here`,
+  );
+}
+
+// about-us/index.astro:279-283 — named "roster" so they cannot be mistaken
+// for the loader's TeamMember / TeamPhoto / TeamGroup, which describe a CMS
+// row; these describe a card.
+type RosterPhoto = Pick<PageImage, 'url' | 'width' | 'height'>;
+type RosterMember = { name: string; role: string; bio: string; image: RosterPhoto; alt: string };
+type RosterTier = { id: string; titleStart: string; titleAccent: string; members: RosterMember[] };
+
+// about-us/index.astro:147-242 — the literal roster, THE ROLLBACK PATH when
+// the Team tab is empty. 4 tier groups, ordered front-office → hygienists →
+// assistants → comfort (the order patients meet the team in real life:
+// phone/check-in first, then chair-side). The 3 → 2 → 3 → 2 column cadence
+// also gives the section a deliberate visual rhythm. Wrapped in a function
+// because `image` exists only on-route; the members are the template's,
+// character for character.
+function templateTeamGroupsFor(image: PageContent["image"]): RosterTier[] {
+  return [
+    {
+      id: 'coordination',
+      titleStart: 'Patient',
+      titleAccent: 'Coordination',
+      members: [
+        {
+          name: 'Sara',
+          role: 'Office Manager',
+          bio: "Bachelor's and master's in Healthcare Administration. Sets the tone of the practice and keeps every smile journey moving from first call to final visit.",
+          image: image("teamSara"),
+          alt: 'Sara, Office Manager at Vivid Smiles',
+        },
+        {
+          name: 'KT',
+          role: 'Patient Care & Office Coordinator',
+          bio: "Often the first friendly voice you'll hear. Ten years in healthcare and dentistry, recently transplanted to Parker from Colorado's Western Slope.",
+          image: image("teamKt"),
+          alt: 'KT, Patient Care and Office Coordinator at Vivid Smiles',
+        },
+        {
+          name: 'Carol',
+          role: 'Patient Coordinator',
+          bio: 'In dentistry since age 19. A Colorado native who hikes with her family and disappears to warm beaches whenever she gets the chance.',
+          image: image("teamCarol"),
+          alt: 'Carol, Patient Coordinator at Vivid Smiles',
+        },
+      ],
+    },
+    {
+      id: 'hygienists',
+      titleStart: 'Dental',
+      titleAccent: 'Hygienists',
+      members: [
+        {
+          name: 'Mandy',
+          role: 'Registered Dental Hygienist',
+          bio: 'A Registered Dental Hygienist since 2011 who grew up in a military family — bringing warm, welcoming energy to every appointment.',
+          image: image("teamMandy"),
+          alt: 'Mandy, Registered Dental Hygienist at Vivid Smiles',
+        },
+        {
+          name: 'Sammie',
+          role: 'Registered Dental Hygienist',
+          bio: 'UMKC graduate with seventeen years of hygiene experience and a focus on patient education and personalized oral health care.',
+          image: image("teamSammie"),
+          alt: 'Sammie, Registered Dental Hygienist at Vivid Smiles',
+        },
+      ],
+    },
+    {
+      id: 'assistants',
+      titleStart: 'Dental',
+      titleAccent: 'Assistants',
+      members: [
+        {
+          name: 'Linh',
+          role: 'Dental Assistant',
+          bio: 'Skilled clinical support and patient education, ensuring every visit moves smoothly and every patient feels comfortable.',
+          image: image("teamLinh"),
+          alt: 'Linh, Dental Assistant at Vivid Smiles',
+        },
+        {
+          name: 'Tina',
+          role: 'Expanded Duties Dental Assistant',
+          bio: 'An EDDA for nearly twenty years across every dental specialty, with deep experience in surgical work — and a side life of camping, fishing, and four-wheeling.',
+          image: image("teamTina"),
+          alt: 'Tina, Expanded Duties Dental Assistant at Vivid Smiles',
+        },
+      ],
+    },
+    {
+      id: 'comfort',
+      titleStart: 'Comfort',
+      titleAccent: 'Officers',
+      members: [
+        {
+          name: 'Knox',
+          role: 'Director of Smiles',
+          bio: 'Part of the practice family since puppyhood. Greets patients with a wagging tail and brightens every visit, one nuzzle at a time.',
+          image: image("teamKnox"),
+          alt: 'Knox, the Vivid Smiles dog and Director of Smiles',
+        },
+        {
+          name: 'Birdie',
+          role: 'Chief Comfort Officer',
+          bio: 'Three-legged, rescued from Turkey through Tattered Paws & Golden Hearts. Uncannily good at finding patients who need an extra dose of comfort.',
+          image: image("teamBirdie"),
+          alt: 'Birdie, the Vivid Smiles dog and Chief Comfort Officer',
+        },
+      ],
+    },
+  ];
+}
+
+/**
+ * ---------- TEAM from WordPress (Pages -> About Us -> Team tab) ----------
+ * about-us/index.astro:244-312, copied.
+ *
+ * A row arrives as getPageContent() shapes it (src/lib/page-content.ts,
+ * TeamMember): `name`, `role`, `bio` and `photoAlt` as trimmed text; `group`
+ * already unwrapped from the one-element array WPGraphQL sends for every ACF
+ * select to a plain id; and `photo` as the same {url, width, height} the
+ * Images tab produces — one placeImage() in src/loaders/pages.ts, so a given
+ * attachment builds to the same hashed asset whichever tab it was chosen
+ * from. A photo is always there: a member without one fails the build in the
+ * loader with a message naming the person and the box to fix, so this
+ * component never has to draw a card with no picture.
+ *
+ * The four tiers are fixed here, not in the CMS. An editor picks a tier per
+ * person from a select whose four values are exactly the ids below
+ * (vs-content-model.php, field_vs_team_group); the tier's heading, its
+ * accent word, its anchor id and the order the tiers appear in are design,
+ * so they stay in code. A tier nobody is in is not drawn at all — no orphan
+ * heading over an empty grid. Every select value has a branch: an id this
+ * table does not name cannot be chosen, because the select allows no null
+ * and offers nothing else.
+ *
+ * The grid class is derived from the member count (`aus-team-grid-${n}`), so
+ * a count the hand-written roster never produced needs a rule in <style>
+ * below or the tier collapses to one column. 1 and 4–6 have their own rules
+ * there; larger counts fall to a low-specificity default.
+ */
+const TEAM_TIERS: Array<Pick<RosterTier, 'id' | 'titleStart' | 'titleAccent'>> = [
+  { id: 'coordination', titleStart: 'Patient', titleAccent: 'Coordination' },
+  { id: 'hygienists', titleStart: 'Dental', titleAccent: 'Hygienists' },
+  { id: 'assistants', titleStart: 'Dental', titleAccent: 'Assistants' },
+  { id: 'comfort', titleStart: 'Comfort', titleAccent: 'Officers' },
+];
+
+/**
+ * about-us/index.astro:314-344, copied. The lede counts the room, and with
+ * the CMS list in play it is rebuilt from the rows so that "seven teammates"
+ * cannot go stale the day an eighth is added: H is every row outside the
+ * comfort tier, D is the comfort tier.
+ *
+ * PROOF it reproduces today's words. The nine literal cards are 7 humans and
+ * 2 dogs; countWord(7) is "seven", countWord(2) is "two", D is not 1 so
+ * "dogs", and three clauses take the serial-comma join — giving
+ *   "Two doctors, seven teammates, and two very good dogs — hand-picked …"
+ * which is TEMPLATE_TEAM_LEDE character for character, including the U+2014
+ * dash.
+ *
+ * One to twelve are spelled out, the way the lede has always spelled "seven"
+ * and "two"; beyond that the digits stand. A count of zero drops its clause
+ * instead of reading "zero very good dogs", and the join degrades to
+ * "Two doctors and seven teammates".
+ */
+const TEMPLATE_TEAM_LEDE =
+  'Two doctors, seven teammates, and two very good dogs — hand-picked for skill, for warmth, and for the quiet way they turn a long appointment into a short one.';
+
+const COUNT_WORDS = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten', 'eleven', 'twelve'];
+const countWord = (n: number): string => COUNT_WORDS[n] || String(n);
+
+function teamLedeFor(humans: number, dogs: number): string {
+  const who = ['Two doctors'];
+  if (humans > 0) who.push(`${countWord(humans)} ${humans === 1 ? 'teammate' : 'teammates'}`);
+  if (dogs > 0) who.push(`${countWord(dogs)} very good ${dogs === 1 ? 'dog' : 'dogs'}`);
+  const list = who.length === 3 ? `${who[0]}, ${who[1]}, and ${who[2]}` : who.join(' and ');
+  return `${list} — hand-picked for skill, for warmth, and for the quiet way they turn a long appointment into a short one.`;
+}
+
+type Intro = { eyebrow: string; heading: string; headingItalic: string; lede: string };
+
+// about-us/index.astro:49 — the same read the template runs, only on this
+// route. Off-route both stay empty and nothing renders.
+let teamGroups: RosterTier[] = [];
+let teamIntro: Intro = { eyebrow: "", heading: "", headingItalic: "", lede: "" };
+if (onRoute) {
+  const { section, image, team } = await getPageContent(here);
+
+  // about-us/index.astro:292-312
+  const cmsTeam = team.length > 0;
+
+  teamGroups = cmsTeam
+    ? TEAM_TIERS.flatMap((tier) => {
+        const members = team
+          .filter((row) => row.group === tier.id)
+          .map((row) => ({
+            name: row.name,
+            role: row.role,
+            bio: row.bio,
+            image: row.photo,
+            // The Photo description box wins when typed; otherwise the alt is
+            // written the way every literal card's alt already reads. The
+            // loader resolves the same words into photo.alt (teamPhotoAlt in
+            // src/loaders/pages.ts).
+            alt: row.photo.alt,
+          }));
+        return members.length > 0 ? [{ ...tier, members }] : [];
+      })
+    : templateTeamGroupsFor(image);
+
+  // about-us/index.astro:346-347
+  const teamDogs = team.filter((row) => row.group === 'comfort').length;
+  const teamLede = cmsTeam ? teamLedeFor(team.length - teamDogs, teamDogs) : TEMPLATE_TEAM_LEDE;
+
+  // about-us/index.astro:354 — the row with the template literal as fallback
+  // (page-content.ts introFrom), so the band is byte-identical until the row
+  // is filled in wp-admin. team-intro.body is EMPTY live, so the computed
+  // lede is what ships.
+  teamIntro = introFrom(section("team-intro"), { eyebrow: "The team", heading: "The people who make", headingItalic: "every visit feel easy.", lede: teamLede });
+}
+---
+
+{
+  onRoute && (
+      <section class="section dark" id={id}>
+        <div class="wrap" data-vs-reveal-batch>
+          <SectionIntro
+            eyebrow={teamIntro.eyebrow}
+            heading={teamIntro.heading}
+            headingItalic={teamIntro.headingItalic}
+            lede={teamIntro.lede}
+            centered
+            class="aus-section-head"
+          />
+
+          {
+            teamGroups.map((group) => (
+              <div class="aus-team-group" id={group.id}>
+                <h3 class="aus-team-group-title">
+                  {`${group.titleStart} `}<em>{group.titleAccent}</em>
+                </h3>
+                {/* Inner data-vs-reveal-batch staggers the cards independently of the
+                  outer wrapper batch, mirroring the .creds-grid pattern. */}
+                <div
+                  class={`aus-team-grid aus-team-grid-${group.members.length}`}
+                  data-vs-reveal-batch
+                >
+                  {group.members.map((m) => (
+                    <article class="aus-team-card">
+                      <div class="aus-team-pic">
+                        <Image
+                          src={m.image.url}
+                          width={m.image.width}
+                          height={m.image.height}
+                          alt={m.alt}
+                          widths={[360, 540, 720]}
+                          sizes="(min-width: 1100px) 380px, (min-width: 780px) 50vw, 100vw"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </div>
+                      <div class="aus-team-body">
+                        <span class="aus-team-role">{m.role}</span>
+                        <h4>{m.name}</h4>
+                        <p>{m.bio}</p>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
+            ))
+          }
+        </div>
+      </section>
+  )
+}
+
+<style>
+  /* ── The band (about-us.css:103, :121) ─────────────────────────────────
+     `section.section.dark` rather than `.section.dark` so the scoped rule is
+     (0,3,1) against the page sheet's `.aus .section.dark` (0,3,0) — a win,
+     not a tie. Values are the same either way. */
+  section.section.dark {
+    padding: 110px 0;
+    background: var(--vs-sage-pale);
+    color: var(--vs-ink);
+  }
+  /* about-us.css:32 */
+  .section .wrap { max-width: 1240px; margin: 0 auto; padding: 0 40px; }
+
+  /* ── The SectionIntro's children, through :global() ───────────────────
+     They are rendered by SectionIntro/Eyebrow and carry no scope attribute.
+     Rooted at `section.section.dark` so each is (0,3,1)+ against the page
+     sheet's (0,2,0)–(0,4,0) equivalents. */
+  /* about-us.css:136 */
+  .section :global(.aus-section-head) { margin: 0 auto 64px; max-width: 760px; }
+  /* about-us.css:34-37 + :40 (h2 base), :122-124 and :495 (ink) */
+  section.section.dark :global(h2) {
+    font-family: var(--vs-font-display);
+    font-size: clamp(32px, 4.2vw, 54px);
+    font-weight: 400;
+    color: var(--vs-ink);
+    margin: 0;
+    line-height: 1.1;
+    letter-spacing: -0.022em;
+  }
+  /* about-us.css:41 and :44 (italic, weight 300), :126-127 (sage on this band) */
+  section.section.dark :global(h2 em) {
+    font-style: italic;
+    font-weight: 300;
+    color: var(--vs-sage);
+  }
+  /* about-us.css:43 and :128 — the lede (p.vs-lede) and every p on the band */
+  section.section.dark :global(p) { margin: 0; color: var(--vs-ink-soft); }
+  /* about-us.css:130-132 — the centred eyebrow reads ink-soft on sage-pale,
+     hairlines included. */
+  section.section.dark :global(.vs-eyebrow) { color: var(--vs-ink-soft); }
+  section.section.dark :global(.vs-eyebrow)::before,
+  section.section.dark :global(.vs-eyebrow)::after { background: var(--vs-ink-soft); }
+
+  /* ── TEAM (about-us.css:239-345) ──────────────────────────────────────── */
+  /* about-us.css:244-245 */
+  .section .aus-team-group { margin-bottom: 90px; }
+  .section .aus-team-group:last-child { margin-bottom: 0; }
+  /* about-us.css:246-255, over the h3 base at :34-37 and :41 */
+  .section .aus-team-group-title {
+    font-family: var(--vs-font-display);
+    font-size: clamp(24px, 2.4vw, 30px);
+    font-weight: 400; line-height: 1; letter-spacing: -0.01em;
+    color: var(--vs-ink);
+    margin: 0 0 38px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+  }
+  /* about-us.css:256-259, over the em base at :44 and :126-127 */
+  .section .aus-team-group-title em {
+    font-style: italic; font-weight: 300;
+    color: var(--vs-sage);
+  }
+
+  /* about-us.css:261-269 — per-tier column count: 3-member tiers use a normal
+     3-col grid; 2-member tiers (Hygienists, Comfort Officers) use a 2-col grid
+     capped at ~880px so the row reads as full instead of leaving a glaring
+     empty third cell. */
+  .section .aus-team-grid { display: grid; gap: 30px; }
+  .section .aus-team-grid-3 { grid-template-columns: repeat(3, 1fr); }
+  .section .aus-team-grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 880px;
+    margin-inline: auto;
+  }
+
+  /* about-us.css:271-293 — counts the CMS can produce that the hand-written
+     roster never did. The class is derived from the member count above
+     (`aus-team-grid-${group.members.length}`), so every count an editor can
+     reach needs a rule here or the tier collapses to one enormous column.
+       1      a single card, centred and capped so it reads as a portrait
+              rather than a banner (440px ≈ one cell of the 3-col grid).
+       4      one row of four; the 4/5 portrait still reads at ~270px.
+       5, 6   three across, wrapping.
+       7+     the :where() rule. Its specificity stays below every per-count
+              rule in this block, so it only ever fills a gap and can never
+              override the -2/-3 rules above — and the same holds inside the
+              breakpoints below, where the per-count rules are restated. */
+  .section .aus-team-grid-1 {
+    grid-template-columns: 1fr;
+    max-width: 440px;
+    margin-inline: auto;
+  }
+  .section .aus-team-grid-4 { grid-template-columns: repeat(4, 1fr); }
+  .section .aus-team-grid-5,
+  .section .aus-team-grid-6 { grid-template-columns: repeat(3, 1fr); }
+  .section :where(.aus-team-grid) { grid-template-columns: repeat(3, 1fr); }
+
+  /* about-us.css:295-311 */
+  .section .aus-team-card {
+    background: var(--vs-paper);
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-lg);
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  }
+  .section .aus-team-card:hover {
+    transform: translateY(-4px);
+    /* `--shadow` on `.aus` (about-us.css:21), written out: it is not --vs-shadow. */
+    box-shadow: 0 24px 60px -30px rgba(40, 40, 30, 0.25), 0 8px 20px -10px rgba(40, 40, 30, 0.08);
+    border-color: rgba(107, 122, 84, 0.32);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .section .aus-team-card { transition: none; }
+    .section .aus-team-card:hover { transform: none; }
+  }
+
+  /* about-us.css:313-321 */
+  .section .aus-team-pic {
+    aspect-ratio: 4 / 5;
+    background: var(--vs-cream);
+    position: relative;
+    overflow: hidden;
+  }
+  .section .aus-team-pic img {
+    width: 100%; height: 100%; object-fit: cover; display: block;
+  }
+
+  /* about-us.css:323-326 */
+  .section .aus-team-body {
+    padding: 26px 24px;
+    display: flex; flex-direction: column; gap: 10px; flex: 1;
+  }
+  /* about-us.css:327-332 */
+  .section .aus-team-role {
+    font-family: var(--vs-font-body);
+    font-size: 10.5px; letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--vs-sage); font-weight: 500;
+  }
+  /* about-us.css:333-339, over the h4 base at :34-37 and :42 */
+  .section .aus-team-card h4 {
+    font-family: var(--vs-font-display);
+    font-size: 24px; font-weight: 400;
+    color: var(--vs-sage);
+    margin: 2px 0 6px;
+    letter-spacing: -0.01em; line-height: 1.1;
+  }
+  /* about-us.css:340-345 (sized rule for the bio rhythm), margin from :43 */
+  .section.dark .aus-team-card p {
+    margin: 0;
+    font-size: 14px; line-height: 1.7;
+    color: var(--vs-ink-soft);
+  }
+
+  /* ── RESPONSIVE ───────────────────────────────────────────────────────── */
+  /* about-us.css:453-462 */
+  @media (max-width: 1100px) {
+    .section .aus-team-grid { gap: 24px; }
+    .section .aus-team-grid-3 { grid-template-columns: repeat(2, 1fr); }
+    /* `.aus-team-grid-2` stays 2-col under its 880px cap (wrap shrinks naturally). */
+    /* CMS-only counts: four across becomes two rows of two; 5 and 6 wrap in
+       pairs; `.aus-team-grid-1` keeps its single 440px column at every width.
+       The :where() catch-all steps down with them for 7+. */
+    .section .aus-team-grid-4,
+    .section .aus-team-grid-5,
+    .section .aus-team-grid-6 { grid-template-columns: repeat(2, 1fr); }
+    .section :where(.aus-team-grid) { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* about-us.css:466, :469, :475-486 */
+  @media (max-width: 780px) {
+    .section .wrap { padding: 0 22px; }
+    section.section.dark { padding: 70px 0; }
+
+    .section .aus-team-grid { gap: 20px; }
+    .section .aus-team-grid-3,
+    .section .aus-team-grid-2 { grid-template-columns: 1fr; max-width: none; }
+    /* CMS-only counts: everything is one column on a phone, and the 440px cap
+       on a single card comes off so it fills the wrap like every other card. */
+    .section .aus-team-grid-1,
+    .section .aus-team-grid-4,
+    .section .aus-team-grid-5,
+    .section .aus-team-grid-6 { grid-template-columns: 1fr; max-width: none; }
+    .section :where(.aus-team-grid) { grid-template-columns: 1fr; }
+    .section .aus-team-group { margin-bottom: 60px; }
+    .section .aus-team-group-title { margin-bottom: 28px; padding-bottom: 14px; }
+  }
+</style>

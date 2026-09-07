@@ -1,0 +1,200 @@
+---
+/**
+ * Home `.trust` — the "Accredited by" logo strip under the hero: a cream card
+ * with a label and an infinitely scrolling row of six logo + title + sub items.
+ *
+ * A code_section band, registered as `home_trust` in
+ * src/blocks/CodeSectionBlock.astro. The band has no id today
+ * (index.astro:143), so its BANDS entry sets `anchorProp: null` and this
+ * component takes no `id` — adding one would be an attribute-level delta on
+ * the live route.
+ *
+ * ── D1: a route-scoped band reads its own page ────────────────────────────
+ * The six PICTURES are Images-tab slots (logoAACD … logoGoogle), edited in
+ * wp-admin under Pages -> Home -> Images, and a code band receives props only
+ * (CodeSectionBlock.astro:607-611). Freezing the attachments in the BANDS
+ * entry would make six `live` slots dead. So this component calls
+ * `getPageContent(Astro.url.pathname)` itself — exactly the read the template
+ * runs at index.astro:54 — guarded by the `route` prop: on any other route it
+ * renders NOTHING and warns, because the slots it asks for exist only on the
+ * home page entry. Decision D1, 2026-09-08; precedent starts here.
+ *
+ * ── What is live and what is literal ──────────────────────────────────────
+ * Live: the six images (url/width/height per slot) and the Google item's
+ * title, built from Practice Settings as `${googleRating} · ${googleReviewCount}
+ * Reviews` (contact.ts:59-60 — the defaults are "5.0" and "300+", so the string
+ * is byte-identical to the template's literal "5.0 · 300+ Reviews" at
+ * index.astro:74 until someone types a new figure). Literal: the `alt`, `title`
+ * and `sub` words for the other five items and the "Accredited by" label —
+ * template literals at index.astro:69-74 and :145, frozen here by D8 (a shared
+ * Practice Settings repeater is a later round).
+ *
+ * ── Markup ────────────────────────────────────────────────────────────────
+ * Verbatim from index.astro:143-163: `section.trust[aria-label]` >
+ * `.trust-card[data-vs-reveal]` > `.trust-label` + `.trust-track` >
+ * `.trust-strip` > the six items doubled (index.astro:78 trustTrack) so the
+ * CSS loop has seamless seam content; the clones carry aria-hidden + inert
+ * (index.astro:152). Each item is `.trust-item` > `.trust-logo` > <Image>,
+ * `.trust-text` > <b> + <small>, followed by a `.trust-sep[aria-hidden]`.
+ * The loop is CSS keyframes, not data-vs-marquee.
+ *
+ * ── CSS ───────────────────────────────────────────────────────────────────
+ * home.css:167-220 and the 780px rules at :941-943, restated below. Astro
+ * scopes by attribute, so a bare `.trust-card` would tie the page sheet's
+ * `.home .trust-card` at (0,2,0) and leave bundle order to decide
+ * (CodeSectionBlock.astro:437-439); everything below is rooted at `.trust`,
+ * and the section rule itself is written `section.trust` so it outranks
+ * `.home .trust` rather than tying it. The page sheet's `.home` aliases
+ * (`--paper`, `--cream`, `--line`, `--r-lg`, `--sage`, `--ink-soft`, `--ink`,
+ * `--muted`, `--f-display`, home.css:14-38) each map 1:1 to a `--vs-*` token;
+ * the `--vs-*` names are used here so the band owns its values whether or not
+ * the alias block is in the cascade. Same computed values.
+ */
+import { Image } from "astro:assets";
+import { getPageContent } from "../lib/page-content";
+import { googleRating, googleReviewCount } from "../data/contact";
+
+interface Props {
+  /**
+   * The route this band belongs to ("/"). It reads that page's image slots,
+   * so on any other route it renders nothing and warns.
+   */
+  route: string;
+}
+
+const { route } = Astro.props;
+
+// trailingSlash is 'always' (astro.config.mjs:21); normalise both sides anyway
+// so "/about-us" and "/about-us/" name the same page, as page-content.ts does.
+const withSlash = (p: string) => (p.endsWith("/") ? p : `${p}/`);
+const here = Astro.url.pathname;
+const onRoute = withSlash(here) === withSlash(route);
+
+if (!onRoute) {
+  console.warn(
+    `[blocks] TrustStrip is scoped to ${route} and was asked to render on ${here} — it reads that page's image slots, so it renders nothing here`,
+  );
+}
+
+type TrustItem = {
+  logo: { url: string; width: number; height: number };
+  alt: string;
+  title: string;
+  sub: string;
+};
+
+// index.astro:68-75, with the Google item's title built from Practice Settings.
+let trustBar: TrustItem[] = [];
+if (onRoute) {
+  const { image } = await getPageContent(here);
+  trustBar = [
+    { logo: image("logoAACD"), alt: "American Academy of Cosmetic Dentistry", title: "AACD", sub: "Accredited Member" },
+    { logo: image("logoAAID"), alt: "American Academy of Implant Dentistry", title: "AAID", sub: "Implant Dentistry" },
+    { logo: image("logoFAM"), alt: "Full Arch Masters", title: "Full Arch Masters", sub: "Clinical Mentor" },
+    { logo: image("logoYomi"), alt: "Yomi Robotics", title: "Yomi Robotics", sub: "Certified Surgeon" },
+    { logo: image("logoADA"), alt: "American Dental Association", title: "ADA", sub: "American Dental Association" },
+    { logo: image("logoGoogle"), alt: "Google Reviews", title: `${googleRating} · ${googleReviewCount} Reviews`, sub: "Google Verified" },
+  ];
+}
+
+// Duplicate trust bar so the marquee animation has seamless loop content
+const trustTrack = [...trustBar, ...trustBar];
+---
+
+{
+  onRoute && (
+    <section class="trust" aria-label="Credentials and memberships">
+      <div class="trust-card" data-vs-reveal>
+        <div class="trust-label">Accredited by</div>
+        <div class="trust-track">
+          <div class="trust-strip">
+            {trustTrack.map((t, i) => {
+              const isClone = i >= trustBar.length;
+              return (
+                <>
+                  <div class="trust-item" aria-hidden={isClone || undefined} inert={isClone || undefined}>
+                    <span class="trust-logo"><Image src={t.logo.url} width={t.logo.width} height={t.logo.height} alt={t.alt} /></span>
+                    <span class="trust-text"><b>{t.title}</b><small>{t.sub}</small></span>
+                  </div>
+                  <span class="trust-sep" aria-hidden="true"></span>
+                </>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  /* home.css:167-170. `section.trust` rather than `.trust` so the scoped rule
+     is (0,2,1) against the page sheet's `.home .trust` (0,2,0) — a win, not a
+     tie. Values are the same either way. */
+  section.trust {
+    background: var(--vs-paper);
+    padding: 24px 28px 0;
+  }
+  /* home.css:171-178 */
+  .trust .trust-card {
+    background: var(--vs-cream);
+    border: 1px solid var(--vs-line);
+    border-radius: var(--vs-r-lg);
+    display: grid; grid-template-columns: auto 1fr;
+    align-items: stretch;
+    overflow: hidden;
+  }
+  /* home.css:179-188 */
+  .trust .trust-label {
+    padding: 22px 30px;
+    display: flex; align-items: center; gap: 12px;
+    /* Was var(--muted) (#7d7d78) ~3.6:1 on cream — below WCAG AA for small text.
+     * --vs-ink-soft lifts contrast to ~8:1 without changing the visual weight. */
+    font-size: 10.5px; letter-spacing: .28em; text-transform: uppercase; color: var(--vs-ink-soft);
+    border-right: 1px solid var(--vs-line);
+    white-space: nowrap;
+  }
+  .trust .trust-label::before { content: ""; width: 26px; height: 1px; background: var(--vs-sage); }
+  /* home.css:189-193 */
+  .trust .trust-track {
+    position: relative; overflow: hidden;
+    mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+    -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  }
+  /* home.css:194-204 */
+  .trust .trust-strip {
+    display: flex; align-items: center; gap: 0;
+    padding: 22px 20px;
+    animation: home-trust-scroll 55s linear infinite;
+    white-space: nowrap;
+    width: max-content;
+  }
+  @keyframes home-trust-scroll {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+  }
+  /* home.css:205-220 */
+  .trust .trust-item {
+    display: inline-flex; align-items: center; gap: 18px;
+    padding: 0 36px;
+    color: var(--vs-ink-soft);
+    font-weight: 400; opacity: .95;
+  }
+  .trust .trust-logo {
+    height: 56px; width: 130px;
+    display: inline-flex; align-items: center; justify-content: center;
+    flex-shrink: 0; padding: 4px;
+  }
+  .trust .trust-logo img { max-height: 100%; max-width: 100%; width: auto; height: auto; object-fit: contain; display: block; }
+  .trust .trust-text { display: flex; flex-direction: column; gap: 3px; line-height: 1.25; }
+  .trust .trust-text b { font-family: var(--vs-font-display); font-weight: 500; font-size: 14px; color: var(--vs-ink); letter-spacing: .005em; }
+  .trust .trust-text small { font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; color: var(--vs-muted); font-weight: 400; }
+  .trust .trust-sep { width: 1px; height: 50px; background: var(--vs-line); flex-shrink: 0; }
+
+  /* home.css:941-943 — the 780 block. */
+  @media (max-width: 780px) {
+    section.trust { padding: 14px 14px 0; }
+    .trust .trust-card { grid-template-columns: 1fr; border-radius: var(--vs-r-md); }
+    .trust .trust-label { padding: 14px 22px; border-right: 0; border-bottom: 1px solid var(--vs-line); justify-content: flex-start; }
+  }
+</style>

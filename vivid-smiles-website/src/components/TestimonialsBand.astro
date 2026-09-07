@@ -1,0 +1,239 @@
+---
+/**
+ * TestimonialsBand — the `.testi` band: a centred head (eyebrow, <h2>, a row
+ * of five stars, a paragraph), the sage "Read More on Google" button, and the
+ * draggable <ReviewMarquee> of the whole reviews collection, newest first.
+ *
+ * ONE COMPONENT, THREE KEYS. The shape ships on three routes and the three
+ * templates are clones of one another, element for element:
+ *
+ *   src/pages/index.astro:601-614                 home_testimonials (no id)
+ *   src/pages/about-us/index.astro:732-749        about_us_voices  (#voices)
+ *   src/pages/patient-testimonials/index.astro:386-399
+ *                                                  patient_testimonials_reviews (#reviews)
+ *
+ * registered in src/blocks/CodeSectionBlock.astro. Every difference between
+ * the three was read off those lines and is reproduced by a prop, never by a
+ * guess — the table is the contract:
+ *
+ *   difference                          home        patient-testimonials  about-us
+ *   ─────────────────────────────────── ─────────── ───────────────────── ─────────────────
+ *   `id` on <section>                   none        "reviews"             "voices"
+ *   eyebrow element                     span.eyebrow span.eyebrow         <Eyebrow center>
+ *   h2 carries data-vs-reveal-lines     no          no                    yes
+ *   .stars carries aria-hidden="true"   no          no                    yes
+ *   eyebrow fallback                    "Testimonials" none               "Testimonials"
+ *   heading fallback                    "5-Star <em>Smiles</em>" none     none
+ *   body fallback                       (sentence)  none                  none
+ *
+ * The three about-us rows travel together under ONE flag, `eyebrowComponent`,
+ * because they are one variant (the page's author drew that band with the
+ * shared Eyebrow component and the reveal-lines/aria-hidden pair in the same
+ * edit, about-us/index.astro:735-737) and no page ships any other mix.
+ *
+ * ── D1: a route-scoped band reads its own page ────────────────────────────
+ * The words are live Section-copy rows (sectionId "testimonials" | "reviews" |
+ * "voices"), edited in wp-admin under Pages -> the page -> Section copy, and a
+ * code band receives props only. Freezing them in the BANDS entry would make
+ * three live rows dead. So this component calls
+ * `getPageContent(Astro.url.pathname)` itself — the read every one of the
+ * three templates runs (index.astro:54, about-us/index.astro:49,
+ * patient-testimonials/index.astro:47) — guarded by the `route` prop: on any
+ * other route it renders NOTHING and warns, because the row it asks for lives
+ * on that page's entry. Decision D1, 2026-09-08.
+ *
+ * ── Fallback semantics, byte for byte ─────────────────────────────────────
+ * The home template writes `section("testimonials").eyebrow || "Testimonials"`
+ * (index.astro:604-607) and the other two write `section("reviews").eyebrow`
+ * with no `||` at all (patient-testimonials/index.astro:389-392;
+ * about-us/index.astro:736-738 for heading and body). `pick()` below is that
+ * distinction: a fallback that was PASSED is applied with `||` exactly as the
+ * template did; a fallback that was NOT passed leaves the live value alone,
+ * including an empty string — so patient-testimonials keeps rendering
+ * `<span class="eyebrow"></span>` when its row's eyebrow is blank, as it does
+ * today, rather than growing a word the template never had.
+ *
+ * ── What is a prop and why ────────────────────────────────────────────────
+ * The Google button (label, href, hover) and the marquee's aria-label are
+ * literals in all three templates (index.astro:610/613,
+ * about-us/index.astro:741-745/748, patient-testimonials/index.astro:395/398).
+ * The href is a pasted external URL, which the HREF policy keeps out of
+ * WordPress fields (src/blocks/cta.ts:14-18); D7 backlogs a Practice-Settings
+ * URL for it. Until then it lives in the BANDS entry, as the templates had it.
+ *
+ * ── Markup ────────────────────────────────────────────────────────────────
+ * Verbatim from the three ranges above: `section.testi[id?]` > `.wrap` >
+ * `.testi-head[data-vs-reveal-batch]` (eyebrow, <h2> via set:html, `.stars`
+ * ★★★★★, <p>) + `.testi-actions[data-vs-reveal]` (sage Button); then
+ * <ReviewMarquee> OUTSIDE `.wrap`, as the templates place it. The band is
+ * wrapped in `{onRoute && (…)}` so that off-route it emits nothing, and that
+ * wrapper is why the `{" "}` spacers exist: measured with @astrojs/compiler
+ * (compact, 2026-09-08), the template's static nesting compiles to ONE SPACE
+ * between every pair of tags, while an element tree inside an expression
+ * compiles with NO whitespace at all. Each `{" "}` puts back the exact space
+ * the static template emits, so the bytes match; remove one and the build
+ * differs by a byte.
+ *
+ * `data-vs-reveal-lines` and `aria-hidden` are dynamic, so they go through
+ * addAttribute: `""` renders the bare attribute (` data-vs-reveal-lines`) and
+ * `undefined` renders nothing — `true` would render `="true"`, which is not
+ * what about-us ships (node_modules/astro/dist/runtime/server/render/util.js:75-87).
+ *
+ * ── CSS ───────────────────────────────────────────────────────────────────
+ * home.css:870-888 and the 780px rule at :977, restated below; about-us.css
+ * :416-430/:488 and patient-testimonials.css:479-495/:547 are the same rules
+ * with the same values (about-us omits the `.eyebrow` pair because its
+ * eyebrow is the global `.vs-eyebrow.vs-center`, global.css:554-566 — that
+ * element carries neither `.eyebrow` nor this component's scope, so the pair
+ * below does not reach it, exactly as before). Astro scopes by attribute on
+ * EVERY compound, so a rule rooted at `.home` would become
+ * `.home[data-astro-cid-…] .testi[data-astro-cid-…]` and never match — the
+ * page root is not this component's element. Everything is therefore rooted
+ * at `.testi`, and the section's own rule is written `section.testi` so it
+ * lands at (0,2,1) against the page sheets' `.home .testi` /
+ * `.aus .testi` / `.patient-testimonials .testi` at (0,2,0): a win on every
+ * page, with the same values, and its own 780px breakpoint because a page's
+ * breakpoint can no longer reach it (memory: page CSS cannot beat block CSS;
+ * CodeSectionBlock.astro:437-439). The page sheets' aliases `--paper` and
+ * `--sage` map 1:1 to `--vs-paper` / `--vs-sage` on all three roots
+ * (home.css:18,24; about-us.css:12,16; patient-testimonials.css:14,18), so
+ * the `--vs-*` names are used here. `.wrap`, `.eyebrow`'s type styles and the
+ * h2 colour stay with the page sheets — they are not in the cited ranges and
+ * the band still sits inside the page root.
+ */
+import { getCollection, type CollectionEntry } from "astro:content";
+import Button from "./Button.astro";
+import Eyebrow from "./Eyebrow.astro";
+import ReviewMarquee from "./ReviewMarquee.astro";
+import { getPageContent } from "../lib/page-content";
+
+interface Props {
+  /**
+   * The route this band belongs to ("/", "/about-us/", "/patient-testimonials/").
+   * It reads that page's Section-copy row, so on any other route it renders
+   * nothing and warns.
+   */
+  route: string;
+  /** The DOM id, fed by PageBlocks through the row's anchor. Absent when blank. */
+  id?: string;
+  /** The Section-copy row this band reads: "testimonials" | "reviews" | "voices". */
+  sectionId: string;
+  /** Applied with `||` when passed; when absent the live value stands, blank included. */
+  eyebrowFallback?: string;
+  /** Same rule. May carry inline markup (`<em>`) — it renders through set:html. */
+  headingFallback?: string;
+  /** Same rule. */
+  bodyFallback?: string;
+  /** The sage button under the head — label, href and hover label. */
+  ctaLabel: string;
+  ctaHref: string;
+  ctaHover: string;
+  /** The marquee's aria-label. */
+  marqueeLabel: string;
+  /**
+   * about-us's variant: `<Eyebrow center>` instead of `span.eyebrow`, the
+   * <h2> marked `data-vs-reveal-lines`, the stars `aria-hidden="true"`
+   * (about-us/index.astro:735-737). Off by default — home and
+   * patient-testimonials draw the bare span.
+   */
+  eyebrowComponent?: boolean;
+}
+
+const {
+  route,
+  id,
+  sectionId,
+  eyebrowFallback,
+  headingFallback,
+  bodyFallback,
+  ctaLabel,
+  ctaHref,
+  ctaHover,
+  marqueeLabel,
+  eyebrowComponent = false,
+} = Astro.props;
+
+// trailingSlash is 'always' (astro.config.mjs:375); normalise both sides anyway
+// so "/about-us" and "/about-us/" name the same page, as page-content.ts does.
+const withSlash = (p: string) => (p.endsWith("/") ? p : `${p}/`);
+const here = Astro.url.pathname;
+const onRoute = withSlash(here) === withSlash(route);
+
+if (!onRoute) {
+  console.warn(
+    `[blocks] TestimonialsBand is scoped to ${route} and was asked to render on ${here} — it reads that page's Section copy, so it renders nothing here`,
+  );
+}
+
+/** The template's `live || fallback` when a fallback was passed; `live` alone when not. */
+const pick = (live: string, fallback?: string) =>
+  fallback === undefined ? live : live || fallback;
+
+let eyebrow = "";
+let heading = "";
+let body = "";
+let reviews: CollectionEntry<"reviews">[] = [];
+if (onRoute) {
+  const { section } = await getPageContent(here);
+  const row = section(sectionId);
+  eyebrow = pick(row.eyebrow, eyebrowFallback);
+  heading = pick(row.heading, headingFallback);
+  body = pick(row.body, bodyFallback);
+  // Newest first — the sort all three templates run (index.astro:32-33,
+  // about-us/index.astro:360, patient-testimonials/index.astro:29-30; the
+  // ReviewsBand.astro:55-57 idiom).
+  reviews = (await getCollection("reviews")).sort(
+    (a, b) => +b.data.date - +a.data.date,
+  );
+}
+---
+
+{
+  onRoute && (
+    <section class="testi" id={id}>{" "}
+      <div class="wrap">{" "}
+        <div class="testi-head" data-vs-reveal-batch>{" "}
+          {eyebrowComponent ? <Eyebrow center>{eyebrow}</Eyebrow> : <span class="eyebrow">{eyebrow}</span>}{" "}
+          <h2 data-vs-reveal-lines={eyebrowComponent ? "" : undefined}><Fragment set:html={heading} /></h2>{" "}
+          <div class="stars" aria-hidden={eyebrowComponent ? "true" : undefined}>★★★★★</div>{" "}
+          <p>{body}</p>{" "}
+        </div>{" "}
+        <div class="testi-actions" data-vs-reveal>{" "}
+          <Button variant="sage" href={ctaHref} hoverLabel={ctaHover}>{ctaLabel}</Button>{" "}
+        </div>{" "}
+      </div>{" "}
+      <ReviewMarquee reviews={reviews} ariaLabel={marqueeLabel} />{" "}
+    </section>
+  )
+}
+
+<style>
+  /* home.css:870 (= about-us.css:416, patient-testimonials.css:479).
+     `section.testi` so the scoped rule is (0,2,1) against the page sheets'
+     `.<page> .testi` (0,2,0) — a win, not a tie. Same values. */
+  section.testi { padding: 140px 0; background: var(--vs-paper); overflow: hidden; }
+  /* home.css:871 (= about-us.css:417, patient-testimonials.css:480) */
+  .testi .testi-head { text-align: center; max-width: 760px; margin: 0 auto 60px; }
+  /* home.css:872-875 (= patient-testimonials.css:481-485; about-us has no
+     `.eyebrow` here — its eyebrow is the global `.vs-eyebrow.vs-center`). */
+  .testi .testi-head .eyebrow { display: inline-flex; align-items: center; gap: 14px; }
+  .testi .testi-head .eyebrow::before, .testi .testi-head .eyebrow::after {
+    content: ""; width: 28px; height: 1px; background: var(--vs-sage);
+  }
+  /* home.css:876-878 (= about-us.css:421-423, patient-testimonials.css:486-488) */
+  .testi .testi-head h2 { margin: 22px 0 22px; }
+  .testi .testi-head p { font-size: 17px; }
+  .testi .testi-head .stars { margin-top: 18px; color: var(--vs-sage); font-size: 18px; letter-spacing: .3em; }
+  /* home.css:884-888 (= about-us.css:426-430, patient-testimonials.css:491-495) */
+  .testi .testi-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 40px;
+  }
+
+  /* home.css:977 inside the 780 block at :934 (= about-us.css:488 in :465,
+     patient-testimonials.css:547 in :519). */
+  @media (max-width: 780px) {
+    section.testi { padding: 80px 0; }
+  }
+</style>

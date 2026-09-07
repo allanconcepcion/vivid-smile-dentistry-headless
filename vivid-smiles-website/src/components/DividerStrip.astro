@@ -1,0 +1,187 @@
+---
+/**
+ * DividerStrip — the sage-pale stars-and-one-line strip between
+ * /patient-testimonials/'s featured story and its testimonial marquee.
+ *
+ * A code_section band, registered as `patient_testimonials_divider` in
+ * src/blocks/CodeSectionBlock.astro. The band is an `<aside>` with an
+ * aria-label and NO id (patient-testimonials/index.astro:376), so its BANDS
+ * entry sets `anchorProp: null` and this component takes no `id` — adding one
+ * would be an attribute-level delta on the live route.
+ *
+ * ── The one band in the wave that reads no page ───────────────────────────
+ * Everything the template draws here is its own literal (index.astro:379-380):
+ * five stars and one sentence. Nothing comes from a Section-copy row, an
+ * Images slot or a Cards repeater, so there is no `route` prop and no
+ * getPageContent() call — D1 is for bands that read their page, and this one
+ * has nothing to read. The sentence arrives as the `text` prop, frozen in the
+ * BANDS entry exactly as the template held it.
+ *
+ * ── `{rating}` / `{reviews}` ──────────────────────────────────────────────
+ * The template shipped "5.0" and "300+" as literals (:380) — it never imported
+ * googleRating / googleReviewCount (its contact import at :25 is bookNowHref
+ * and phoneHref only). The BANDS entry writes the two figures as `{rating}`
+ * and `{reviews}` tokens and this component fills them from Practice Settings
+ * (src/data/contact.ts:59-60), the same substitution AreaBand.astro:150-159
+ * runs for `{street}` / `{city}`. contact.ts falls back to "5.0" / "300+" when
+ * the settings boxes are blank, so the built bytes are identical to the
+ * template's until someone types a new figure in wp-admin — at which point
+ * this strip follows the setting, which is the behaviour the site wants and
+ * the template never had. Unknown tokens are left alone rather than blanked:
+ * `{rating}` surviving into the page is visible in one glance, where a silently
+ * emptied sentence reads as finished copy that happens to be missing a number.
+ *
+ * ── Markup ────────────────────────────────────────────────────────────────
+ * Verbatim from index.astro:376-383: `aside.divider-strip[aria-label]` >
+ * `.wrap` > `.divider-inner[data-vs-reveal]` > `span.divider-stars[aria-hidden]`
+ * (five ★, decoration this component draws — not a field somebody can
+ * half-fill, the rule TrustBand.astro and GalleryMarqueeBlock apply) +
+ * `span.divider-text` (the sentence). `data-vs-reveal` stays on `.divider-inner`
+ * where the template puts it; a block-style `data-vs-reveal-batch` on the
+ * aside would change the motion (animations.js staggers direct children).
+ *
+ * ── Whitespace ────────────────────────────────────────────────────────────
+ * The shipped page (dist/patient-testimonials/index.html) emits ONE SPACE
+ * between each of the elements — `…</span> <span class="divider-text">…` —
+ * because Astro compresses every literal whitespace chunk to a single space.
+ * The newlines between the elements below reproduce those spaces exactly;
+ * flushing them would remove text nodes the current build has. The only
+ * `}{`-flush is the top-level guard expression, which sits flush against both
+ * ends of the template so a blank `text` emits nothing, not a stray space.
+ * The sentence is ONE expression inside its span with no whitespace beside it.
+ *
+ * ── CSS ───────────────────────────────────────────────────────────────────
+ * patient-testimonials.css:451-476 (the strip, the inner flex row, the stars,
+ * the text), :34 (`.wrap`) and the 780px rules at :520 and :543-545, restated
+ * below. Astro scopes by attribute, so a bare `.divider-inner` would compile
+ * to (0,2,0) and TIE the page sheet's `.patient-testimonials .divider-inner`
+ * (0,2,0), leaving bundle order to decide (CodeSectionBlock.astro:437-439);
+ * everything below is rooted at `.divider-strip`, and the shell rule itself is
+ * written `aside.divider-strip` so it outranks `.patient-testimonials
+ * .divider-strip` rather than tying it. The sheet's `--f-body` alias
+ * (patient-testimonials.css:30) is declared on `.patient-testimonials` and
+ * maps 1:1 to `--vs-font-body`; the `--vs-*` name is used here so the band
+ * owns its values whether or not the alias block is in the cascade. The
+ * other four values were already `--vs-*` tokens in the sheet. Same computed
+ * values. No `section { padding-block }` from global.css:642 applies — this is
+ * an aside.
+ *
+ * NOTHING HERE THROWS. An editor triggers deploys and never sees the output,
+ * so both props are read as if they might be missing, blank, or the wrong
+ * type.
+ */
+import { googleRating, googleReviewCount } from "../data/contact";
+
+interface Props {
+  /**
+   * The one sentence in the strip. May carry the `{rating}` and `{reviews}`
+   * tokens, filled from Practice Settings. Blank draws NO aside at all — not
+   * an empty sage strip 22px tall holding five stars and nothing to say.
+   */
+  text: string;
+  /**
+   * The aside's accessible name (`aria-label`). Blank falls back to the
+   * template's own label so the landmark never ships unnamed.
+   */
+  ariaLabel: string;
+}
+
+const { text, ariaLabel } = Astro.props;
+
+/** Trim once, here, so the guard below tests for real content rather than for
+ *  a value left as a single space. */
+const str = (input: unknown): string =>
+  typeof input === "string" ? input.trim() : "";
+
+/** The only two substitutions. Kept as a table so the regex and the values
+ *  cannot drift apart — a token spelled in one and missing from the other
+ *  prints the literal braces at a patient. */
+const FIGURES: Record<string, string> = {
+  rating: googleRating,
+  reviews: googleReviewCount,
+};
+
+const fillFigures = (s: string): string =>
+  s.replace(/\{(rating|reviews)\}/g, (whole, key: string) => FIGURES[key] ?? whole);
+
+const textFilled = fillFigures(str(text));
+// index.astro:376 — the template's literal, so a blank prop cannot unname the landmark.
+const label = str(ariaLabel) || "Practice trust signals";
+
+const hasContent = textFilled !== "";
+---
+{hasContent && (
+  <aside class="divider-strip" aria-label={label}>
+    <div class="wrap">
+      <div class="divider-inner" data-vs-reveal>
+        <span class="divider-stars" aria-hidden="true">★★★★★</span>
+        <span class="divider-text">{textFilled}</span>
+      </div>
+    </div>
+  </aside>
+)}
+<style>
+  /* patient-testimonials.css:451-455. `aside.divider-strip` rather than
+     `.divider-strip` so the scoped rule is (0,2,1) against the page sheet's
+     `.patient-testimonials .divider-strip` (0,2,0) — a win, not a tie. Values
+     are the same either way. */
+  aside.divider-strip {
+    background: var(--vs-sage-pale);
+    color: var(--vs-ink);
+    padding: 22px 0;
+  }
+
+  /* patient-testimonials.css:34 */
+  .divider-strip .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 0 40px;
+  }
+
+  /* patient-testimonials.css:456-463 */
+  .divider-strip .divider-inner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 18px;
+    flex-wrap: wrap;
+    text-align: center;
+  }
+
+  /* patient-testimonials.css:464-468 */
+  .divider-strip .divider-stars {
+    color: var(--vs-sage-deep);
+    letter-spacing: 0.25em;
+    font-size: 16px;
+  }
+
+  /* patient-testimonials.css:469-476, `--f-body` resolved to `--vs-font-body`
+     (the alias it is declared as at :30). */
+  .divider-strip .divider-text {
+    font-family: var(--vs-font-body);
+    font-size: 13px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--vs-ink-soft);
+    font-weight: 500;
+  }
+
+  /* ── Responsive ─────────────────────────────────────────────────────────
+     The page's 780px block: the shell `.wrap` rule at :520 and the strip's
+     own three at :543-545. Re-united with the rules they modify. */
+  @media (max-width: 780px) {
+    .divider-strip .wrap {
+      padding: 0 22px;
+    }
+    aside.divider-strip {
+      padding: 18px 22px;
+    }
+    .divider-strip .divider-inner {
+      gap: 10px;
+    }
+    .divider-strip .divider-text {
+      font-size: 11.5px;
+      letter-spacing: 0.12em;
+    }
+  }
+</style>

@@ -775,7 +775,8 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    * first backfill is the first render.
    *
    * Repeater names minted here — `stats`, `techCards`, `svcCards`, `bios`,
-   * `ledger` — are each claimed by no other container under `blocks` (or
+   * `ledger`, and later `videoCards` (blocks wave, below) — are each claimed
+   * by no other container under `blocks` (or
    * anywhere in vs-content-model.php), checked by enumeration of every
    * repeater/group name in the PHP, not assumed: items, cards,
    * callout_points, checklist, creds, sub_cards, pre_cards, steps, tiers,
@@ -915,10 +916,19 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
    * the new choice needs its own IMAGE_SPEC entry in the same change —
    * `(max-width: 479px) 100vw, (max-width: 991px) 50vw, 25vw`, which is what
    * that page ships — or the band picks a candidate sized for the wrong grid.
+   *
+   * Blocks wave: `svcCards` rows gain `featured` (`field_vs_blk_svc_card_featured`,
+   * a true_false) — the home services grid's one full-width tile
+   * (`.svc-card.featured`). The component honours the FIRST row that is on
+   * and ignores any later one, and only on linked tiles; a blank meta comes
+   * back null, so it is tested for truthiness like `nested`. `cardStyle`
+   * gains `portraits` and `headAlign` gains `split` in the same wave — both
+   * are select VALUES, so nothing here changes for them; the branches live in
+   * ServiceCardsBlock.astro (D2, D3).
    */
   PageFieldsBlocksServiceCardsLayout: {
     typeName: "PageFieldsBlocksServiceCardsLayout",
-    fields: `${BLOCK_PREAMBLE_FIELDS} headAlign nested cardStyle columns collapseAt svcCards { title body tag href imagePos imageAlt image { node { sourceUrl altText mediaDetails { width height } } } } subFoot ctaLabel ctaHref ctaHover ctaLabel2 ctaHref2 ctaHover2 ctaNote`,
+    fields: `${BLOCK_PREAMBLE_FIELDS} headAlign nested cardStyle columns collapseAt svcCards { title body tag href imagePos featured imageAlt image { node { sourceUrl altText mediaDetails { width height } } } } subFoot ctaLabel ctaHref ctaHover ctaLabel2 ctaHref2 ctaHover2 ctaNote`,
   },
 
   /**
@@ -1081,6 +1091,54 @@ export const BLOCK_MANIFEST: Record<string, BlockManifestEntry> = {
   PageFieldsBlocksMapVisitLayout: {
     typeName: "PageFieldsBlocksMapVisitLayout",
     fields: `${BLOCK_PREAMBLE_FIELDS} ariaLabel`,
+  },
+
+  /**
+   * ── Blocks wave ──────────────────────────────────────────────────────────
+   *
+   * Patient video cards — the `.story-card` grid (home `#stories`, the
+   * patient-testimonials Shorts and wide grids) and the one-big-video
+   * `.featured-grid` on /patient-testimonials/. `cardShape` is the single
+   * control that picks the markup: `portrait` (tall, three across, opens
+   * upright), `landscape` (wide, three across) or `featured` (the FIRST row
+   * only, beside eyebrow / heading / quote / `body2` / two buttons). Every
+   * registered value has a branch, and the fallback for a blank or unknown
+   * value is `portrait` — the select's default — so a row saved before any
+   * edit renders the same as one saved with the default.
+   *
+   * THE MODAL IS PAGE CHROME, NOT PART OF THIS BLOCK. A `.story-card` or
+   * `.featured-video` button is only a `data-video-id` and a play glyph; the
+   * `<dialog id="story-video-modal">` and the `is:inline` player script that
+   * opens it live in src/components/StoryVideoModal.astro, rendered ONCE per
+   * page by the template (and by [...slug].astro when any row is a video_cards
+   * row). Two rows would otherwise emit two elements with the same id, and
+   * nothing under src/blocks ships a <script>. A page that places this row
+   * without the chrome has dead play buttons — the dependency is named here
+   * and in the component's header so nobody "fixes" it by adding a <script>.
+   *
+   * `body2` and `caption` are drawn by the `featured` shape only; `title`,
+   * `body` and `label` by the two grid shapes only. The six button fields are
+   * block_cta_fields('video') MINUS `cta_note` (the featured copy has no note
+   * element), so — unlike service_cards — there is no `ctaNote` to ask for,
+   * and asking would fail query validation for every route.
+   *
+   * `videoCards` rows carry an image, so the selection nests the same
+   * node/mediaDetails shape BLOCK_IMAGE_FIELDS asks for, for the same reason:
+   * <Image> refuses a remote source without intrinsic dimensions. A row with
+   * no `videoId` is skipped by the component; a row with no image keeps its
+   * play glyph. No `hosts` — the component renders no <slot />. No per-row
+   * select, so unwrapSelects' non-descent into repeaters is not a concern;
+   * `cardShape` is top-level and unwrapped.
+   *
+   * Field names are the ACF names of `layout_vs_blk_video_cards`
+   * (vs-content-model.php `field_vs_blk_video_*`), camelCased: `card_shape`
+   * → `cardShape`, `body_2` → `body2`, `video_id` → `videoId`,
+   * `video_title` → `videoTitle`, `aria_label` → `ariaLabel`, `image_alt`
+   * → `imageAlt`, `cta_label_2` → `ctaLabel2`.
+   */
+  PageFieldsBlocksVideoCardsLayout: {
+    typeName: "PageFieldsBlocksVideoCardsLayout",
+    fields: `${BLOCK_PREAMBLE_FIELDS} cardShape body2 videoCards { title body label videoId videoTitle ariaLabel caption imageAlt image { node { sourceUrl altText mediaDetails { width height } } } } ctaLabel ctaHref ctaHover ctaLabel2 ctaHref2 ctaHover2`,
   },
 
   /**
