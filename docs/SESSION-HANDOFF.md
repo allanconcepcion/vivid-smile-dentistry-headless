@@ -463,6 +463,28 @@ repeater from a page whose liveTabs lack "Section copy" — thank-you and
 smile-gallery needed that (and a redeploy) before their rows could be added.
 Gate baseline after this: `dist-gate3`.
 
+**The Images-tab alt boxes reach the page (36 pictures on seven templates).**
+`alt="…"` literals on Images-slot pictures became `alt={image(slot).alt || "…"}`
+(the loader's alt is the box, else the library's alt text). 46/48 were
+byte-identical at once because the back-fill had copied the literals into the
+boxes; the two that were not exposed a data defect — the import had cut
+"Hygienist polishing a patient's teeth…" at the apostrophe on the home page and
+left membership's step-2 box blank — fixed in the boxes themselves. The one
+remaining alt difference is the home page's small doctor portrait, whose slot
+the page used twice with two alts and now carries the box's one. The library's
+own alt for that hygienist photo is still the cut string; the box wins, but
+Media → that image is worth fixing too.
+
+**Line endings are normalised in `src/lib/wp.ts` (every loader).** Pressing
+Update on a page re-saves every multi-line box with the `\r\n` a browser form
+submits, where the back-fills wrote `\n` — measured as three `\r` in the built
+membership page after an Update that touched only an alt box, and `\r` already
+sitting in four other built routes from earlier saves (about-us,
+cosmetic-dentistry, porcelain-veneers, smile-gallery). `wpQuery` now drops the
+CR from every string in every response: zero `\r` in the 48 routes, and those
+four differ from the previous baseline by the removed CRs only. Baseline:
+`dist-gate4`.
+
 **Still literal, by decision, from the inventory (`inventory-synth.md`):**
 Waves 2 (membership onto blocks — deferral stands), 3 (`video_cards` — needs
 `PageBlocks` wired into home and testimonials first, i.e. Wave 5's enabling

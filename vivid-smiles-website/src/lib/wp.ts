@@ -40,6 +40,27 @@ function endpoint(): string {
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
+ * Every string in a response with its line endings normalised to "\n".
+ *
+ * A multi-line box saved from the edit screen comes back with the "\r\n" a
+ * browser form submits, while the same box back-filled by script holds "\n".
+ * Measured 2026-09-08: pressing Update on the membership page, without
+ * touching its Hero tab, put three "\r" into the built page. The bytes a
+ * route ships must not depend on which of the two ways a value was last
+ * saved, so the CR is dropped here, once, for every loader.
+ */
+function normalizeNewlines<T>(value: T): T {
+  if (typeof value === "string") return value.replace(/\r\n?/g, "\n") as unknown as T;
+  if (Array.isArray(value)) return value.map(normalizeNewlines) as unknown as T;
+  if (value && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) out[k] = normalizeNewlines(v);
+    return out as T;
+  }
+  return value;
+}
+
+/**
  * Execute a GraphQL query and return `data`.
  *
  * GraphQL returns HTTP 200 for query-level errors, so a bare `res.ok` check
@@ -107,7 +128,7 @@ export async function wpQuery<T>(
         throw new WordPressError(`WPGraphQL ${label} returned no data.`);
       }
 
-      return json.data;
+      return normalizeNewlines(json.data);
     } catch (error) {
       lastError = error;
 
