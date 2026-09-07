@@ -671,8 +671,8 @@ const PAGES = [
 	96 => [ // Thank you
 		'route'    => '/thank-you/',
 		'kind'     => 'template',
-		'liveTabs' => [ 'Images' ],
-		'orientationNote' => 'The page someone lands on after sending a form. Its words are part of the page design and are not edited here; the background photo is.',
+		'liveTabs' => [ 'Hero', 'Images', 'Bottom of page (the booking-strip sentence only)' ],
+		'orientationNote' => 'The page someone lands on after sending a form. The headline area at the top is the Hero tab; the sentence in the strip at the bottom is the Bottom of page tab; the background photo is on Images. The two card lists in between are part of the page design.',
 		'images'   => [
 			[ 'slot' => 'heroBg', 'where' => 'the full-width background photo behind the thank-you message — the team walking together outside the practice', 'status' => 'live' ],
 		],
@@ -681,8 +681,8 @@ const PAGES = [
 	344 => [ // 404
 		'route'    => '/404-2/',
 		'kind'     => 'template',
-		'liveTabs' => [ 'Images' ],
-		'orientationNote' => 'The page someone sees at a web address that does not exist. Its words are part of the page design and are not edited here; the background photo is.',
+		'liveTabs' => [ 'Hero', 'Images' ],
+		'orientationNote' => 'The page someone sees at a web address that does not exist. The headline area is the Hero tab; the background photo is on Images. The list of places to go is part of the page design.',
 		'images'   => [
 			[ 'slot' => 'heroBg', 'where' => 'the full-width background photo — the neon smiley sign at the practice entrance', 'status' => 'live' ],
 		],

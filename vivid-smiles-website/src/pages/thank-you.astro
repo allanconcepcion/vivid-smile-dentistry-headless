@@ -27,7 +27,11 @@ import "../styles/pages/thank-you.css";
 
 import { getPageContent } from '../lib/page-content';
 // Images are managed in WordPress (Pages -> this page -> Images).
-const { image, seo } = await getPageContent(Astro.url.pathname);
+// The Hero and Bottom-of-page tabs of the "Thank you" page in wp-admin (post 96),
+// stored since the page was created and read by nothing until now. Every
+// fallback is the literal this page has always shipped, so blank boxes build
+// byte-identically.
+const { image, seo, hero, closing } = await getPageContent(Astro.url.pathname);
 
 
 const steps = [
@@ -100,12 +104,12 @@ const explore = [
         />
         <div class="hero-scrim" aria-hidden="true"></div>
         <div class="wrap" data-vs-reveal-batch>
-          <span class="eyebrow">Request received</span>
-          <h1 data-vs-reveal-lines>Thank you, <em>truly.</em></h1>
-          <p class="lede">
+          {hero.eyebrow ? <span class="eyebrow">{hero.eyebrow}</span> : <span class="eyebrow">Request received</span>}
+          {hero.h1 ? <h1 data-vs-reveal-lines set:html={hero.h1} /> : <h1 data-vs-reveal-lines>Thank you, <em>truly.</em></h1>}
+          {hero.sub ? <p class="lede">{hero.sub}</p> : <p class="lede">
             Your message is in. We'll be in touch within one business day to walk through
             next steps.
-          </p>
+          </p>}
           <span class="meta">
             <span class="dot" aria-hidden="true"></span>
             Our team typically responds within 24 hours
@@ -161,10 +165,10 @@ const explore = [
 
       {/* ---------- FINAL BAND (paper) ---------- */}
       <FinalBand eyebrow="Prefer to skip the wait?">
-        <p>
+        <p>{closing.note ? closing.note : <>
           Call our front desk and we'll get you scheduled — same-day appointments are often
           available.
-        </p>
+        </>}</p>
       </FinalBand>
 
     </main>

@@ -21,16 +21,16 @@ convenience for one machine, not a source of truth. **This file is the portable 
 ## Read this first — the state in one screen
 
 **What is editable in WordPress today, and where** (verified in wp-admin and in the build on
-2026-09-01):
+2026-09-08):
 
 | Thing | Where it is edited | Coverage |
 | --- | --- | --- |
 | Section content (bands), incl. drag-to-reorder | Page → **Page sections** tab (16 layouts) | all 20 mapped routes, 148 rows; a blank new page composes too |
-| Headline area (kicker, headline, intro, 2 buttons) | Page → **Hero** tab | 25 routes wired, 24 back-filled with current wording |
-| Consult invite + booking strip at the bottom | Page → **Bottom of page** tab | consult on 20 routes, note on 17 — **boxes empty, backfill pending** |
+| Headline area (kicker, headline, intro, 2 buttons) | Page → **Hero** tab | 26 routes wired (blog index since `27ae41c`), 24 back-filled with current wording |
+| Consult invite + booking strip at the bottom | Page → **Bottom of page** tab | consult on 21 routes (blog index since `27ae41c`), note on 17 — back-filled on 22 routes / 70 values (2026-09-07) |
 | Photos on template-driven pages | Page → **Images** tab, with a per-page plain-English guide | home, about-us, testimonials, gallery, membership + hero photos everywhere |
 | Menus | Appearance → Menus | nav, mobile, footer, 3 mega-menus |
-| Phone, address, booking link, both Typeform IDs, hours | **Practice Settings** | site-wide |
+| Phone, address, booking link, both Typeform IDs, hours; star rating + review count (`f903b36`); membership fee, discount, join link; the terms page's SMS line (`76ce0fb`) | **Practice Settings** | site-wide |
 | Reviews, smile gallery, SEO title/description | Testimonials · Practice Settings · per page | wired |
 | Blog posts | Posts | title/body/hero image/date; the post-page chrome is code |
 
@@ -438,6 +438,13 @@ and Bottom of page as live and prints what the bottom says today; privacy and
 terms rows say the email link is part of the design and typed text replaces
 the paragraph; membership's where-strings say the small line is live. The
 `home` kind now prints an `orientationNote` like the other kinds.
+
+**Thank-you and 404 read their Hero tab (and thank-you its booking-strip
+sentence).** Same shape as the blog index, same proof: 48/48 byte-identical
+to `dist-gate2` blank; forced tokens land in `<span class="eyebrow">`, the
+`<h1>`, `<p class="lede">` and the FinalBand `<p>`. The guide's entries for
+posts 96 and 344 list Hero (and Bottom of page) as live. With these, no page
+in wp-admin has a Hero tab that saves and changes nothing.
 
 **Still literal, by decision, from the inventory (`inventory-synth.md`):**
 Waves 2 (membership onto blocks — deferral stands), 3 (`video_cards` — needs

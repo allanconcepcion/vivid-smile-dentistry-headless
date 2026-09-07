@@ -41,7 +41,10 @@ const explore = [
   },
 ];
 // Images are managed in WordPress (Pages -> this page -> Images).
-const { image } = await getPageContent(Astro.url.pathname);
+// The Hero tab of the "404" page in wp-admin (post 344), stored since the page
+// was created and read by nothing until now. Every fallback is the literal this
+// page has always shipped, so blank boxes build byte-identically.
+const { image, hero } = await getPageContent(Astro.url.pathname);
 
 ---
 
@@ -75,12 +78,12 @@ const { image } = await getPageContent(Astro.url.pathname);
         <div class="hero-scrim" aria-hidden="true"></div>
         <div class="wrap" data-vs-reveal-batch>
           <span class="code-404" aria-hidden="true">404</span>
-          <span class="eyebrow">Page not found</span>
-          <h1 data-vs-reveal-lines>We lost our place. <em>Let's find yours.</em></h1>
-          <p class="lede">
+          {hero.eyebrow ? <span class="eyebrow">{hero.eyebrow}</span> : <span class="eyebrow">Page not found</span>}
+          {hero.h1 ? <h1 data-vs-reveal-lines set:html={hero.h1} /> : <h1 data-vs-reveal-lines>We lost our place. <em>Let's find yours.</em></h1>}
+          {hero.sub ? <p class="lede">{hero.sub}</p> : <p class="lede">
             That link didn't lead anywhere — but you're one click from the part of the site
             you were looking for.
-          </p>
+          </p>}
         </div>
       </section>
 
