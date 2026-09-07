@@ -802,38 +802,32 @@ This file is deliberately not the source of truth for any of these. Go to the ow
 pointer is correct again. Its CMS row is marked done (2026-09-01); the front-end cutover rows
 are not.
 
-## Suggested next steps
+## Suggested next steps (rewritten 2026-09-08)
 
-1. **DONE 2026-09-07 — the "Bottom of page" boxes are filled on 22 pages (70 values).** The
-   migration screen has a third mode, `closing`, with its own engine (`cms/import/backfill-closing.php`,
-   `vs_cb_*`) and payload (`cms/import/closing-payload.json`), deployed to `wp-content/vs-import/bin/`
-   beside the hero pair. Measured after the write: all 70 values read back through GraphQL exactly
-   equal to the payload; no deliberately-blank box got filled; no non-target page touched; schema
-   still 37 types / 325 fields; and a rebuild against the written CMS gives **48 routes, 28
-   byte-identical, 20 differing only in bytes, 0 differing in a word** — the closing band's visible
-   text is identical on every route. The byte differences are exactly the two predicted kinds: JSX
-   source indentation no longer baked into the HTML, and `'` now output-escaped to `&#39;`. Seven
-   fields stay on the template because they carry a link or `{phoneLabel}` (listed in the payload's
-   `_` block). Rollback for any page is emptying its boxes.
-2. **An HTML-capable sub for two heroes — assessed 2026-09-07 and deliberately left.**
-   sinus-lift's sub carries a real `<a class="vs-link">` and referral-program's a `<b>$50
-   credit</b>`. `hero.sub` is rendered as plain text by every one of ~25 templates
-   (`{hero.sub}` inside `<p class="hero-sub">`), so making those two editable means `set:html` on
-   the sub in all 25 — every filled sub stops being entity-escaped (bytes move on the 24
-   back-filled heroes) and any `<` an editor types renders as HTML, for two sentences. The hero
-   engine also validates `sub` as plain text. If Allan wants them editable, the honest options
-   are (a) `set:html` everywhere plus tag-validation in the hero engine and a "may contain
-   `<b>`/`<a>`" instruction, or (b) a second field — which is a schema change with the
-   PHP-before-manifest sequencing and a 48-route build gate. Neither is a payload fix; both are a
-   decision, not a chore.
-3. **Owner-side security.** Rotate the WordPress password (issue 5) and the host SFTP password;
-   make the repo private; confirm the unattributed `s.ksrndkehqnwntyxlhgto.com` call-tracking
-   script. Then decide whether to `git filter-repo` the old dump out of history.
-4. **Retire the old hostname's allowances** (`astro.config.mjs` image allowlist, the CMS CORS
-   list) once GoDaddy retires `1230613.us28.myftpupload.com`.
-5. **Later, larger:** the card-family rename that would let smile-makeover and single-tooth go
-   five across (the choice exists; measured, five-up with today's card chrome wraps the heading
-   to five lines); un-freezing `code_section` bands into layouts if a second page ever needs
-   one; `/dental-membership-plan/`; the home hero.
+1. **Owner-side, blocking the hand-over.** An Editor account for the client (`vs-admin.php`'s
+   curation is inert while the only user is an Administrator); rotate the WordPress password and
+   the host SFTP password; make the repo private (patient photos and a DB dump are in it); confirm
+   the `s.ksrndkehqnwntyxlhgto.com` call-tracking script; domain cutover (`VS_FRONTEND_URL`).
+2. **Decisions only Allan can make, all recorded above:** delete or keep the dead Cards & lists rows
+   on the two LPs (post 86: 14 rows, post 97: 8) and Ally's photo in the Media Library; whether the
+   two heroes with markup in their sub-line get `set:html` or a second field (item 2 of the
+   2026-09-07 list); whether a `{{reviews}}` token inside block copy is wanted so sentences follow
+   the Practice Settings count.
+3. **The remaining editable-words work is blocks work, and each piece is a page-family migration,
+   not a chore.** `/dental-membership-plan/` onto blocks — the deferral reason in PAGE-BLOCKS.md
+   still holds; the four numbers the front desk will change are settings now. `video_cards` (a NEW
+   layout) needs `PageBlocks` wired into `/` and `/patient-testimonials/` first, which is the same
+   enabling change the home bands (service_cards, tech_grid, process_steps, media_split) and the
+   about-us doctors (two `media_split`) need. Do the wiring once, with `code_section` rows for the
+   bands that stay code, and gate it with the four sweeps plus computed styles — not bytes.
+4. **Small reads still open:** the contact page's "Replies within one business day" pill (a
+   `reach-pill` Section-copy row — `/contact/` is a blocks page, so its Section copy tab must be
+   made live in the guide before a row can be added); the two about-us doctor eyebrows ("Founder &
+   Cosmetic Lead", "General & Holistic Care"), which have no single row and belong to the doctors
+   `media_split` migration; the hygienist photo's library alt (fixed 2026-09-08 if the last
+   session's note says so).
+5. **Never again:** wire Section-copy `cta_label`/`cta_href` (retired and hidden — memory
+   `vivid-smiles-retired-section-cta`); seed Section-copy rows through the importer on a page that
+   has rows (wholesale replace); trust the editor DOM over GraphQL for a save; reason about
+   whitespace instead of measuring it (four cases in this round alone, all in the commits).
 6. **Verify anything this file claims before acting on it** — its own history is the argument.
-
