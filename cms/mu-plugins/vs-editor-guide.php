@@ -571,7 +571,7 @@ const PAGES = [
 	81 => [ // Cosmetic Dentistry LP
 		'route'    => '/cosmetic-dentistry-lp/',
 		'kind'     => 'template',
-		'liveTabs' => [ 'Images' ],
+		'liveTabs' => [ 'Images', 'FAQ' ],
 		'orientationNote' => 'This is a paid-campaign landing page. It is hidden from Google and from the site menus on purpose, and an ad campaign points at it — so its WORDS are fixed in the page design and are not edited from these tabs. The photos below are yours to swap.',
 		'images'   => [
 			[ 'slot' => 'imgHeroTilted',   'where' => 'the tilted three-quarter smile photo in the group at the very top (on a phone this is the ONLY hero photo shown)', 'status' => 'live' ],
@@ -596,7 +596,7 @@ const PAGES = [
 	86 => [ // General LP
 		'route'    => '/general-lp/',
 		'kind'     => 'template',
-		'liveTabs' => [ 'Images' ],
+		'liveTabs' => [ 'Images', 'FAQ' ],
 		'orientationNote' => 'This is a paid-campaign landing page. It is hidden from Google and from the site menus on purpose, and an ad campaign points at it — so its WORDS are fixed in the page design and are not edited from these tabs. The photos below are yours to swap.',
 		'images'   => [
 			[ 'slot' => 'imgConsult',    'where' => 'the photo beside the headline at the very top — a smiling patient', 'status' => 'live' ],
@@ -616,7 +616,7 @@ const PAGES = [
 	97 => [ // Veneers LP
 		'route'    => '/veneers-lp/',
 		'kind'     => 'template',
-		'liveTabs' => [ 'Images' ],
+		'liveTabs' => [ 'Images', 'FAQ' ],
 		'orientationNote' => 'This is a paid-campaign landing page. It is hidden from Google and from the site menus on purpose, and an ad campaign points at it — so its WORDS are fixed in the page design and are not edited from these tabs. The photos below are yours to swap.',
 		'images'   => [
 			[ 'slot' => 'imgHeroSide',   'where' => 'the side-view smile photo in the group at the very top', 'status' => 'live' ],
@@ -641,7 +641,7 @@ const PAGES = [
 	91 => [ // Privacy Policy
 		'route'    => '/privacy-policy/',
 		'kind'     => 'template',
-		'liveTabs' => [ 'Section copy' ],
+		'liveTabs' => [ 'On this page', 'Section copy' ],
 		'orientationNote' => 'The whole policy is written in the Section copy rows below — each row is one numbered part of the document, in the order it appears. There is no hero and no photo on this page.',
 		'sectionsNote' => 'THIS IS A LEGAL DOCUMENT. It says what the practice does with patient information, so please do not reword it casually — have whoever handles your HIPAA compliance approve any change first. Fixing a phone number or an address here is fine.',
 		'sections' => [],
@@ -650,7 +650,7 @@ const PAGES = [
 	95 => [ // Terms & Conditions
 		'route'    => '/terms-conditions/',
 		'kind'     => 'template',
-		'liveTabs' => [ 'Section copy' ],
+		'liveTabs' => [ 'On this page', 'Section copy' ],
 		'orientationNote' => 'The whole document is written in the Section copy rows below — each row is one numbered part, in the order it appears. There is no hero and no photo on this page.',
 		'sectionsNote' => 'THIS IS A LEGAL DOCUMENT. Please do not reword it casually — have it approved before changing anything beyond a phone number or an address.',
 		'sections' => [],
@@ -2179,6 +2179,16 @@ function closing_today( int $post_id ): string {
 	$rec = CLOSING_TODAY[ $post_id ] ?? null;
 
 	if ( null === $rec ) {
+		return '';
+	}
+
+	// Only where the Bottom of page boxes reach the site. On a page whose
+	// template never reads `closing` (the campaign LPs, /thank-you/, the blog
+	// index) the tab is hidden anyway — but the snapshot must not imply those
+	// boxes would change anything if it were ever shown.
+	$page = current_page();
+
+	if ( null === $page || ! tab_is_live( $page, 'Bottom of page' ) ) {
 		return '';
 	}
 
