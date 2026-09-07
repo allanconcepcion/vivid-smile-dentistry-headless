@@ -824,8 +824,8 @@ are not.
    `reach-pill` Section-copy row — `/contact/` is a blocks page, so its Section copy tab must be
    made live in the guide before a row can be added); the two about-us doctor eyebrows ("Founder &
    Cosmetic Lead", "General & Holistic Care"), which have no single row and belong to the doctors
-   `media_split` migration; the hygienist photo's library alt (fixed 2026-09-08 if the last
-   session's note says so).
+   `media_split` migration; the hygienist photo's library alt — fixed 2026-09-08 (attachment 149, confirmed in
+   GraphQL).
 5. **Never again:** wire Section-copy `cta_label`/`cta_href` (retired and hidden — memory
    `vivid-smiles-retired-section-cta`); seed Section-copy rows through the importer on a page that
    has rows (wholesale replace); trust the editor DOM over GraphQL for a save; reason about
