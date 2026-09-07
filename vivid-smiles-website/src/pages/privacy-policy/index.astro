@@ -104,10 +104,10 @@ const lastRevised = "July 12, 2024";
 
               <section id="privacy-official" data-vs-reveal>
                 <h2 class="vs-h3"><Fragment set:html={section("privacy-official").heading} /></h2>
-                <p>
+                {/* Section copy row privacy-official: its body box was stored in wp-admin and unread until now. */ section("privacy-official").body ? <p>{section("privacy-official").body}</p> : <p>
                   If you have any questions or would like further information about this notice, you can contact the
                   Vivid Smiles privacy official at <a class="vs-link" href={emailHref}>{emailAddress}</a>.
-                </p>
+                </p>}
               </section>
 
               <section id="promise" class="priv-callout" data-vs-reveal>
@@ -332,11 +332,11 @@ const lastRevised = "July 12, 2024";
 
               <section id="children" data-vs-reveal>
                 <h2 class="vs-h3"><Fragment set:html={section("children").heading} /></h2>
-                <p>
+                {/* Section copy row children: its body box was stored in wp-admin and unread until now. */ section("children").body ? <p>{section("children").body}</p> : <p>
                   Our Service does not target individuals under the age of 13. We do not knowingly collect data from
                   children under 13. If you are a parent or guardian and believe your child has provided us with data,
                   please <a class="vs-link" href={emailHref}>contact us</a> immediately.
-                </p>
+                </p>}
               </section>
 
               <section id="third-party" data-vs-reveal>
@@ -351,10 +351,10 @@ const lastRevised = "July 12, 2024";
 
               <section id="contact-us" class="priv-contact" data-vs-reveal>
                 <h2 class="vs-h3"><Fragment set:html={section("contact-us").heading} /></h2>
-                <p>
+                {/* Section copy row contact-us: its body box was stored in wp-admin and unread until now. */ section("contact-us").body ? <p>{section("contact-us").body}</p> : <p>
                   Questions about this notice? Email our privacy official at
                   {" "}<a class="vs-link" href={emailHref}>{emailAddress}</a>.
-                </p>
+                </p>}
               </section>
 
             </div>

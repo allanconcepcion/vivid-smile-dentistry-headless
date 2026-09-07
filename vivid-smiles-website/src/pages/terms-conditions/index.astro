@@ -432,10 +432,10 @@ const smsHelpHref = "tel:+13032769932";
 
               <section id="contact-us" class="terms-contact" data-vs-reveal>
                 <h2 class="vs-h3"><Fragment set:html={section("contact-us").heading} /></h2>
-                <p>
+                {/* Section copy row contact-us: its body box was stored in wp-admin and unread until now. */ section("contact-us").body ? <p>{section("contact-us").body}{" "}<a class="vs-link" href={emailHref}>{emailAddress}</a>.</p> : <p>
                   If you have any questions about these Terms and Conditions, you can contact us by email:
                   {" "}<a class="vs-link" href={emailHref}>{emailAddress}</a>.
-                </p>
+                </p>}
               </section>
 
             </div>

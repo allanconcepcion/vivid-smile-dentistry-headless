@@ -25,7 +25,13 @@ import ImageFrame from '../../components/ImageFrame.astro';
 import VirtualConsult from '../../components/VirtualConsult.astro';
 import ReviewMarquee from '../../components/ReviewMarquee.astro';
 import CredentialBadge from '../../components/cards/CredentialBadge.astro';
-import { bookNowHref } from '../../data/contact';
+import {
+  bookNowHref,
+  addressStreet,
+  addressCity,
+  addressState,
+  addressZip,
+} from '../../data/contact';
 import '../../styles/pages/about-us.css';
 
 // Hero + section imagery.
@@ -424,7 +430,7 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
               <span class="badge">Parker, CO</span>
             </div>
             <div class="story-text" data-vs-reveal-batch>
-              <Eyebrow>Founding philosophy</Eyebrow>
+              <Eyebrow>{/* Section copy row story: its eyebrow box was stored in wp-admin and unread until now. */ section("story").eyebrow || "Founding philosophy"}</Eyebrow>
               <h2 class="vs-h2"><Fragment set:html={section("story").heading} /></h2>
               <p>{section("story").body}</p>
               <p>
@@ -660,7 +666,7 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
               </div>
             </div>
             <div class="tech-text" data-vs-reveal-batch>
-              <Eyebrow>In our operatory</Eyebrow>
+              <Eyebrow>{/* Section copy row technology: its eyebrow box was stored in wp-admin and unread until now. */ section("technology").eyebrow || "In our operatory"}</Eyebrow>
               <h2 class="vs-h2"><Fragment set:html={section("technology").heading} /></h2>
               <p class="lead">{section("technology").body}</p>
 
@@ -717,7 +723,7 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
       <section class="testi" id="voices">
         <div class="wrap">
           <div class="testi-head" data-vs-reveal-batch>
-            <Eyebrow center>Testimonials</Eyebrow>
+            <Eyebrow center>{/* Section copy row voices: its eyebrow box was stored in wp-admin and unread until now. */ section("voices").eyebrow || "Testimonials"}</Eyebrow>
             <h2 data-vs-reveal-lines><Fragment set:html={section("voices").heading} /></h2>
             <div class="stars" aria-hidden="true">★★★★★</div>
             <p>{section("voices").body}</p>
@@ -777,12 +783,13 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
         worksFor: {
           '@type': 'Dentist',
           name: 'Vivid Smiles Dentistry',
+          // Practice Settings address: stored in wp-admin and unread by this schema until now.
           address: {
             '@type': 'PostalAddress',
-            streetAddress: '17167 Cedar Gulch Pkwy Ste 102',
-            addressLocality: 'Parker',
-            addressRegion: 'CO',
-            postalCode: '80134',
+            streetAddress: addressStreet,
+            addressLocality: addressCity,
+            addressRegion: addressState,
+            postalCode: addressZip,
             addressCountry: 'US',
           },
         },

@@ -1334,8 +1334,7 @@ function register_field_groups(): void {
 							'label'        => 'Small line above',
 							'name'         => 'eyebrow',
 							'type'         => 'text',
-							'instructions' => 'The small line printed above the heading. A few words. '
-								. 'Leave blank for none.',
+							'instructions' => 'The little line above the heading. On most pages, leave it blank and there is no line. On the home page, About us and the Membership Plan page the line is part of the design: leave it blank there and the page keeps the line it shows today.',
 						],
 						[
 							'key'          => 'field_vs_section_heading',

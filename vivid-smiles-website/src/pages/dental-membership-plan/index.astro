@@ -12,7 +12,7 @@ import { Image } from "astro:assets";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import Button from "../../components/Button.astro";
 import FinalBand from "../../components/FinalBand.astro";
-import { phoneHref, phoneLabel, phoneE164 } from "../../data/contact";
+import { phoneHref, phoneLabel, phoneE164, addressStreet, addressCity, addressState, addressZip } from "../../data/contact";
 
 // Membership-specific NexHealth join URL — distinct from the site-wide
 // bookNowHref. The long query string is a Google-referral attribution token
@@ -169,7 +169,7 @@ const faqs = [
     <section class="vs-band-cream" id="story" data-vs-reveal-batch>
       <div class="wrap story-grid">
         <div class="story-copy">
-          <span class="vs-eyebrow">— Why we built it</span>
+          <span class="vs-eyebrow">{/* Kicker box: stored in WordPress, unread until now. */ section("story").eyebrow || "— Why we built it"}</span>
           <h2 class="vs-h2"><Fragment set:html={section("story").heading} /></h2>
           <p>{section("story").body}</p>
           <p>The Vivid Smiles Membership Plan is the simplest answer we could come up with: a flat annual fee, your preventive care covered in full, and a meaningful discount on everything else. We see what's coming in the door — no pre-approvals to chase, no claim denials, no waiting period. You come in. We get to work.</p>
@@ -198,7 +198,7 @@ const faqs = [
     <section class="vs-band-paper" id="how-it-works" data-vs-reveal-batch>
       <div class="wrap">
         <div class="intro-triad">
-          <span class="vs-eyebrow">— How it works</span>
+          <span class="vs-eyebrow">{/* Kicker box: stored in WordPress, unread until now. */ section("how-it-works").eyebrow || "— How it works"}</span>
           <h2 class="vs-h2"><Fragment set:html={section("how-it-works").heading} /></h2>
           <p class="vs-lede">{section("how-it-works").body}</p>
         </div>
@@ -228,7 +228,7 @@ const faqs = [
     <section class="vs-band-sage" id="whats-included" data-vs-reveal-batch>
       <div class="wrap">
         <div class="intro-triad intro-triad--center">
-          <span class="vs-eyebrow vs-center">The plan</span>
+          <span class="vs-eyebrow vs-center">{/* Kicker box: stored in WordPress, unread until now. */ section("whats-included").eyebrow || "The plan"}</span>
           <h2 class="vs-h2"><Fragment set:html={section("whats-included").heading} /></h2>
           <p class="vs-lede">{section("whats-included").body}</p>
         </div>
@@ -317,11 +317,11 @@ const faqs = [
     <section class="vs-band-paper" id="faq" data-vs-reveal-batch>
       <div class="wrap">
         <div class="section-head section-head--center">
-          <span class="vs-eyebrow vs-center">FAQ</span>
+          <span class="vs-eyebrow vs-center">{/* Kicker box: stored in WordPress, unread until now. */ section("faq").eyebrow || "FAQ"}</span>
           <h2 class="vs-h2"><Fragment set:html={section("faq").heading} /></h2>
-          <p class="vs-lede">
+          <p class="vs-lede">{/* Body box: stored in WordPress, unread until now; typed text is plain, the fallback keeps the phone link. */ section("faq").body ? section("faq").body : <>
             Practical answers about how the membership works in real life. Anything else, call us at <a class="vs-link" href={phoneHref}>{phoneLabel}</a> — we'll walk you through the numbers before you commit.
-          </p>
+          </>}</p>
         </div>
 
         <div class="faq-list">
@@ -355,10 +355,11 @@ const faqs = [
         "name": "Vivid Smiles Dentistry",
         "address": {
           "@type": "PostalAddress",
-          "streetAddress": "17167 Cedar Gulch Pkwy Ste 102",
-          "addressLocality": "Parker",
-          "addressRegion": "CO",
-          "postalCode": "80134",
+          // Practice Settings holds the address (src/data/contact.ts) and was unread here until now; the literals are the rollback.
+          "streetAddress": addressStreet || "17167 Cedar Gulch Pkwy Ste 102",
+          "addressLocality": addressCity || "Parker",
+          "addressRegion": addressState || "CO",
+          "postalCode": addressZip || "80134",
           "addressCountry": "US"
         },
         "telephone": phoneE164

@@ -431,7 +431,7 @@ const trustTrack = [...trustBar, ...trustBar];
     <section class="gallery" id="gallery">
       <div class="wrap">
         <div class="gallery-head" data-vs-reveal-batch>
-          <span class="eyebrow light">Smile Gallery</span>
+          <span class="eyebrow light">{/* The Small line above box on the gallery row was stored and unread until now */ section("gallery").eyebrow || "Smile Gallery"}</span>
           <h2><Fragment set:html={section("gallery").heading} /></h2>
           <p>{section("gallery").body}</p>
           <div class="actions">
