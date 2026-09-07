@@ -493,6 +493,72 @@ contact pill, smile-gallery captions). Item 7's dead Cards & lists rows on the
 two LPs (86: 14 rows, 97: 8 rows) are stored content nobody reads — deleting
 them is Allan's call, not made here.
 
+## 2026-09-08 — the blocks wave: two phases landed, the third reverted at the pixel gate
+
+The round that moves `/`, `/patient-testimonials/` and `/about-us/` onto the
+blocks system. Planned by a workflow that mapped all three pages band by band
+(scratchpad `plan-*.md`, `plan-phases.json`, `plan-pagemaps.json`); the
+decisions it needed are answered in `plan-decisions.json` (D1–D10).
+
+**Phase 1 — `20b8300`, the schema, deployed.** A NEW `video_cards` layout
+(portrait / landscape / featured shapes, a repeater carrying the YouTube id,
+photo and captions), three ADDITIVE service_cards items (`featured` on a card,
+`portraits` card style, `split` head align) and fifteen BLOCK_CODE_BANDS keys.
+`php -l` clean; identifier multiset: HEAD is a strict sub-multiset, delta 26
+tokens. On the host at 298773 bytes; fingerprint 79 `PageFieldsBlocks*` types /
+701 fields.
+
+**Phase 2 — `4b47cd1`, the Astro half, inert.** VideoCardsBlock, the three new
+ServiceCardsBlock branches, thirteen band components, StoryVideoModal (page
+chrome — a block ships no `<script>` and the dialog id is a singleton), and the
+manifest/registry/CodeSectionBlock wiring. `check:blocks` green on all 17
+layouts. Bodies byte-identical on 48/48; 20 routes differ only by the
+PageBlocks CSS bundle hash plus 1382 bytes of dead rules. Forced-value smoke:
+17/17 tokens, every new branch renders. **The D1 route guard is proven**: a
+band forced onto a foreign route renders nothing and names itself in the log.
+
+**Phase 3 — templates — WRITTEN, MEASURED, REVERTED.** The switch was wired
+into all three templates (ten guards on home, six each on the others), the
+video modal hoisted out of `#stories` into chrome on both video pages,
+`[...slug].astro` given the conditional modal, and both halves of the paired
+CSS lists extended. It passed everything cheap: build clean; the four sweeps
+reported ZERO routes failing words, `<section class>` or head/eyebrow
+modifiers; the only body changes were the two predicted modal hunks on `/` and
+`/patient-testimonials/`; and the player was click-tested on both pages (one
+dialog each, `is-short` on portrait only, the featured card plays, close
+empties the frame and restores scroll).
+
+**It failed the pixel gate, which is why that gate exists.** A 144-capture
+baseline (48 routes × 1440/768/390, `scripts/vr-screens.mjs`) was recorded
+before the round. After Phase 3: `/about-us/` changes HEIGHT at 768
+(26328 → 26336) and 390 (22827 → 22867), and four blog posts shift ~7,000px
+(~0.05%) at 1440. Small, but real and unexplained, so Phase 3 was reverted —
+`HEAD` is Phase 2 and the site is unchanged.
+
+**What is known about the cause, and what is not.** Wiring PageBlocks into a
+template pulls the block CSS graph onto that page: about-us's ReviewMarquee
+rules moved OUT of an inline `<style>` and INTO the shared PageBlocks chunk.
+The rule TEXT is identical either way (`flex:0 0 380px;min-height:460px`, and
+`300px/440px` under 780px) — what changed is which stylesheet carries them and
+therefore their position in the cascade. That is the suspected mechanism; it is
+NOT yet proven, and the four blog posts (which do not import PageBlocks) are
+not explained by it at all. **Do not re-land Phase 3 until both are.** A
+misleading experiment to avoid repeating: disabling the PageBlocks stylesheet
+in the browser shrinks `#voices` by 401px, which looks like a smoking gun and
+is not — it removes rules that legitimately apply and says nothing about the
+before/after difference.
+
+**Artifacts.** `scratchpad/phase3-wip/` holds the reverted about-us template,
+`global.css`, `Button.astro`, `[...slug].astro` and the full `vr-compare.log`.
+The home and testimonials templates were lost to a save bug (three files named
+`index.astro` overwrote each other) and must be redone from
+`plan-phases.json` phases[3] — mechanical, and the work order is exact.
+`scratchpad/sweeps.py` runs the four sweeps against any baseline;
+`smoke-inject.py` + `smoke-rows-phase2.json` force rows without touching
+WordPress; `computed-baseline-1440.json` and `-blocks.json` hold the
+pre-migration computed styles; the pixel baseline is `.vr/screens/baseline`
+(Playwright installed with `npm install --no-save playwright`).
+
 ## The verification method this project learned
 
 Each sweep exists because the previous set reported clean while something real was broken.
