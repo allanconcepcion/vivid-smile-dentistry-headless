@@ -248,8 +248,11 @@ owns, each linked. NOT role-gated, and that is the finding: `vs-admin.php` curat
 only for non-administrators, and `users.php` lists exactly one account, `admin`, an
 Administrator. **All of that curation is inert.** See its own section below.
 
-**Bottom of page shows what the page says today** (30 pages), scraped from `dist/`. See the
-rewritten next-step 1 for why the real backfill was measured and deliberately deferred.
+**Bottom of page shows what the page says today** on pages whose boxes are still empty — after the
+2026-09-07 closing run that is the pages left on template wording (the three campaign LPs,
+/thank-you/, the blog index, and the seven link-carrying fields' pages where only some boxes are
+filled). On a page whose boxes hold values the snapshot is suppressed, because "copy a line into the
+box above" is wrong advice once the box already holds it.
 
 **Each photo row says where that photo goes**, beside its code, instead of only in a guide above
 a table that runs to 25 rows.
@@ -268,6 +271,14 @@ deploys silently did not land when clicked by coordinate — **click YES by JS
 (`.ui-dialog button` filtered to visible), and always confirm the deployed byte size against the
 local one.** And a wp-admin save is not confirmed by the editor DOM: a disconnect once left 24
 rows on screen while the database still had 25. **Confirm a save against GraphQL, not the page.**
+
+And from 2026-09-07: WP File Manager's elFinder can come up half-loaded after a restart — `exec('open')`
+then fails with `openabort` on every call, the navigation tree is empty, and the extension's element
+lookup hangs on "document_idle" while `javascript_tool` still works. The reliable path is to set its
+remembered last folder yourself and reload: `localStorage['/wp-admin/admin.php-elfinder-lastdirwp_file_manager']
+= 'l1_' + base64url(path)` (`d3AtY29udGVudC9tdS1wbHVnaW5z` is `wp-content/mu-plugins`,
+`d3AtY29udGVudC92cy1pbXBvcnQvYmlu` is `wp-content/vs-import/bin`), then confirm the upload dialog's
+title names the folder and check the deployed byte size. A wedged tab does not recover; open a new one.
 
 ## The verification method this project learned
 
@@ -580,26 +591,17 @@ are not.
 
 ## Suggested next steps
 
-0. **Decide on the eight unpushed commits** (`d3c84b3`..`41359a4`). They are deployed to the live
-   CMS already — the mu-plugins on the host match these files byte for byte — so the repo is the
-   only thing behind. Push, or say what to change first. Also worth Allan's eye: the section group
-   headings, which are Claude's words for parts of his pages.
-1. **Backfill the "Bottom of page" boxes — and know before you start that it is NOT
-   byte-identical.** Measured 2026-09-04: all 70 extractable values match the live output, 45
-   byte-exact and 25 differing only in whitespace, none differing in a word. The 25 are the
-   multi-line JSX fallbacks — **Astro renders those with their source newlines and indentation
-   baked into the HTML**, so a clean one-line CMS value changes the bytes of roughly 20 live
-   routes while changing no words. That is acceptable (the change is the point, and emptying a
-   box restores the template exactly) but it must be a deliberate decision, not a surprise
-   halfway through.
-   Seven fields must stay on the template: they carry an inline `<a>` or a `{phoneLabel}`
-   expression, and `consultBody`/`note` are rendered as plain text, so a stored value would show
-   the markup. They are all-on-4/bone-grafting/full-mouth/single-tooth `consult_body`, and
-   full-mouth/sinus-lift/referral-program `note`.
-   Mechanically the blocker is that `backfill-hero.php` is parameterised by four functions
-   (`vs_hb_group_key/group_name/receipt_meta/writable_fields`) but its function names would
-   collide with a copy, so a closing engine needs a `vs_cb_*` prefix or the engine needs
-   generalising. In the meantime the wording is at least VISIBLE — see below.
+1. **DONE 2026-09-07 — the "Bottom of page" boxes are filled on 22 pages (70 values).** The
+   migration screen has a third mode, `closing`, with its own engine (`cms/import/backfill-closing.php`,
+   `vs_cb_*`) and payload (`cms/import/closing-payload.json`), deployed to `wp-content/vs-import/bin/`
+   beside the hero pair. Measured after the write: all 70 values read back through GraphQL exactly
+   equal to the payload; no deliberately-blank box got filled; no non-target page touched; schema
+   still 37 types / 325 fields; and a rebuild against the written CMS gives **48 routes, 28
+   byte-identical, 20 differing only in bytes, 0 differing in a word** — the closing band's visible
+   text is identical on every route. The byte differences are exactly the two predicted kinds: JSX
+   source indentation no longer baked into the HTML, and `'` now output-escaped to `&#39;`. Seven
+   fields stay on the template because they carry a link or `{phoneLabel}` (listed in the payload's
+   `_` block). Rollback for any page is emptying its boxes.
 2. **An HTML-capable sub for two heroes.** sinus-lift's sub carries a real `<a class="vs-link">`
    and referral-program's a `<b>$50 credit</b>`; `hero.sub` is plain text, so both stay on the
    template. Needs a field type change, not a payload fix.

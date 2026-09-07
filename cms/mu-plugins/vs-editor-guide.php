@@ -2168,6 +2168,20 @@ function closing_today( int $post_id ): string {
 		return '';
 	}
 
+	// Only while the boxes are still empty. On 2026-09-07 the closing run
+	// filled 22 pages' boxes with this same wording, and on those pages a
+	// snapshot underneath the live boxes is a second copy that stops being true
+	// the moment someone edits — "copy a line into the box above" is wrong
+	// advice when the box already holds it. It stays useful on the pages the
+	// run left on template wording (the three campaign LPs, /thank-you/, the
+	// blog index, and the ones whose values carry a link), which is exactly
+	// the set whose boxes are empty.
+	foreach ( [ 'consult_eyebrow', 'consult_headline', 'consult_body', 'note' ] as $name ) {
+		if ( '' !== trim( (string) get_post_meta( $post_id, 'closing_' . $name, true ) ) ) {
+			return '';
+		}
+	}
+
 	$labels = [
 		'eyebrow'  => 'Small line',
 		'headline' => 'Invite headline',
