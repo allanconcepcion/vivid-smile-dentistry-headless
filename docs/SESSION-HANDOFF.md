@@ -545,19 +545,32 @@ at every width** (+12px at 1440, +8px at 768, +40px at 390). Everything else
 the harness flagged reproduces without Phase 3 or was a failed capture. Run the
 control before believing this harness again — it flakes on tall blog pages.
 
-**What is known about the about-us cause, and what is not.** Wiring PageBlocks
-into a template pulls the block CSS graph onto that page: about-us's
-ReviewMarquee rules moved OUT of an inline `<style>` and INTO the shared
-PageBlocks chunk. The rule TEXT is identical either way (`flex:0 0 380px;
-min-height:460px`, and `300px/440px` under 780px) — what changed is which
-stylesheet carries them and therefore their position in the cascade. That is
-the suspected mechanism and it is NOT yet proven; the height delta itself
-(a dozen px at 1440) has not been traced to a specific element. Trace it before
-re-landing Phase 3 — and note that the four sweeps and a byte comparison BOTH
-call about-us clean, so only pixels and computed styles can settle it. A
-misleading experiment not to repeat: disabling the PageBlocks stylesheet in the
-browser shrinks `#voices` by 401px, which looks like a smoking gun and is not —
-it removes rules that legitimately apply and says nothing about before/after.
+**The about-us cause — FOUND, FIXED, and landed as `e97eef1`.** Importing
+PageBlocks changes where Astro emits component styles: CredentialBadge's
+`.vs-cred-badge h4 { font-size: 20px; line-height: 1.25 }` moved AFTER
+`src/styles/pages/about-us.css` instead of before it. That selector and the
+page's own `.aus h4 { font-size: 17px }` have the SAME specificity (0,1,1), so
+the winner was only ever decided by source order — a bundler's choice, not a
+designer's. Every badge grew 5.94px, the grid 12.25px, the page 12px at 1440
+and 40px at 390. The fix is `.aus .vs-cred-badge h4` pinning every property the
+component declares, at a specificity the tie cannot reach. After it:
+`vr-screens compare --routes about-us` reports 3/3 pass, "no visual change",
+and the computed styles match the recorded baseline exactly.
+
+**Generalise it before wiring the next template.** Any page whose generic
+element primitives (`.aus h4`, `.home h3`, …) tie on specificity with a
+component's own rule is one PageBlocks import away from silently swapping
+which one wins. Grep the page sheet for bare `<wrapper> <element>` rules and
+pin the ones a block component also styles, in the SAME commit that wires the
+switch. Bytes and all four sweeps call this clean — only pixels and computed
+styles catch it.
+
+**Still to do for Phase 3:** the home and testimonials templates (lost to a
+save collision — redo from `plan-phases.json` phases[3], the work order is
+exact, including hoisting the video modal out of `#stories` into chrome on
+both pages and the `[...slug].astro` conditional), then the paired-list
+additions to `global.css` / `Button.astro`, which only bite once those two
+pages render `.section.alt` / `.section.dark`.
 
 **Artifacts.** `scratchpad/phase3-wip/` holds the reverted about-us template,
 `global.css`, `Button.astro`, `[...slug].astro` and the full `vr-compare.log`.
