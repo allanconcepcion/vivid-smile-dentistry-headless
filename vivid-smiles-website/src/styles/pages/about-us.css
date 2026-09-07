@@ -41,6 +41,26 @@
 .aus h2 em { font-style: italic; color: var(--sage-soft); font-weight: 300; }
 .aus h3 { font-size: clamp(20px, 2vw, 26px); font-weight: 500; color: var(--ink); }
 .aus h4 { font-size: 17px; font-weight: 500; color: var(--ink); letter-spacing: 0; }
+
+/* CredentialBadge ships `.vs-cred-badge h4 { font-size: 20px }` from its own
+   component style. That selector and `.aus h4` above have the SAME
+   specificity (0,1,1), so which one wins is decided purely by source order —
+   and the order is not stable: importing PageBlocks into this template moves
+   Astro's component styles after this sheet, at which point the badge wins.
+   MEASURED 2026-09-08: the badge heading jumped 17px -> 20px, every badge
+   grew 5.94px and the page grew 12px at 1440. Pin the page's own value at a
+   specificity the component cannot tie, so the order stops mattering.
+   If the badges are ever MEANT to read at 20px here, delete this rule
+   deliberately and re-baseline — do not let a bundler decide it. */
+.aus .vs-cred-badge h4 {
+  font-family: var(--f-display);
+  font-weight: 500;
+  font-size: 17px;
+  color: var(--ink);
+  line-height: 1.1;
+  letter-spacing: 0;
+  margin: 0;
+}
 .aus p { margin: 0; color: var(--ink-soft); }
 .aus em { font-style: italic; color: var(--sage-soft); font-weight: 300; }
 

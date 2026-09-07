@@ -25,6 +25,7 @@ import ImageFrame from '../../components/ImageFrame.astro';
 import VirtualConsult from '../../components/VirtualConsult.astro';
 import ReviewMarquee from '../../components/ReviewMarquee.astro';
 import CredentialBadge from '../../components/cards/CredentialBadge.astro';
+import PageBlocks from '../../blocks/PageBlocks.astro';
 import {
   bookNowHref,
   addressStreet,
@@ -46,7 +47,22 @@ import '../../styles/pages/about-us.css';
 import { getPageContent, schemaImageUrl, type PageImage, introFrom } from '../../lib/page-content';
 // Section copy is edited in WordPress (Pages -> this page -> Section copy).
 // `team` is the Team tab on the same screen; the TEAM block below reads it.
-const { hero, closing, section, image, seo, team } = await getPageContent(Astro.url.pathname);
+/**
+ * THE MIGRATION SWITCH.
+ *
+ * `hasBlocks` means "this build can draw this page from its Page sections
+ * list" — every band below is guarded on it. True: PageBlocks draws the six
+ * bands in the order an editor arranged them, each a `code_section` row whose
+ * component reads THIS page's own tabs live (the D1 rule, CodeSectionBlock's
+ * header). False — the list is empty, which is where this page stands today —
+ * the literal markup below renders exactly as it always has. Emptying the list
+ * in wp-admin is the rollback, with no deploy.
+ *
+ * Chrome is never guarded: the crumbs, the hero, <VirtualConsult> and the three
+ * JSON-LD scripts sit outside the switch. The roster logic and the literal
+ * arrays above stay put — the fallback branch needs them.
+ */
+const { hero, closing, section, image, seo, team, blocks, hasBlocks } = await getPageContent(Astro.url.pathname);
 
 // Person schema must reference this site's optimized copy, not the
 // WordPress media URL — the CMS host is noindexed and is not where
@@ -417,7 +433,7 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
       </header>
 
       {/* ---------- STORY (paper) ---------- */}
-      <section class="section" id="story">
+      {hasBlocks ? <PageBlocks blocks={blocks} /> : <section class="section" id="story">
         <div class="wrap" data-vs-reveal-batch>
           <SectionIntro
             eyebrow={storyIntro.eyebrow}
@@ -460,10 +476,10 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* ---------- DOCTORS (cream) ---------- */}
-      <section class="section alt" id="doctors">
+      {hasBlocks ? null : <section class="section alt" id="doctors">
         <div class="wrap" data-vs-reveal-batch>
           <SectionIntro
             eyebrow={doctorsIntro.eyebrow}
@@ -591,14 +607,14 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
             />
           </article>
         </div>
-      </section>
+      </section>}
 
       {
         /* ---------- TEAM (sage-pale) ----------
            `.section.dark` paints the sage-pale band. Page CSS at about-us.css
            handles ink-on-pale text overrides for the SectionIntro children. */
       }
-      <section class="section dark" id="team">
+      {hasBlocks ? null : <section class="section dark" id="team">
         <div class="wrap" data-vs-reveal-batch>
           <SectionIntro
             eyebrow={teamIntro.eyebrow}
@@ -647,10 +663,10 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
             ))
           }
         </div>
-      </section>
+      </section>}
 
       {/* ---------- TECHNOLOGY (paper) ---------- */}
-      <section class="section" id="technology">
+      {hasBlocks ? null : <section class="section" id="technology">
         <div class="wrap" data-vs-reveal-batch>
           <SectionIntro
             eyebrow={technologyIntro.eyebrow}
@@ -695,10 +711,10 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* ---------- CREDENTIALS (cream) ---------- */}
-      <section class="section alt" id="credentials">
+      {hasBlocks ? null : <section class="section alt" id="credentials">
         <div class="wrap" data-vs-reveal-batch>
           <SectionIntro
             eyebrow={credentialsIntro.eyebrow}
@@ -726,10 +742,10 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
             }
           </div>
         </div>
-      </section>
+      </section>}
 
       {/* ---------- TESTIMONIALS (paper) — exact clone of the home-page section ---------- */}
-      <section class="testi" id="voices">
+      {hasBlocks ? null : <section class="testi" id="voices">
         <div class="wrap">
           <div class="testi-head" data-vs-reveal-batch>
             <Eyebrow center>{/* Section copy row voices: its eyebrow box was stored in wp-admin and unread until now. */ section("voices").eyebrow || "Testimonials"}</Eyebrow>
@@ -746,7 +762,7 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
           </div>
         </div>
         <ReviewMarquee reviews={reviews} ariaLabel="Patient testimonials" />
-      </section>
+      </section>}
     </main>
 
     {/* ---------- VIRTUAL CONSULT (cream) ---------- */}
