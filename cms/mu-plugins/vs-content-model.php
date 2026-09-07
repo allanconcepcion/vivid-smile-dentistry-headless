@@ -280,6 +280,53 @@ const BLOCK_CODE_BANDS = [
 	'emergency_dentistry_area'     => 'Service area — Parker map, address and directions (Emergency Dentistry)',
 	'emergency_dentistry_prevent'  => 'Preventing emergencies — centred prose and one button (Emergency Dentistry)',
 	'new_patients_reviews'         => 'Patient reviews — the draggable testimonial marquee (New Patients)',
+	/*
+	 * Blocks wave — /, /patient-testimonials/ and /about-us/. Fifteen keys,
+	 * <page>_<anchor> as above, one BANDS entry each in
+	 * src/blocks/CodeSectionBlock.astro in the same commit family.
+	 *
+	 * THESE DO NOT FREEZE COPY, WHICH IS THE DIFFERENCE FROM WAVE B. The rule
+	 * this wave adds (plan decision D1): a band keyed to ONE route may read its
+	 * own page's Section copy, Images, Team and Cards rows LIVE, through
+	 * getPageContent(Astro.url.pathname), guarded by a `route` prop — placed
+	 * on any other page it draws nothing and warns in the console. So
+	 * `home_technology` still reads the Technology row of the home page's
+	 * Section copy tab and its two photo slots; `about_us_team` still reads
+	 * the Team tab; `about_us_technology` reads the four techItems Cards rows
+	 * that nothing read before (D9). The code_section row is only the band's
+	 * PLACE in the order; the words keep coming from the tabs they always
+	 * came from, and each key's LABEL below names the tab(s) it keeps reading, so
+ * the receptionist learns it from the choice itself (there is no per-tab guide).
+	 *
+	 * Three of the home keys are measured decisions rather than defaults:
+	 * `home_doctor` stays code because media_split's 5/4 frame crops the
+	 * portrait at the chest (521.9x652.4 → 521.9x417.5 at 1440, D4);
+	 * `home_process` stays code because process_steps has no sub-line,
+	 * signature plate or rings and every word there is literal (D5). The
+	 * notable-patients band is NOT here — it becomes a service_cards row with
+	 * the `portraits` card style below (D2).
+	 *
+	 * `home_testimonials`, `patient_testimonials_reviews` and `about_us_voices`
+	 * are one component (TestimonialsBand) keyed per page, exactly as the
+	 * three `_area` keys above are one AreaBand. The patient-story video
+	 * modal is NOT a band: it is page chrome (StoryVideoModal.astro), drawn
+	 * once per page by the template, and has no row and no key.
+	 */
+	'home_trust'                   => 'Accredited-by logo strip near the top — logos from the Images tab (Home)',
+	'home_technology'              => 'Technology — robot photo beside the stamp and four numbered items; words from the Section copy tab, photos from the Images tab (Home)',
+	'home_membership'              => 'Membership offer — photo, price and benefits list; the team photo from the Images tab (Home)',
+	'home_testimonials'            => 'Patient reviews — heading, stars, Google button and the scrolling reviews; words from the Section copy tab (Home)',
+	'home_doctor'                  => 'Meet Dr. Richardson — portrait, signature, review badge, bio and credentials; words from the Section copy tab, portrait from the Images tab (Home)',
+	'home_process'                 => 'The Vivid Smile Cosmetic Process — three numbered steps and the signature plate; small portrait from the Images tab (Home)',
+	'patient_testimonials_divider' => 'Star rating strip — stars and one review line (Patient Testimonials)',
+	'patient_testimonials_reviews' => 'Patient reviews — heading, stars, Google button and the scrolling reviews; words from the Section copy tab (Patient Testimonials)',
+	'patient_testimonials_visit'   => 'Visit the studio — map, reviews and address (Patient Testimonials)',
+	'about_us_story'               => 'Our Story — intro, neon-sign photo and founding philosophy; words from the Section copy tab, photo from the Images tab (About Us)',
+	'about_us_doctors'             => 'Meet the Doctors — intro and both doctor profiles; intro and Dr. Richardson’s heading and paragraph from the Section copy tab, photos from the Images tab (About Us)',
+	'about_us_team'                => 'The team — intro and the tiered photo roster; intro from the Section copy tab, people from the Team tab (About Us)',
+	'about_us_technology'          => 'Advanced Technology — intro, treatment-room photo and the four items; words from the Section copy tab, photo from the Images tab, items from the Cards & lists tab (About Us)',
+	'about_us_credentials'         => 'Credentials — intro and the eight logo badges; intro from the Section copy tab, logos from the Images tab (About Us)',
+	'about_us_voices'              => 'Patient reviews — heading, stars, Google button and the scrolling reviews; words from the Section copy tab (About Us)',
 ];
 
 /**
@@ -1190,7 +1237,8 @@ function register_field_groups(): void {
 						. "<em>Team</em> only matters on the About page.\n"
 						. "<em>On this page</em>, <em>Process</em> and <em>Section copy</em> only still matter on "
 						. "the few pages where <em>Page sections</em> is empty — each of those tabs explains this "
-						. "at the top.\n"
+						. "at the top. The one exception: a <em>Built-in section</em> row in Page sections whose "
+						. "name says “words from the Section copy tab” still reads its words from there.\n"
 						. "Changes go live on the next site build.",
 					'esc_html' => 0,
 					'new_lines' => 'wpautop',
@@ -1298,7 +1346,8 @@ function register_field_groups(): void {
 					'message'   => "<strong>Check the Page sections tab first.</strong> If it has rows, most of "
 						. "this page’s headings and copy are edited there now, and the matching rows below "
 						. "no longer change the site — they will save, but nothing happens. Rows below with "
-						. "no match in Page sections still work.\n"
+						. "no match in Page sections still work. So does any row a <em>Built-in section</em> "
+						. "in Page sections reads — its name there says “words from the Section copy tab”.\n"
 						. "Rule of thumb: if you can find the same words in Page sections, edit them there.",
 					'esc_html'  => 0,
 					'new_lines' => 'wpautop',
@@ -4511,13 +4560,31 @@ function register_field_groups(): void {
 											'default' => 'Full width — the section’s own heading column',
 											'center'  => 'Narrow and centred — matches the rest of this page',
 											'narrow'  => 'Narrow, left-aligned — matches the rest of this page',
+											/*
+											 * Blocks wave adds `split` for the home page's #services band
+											 * (index.astro `.services-head`, its `.left` {eyebrow, h2} and
+											 * `.right` {p, one ghost Button} columns — `section-head split`
+											 * is the class the BLOCK emits, not one index.astro has today):
+											 * a two-column head, small
+											 * line and heading on the left, paragraph and ONE ghost button on
+											 * the right. That button is the layout's own first cta (label,
+											 * link, hover) drawn inside the head; the second cta is not drawn
+											 * in a split head, which is what index.astro does today and what
+											 * the instruction below promises. /services/ draws its own head
+											 * button the same way with `.in-head`.
+											 * A registered value with a branch in ServiceCardsBlock, on the
+											 * same rule as `tiles-heading-first` (plan decision D3).
+											 */
+											'split'   => 'Two columns — small line and heading on the left, paragraph and button on the right (home page services)',
 										],
 										'default_value' => 'default',
 										'return_format' => 'value',
 										'allow_null'    => 0,
 										'multiple'      => 0,
 										'ui'            => 0,
-										'instructions'  => 'Leave this alone unless the rest of the page uses the narrower centred heading.',
+										'instructions'  => 'Leave this alone unless the rest of the page uses the narrower centred heading. '
+											. 'Two columns is only for the home page: it puts the small line and heading on the left and the '
+											. 'paragraph and first button on the right, side by side.',
 									],
 									[
 										'key'           => 'field_vs_blk_svc_nested',
@@ -4564,12 +4631,26 @@ function register_field_groups(): void {
 											'tiles'              => 'Linked tiles — photo, short line, arrow',
 											'tiles-heading-first' => 'Linked tiles — title above the line, no arrow',
 											'features'           => 'Feature cards — photo over always-visible description, no link',
+											/*
+											 * Blocks wave adds the fourth shape for the home page's notable-
+											 * patients band (index.astro `.notable-grid`): a link-less
+											 * <figure> with a 4/5 photo and a <figcaption> of corner label,
+											 * title and the description in italics — `tag` → `title` →
+											 * `body`. Same four fields, no `href`. Plan decision D2 chose
+											 * this over a code_section key so the four portraits stay
+											 * editable rows.
+											 */
+											'portraits'          => 'Portrait photos with a caption underneath — small label, name, one italic line; no link (home page notable patients)',
 										],
 										'default_value' => 'tiles',
 										'return_format' => 'value',
 										'allow_null'    => 0,
 										'multiple'      => 0,
 										'ui'            => 0,
+										'instructions'  => 'Which kind of card each tile is. Linked tiles use the photo, title, description and link boxes '
+											. 'below; feature cards use the same boxes but are not links, so leave Link blank. Portrait photos use the same boxes but draw them as a tall photo '
+											. 'with the name and one italic line under it, and no link — the Corner label becomes the small line '
+											. 'over the name, e.g. NFL Player. Leave the Link box blank on portrait tiles.',
 									],
 									[
 										'key'           => 'field_vs_blk_svc_columns',
@@ -4687,7 +4768,8 @@ function register_field_groups(): void {
 												'name'         => 'tag',
 												'type'         => 'text',
 												'instructions' => 'Optional. The small pill on the photo — "Same-Day". '
-													. 'Linked tiles only.',
+													. 'Linked tiles and portrait photos only — on a portrait photo it is the small line '
+													. 'over the name, e.g. NFL Player.',
 											],
 											[
 												'key'          => 'field_vs_blk_svc_card_href',
@@ -4695,7 +4777,7 @@ function register_field_groups(): void {
 												'name'         => 'href',
 												'type'         => 'text',
 												'instructions' => 'A path on this site, like /implant-dentistry/sinus-lift/. '
-													. 'Leave it blank on feature cards — they are not links. Never paste '
+													. 'Leave it blank on feature cards and portrait photos — they are not links. Never paste '
 													. 'a full address from the browser bar.',
 											],
 											block_image_field( 'field_vs_blk_svc_card_image', 'Photo' ),
@@ -4712,6 +4794,27 @@ function register_field_groups(): void {
 												'type'         => 'text',
 												'instructions' => 'Leave blank. Set by the site team when a photo needs an '
 													. 'off-centre crop focus — e.g. "center 25%".',
+											],
+											/*
+											 * Blocks wave. The home page's #services grid draws its first
+											 * tile across the whole top row (`.svc-card.featured`,
+											 * index.astro) and the other four below it — a per-ROW
+											 * shape, so it is a per-row switch. Nothing already stored
+											 * separates that tile from its neighbours. Off on every row
+											 * draws exactly today's markup; the component honours the
+											 * first row that is on and ignores any later one, so two
+											 * rows switched on cannot stack two full-width tiles.
+											 */
+											[
+												'key'           => 'field_vs_blk_svc_card_featured',
+												'label'         => 'Make this the big card',
+												'name'          => 'featured',
+												'type'          => 'true_false',
+												'ui'            => 1,
+												'default_value' => 0,
+												'instructions'  => 'Only one tile should have this on. It spans the whole row above the others, '
+													. 'like the Cosmetic & Veneers card on the home page. Leave it off everywhere else. '
+													. 'Linked tiles only — it does nothing on feature cards or portrait photos.',
 											],
 										],
 									],
@@ -5186,6 +5289,207 @@ function register_field_groups(): void {
 						],
 
 						/**
+						 * ── Blocks wave ─────────────────────────────────────────────
+						 *
+						 * Patient video cards — the `.story-card` grid and the one-big-video
+						 * `.featured-grid`.
+						 *
+						 * TWO PAGES SHIP THE GRID CHARACTER FOR CHARACTER, which is what makes
+						 * it a layout and not two code_section keys: the home page's #stories
+						 * (index.astro:249-300, three tall cards) and /patient-testimonials/
+						 * (patient-testimonials/index.astro:107-262 — a seven-card tall grid
+						 * and a three-card wide grid). The same page draws the featured shape
+						 * once (:335-372): one 16/9 video on the left, small line, heading,
+						 * pull quote, second paragraph and two buttons on the right. Every
+						 * word on all four bands is literal today, so this is the first time
+						 * any of it is editable — nothing is frozen and nothing is lost.
+						 *
+						 * `card_shape` is the one control that separates the three markups, and
+						 * every value it can store has a branch in VideoCardsBlock: blank or
+						 * unknown draws the default, `portrait`, which is also what a row saved
+						 * before any edit holds. `video_short` (opens the player upright) is
+						 * DERIVED from portrait, not stored: a second control for it would be a
+						 * second chance to contradict the first. Columns is always three and the
+						 * tall grid's centred orphan comes from the row count, so there is no
+						 * `columns` select either. No `head_align`: both grid consumers centre
+						 * the head and the featured shape has no section head.
+						 *
+						 * THE MODAL IS CHROME, NOT PART OF THIS LAYOUT. The <dialog> the play
+						 * buttons open, and the script that fills it with the YouTube frame,
+						 * live in src/components/StoryVideoModal.astro and are drawn ONCE per
+						 * page by the template (and by [...slug].astro when a page holds a row
+						 * of this layout). Two rows on one page would otherwise emit two
+						 * `id="story-video-modal"`, and no block ships a <script>. So this
+						 * layout stores the video CODE, the still and the words — the player is
+						 * the page's.
+						 *
+						 * `video_cards` mints PageFieldsBlocksVideoCards from the repeater NAME
+						 * (the layout contributes nothing, see assert_unique_graphql_type_names),
+						 * so the name is the one no other layout's repeater uses — checked
+						 * against all sixteen. The row's `image` selection must include
+						 * mediaDetails { width height } or <Image> refuses the remote source.
+						 *
+						 * The button fields are block_cta_fields() MINUS `cta_note`: the featured
+						 * shape has no note element and the grid shapes draw no buttons at all, so
+						 * a note box here would post a value nothing reads — the fault
+						 * block_code_preamble()'s header names. Same array_filter idiom.
+						 */
+						[
+							'key'        => 'layout_vs_blk_video_cards',
+							'name'       => 'video_cards',
+							'label'      => 'Patient video cards',
+							'display'    => 'block',
+							'sub_fields' => array_merge(
+								block_preamble( 'video' ),
+								[
+									[
+										'key'           => 'field_vs_blk_video_card_shape',
+										'label'         => 'How the videos are laid out',
+										'name'          => 'card_shape',
+										'type'          => 'select',
+										'choices'       => [
+											'portrait'  => 'Tall cards, three across — for vertical phone videos (YouTube Shorts)',
+											'landscape' => 'Wide cards, three across — for normal widescreen videos',
+											'featured'  => 'One big video beside your writing — uses the first video only',
+										],
+										'default_value' => 'portrait',
+										'return_format' => 'value',
+										'allow_null'    => 0,
+										'multiple'      => 0,
+										'ui'            => 0,
+										'instructions'  => 'Tall is for vertical phone videos and opens them upright; Wide is for normal '
+											. 'videos. One big video puts a single video on the left and your small line, heading, quote '
+											. 'and second paragraph on the right — the Paragraph under the heading box becomes the '
+											. 'italic quote there, e.g. “I finally smile in photos.”',
+									],
+									[
+										'key'          => 'field_vs_blk_video_body_2',
+										'label'        => 'Second paragraph (one-big-video layout only)',
+										'name'         => 'body_2',
+										'type'         => 'textarea',
+										'rows'         => 4,
+										'instructions' => 'Shows under the quote in the one-big-video layout, e.g. “Wayne came to us after '
+											. 'years of hiding his smile.” Leave blank for the other two layouts — it is not drawn there.',
+									],
+									[
+										'key'          => 'field_vs_blk_video_cards',
+										'label'        => 'Videos',
+										'name'         => 'video_cards',
+										'type'         => 'repeater',
+										'layout'       => 'row',
+										'button_label' => 'Add a video',
+										// `collapsed` names the sub-field a folded row shows (the Team
+										// rule above): the video title, so a folded list reads as the
+										// people in the videos and the Video title box can say so.
+										'collapsed'    => 'field_vs_blk_video_card_video_title',
+										'sub_fields'   => [
+											[
+												'key'          => 'field_vs_blk_video_card_title',
+												'label'        => 'Card title',
+												'name'         => 'title',
+												'type'         => 'text',
+												'instructions' => 'The short title on the card, e.g. More than a smile. Not used in the '
+													. 'one-big-video layout.',
+											],
+											[
+												'key'          => 'field_vs_blk_video_card_body',
+												'label'        => 'Sentence under the title',
+												'name'         => 'body',
+												'type'         => 'textarea',
+												'rows'         => 3,
+												'instructions' => 'One or two sentences, e.g. James shares how his new smile changed the way he '
+													. 'walks into a room. Not used in the one-big-video layout.',
+											],
+											[
+												'key'          => 'field_vs_blk_video_card_label',
+												'label'        => 'Small line at the bottom of the card',
+												'name'         => 'label',
+												'type'         => 'text',
+												'instructions' => 'A few words in capitals with a short line before them, e.g. Porcelain Veneers '
+													. 'or All-On-X · Full Arch. Not used in the one-big-video layout.',
+											],
+											[
+												'key'          => 'field_vs_blk_video_card_video_id',
+												'label'        => 'YouTube video code',
+												'name'         => 'video_id',
+												'type'         => 'text',
+												'instructions' => 'Only the code, never the whole address. In '
+													. 'https://www.youtube.com/watch?v=Nm7RjGKP8jw the code is Nm7RjGKP8jw; in a Shorts link it is '
+													. 'the part after /shorts/. A row with no code is skipped.',
+											],
+											[
+												'key'          => 'field_vs_blk_video_card_video_title',
+												'label'        => 'Video title',
+												'name'         => 'video_title',
+												'type'         => 'text',
+												'instructions' => 'What the video player is called for screen readers, e.g. James — All-On-X '
+													. 'patient story. Also names the row in this list.',
+											],
+											[
+												'key'          => 'field_vs_blk_video_card_aria_label',
+												'label'        => 'Play button description',
+												'name'         => 'aria_label',
+												'type'         => 'text',
+												'instructions' => 'What a screen reader says for the play button, e.g. Play James’s patient story '
+													. 'video. Leave it blank and it says “Play” followed by the video title.',
+											],
+											[
+												'key'          => 'field_vs_blk_video_card_caption',
+												'label'        => 'Small line in the corner of the big video (one-big-video layout only)',
+												'name'         => 'caption',
+												'type'         => 'text',
+												'instructions' => 'e.g. Watch Wayne’s story. Not drawn in the other two layouts.',
+											],
+											block_image_field(
+												'field_vs_blk_video_card_image',
+												'Photo',
+												'image',
+												'The still picture shown before someone presses play. Choose a picture already in the '
+													. 'Media Library, or upload one — JPG, PNG or WebP. Use a tall picture (3 wide by 4 high, '
+													. 'a little taller than it is wide) for Tall cards, a wide one (4 wide by 3 high) for Wide cards, and a '
+													. 'widescreen one (16 by 9) for the one-big-video layout.'
+											),
+											[
+												'key'          => 'field_vs_blk_video_card_image_alt',
+												'label'        => 'Photo alt text',
+												'name'         => 'image_alt',
+												'type'         => 'text',
+												'instructions' => 'A sentence describing the photo for people who cannot see it, e.g. James '
+													. 'smiling in the treatment chair. Blank uses the Media Library’s own description.',
+											],
+										],
+									],
+								],
+								/*
+								 * The six button fields, without `cta_note` (see the header). Each
+								 * instruction is prefixed so the editor knows the two grid shapes
+								 * never draw a button. The factory's first label says "the closing
+								 * buttons under this section"; here they sit under the writing on
+								 * the right of the video, so that one sentence is reworded.
+								 */
+								array_map(
+									static function ( array $field ): array {
+										$field['instructions'] = 'One-big-video layout only. '
+											. str_replace(
+												'The first of the closing buttons under this section.',
+												'The first of the buttons under the writing on the right of the video.',
+												(string) ( $field['instructions'] ?? '' )
+											);
+										return $field;
+									},
+									array_values(
+										array_filter(
+											block_cta_fields( 'video' ),
+											static function ( array $field ): bool {
+												return 'cta_note' !== ( $field['name'] ?? '' );
+											}
+										)
+									)
+								)
+							),
+						],
+
+						/**
 						 * A section the site builds itself.
 						 *
 						 * The escape hatch of docs/PAGE-BLOCKS.md 1.3, and the only
@@ -5196,7 +5500,7 @@ function register_field_groups(): void {
 						 *
 						 * Last in the picker on purpose. It is the exception, and an
 						 * editor scanning the list for the section they want to add
-						 * should meet the eight they can fill in first.
+						 * should meet the sixteen they can fill in first.
 						 *
 						 * No repeater and no group, so it mints no GraphQL type of its
 						 * own and gives assert_unique_graphql_type_names() nothing to
@@ -5238,8 +5542,11 @@ function register_field_groups(): void {
 										// below exists to undo.
 										'required'      => 0,
 										'instructions'  => 'Pick which one this row is. Everything inside it is part of the '
-											. 'design, so there is nothing else to fill in — drag the row to move it, or '
-											. 'delete it to take the section off the page. Ask us to change its wording.',
+											. 'design, so there is nothing else to fill in here — drag the row to move it, or '
+											. 'delete it to take the section off the page. Some of these still read their words '
+											. 'and photos from this page’s own tabs, and the name of the choice says which — e.g. '
+											. '“words from the Section copy tab, photos from the Images tab” — so editing that tab '
+											. 'still changes the section. For the rest, ask us to change the wording.',
 									],
 								]
 							),
