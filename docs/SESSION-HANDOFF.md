@@ -336,6 +336,56 @@ Post" click creates — so existing posts are never touched (measured: post 53 s
 own first block). Verified on Add Post: 14 blocks — 1 intro paragraph, 4 H2, 2 H3, 1 list, Conclusion.
 The post intro message now says the outline is there and why the headings matter.
 
+## 2026-09-07 — the review line is two Practice Settings boxes (commit `f903b36`)
+
+Allan's "not only about us" round, first wave after the team roster. The
+inventory of the 14 hand-built templates (scratchpad `inventory-synth.md`,
+Waves 0–6) put the review line first because it is the one figure that will
+actually change: "5.0 · 300+ reviews" was typed into 25 files.
+
+**What it is now.** Practice Settings → Contact tab, right after "Book now
+link": **Google star rating** and **How many Google reviews**. Both optional
+(`string | null` in `src/lib/settings.ts`, not in `REQUIRED`), read once in
+`src/data/contact.ts:55-60` as `googleRating` / `googleReviewCount` with the
+old literals as fallback. A blank box changes nothing — that is the design,
+not a side effect.
+
+**Order that kept the build green.** `vs-settings.php` went to the host FIRST
+(WP File Manager, YES to replace; 12044 bytes, then 12141 after the wording
+below), because the settings loader has no capability probe: an unknown
+field in its query is a build failure, unlike the page loader's gated groups.
+
+**What was dropped before deploy.** A third box, "Link to your Google
+reviews". Nothing on the site links to Google reviews — "Read all reviews" is
+`/patient-testimonials/` (`new-patients/index.astro:304`); the only Google URL
+is the directions link. It would have been a field read by nothing.
+
+**Measured.**
+- Blank boxes: 48/48 routes byte-identical to `dist-gate1` (python3 over both
+  trees).
+- Forced `4.9` / `350+` through `contact.ts`: 78 and 90 hits in `<body>`
+  across 48/48 routes; `contact.ts` restored and `cmp`-identical.
+- Still literal after the forced build: the five Wave-0 pages (their writers
+  own those files), design-system, and twelve blocks pages whose sentences are
+  WordPress-stored section copy ("Vivid Smiles holds a 5-star rating across
+  300+ Google reviews…"). Those are edited on the page, and the box
+  instruction says so. Meta descriptions stay literal on purpose — the SEO
+  box already edits them per page.
+
+**The whitespace lesson, this time with numbers.** The three LPs' bare-line
+"300+ five-star reviews" would not go byte-neutral as `{count} five-star
+reviews`: a whitespace run before plain text compresses to `\n`, the same run
+before an expression to a space. `{"\n" + count}` in the template shipped a
+stray `}` for the trailing newline — the compiler mis-tokenises the escape
+inside a template expression. What measured identical: build the string in
+frontmatter (`reviewsLine`) and ship it as one flush expression,
+`/>{reviewsLine}</span>` (`cosmetic-dentistry-lp.astro`, `general-lp.astro`,
+`veneers-lp.astro`).
+
+**Not done, on purpose.** Sentence copy in WordPress does not follow the box.
+A `{{reviews}}` token inside block copy would make it follow, at the cost of
+one more thing a receptionist has to know; not built, not asked for.
+
 ## The verification method this project learned
 
 Each sweep exists because the previous set reported clean while something real was broken.
