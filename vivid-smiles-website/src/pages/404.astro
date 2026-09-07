@@ -69,7 +69,7 @@ const { image, hero } = await getPageContent(Astro.url.pathname);
         <Image
           class="hero-bg"
           src={image("heroBg").url} width={image("heroBg").width} height={image("heroBg").height}
-          alt="Neon smiley face sign at the entrance to the Vivid Smiles practice"
+          alt={image("heroBg").alt || "Neon smiley face sign at the entrance to the Vivid Smiles practice"}
           widths={[768, 1280, 1600]}
           sizes="100vw"
           loading="eager"

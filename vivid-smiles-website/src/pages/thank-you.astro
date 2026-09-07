@@ -96,7 +96,7 @@ const explore = [
         <Image
           class="hero-bg"
           src={image("heroBg").url} width={image("heroBg").width} height={image("heroBg").height}
-          alt="The Vivid Smiles team walking together outside the Parker practice"
+          alt={image("heroBg").alt || "The Vivid Smiles team walking together outside the Parker practice"}
           widths={[768, 1280, 1600]}
           sizes="100vw"
           loading="eager"

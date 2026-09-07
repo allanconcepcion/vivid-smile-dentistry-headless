@@ -92,7 +92,7 @@ const lightboxSrcs = await Promise.all(
           <div class="hero-img" data-vs-reveal>
             <Image
               src={image("heroImg").url} width={image("heroImg").width} height={image("heroImg").height}
-              alt="Close-up photograph of a Vivid Smiles patient smiling, three-quarter view"
+              alt={image("heroImg").alt || "Close-up photograph of a Vivid Smiles patient smiling, three-quarter view"}
               widths={[600, 900, 1300]}
               sizes="(max-width: 991px) 100vw, 45vw"
               loading="eager"

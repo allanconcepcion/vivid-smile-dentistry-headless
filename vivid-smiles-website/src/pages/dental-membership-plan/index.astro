@@ -45,7 +45,7 @@ const processSteps = [
     body: "Pay the annual fee online, over the phone with our front desk, or in person at the office. We process the membership on the spot. No medical questions, no underwriting, no waiting period.",
     label: "Step One",
     img: image("step1Img"),
-    alt: "Front-desk team member at Vivid Smiles",
+    alt: image("step1Img").alt || "Front-desk team member at Vivid Smiles",
   },
   {
     num: "02",
@@ -54,7 +54,7 @@ const processSteps = [
     body: `Book your two yearly cleanings and exams — already paid for. For anything beyond preventive — fillings, veneers, Invisalign, implants — we apply the ${membershipDiscount} member discount automatically at checkout. Nothing to file.`,
     label: "Step Two",
     img: image("step2Img"),
-    alt: "Hygienist polishing a patient's teeth during a cleaning",
+    alt: image("step2Img").alt || "Hygienist polishing a patient's teeth during a cleaning",
   },
   {
     num: "03",
@@ -63,7 +63,7 @@ const processSteps = [
     body: "Twelve months later we send a reminder, you decide whether to renew, and if you do, everything starts again. No automatic charges without your confirmation. Cancel any time — unused months aren't billed.",
     label: "Step Three",
     img: image("step3Img"),
-    alt: "The Vivid Smiles waiting lounge in Parker, CO",
+    alt: image("step3Img").alt || "The Vivid Smiles waiting lounge in Parker, CO",
   },
 ];
 
@@ -162,7 +162,7 @@ const faqs = [
 
         <div class="hero-stack" data-vs-parallax data-parallax="-25">
           <div class="hero-primary">
-            <Image src={image("heroImg").url} width={image("heroImg").width} height={image("heroImg").height} alt="The Vivid Smiles Dentistry team" widths={[480, 720, 1080]} sizes="(max-width: 991px) 90vw, 540px" loading="eager" fetchpriority="high" />
+            <Image src={image("heroImg").url} width={image("heroImg").width} height={image("heroImg").height} alt={image("heroImg").alt || "The Vivid Smiles Dentistry team"} widths={[480, 720, 1080]} sizes="(max-width: 991px) 90vw, 540px" loading="eager" fetchpriority="high" />
           </div>
           <span class="hero-tag">The Vivid Smiles Team</span>
         </div>

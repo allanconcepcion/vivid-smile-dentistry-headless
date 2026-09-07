@@ -404,7 +404,7 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
           <div class="hero-img" data-vs-reveal data-vs-parallax data-parallax="-30">
             <Image
               src={image("heroTeam").url} width={image("heroTeam").width} height={image("heroTeam").height}
-              alt="Dr. Annie and Dr. Bryce of Vivid Smiles Dentistry in Parker, Colorado"
+              alt={image("heroTeam").alt || "Dr. Annie and Dr. Bryce of Vivid Smiles Dentistry in Parker, Colorado"}
               widths={[600, 900, 1400]}
               sizes="(max-width: 991px) 100vw, 45vw"
               loading="eager"
@@ -432,7 +432,7 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
             <div class="story-img" data-vs-reveal>
               <Image
                 src={image("storyOffice").url} width={image("storyOffice").width} height={image("storyOffice").height}
-                alt="The neon smile sign inside Vivid Smiles Dentistry in Parker, CO"
+                alt={image("storyOffice").alt || "The neon smile sign inside Vivid Smiles Dentistry in Parker, CO"}
                 widths={[480, 720, 1080]}
                 sizes="(max-width: 991px) 100vw, 45vw"
               />
@@ -665,7 +665,7 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
             <div class="tech-img" data-vs-reveal>
               <Image
                 src={image("yomiImg").url} width={image("yomiImg").width} height={image("yomiImg").height}
-                alt="A treatment room at Vivid Smiles Dentistry in Parker, CO"
+                alt={image("yomiImg").alt || "A treatment room at Vivid Smiles Dentistry in Parker, CO"}
                 widths={[480, 720, 1080]}
                 sizes="(max-width: 991px) 100vw, 50vw"
               />

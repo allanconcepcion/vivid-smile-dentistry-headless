@@ -91,7 +91,7 @@ const { hero, closing, section, image, seo } = await getPageContent(Astro.url.pa
         <div class="hero-img" data-vs-reveal>
           <Image
             src={image("heroImg").url} width={image("heroImg").width} height={image("heroImg").height}
-            alt="The Vivid Smiles Dentistry team walking outside their Parker, Colorado office"
+            alt={image("heroImg").alt || "The Vivid Smiles Dentistry team walking outside their Parker, Colorado office"}
             widths={[600, 900, 1300]}
             sizes="(max-width: 991px) 100vw, 45vw"
             loading="eager"
@@ -113,7 +113,7 @@ const { hero, closing, section, image, seo } = await getPageContent(Astro.url.pa
         <div class="veneer-stories-grid" data-vs-reveal-batch>
           <button type="button" class="story-card" data-video-id="Nm7RjGKP8jw" data-video-short="true" data-video-title="How veneers can change more than just your smile" aria-label="Play porcelain veneers story: more than a smile">
             <div class="story-photo">
-              <Image src={image("veneerMore").url} width={image("veneerMore").width} height={image("veneerMore").height} alt="Porcelain veneers patient — confident after treatment" widths={[400, 800]} sizes="(max-width: 780px) 100vw, 33vw" />
+              <Image src={image("veneerMore").url} width={image("veneerMore").width} height={image("veneerMore").height} alt={image("veneerMore").alt || "Porcelain veneers patient — confident after treatment"} widths={[400, 800]} sizes="(max-width: 780px) 100vw, 33vw" />
               <span class="play-btn" aria-hidden="true">
                 <svg viewBox="0 0 24 24" focusable="false"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
               </span>
@@ -127,7 +127,7 @@ const { hero, closing, section, image, seo } = await getPageContent(Astro.url.pa
 
           <button type="button" class="story-card" data-video-id="EA19QZ4lk8k" data-video-short="true" data-video-title="Her confidence after veneers says everything" aria-label="Play porcelain veneers story: confidence after veneers">
             <div class="story-photo">
-              <Image src={image("veneerConfidence").url} width={image("veneerConfidence").width} height={image("veneerConfidence").height} alt="Porcelain veneers patient — close-up smile" widths={[400, 800]} sizes="(max-width: 780px) 100vw, 33vw" />
+              <Image src={image("veneerConfidence").url} width={image("veneerConfidence").width} height={image("veneerConfidence").height} alt={image("veneerConfidence").alt || "Porcelain veneers patient — close-up smile"} widths={[400, 800]} sizes="(max-width: 780px) 100vw, 33vw" />
               <span class="play-btn" aria-hidden="true">
                 <svg viewBox="0 0 24 24" focusable="false"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
               </span>
@@ -141,7 +141,7 @@ const { hero, closing, section, image, seo } = await getPageContent(Astro.url.pa
 
           <button type="button" class="story-card" data-video-id="fRyN4dHhizo" data-video-short="true" data-video-title="How veneers can add length and improve your smile" aria-label="Play porcelain veneers story: length and balance">
             <div class="story-photo">
-              <Image src={image("veneerLength").url} width={image("veneerLength").width} height={image("veneerLength").height} alt="Porcelain veneers patient — after photo showing restored tooth length" widths={[400, 800]} sizes="(max-width: 780px) 100vw, 33vw" />
+              <Image src={image("veneerLength").url} width={image("veneerLength").width} height={image("veneerLength").height} alt={image("veneerLength").alt || "Porcelain veneers patient — after photo showing restored tooth length"} widths={[400, 800]} sizes="(max-width: 780px) 100vw, 33vw" />
               <span class="play-btn" aria-hidden="true">
                 <svg viewBox="0 0 24 24" focusable="false"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
               </span>
@@ -155,7 +155,7 @@ const { hero, closing, section, image, seo } = await getPageContent(Astro.url.pa
 
           <button type="button" class="story-card" data-video-id="cxTCF1T_1mI" data-video-short="true" data-video-title="From veneers to All-on-X — life-changing smile transformations" aria-label="Play cosmetic transformation story: veneers to All-on-X">
             <div class="story-photo">
-              <Image src={image("veneerFromTo").url} width={image("veneerFromTo").width} height={image("veneerFromTo").height} alt="Cosmetic dentistry patient seated during her story interview" widths={[400, 800]} sizes="(max-width: 780px) 100vw, 33vw" />
+              <Image src={image("veneerFromTo").url} width={image("veneerFromTo").width} height={image("veneerFromTo").height} alt={image("veneerFromTo").alt || "Cosmetic dentistry patient seated during her story interview"} widths={[400, 800]} sizes="(max-width: 780px) 100vw, 33vw" />
               <span class="play-btn" aria-hidden="true">
                 <svg viewBox="0 0 24 24" focusable="false"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
               </span>
@@ -169,7 +169,7 @@ const { hero, closing, section, image, seo } = await getPageContent(Astro.url.pa
 
           <button type="button" class="story-card" data-video-id="xYQ3QhwdElQ" data-video-short="true" data-video-title="Composite bonding vs porcelain veneers — what looks better long term" aria-label="Play cosmetic dentistry story: bonding vs veneers">
             <div class="story-photo">
-              <Image src={image("veneerBonding").url} width={image("veneerBonding").width} height={image("veneerBonding").height} alt="Cosmetic dentistry patient with natural smile" widths={[400, 800]} sizes="(max-width: 780px) 100vw, 33vw" />
+              <Image src={image("veneerBonding").url} width={image("veneerBonding").width} height={image("veneerBonding").height} alt={image("veneerBonding").alt || "Cosmetic dentistry patient with natural smile"} widths={[400, 800]} sizes="(max-width: 780px) 100vw, 33vw" />
               <span class="play-btn" aria-hidden="true">
                 <svg viewBox="0 0 24 24" focusable="false"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
               </span>
@@ -183,7 +183,7 @@ const { hero, closing, section, image, seo } = await getPageContent(Astro.url.pa
 
           <button type="button" class="story-card" data-video-id="YpYD7_40HRc" data-video-short="true" data-video-title="Anne Marie's porcelain veneer story" aria-label="Play Anne Marie's porcelain veneer story">
             <div class="story-photo">
-              <Image src={image("veneerAnneMarie").url} width={image("veneerAnneMarie").width} height={image("veneerAnneMarie").height} alt="Anne Marie — porcelain veneers patient story" widths={[400, 800]} sizes="(max-width: 780px) 100vw, 33vw" />
+              <Image src={image("veneerAnneMarie").url} width={image("veneerAnneMarie").width} height={image("veneerAnneMarie").height} alt={image("veneerAnneMarie").alt || "Anne Marie — porcelain veneers patient story"} widths={[400, 800]} sizes="(max-width: 780px) 100vw, 33vw" />
               <span class="play-btn" aria-hidden="true">
                 <svg viewBox="0 0 24 24" focusable="false"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
               </span>
@@ -197,7 +197,7 @@ const { hero, closing, section, image, seo } = await getPageContent(Astro.url.pa
 
           <button type="button" class="story-card" data-video-id="7GDoh2uKt-s" data-video-short="true" data-video-title="No prep vs minimal prep veneers — do they shave your teeth" aria-label="Play porcelain veneers story: no-prep vs minimal-prep">
             <div class="story-photo">
-              <Image src={image("veneerPrep").url} width={image("veneerPrep").width} height={image("veneerPrep").height} alt="Cosmetic dentistry patient laughing in studio" widths={[400, 800]} sizes="(max-width: 780px) 100vw, 33vw" />
+              <Image src={image("veneerPrep").url} width={image("veneerPrep").width} height={image("veneerPrep").height} alt={image("veneerPrep").alt || "Cosmetic dentistry patient laughing in studio"} widths={[400, 800]} sizes="(max-width: 780px) 100vw, 33vw" />
               <span class="play-btn" aria-hidden="true">
                 <svg viewBox="0 0 24 24" focusable="false"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
               </span>
@@ -224,7 +224,7 @@ const { hero, closing, section, image, seo } = await getPageContent(Astro.url.pa
         <div class="stories-grid" data-vs-reveal-batch>
           <button type="button" class="story-card" data-video-id="x7cG4E6xAsQ" data-video-title="James — All-On-X patient story" aria-label="Play James's patient story video">
             <div class="story-photo">
-              <Image src={image("storyJames").url} width={image("storyJames").width} height={image("storyJames").height} alt="James — patient story" widths={[400, 800]} sizes="(max-width: 780px) 100vw, 33vw" />
+              <Image src={image("storyJames").url} width={image("storyJames").width} height={image("storyJames").height} alt={image("storyJames").alt || "James — patient story"} widths={[400, 800]} sizes="(max-width: 780px) 100vw, 33vw" />
               <span class="play-btn" aria-hidden="true">
                 <svg viewBox="0 0 24 24" focusable="false"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
               </span>
@@ -237,7 +237,7 @@ const { hero, closing, section, image, seo } = await getPageContent(Astro.url.pa
           </button>
           <button type="button" class="story-card" data-video-id="PGhz9GHqY-I" data-video-title="Chanel — All-On-X patient story" aria-label="Play Chanel's patient story video">
             <div class="story-photo">
-              <Image src={image("storyChanel").url} width={image("storyChanel").width} height={image("storyChanel").height} alt="Chanel — patient story" widths={[400, 800]} sizes="(max-width: 780px) 100vw, 33vw" />
+              <Image src={image("storyChanel").url} width={image("storyChanel").width} height={image("storyChanel").height} alt={image("storyChanel").alt || "Chanel — patient story"} widths={[400, 800]} sizes="(max-width: 780px) 100vw, 33vw" />
               <span class="play-btn" aria-hidden="true">
                 <svg viewBox="0 0 24 24" focusable="false"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
               </span>
@@ -250,7 +250,7 @@ const { hero, closing, section, image, seo } = await getPageContent(Astro.url.pa
           </button>
           <button type="button" class="story-card" data-video-id="xsW129a1VfA" data-video-title="Josh — All-On-X patient story" aria-label="Play Josh's patient story video">
             <div class="story-photo">
-              <Image src={image("storyJosh").url} width={image("storyJosh").width} height={image("storyJosh").height} alt="Josh — patient story" widths={[400, 800]} sizes="(max-width: 780px) 100vw, 33vw" />
+              <Image src={image("storyJosh").url} width={image("storyJosh").width} height={image("storyJosh").height} alt={image("storyJosh").alt || "Josh — patient story"} widths={[400, 800]} sizes="(max-width: 780px) 100vw, 33vw" />
               <span class="play-btn" aria-hidden="true">
                 <svg viewBox="0 0 24 24" focusable="false"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>
               </span>
@@ -345,7 +345,7 @@ const { hero, closing, section, image, seo } = await getPageContent(Astro.url.pa
           >
             <Image
               src={image("featuredImg").url} width={image("featuredImg").width} height={image("featuredImg").height}
-              alt="Full-arch restoration on a dental model, held in a gloved hand"
+              alt={image("featuredImg").alt || "Full-arch restoration on a dental model, held in a gloved hand"}
               widths={[600, 900, 1300]}
               sizes="(max-width: 991px) 100vw, 50vw"
             />
