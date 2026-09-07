@@ -31,7 +31,7 @@ import { getPageContent } from '../lib/page-content';
 // stored since the page was created and read by nothing until now. Every
 // fallback is the literal this page has always shipped, so blank boxes build
 // byte-identically.
-const { image, seo, hero, closing } = await getPageContent(Astro.url.pathname);
+const { image, seo, hero, closing, section } = await getPageContent(Astro.url.pathname);
 
 
 const steps = [
@@ -121,12 +121,12 @@ const explore = [
       <section class="section expect" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head center">
-            <span class="eyebrow">What happens next</span>
-            <h2>Here's what to <em>expect.</em></h2>
-            <p>
+            {/* Section copy row next-steps: did not exist until 2026-09-08; the literals are the fallback. */ section("next-steps").eyebrow ? <span class="eyebrow">{section("next-steps").eyebrow}</span> : <span class="eyebrow">What happens next</span>}
+            <h2><Fragment set:html={section("next-steps").heading || "Here's what to <em>expect.</em>"} /></h2>
+            {section("next-steps").body ? <p>{section("next-steps").body}</p> : <p>
               Nothing more for you to do right now. Here's how the next few days will unfold
               from our side.
-            </p>
+            </p>}
           </div>
           <div class="steps">
             {steps.map((s) => (
@@ -144,11 +144,11 @@ const explore = [
       <section class="section alt wait" data-vs-reveal-batch>
         <div class="wrap">
           <div class="section-head center">
-            <span class="eyebrow">While you wait</span>
-            <h2>Get to know <em>Vivid Smiles.</em></h2>
-            <p>
+            {/* Section copy row while-you-wait: did not exist until 2026-09-08; the literals are the fallback. */ section("while-you-wait").eyebrow ? <span class="eyebrow">{section("while-you-wait").eyebrow}</span> : <span class="eyebrow">While you wait</span>}
+            <h2><Fragment set:html={section("while-you-wait").heading || "Get to know <em>Vivid Smiles.</em>"} /></h2>
+            {section("while-you-wait").body ? <p>{section("while-you-wait").body}</p> : <p>
               A few places to look around while we get back to you.
-            </p>
+            </p>}
           </div>
           <div class="explore">
             {explore.map((card) => (

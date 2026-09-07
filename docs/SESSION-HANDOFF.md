@@ -446,6 +446,23 @@ to `dist-gate2` blank; forced tokens land in `<span class="eyebrow">`, the
 posts 96 and 344 list Hero (and Bottom of page) as live. With these, no page
 in wp-admin has a Hero tab that saves and changes nothing.
 
+**Ten section heads that had no Section-copy row now have one, holding the
+page's own words.** about-us story-intro / doctors-intro / team-intro /
+technology-intro / credentials-intro, home testimonials, thank-you next-steps /
+while-you-wait, smile-gallery legend / disclosure. Templates read each row with
+the literal as fallback (`introFrom()` in `src/lib/page-content.ts` splits a
+heading's `<em>` for SectionIntro); the rows were added on the edit screens
+through ACF's own save path — NOT the sections importer, which replaces a
+page's rows wholesale and would have overwritten the client's edits — and
+confirmed against GraphQL. Blank rows: 48/48 byte-identical. Rows stored:
+46/48 byte-identical; thank-you and smile-gallery differ only in whitespace
+and one `&#39;` (multi-line `<p>` literals become one stored line) — words,
+section classes and head/eyebrow modifiers identical. Prefixed-value builds
+showed all nineteen reads live. The guide's `trim_dead_tabs` removes the whole
+repeater from a page whose liveTabs lack "Section copy" — thank-you and
+smile-gallery needed that (and a redeploy) before their rows could be added.
+Gate baseline after this: `dist-gate3`.
+
 **Still literal, by decision, from the inventory (`inventory-synth.md`):**
 Waves 2 (membership onto blocks — deferral stands), 3 (`video_cards` — needs
 `PageBlocks` wired into home and testimonials first, i.e. Wave 5's enabling

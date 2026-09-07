@@ -491,3 +491,31 @@ export async function schemaImageUrl(
 
   return new URL(optimized.src, site).href;
 }
+
+/**
+ * A SectionIntro's four props from a Section-copy row, with the template's
+ * literals as the fallback for every box the row leaves blank. The row's
+ * heading is one box that may carry `<em>…</em>`; SectionIntro draws the
+ * italic half as a separate prop, so the heading is split on its first <em>.
+ * A row that does not exist (EMPTY_SECTION) yields exactly the defaults, which
+ * is what keeps a page byte-identical until the row is added in wp-admin.
+ */
+export function introFrom(
+  row: Section,
+  defaults: { eyebrow: string; heading: string; headingItalic: string; lede: string },
+): { eyebrow: string; heading: string; headingItalic: string; lede: string } {
+  let heading = defaults.heading;
+  let headingItalic = defaults.headingItalic;
+  const h = row.heading.trim();
+  if (h) {
+    const m = /^(.*?)\s*<em>(.*?)<\/em>\s*$/s.exec(h);
+    heading = m ? m[1].trim() : h;
+    headingItalic = m ? m[2].trim() : "";
+  }
+  return {
+    eyebrow: row.eyebrow || defaults.eyebrow,
+    heading,
+    headingItalic,
+    lede: row.body || defaults.lede,
+  };
+}

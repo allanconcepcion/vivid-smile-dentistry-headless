@@ -43,7 +43,7 @@ import '../../styles/pages/about-us.css';
 // Credential logos.
 
 // Team headshots (10 — hygienists, assistants, coordination, comfort officers).
-import { getPageContent, schemaImageUrl, type PageImage } from '../../lib/page-content';
+import { getPageContent, schemaImageUrl, type PageImage, introFrom } from '../../lib/page-content';
 // Section copy is edited in WordPress (Pages -> this page -> Section copy).
 // `team` is the Team tab on the same screen; the TEAM block below reads it.
 const { hero, closing, section, image, seo, team } = await getPageContent(Astro.url.pathname);
@@ -346,6 +346,15 @@ function teamLedeFor(humans: number, dogs: number): string {
 const teamDogs = team.filter((row) => row.group === 'comfort').length;
 const teamLede = cmsTeam ? teamLedeFor(team.length - teamDogs, teamDogs) : TEMPLATE_TEAM_LEDE;
 
+// Five section heads that had no Section-copy row: each reads its row with the
+// template literal as fallback (page-content.ts introFrom), so the page is
+// byte-identical until the row exists in wp-admin.
+const storyIntro = introFrom(section("story-intro"), { eyebrow: "Our Story", heading: "A practice built on", headingItalic: "precision and warmth.", lede: "Vivid Smiles was founded to raise the standard of cosmetic dentistry in Colorado, blending the discipline of master craftsmanship with the ease of a modern, hospitality-minded experience." });
+const doctorsIntro = introFrom(section("doctors-intro"), { eyebrow: "Meet the Doctors", heading: "Two practitioners.", headingItalic: "One philosophy.", lede: "Dr. Bryce Richardson and Dr. Annelise Westermeier lead a small, focused team. Together they bring cosmetic mastery and holistic surgical care under one roof, so every patient finds the right hands for the right work." });
+const teamIntro = introFrom(section("team-intro"), { eyebrow: "The team", heading: "The people who make", headingItalic: "every visit feel easy.", lede: teamLede });
+const technologyIntro = introFrom(section("technology-intro"), { eyebrow: "Advanced Technology", heading: "Clinical precision,", headingItalic: "at the leading edge.", lede: "Cosmetic artistry is only half of the equation. The other half is technology, and at Vivid Smiles we invest in the instruments that make treatment safer, faster, and measurably more precise than traditional dentistry." });
+const credentialsIntro = introFrom(section("credentials-intro"), { eyebrow: "Credentials & Recognition", heading: "The standards", headingItalic: "we practice by.", lede: "A short list of the training, memberships, and recognition that inform how we practice every day." });
+
 // Patient Voices — full reviews collection (newest first), rendered in a
 // seamless marquee. Mirrors the home-page testimonials section.
 const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +a.data.date);
@@ -411,10 +420,10 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
       <section class="section" id="story">
         <div class="wrap" data-vs-reveal-batch>
           <SectionIntro
-            eyebrow="Our Story"
-            heading="A practice built on"
-            headingItalic="precision and warmth."
-            lede="Vivid Smiles was founded to raise the standard of cosmetic dentistry in Colorado, blending the discipline of master craftsmanship with the ease of a modern, hospitality-minded experience."
+            eyebrow={storyIntro.eyebrow}
+            heading={storyIntro.heading}
+            headingItalic={storyIntro.headingItalic}
+            lede={storyIntro.lede}
             centered
             class="aus-section-head"
           />
@@ -457,10 +466,10 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
       <section class="section alt" id="doctors">
         <div class="wrap" data-vs-reveal-batch>
           <SectionIntro
-            eyebrow="Meet the Doctors"
-            heading="Two practitioners."
-            headingItalic="One philosophy."
-            lede="Dr. Bryce Richardson and Dr. Annelise Westermeier lead a small, focused team. Together they bring cosmetic mastery and holistic surgical care under one roof, so every patient finds the right hands for the right work."
+            eyebrow={doctorsIntro.eyebrow}
+            heading={doctorsIntro.heading}
+            headingItalic={doctorsIntro.headingItalic}
+            lede={doctorsIntro.lede}
             centered
             class="aus-section-head"
           />
@@ -592,10 +601,10 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
       <section class="section dark" id="team">
         <div class="wrap" data-vs-reveal-batch>
           <SectionIntro
-            eyebrow="The team"
-            heading="The people who make"
-            headingItalic="every visit feel easy."
-            lede={teamLede}
+            eyebrow={teamIntro.eyebrow}
+            heading={teamIntro.heading}
+            headingItalic={teamIntro.headingItalic}
+            lede={teamIntro.lede}
             centered
             class="aus-section-head"
           />
@@ -644,10 +653,10 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
       <section class="section" id="technology">
         <div class="wrap" data-vs-reveal-batch>
           <SectionIntro
-            eyebrow="Advanced Technology"
-            heading="Clinical precision,"
-            headingItalic="at the leading edge."
-            lede="Cosmetic artistry is only half of the equation. The other half is technology, and at Vivid Smiles we invest in the instruments that make treatment safer, faster, and measurably more precise than traditional dentistry."
+            eyebrow={technologyIntro.eyebrow}
+            heading={technologyIntro.heading}
+            headingItalic={technologyIntro.headingItalic}
+            lede={technologyIntro.lede}
             centered
             class="aus-section-head"
           />
@@ -692,10 +701,10 @@ const reviews = (await getCollection('reviews')).sort((a, b) => +b.data.date - +
       <section class="section alt" id="credentials">
         <div class="wrap" data-vs-reveal-batch>
           <SectionIntro
-            eyebrow="Credentials & Recognition"
-            heading="The standards"
-            headingItalic="we practice by."
-            lede="A short list of the training, memberships, and recognition that inform how we practice every day."
+            eyebrow={credentialsIntro.eyebrow}
+            heading={credentialsIntro.heading}
+            headingItalic={credentialsIntro.headingItalic}
+            lede={credentialsIntro.lede}
             centered
             class="aus-section-head"
           />

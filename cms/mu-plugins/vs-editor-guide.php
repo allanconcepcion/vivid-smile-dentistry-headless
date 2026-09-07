@@ -122,6 +122,7 @@ const PAGES = [
 		],
 		'imagesNote' => 'Not on this list: the scrolling smile photos in the dark area lower down — add or remove those under Practice Settings → Smile gallery in the left menu.',
 		'sections' => [
+			[ 'id' => 'testimonials', 'where' => 'the small line, heading and sentence above the patient reviews near the bottom', 'status' => 'live' ],
 			[ 'id' => 'services', 'where' => 'the small line, heading and paragraph above the four service cards near the top', 'status' => 'live' ],
 			[ 'id' => 'stories', 'where' => 'the small line, heading and paragraph above the three patient video cards', 'status' => 'live' ],
 			[ 'id' => 'notable', 'where' => 'the small line, heading and paragraph above the two Denver Broncos cheerleader photos', 'status' => 'live' ],
@@ -163,6 +164,11 @@ const PAGES = [
 			[ 'slot' => 'vsLogo', 'where' => 'the Vivid Smiles logo card in the credentials area', 'status' => 'live' ],
 		],
 		'sections' => [
+			[ 'id' => 'story-intro', 'where' => 'the small line, heading and paragraph that open the “Our Story” part', 'status' => 'live' ],
+			[ 'id' => 'doctors-intro', 'where' => 'the small line, heading and paragraph above the two doctors', 'status' => 'live' ],
+			[ 'id' => 'team-intro', 'where' => 'the small line and heading above the team photos (the sentence under them counts the team by itself unless you type one)', 'status' => 'live' ],
+			[ 'id' => 'technology-intro', 'where' => 'the small line, heading and paragraph above the technology list', 'status' => 'live' ],
+			[ 'id' => 'credentials-intro', 'where' => 'the small line, heading and paragraph above the credentials badges', 'status' => 'live' ],
 			[ 'id' => 'story', 'where' => 'the heading and first paragraph beside the neon-sign photo in Our Story', 'status' => 'live' ],
 			[ 'id' => 'doctors', 'where' => 'Dr. Richardson’s name heading and his short intro line in Meet the Doctors (Dr. Annie’s wording is managed by us)', 'status' => 'live' ],
 			[ 'id' => 'technology', 'where' => 'the heading and lead paragraph beside the treatment-room photo in the technology area', 'status' => 'live' ],
@@ -205,6 +211,8 @@ const PAGES = [
 		],
 		'imagesNote' => 'Not on this list: the grid of smile photos itself — add, remove and reorder those under Practice Settings → Smile gallery in the left menu.',
 		'sections' => [
+			[ 'id' => 'legend', 'where' => 'the “By Dr. Bryce Richardson” line beside the number of smiles shown', 'status' => 'live' ],
+			[ 'id' => 'disclosure', 'where' => 'the small-print sentence under the gallery (“Individual results vary…”)', 'status' => 'live' ],
 			[ 'id' => 'gallery', 'where' => 'the small line, heading and paragraph above the grid of smile photos', 'status' => 'live' ],
 		],
 	],
@@ -671,10 +679,14 @@ const PAGES = [
 	96 => [ // Thank you
 		'route'    => '/thank-you/',
 		'kind'     => 'template',
-		'liveTabs' => [ 'Hero', 'Images', 'Bottom of page (the booking-strip sentence only)' ],
+		'liveTabs' => [ 'Section copy', 'Hero', 'Images', 'Bottom of page (the booking-strip sentence only)' ],
 		'orientationNote' => 'The page someone lands on after sending a form. The headline area at the top is the Hero tab; the sentence in the strip at the bottom is the Bottom of page tab; the background photo is on Images. The two card lists in between are part of the page design.',
 		'images'   => [
 			[ 'slot' => 'heroBg', 'where' => 'the full-width background photo behind the thank-you message — the team walking together outside the practice', 'status' => 'live' ],
+		],
+		'sections' => [
+			[ 'id' => 'next-steps', 'where' => 'the small line, heading and sentence above the three “what happens next” cards', 'status' => 'live' ],
+			[ 'id' => 'while-you-wait', 'where' => 'the small line, heading and sentence above the “while you wait” links', 'status' => 'live' ],
 		],
 	],
 

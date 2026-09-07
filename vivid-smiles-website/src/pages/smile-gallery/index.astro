@@ -117,7 +117,7 @@ const lightboxSrcs = await Promise.all(
               <small>Smiles shown</small>
             </div>
             <div class="legend">
-              <span class="dot">By Dr. Bryce Richardson</span>
+              <span class="dot">{/* Section copy row legend: did not exist until 2026-09-08. */ section("legend").eyebrow || "By Dr. Bryce Richardson"}</span>
             </div>
           </div>
 
@@ -150,10 +150,10 @@ const lightboxSrcs = await Promise.all(
             }
           </div>
 
-          <p class="disclosure">
+          {/* Section copy row disclosure: did not exist until 2026-09-08. */ section("disclosure").body ? <p class="disclosure">{section("disclosure").body}</p> : <p class="disclosure">
             Individual results vary. Treatment recommendations always follow an in-person
             consultation and clinical exam.
-          </p>
+          </p>}
         </div>
       </section>
 
