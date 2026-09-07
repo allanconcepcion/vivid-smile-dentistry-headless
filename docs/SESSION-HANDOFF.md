@@ -528,25 +528,36 @@ modifiers; the only body changes were the two predicted modal hunks on `/` and
 dialog each, `is-short` on portrait only, the featured card plays, close
 empties the frame and restores scroll).
 
-**It failed the pixel gate, which is why that gate exists.** A 144-capture
-baseline (48 routes × 1440/768/390, `scripts/vr-screens.mjs`) was recorded
-before the round. After Phase 3: `/about-us/` changes HEIGHT at 768
-(26328 → 26336) and 390 (22827 → 22867), and four blog posts shift ~7,000px
-(~0.05%) at 1440. Small, but real and unexplained, so Phase 3 was reverted —
-`HEAD` is Phase 2 and the site is unchanged.
+**It failed the pixel gate on ONE page, and a control run proved which
+failures were real.** A 144-capture baseline (48 routes × 1440/768/390,
+`scripts/vr-screens.mjs`) was recorded before the round. The Phase-3 build gave
+136 pass / 8 fail. The 8 were NOT all real, so the run was repeated against the
+reverted tree — same baseline, no Phase 3 — as a control:
 
-**What is known about the cause, and what is not.** Wiring PageBlocks into a
-template pulls the block CSS graph onto that page: about-us's ReviewMarquee
-rules moved OUT of an inline `<style>` and INTO the shared PageBlocks chunk.
-The rule TEXT is identical either way (`flex:0 0 380px;min-height:460px`, and
-`300px/440px` under 780px) — what changed is which stylesheet carries them and
-therefore their position in the cascade. That is the suspected mechanism; it is
-NOT yet proven, and the four blog posts (which do not import PageBlocks) are
-not explained by it at all. **Do not re-land Phase 3 until both are.** A
-misleading experiment to avoid repeating: disabling the PageBlocks stylesheet
-in the browser shrinks `#voices` by 401px, which looks like a smoking gun and
-is not — it removes rules that legitimately apply and says nothing about the
-before/after difference.
+| Failure in the Phase-3 run | Control (no Phase 3) | Verdict |
+| --- | --- | --- |
+| `/about-us/` @1440 13739→13751, @768 26328→26336, @390 22827→22867 | PASS "identical" ×3 | **REAL — caused by Phase 3** |
+| 4 blog posts @1440, ~7,000px (~0.05%) | 2 of them fail again, one at the identical 6,950px | noise |
+| `/cosmetic-dentistry/porcelain-veneers/` @1440, 99% (captured 900px not 13452px) | PASS "identical" ×3 | harness capture abort |
+
+So the round has exactly ONE real regression: **about-us grows a little taller
+at every width** (+12px at 1440, +8px at 768, +40px at 390). Everything else
+the harness flagged reproduces without Phase 3 or was a failed capture. Run the
+control before believing this harness again — it flakes on tall blog pages.
+
+**What is known about the about-us cause, and what is not.** Wiring PageBlocks
+into a template pulls the block CSS graph onto that page: about-us's
+ReviewMarquee rules moved OUT of an inline `<style>` and INTO the shared
+PageBlocks chunk. The rule TEXT is identical either way (`flex:0 0 380px;
+min-height:460px`, and `300px/440px` under 780px) — what changed is which
+stylesheet carries them and therefore their position in the cascade. That is
+the suspected mechanism and it is NOT yet proven; the height delta itself
+(a dozen px at 1440) has not been traced to a specific element. Trace it before
+re-landing Phase 3 — and note that the four sweeps and a byte comparison BOTH
+call about-us clean, so only pixels and computed styles can settle it. A
+misleading experiment not to repeat: disabling the PageBlocks stylesheet in the
+browser shrinks `#voices` by 401px, which looks like a smoking gun and is not —
+it removes rules that legitimately apply and says nothing about before/after.
 
 **Artifacts.** `scratchpad/phase3-wip/` holds the reverted about-us template,
 `global.css`, `Button.astro`, `[...slug].astro` and the full `vr-compare.log`.
