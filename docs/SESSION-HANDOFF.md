@@ -4,8 +4,9 @@ Written to hand this work to a fresh session — human, or an AI of any model �
 re-deriving any of it. **If this file and `git log` disagree, `git log` wins**; this file was
 last brought fully in line with the tree at the commit below.
 
-**State this file describes:** branch `main`, HEAD is on `origin/main` (2026-09-04) — everything
-from the wp-admin round is committed AND pushed, so the repo, the live CMS and this file agree.
+**State this file describes:** branch `main`, HEAD `0235c83` on `origin/main` (2026-09-07). The
+repo, the live CMS and this file agree: every mu-plugin on the host is byte-identical to the file
+here, and the closing back-fill has run and been measured.
 Everything before them is merged —
 PR #10 (`page-blocks` → `cms-editor-safety`) and PR #9 (`cms-editor-safety` → `main`) both landed
 on 2026-08-31 with merge commits, zero open PRs, both branches kept. The public domain has NOT
@@ -602,9 +603,17 @@ are not.
    source indentation no longer baked into the HTML, and `'` now output-escaped to `&#39;`. Seven
    fields stay on the template because they carry a link or `{phoneLabel}` (listed in the payload's
    `_` block). Rollback for any page is emptying its boxes.
-2. **An HTML-capable sub for two heroes.** sinus-lift's sub carries a real `<a class="vs-link">`
-   and referral-program's a `<b>$50 credit</b>`; `hero.sub` is plain text, so both stay on the
-   template. Needs a field type change, not a payload fix.
+2. **An HTML-capable sub for two heroes — assessed 2026-09-07 and deliberately left.**
+   sinus-lift's sub carries a real `<a class="vs-link">` and referral-program's a `<b>$50
+   credit</b>`. `hero.sub` is rendered as plain text by every one of ~25 templates
+   (`{hero.sub}` inside `<p class="hero-sub">`), so making those two editable means `set:html` on
+   the sub in all 25 — every filled sub stops being entity-escaped (bytes move on the 24
+   back-filled heroes) and any `<` an editor types renders as HTML, for two sentences. The hero
+   engine also validates `sub` as plain text. If Allan wants them editable, the honest options
+   are (a) `set:html` everywhere plus tag-validation in the hero engine and a "may contain
+   `<b>`/`<a>`" instruction, or (b) a second field — which is a schema change with the
+   PHP-before-manifest sequencing and a 48-route build gate. Neither is a payload fix; both are a
+   decision, not a chore.
 3. **Owner-side security.** Rotate the WordPress password (issue 5) and the host SFTP password;
    make the repo private; confirm the unattributed `s.ksrndkehqnwntyxlhgto.com` call-tracking
    script. Then decide whether to `git filter-repo` the old dump out of history.
