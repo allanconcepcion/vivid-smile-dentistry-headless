@@ -96,6 +96,9 @@ const PAGES = [
 		'route'    => '/',
 		'kind'     => 'home',
 		'liveTabs' => [ 'Section copy', 'Images' ],
+		'orientationNote' => 'Two things on this page are not typed here: the star rating and review count in the badges, '
+			. 'and the membership price card near the bottom. Both come from Practice Settings (Contact and '
+			. 'Membership plan), so they change everywhere at once.',
 		'images'   => [
 			[ 'slot' => 'heroBg', 'where' => 'the full-width photo of the team behind the big headline at the very top — the same photo appears again beside the membership offer lower down', 'status' => 'live' ],
 			[ 'slot' => 'logoAACD', 'where' => 'the AACD logo in the scrolling “Accredited by” strip near the top', 'status' => 'live' ],
@@ -210,6 +213,9 @@ const PAGES = [
 		'route'    => '/dental-membership-plan/',
 		'kind'     => 'template',
 		'liveTabs' => [ 'Hero', 'Section copy', 'Images', 'Bottom of page (the booking-strip sentence only)' ],
+		'orientationNote' => 'The plan’s price, the member discount and where the “Join” buttons send people are not '
+			. 'typed on this page. They live in Practice Settings → Membership plan, so the home page and '
+			. 'this page change together. A paragraph you write here that quotes the price is yours to keep current.',
 		'images'   => [
 			[ 'slot' => 'heroImg', 'where' => 'the photo beside the headline at the very top — the whole team', 'status' => 'live' ],
 			[ 'slot' => 'step1Img', 'where' => 'the small square photo on step one (“Enroll”) in the How it works card', 'status' => 'live' ],
@@ -217,10 +223,10 @@ const PAGES = [
 			[ 'slot' => 'step3Img', 'where' => 'the small square photo on step three (“Renew”) in the How it works card', 'status' => 'live' ],
 		],
 		'sections' => [
-			[ 'id' => 'story', 'where' => 'the heading and first paragraph of the dark “Why we built it” area', 'status' => 'live' ],
-			[ 'id' => 'how-it-works', 'where' => 'the heading and paragraph above the three-step card', 'status' => 'live' ],
-			[ 'id' => 'whats-included', 'where' => 'the centered heading and paragraph above the big $500 plan card', 'status' => 'live' ],
-			[ 'id' => 'faq', 'where' => 'the heading above the questions-and-answers list (the questions themselves are managed by us)', 'status' => 'live' ],
+			[ 'id' => 'story', 'where' => 'the small line, heading and first paragraph of the dark “Why we built it” area', 'status' => 'live' ],
+			[ 'id' => 'how-it-works', 'where' => 'the small line, heading and paragraph above the three-step card', 'status' => 'live' ],
+			[ 'id' => 'whats-included', 'where' => 'the small line, centered heading and paragraph above the big plan card with the price', 'status' => 'live' ],
+			[ 'id' => 'faq', 'where' => 'the small line, heading and the sentence above the questions-and-answers list. Type in the paragraph box and it replaces that sentence with your plain text — the phone link in it comes back only when the box is emptied. The questions themselves are managed by us', 'status' => 'live' ],
 		],
 	],
 
@@ -643,8 +649,12 @@ const PAGES = [
 		'kind'     => 'template',
 		'liveTabs' => [ 'On this page', 'Section copy' ],
 		'orientationNote' => 'The whole policy is written in the Section copy rows below — each row is one numbered part of the document, in the order it appears. There is no hero and no photo on this page.',
+		'sections' => [
+			[ 'id' => 'privacy-official', 'where' => 'the paragraph naming the privacy official — the email link in it is part of the design; text you type here replaces the whole paragraph with plain text', 'status' => 'live' ],
+			[ 'id' => 'children', 'where' => 'the paragraph about children under 13 — same: typed text replaces the paragraph, the email link is part of the design', 'status' => 'live' ],
+			[ 'id' => 'contact-us', 'where' => 'the closing “contact us” paragraph — typed text replaces it; the email link is part of the design', 'status' => 'live' ],
+		],
 		'sectionsNote' => 'THIS IS A LEGAL DOCUMENT. It says what the practice does with patient information, so please do not reword it casually — have whoever handles your HIPAA compliance approve any change first. Fixing a phone number or an address here is fine.',
-		'sections' => [],
 	],
 
 	95 => [ // Terms & Conditions
@@ -652,8 +662,10 @@ const PAGES = [
 		'kind'     => 'template',
 		'liveTabs' => [ 'On this page', 'Section copy' ],
 		'orientationNote' => 'The whole document is written in the Section copy rows below — each row is one numbered part, in the order it appears. There is no hero and no photo on this page.',
+		'sections' => [
+			[ 'id' => 'contact-us', 'where' => 'the closing “contact us” paragraph — the email link after it is part of the design and stays; your text goes in front of it', 'status' => 'live' ],
+		],
 		'sectionsNote' => 'THIS IS A LEGAL DOCUMENT. Please do not reword it casually — have it approved before changing anything beyond a phone number or an address.',
-		'sections' => [],
 	],
 
 	96 => [ // Thank you
@@ -679,8 +691,8 @@ const PAGES = [
 	346 => [ // Blog index
 		'route'    => '/blog/',
 		'kind'     => 'template',
-		'liveTabs' => [],
-		'orientationNote' => 'This page is just the list of your blog posts. It builds itself from Posts in the left-hand menu, newest first. To change what appears here, write a new post or edit an existing one — it shows up on this list at the next site build.',
+		'liveTabs' => [ 'Hero', 'Bottom of page (the consultation invite)' ],
+		'orientationNote' => 'The list itself builds from Posts in the left-hand menu, newest first — write a new post or edit one and it appears here at the next site build. What you edit on this screen is the headline area above the list (Hero) and the consultation invite under it (Bottom of page).',
 	],
 
 ];
@@ -887,6 +899,9 @@ function orientation_message( array $page ): string {
 		$lines[] = 'The headline area at the very top is managed by us for now — the note on the <em>Hero</em> tab explains. '
 			. 'Everything below it is edited from two tabs: the words in <em>Section copy</em>, the photos in <em>Images</em>. '
 			. 'Each of those tabs starts with a guide saying exactly which box changes which part of the page.';
+		if ( ! empty( $page['orientationNote'] ) ) {
+			$lines[] = esc_html( $page['orientationNote'] );
+		}
 		$lines[] = 'The other tabs save, but do not change this page. Changes go live on the next site build.';
 	} elseif ( 'new' === $page['kind'] ) {
 		$lines[] = '<strong>This is a page you made, so it starts empty.</strong>';
@@ -2028,6 +2043,11 @@ const CLOSING_TODAY = [
 	],
 	80 => [ // /contact/
 		'note' => 'Call our front desk directly — Mon–Wed 8a–5p, Thu–Fri 8a–1p.',
+	],
+	346 => [ // /blog/
+		'eyebrow' => 'Ready When You Are',
+		'headline' => 'Reading is one step. Talking is the next.',
+		'body' => 'If something you read here applies to your smile, submit a few photos and Dr. Richardson will record a personalized video reply — no office visit required to get started.',
 	],
 	81 => [ // /cosmetic-dentistry-lp/
 		'eyebrow' => 'Reserve your free consult',

@@ -386,6 +386,67 @@ frontmatter (`reviewsLine`) and ship it as one flush expression,
 A `{{reviews}}` token inside block copy would make it follow, at the cost of
 one more thing a receptionist has to know; not built, not asked for.
 
+## 2026-09-08 — Wave 0, the membership settings, the blog tabs (commits `cda02c9`, `76ce0fb`, `27ae41c`)
+
+Three more waves of the same round, each proven the same way (blank boxes →
+byte gate; forced values → one build; source restored `cmp`-identical).
+
+**Wave 0 — twelve stored-and-unread boxes now read (`cda02c9`).** Run as a
+workflow: seven writers on seven files, seven adversarial reviewers, one
+repair round. What reads now: the home gallery small line; about-us story /
+technology / voices small lines and the Person JSON-LD address; membership's
+four small lines, its FAQ paragraph and Service JSON-LD address; privacy's
+privacy-official / children / contact-us paragraphs; terms' contact-us
+paragraph. Forced-value smoke: 17/17 tokens in the expected elements.
+
+Two things the reviewers caught that the plan had wrong, and the decisions:
+- **`cta_label` / `cta_href` on Section-copy rows are RETIRED AND HIDDEN**
+  (`vs-content-model.php` RETIRED_SECTION_KEYS, commit `d376e6d`). Two
+  writers wired them on smile-gallery and patient-testimonials; both reverted.
+  Do not wire them a third time: un-hiding puts a button box on every
+  Section-copy row site-wide, which is what `d376e6d` stopped. A page button
+  that should be editable needs its own field, shipped with its consumer.
+- privacy-policy's "revised" sentence stays derived from `lastRevised`: a
+  typed paragraph would drift from the hero date and the JSON-LD date. A
+  revision-date field (PHP first) is the honest route if it is ever wanted.
+
+Wording that followed: the Small line above box no longer says "Leave blank
+for none" (untrue on rows with a fallback) — `vs-content-model.php`, label
+only, identifier multiset identical, deployed at 279687.
+
+**Membership fee / discount / join link / SMS line are settings (`76ce0fb`).**
+Practice Settings → Membership plan (new tab) and a Contact-tab box for the
+terms page's texting number. The membership page is NOT on blocks and the
+deferral reason in PAGE-BLOCKS.md still holds (its bands are `vs-band-*`
+repainted in the page's own `<style>`; a blocks migration is a markup change
+§3.3 forbids). What the front desk will actually change is now four boxes;
+what still says $500 on that page after a forced build is the Hero sub-line
+the client already edits on the Hero tab. `vs-settings.php` deployed at
+14185, PHP first — the settings loader has no probe.
+
+**The blog page's Hero and Bottom-of-page tabs reach the page (`27ae41c`).**
+`/blog/` was the last page whose guide line was "nothing to edit here". Its
+body is byte-identical; its `<head>` carries the same CSS in one `<style>`
+instead of two (import-graph chunking, measured: 5332 identical characters,
+same order, same links). **The gate baseline is now scratchpad `dist-gate2`**
+(a clean build after `27ae41c`); `dist-gate1` differs from it only on
+`/blog/index.html`.
+
+**Guide (`vs-editor-guide.php`, 134312).** Membership and home pages say the
+price/discount/join link live in Practice Settings; the blog page lists Hero
+and Bottom of page as live and prints what the bottom says today; privacy and
+terms rows say the email link is part of the design and typed text replaces
+the paragraph; membership's where-strings say the small line is live. The
+`home` kind now prints an `orientationNote` like the other kinds.
+
+**Still literal, by decision, from the inventory (`inventory-synth.md`):**
+Waves 2 (membership onto blocks — deferral stands), 3 (`video_cards` — needs
+`PageBlocks` wired into home and testimonials first, i.e. Wave 5's enabling
+change), 4 (about-us doctors), 5 (home band by band), 6 remainder (thank-you,
+contact pill, smile-gallery captions). Item 7's dead Cards & lists rows on the
+two LPs (86: 14 rows, 97: 8 rows) are stored content nobody reads — deleting
+them is Allan's call, not made here.
+
 ## The verification method this project learned
 
 Each sweep exists because the previous set reported clean while something real was broken.
