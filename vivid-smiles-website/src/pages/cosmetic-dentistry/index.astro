@@ -6,18 +6,7 @@ import ArrowBadge from '../../components/ArrowBadge.astro';
 import VirtualConsult from '../../components/VirtualConsult.astro';
 import FinalBand from '../../components/FinalBand.astro';
 import { getSmiles } from '../../lib/smiles';
-import {
-  phoneHref,
-  phoneLabel,
-  phoneE164,
-  bookNowHref,
-  addressStreet,
-  addressCity,
-  addressState,
-  addressZip,
-  addressLine,
-  directionsHref,
-} from '../../data/contact';
+import { phoneHref, phoneLabel, phoneE164, bookNowHref, addressStreet, addressCity, addressState, addressZip, addressLine, directionsHref, googleRating, googleReviewCount } from "../../data/contact";
 import '../../styles/pages/cosmetic-dentistry.css';
 
 // Hero — Ann Marie Muscarello veneer-makeover portrait.
@@ -264,7 +253,7 @@ for (const block of blocks) {
 
 <BaseLayout
   title={seo.title || "Cosmetic Dentistry in Parker, CO | Vivid Smiles Dentistry"}
-  description={seo.description || "Cosmetic dentistry in Parker, CO with Dr. Bryce Richardson. Porcelain veneers, clear aligners, teeth whitening, smile makeovers, gum contouring, and full-mouth rehabilitation — 600+ hours of specialized training and 300+ five-star Google reviews."}
+  description={seo.description || "Cosmetic dentistry in Parker, CO with Dr. Bryce Richardson. Porcelain veneers, clear aligners, teeth whitening, smile makeovers, gum contouring, and full-mouth rehabilitation — 600+ hours of specialized training and {googleReviewCount} five-star Google reviews."}
  noindex={seo.noindex}>
   <div class="cdent">
     <nav class="crumbs" aria-label="Breadcrumb">
@@ -299,7 +288,7 @@ for (const block of blocks) {
               >
               {hero.showRatings && <div class="ratings">
                 <span class="stars" aria-hidden="true">★★★★★</span>
-                <span>5.0 · 300+ reviews</span>
+                <span>{googleRating} · {googleReviewCount} reviews</span>
               </div>}
             </div>
           </div>
@@ -574,7 +563,7 @@ for (const block of blocks) {
                 "Outcomes you are proud to show, with confidence built before treatment ever
                 begins."
               </p>
-              <span class="quote-attr">— Vivid Smiles · <b>300+ five-star reviews</b></span>
+              <span class="quote-attr">— Vivid Smiles · <b>{googleReviewCount} five-star reviews</b></span>
             </div>
           </div>
         </div>
@@ -777,7 +766,7 @@ for (const block of blocks) {
 
       <FinalBand>
         <p>{closing.note ? closing.note : <>
-          Vivid Smiles is located in Parker, CO and has earned 300+ five-star Google reviews from
+          Vivid Smiles is located in Parker, CO and has earned {googleReviewCount} five-star Google reviews from
           patients who wanted natural, lasting cosmetic results and got them.
         </>}</p>
       </FinalBand>

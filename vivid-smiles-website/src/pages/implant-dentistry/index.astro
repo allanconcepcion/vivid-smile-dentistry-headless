@@ -6,18 +6,7 @@ import ArrowBadge from "../../components/ArrowBadge.astro";
 import PricingTiers from "../../components/PricingTiers.astro";
 import VirtualConsult from "../../components/VirtualConsult.astro";
 import FinalBand from "../../components/FinalBand.astro";
-import {
-  phoneHref,
-  phoneLabel,
-  phoneE164,
-  bookNowHref,
-  addressStreet,
-  addressCity,
-  addressState,
-  addressZip,
-  addressLine,
-  directionsHref,
-} from "../../data/contact";
+import { phoneHref, phoneLabel, phoneE164, bookNowHref, addressStreet, addressCity, addressState, addressZip, addressLine, directionsHref, googleRating, googleReviewCount } from "../../data/contact";
 import "../../styles/pages/implant-dentistry.css";
 
 // Hero — authentic Dr. Bryce Yomi-guided implant procedure in the actual
@@ -343,7 +332,7 @@ for (const block of blocks) {
             <Button variant="ghost" href={hero.cta(1) ? hero.cta(1)!.href : "#consult"} hoverLabel="Get a Video">{hero.cta(1) ? hero.cta(1)!.label : "Free Virtual Consult"}</Button>
             {hero.showRatings && <div class="ratings">
               <span class="stars" aria-hidden="true">★★★★★</span>
-              <span>5.0 · 300+ reviews</span>
+              <span>{googleRating} · {googleReviewCount} reviews</span>
             </div>}
           </div>
         </div>
@@ -710,7 +699,7 @@ for (const block of blocks) {
     <FinalBand>
       <p>{closing.note ? closing.note : <>
         Vivid Smiles Dentistry in Parker offers robotic-guided placement and in-house surgical + restorative
-        care, backed by 600-plus hours of advanced training and 300+ five-star Google reviews.
+        care, backed by 600-plus hours of advanced training and {googleReviewCount} five-star Google reviews.
       </>}</p>
     </FinalBand>
 

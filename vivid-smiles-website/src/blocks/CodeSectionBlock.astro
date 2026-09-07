@@ -57,6 +57,7 @@
  * Spec: docs/PAGE-BLOCKS.md 1.3, 2.2, 2.4, 7.
  */
 import type { AstroComponentFactory } from "astro/runtime/server/index.js";
+import { googleRating, googleReviewCount } from "../data/contact";
 
 import LocalTrust from "../components/LocalTrust.astro";
 // Wave A (Phase 4, hub pages). These three are NEW components, created by the
@@ -145,7 +146,7 @@ const BANDS: Record<string, CodeBand> = {
       headingItalic: "for Clear Aligners",
       intro:
         "Dr. Bryce Richardson is a Parker resident who built Vivid Smiles Dentistry on the values of his hometown — and that shows in every visit, whether patients drive across town or fly in for treatment.",
-      body: "With 300+ five-star Google reviews and a welcoming office at 17167 Cedar Gulch Pkwy Ste 102, patients receive individual attention that larger groups cannot replicate. Many patients discover additional smile possibilities during treatment.",
+      body: `With ${googleReviewCount} five-star Google reviews and a welcoming office at 17167 Cedar Gulch Pkwy Ste 102, patients receive individual attention that larger groups cannot replicate. Many patients discover additional smile possibilities during treatment.`,
     },
   },
 
@@ -199,7 +200,7 @@ const BANDS: Record<string, CodeBand> = {
       headingItalic: "in Parker, Colorado",
       intro:
         "Dr. Richardson is a Parker resident who built Vivid Smiles Dentistry to bring high-level cosmetic care to patients locally and from across the country.",
-      body: "Located on Cedar Gulch Parkway, the practice welcomes patients locally and from out of state — many travel in for their veneer treatment. With 300+ five-star reviews, it has a reputation for consistent results and genuine attention to every patient.",
+      body: `Located on Cedar Gulch Parkway, the practice welcomes patients locally and from out of state — many travel in for their veneer treatment. With ${googleReviewCount} five-star reviews, it has a reputation for consistent results and genuine attention to every patient.`,
     },
   },
 
@@ -276,7 +277,7 @@ const BANDS: Record<string, CodeBand> = {
       body: "Vivid Smiles has earned over 300 five-star Google reviews built on consistent themes: welcoming environment, advanced technology, clear explanations, and care that feels personal. Dr. Richardson is a Parker resident who is invested in the community long-term.",
       body2:
         "Patients describe treatment as <em>comfortable, unhurried, and honest</em> — straightforward care recommendations from a practice that treats neighbors, not just patients.",
-      attr: "5.0 · 300+ Google reviews",
+      attr: `${googleRating} · ${googleReviewCount} Google reviews`,
     },
   },
 
@@ -361,7 +362,7 @@ const BANDS: Record<string, CodeBand> = {
       body: "Vivid Smiles offers emergency care that goes beyond availability. Dr. Richardson graduated at the top of his class from Indiana University School of Dentistry, completed 600+ hours of advanced surgical training, and served as team dentist for the Indiana University basketball team. Dr. Westermeier's advanced residency adds capability for patients managing complex health conditions.",
       body2:
         "With over 300 five-star reviews highlighting a calm, welcoming environment, patients who arrive anxious leave <em>relieved.</em>",
-      attr: "5.0 · 300+ Google reviews",
+      attr: `${googleRating} · ${googleReviewCount} Google reviews`,
     },
   },
 
@@ -543,7 +544,7 @@ const BANDS: Record<string, CodeBand> = {
   new_patients_reviews: {
     component: ReviewsBand,
     props: {
-      eyebrow: "Patient Stories · 300+ Five-Star Reviews",
+      eyebrow: `Patient Stories · ${googleReviewCount} Five-Star Reviews`,
       heading: "Why Parker keeps <em>coming back</em>.",
       body: "We don't push five-star reviews — they happen on their own. Drag through a few, in our patients' own words.",
     },

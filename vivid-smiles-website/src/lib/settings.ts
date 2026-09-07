@@ -28,6 +28,8 @@ const SETTINGS_QUERY = /* GraphQL */ `
         directionsHref
         contactTypeformId
         consultTypeformId
+        googleRating
+        googleReviewCount
         officeHours {
           label
           days
@@ -83,6 +85,9 @@ export type PracticeSettings = {
   contactTypeformId: string;
   /** May be null: the field was added after the settings page shipped. */
   consultTypeformId: string | null;
+  /** The review line's two numbers — "5.0" and "300+". Blank in wp-admin = keep the literal. */
+  googleRating: string | null;
+  googleReviewCount: string | null;
   officeHours: WpHoursRow[];
   smileGallery: { nodes: WpMedia[] } | null;
   logoLightBg: { node: WpMedia | null } | null;

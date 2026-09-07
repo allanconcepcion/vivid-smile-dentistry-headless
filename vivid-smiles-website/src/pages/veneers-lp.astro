@@ -30,7 +30,7 @@ import ReviewCard from '../components/cards/ReviewCard.astro';
 import ProcessStep from '../components/ProcessStep.astro';
 import ProcessStepGrid from '../components/ProcessStepGrid.astro';
 import { getSmiles } from '../lib/smiles';
-import { phoneHref, phoneLabel } from '../data/contact';
+import { phoneHref, phoneLabel, googleRating, googleReviewCount } from "../data/contact";
 
 // Doctor portrait (hero attribution chip + philosophy section) + featured cases
 
@@ -195,7 +195,7 @@ const trustBar = [
     title: 'ADA',
     sub: 'American Dental Association',
   },
-  { logo: image("logoGoogle"), alt: 'Google Reviews', title: '5.0 · 300+ Reviews', sub: 'Google Verified' },
+  { logo: image("logoGoogle"), alt: 'Google Reviews', title: `${googleRating} · ${googleReviewCount} Reviews`, sub: 'Google Verified' },
 ];
 const trustTrack = [...trustBar, ...trustBar];
 
@@ -206,6 +206,10 @@ const pageTitle = 'Porcelain Veneers in Parker, CO — Vivid Smiles Dentistry';
 const pageDescription =
   seo.description || "Stunning, natural-looking porcelain veneers, designed by Colorado's #1 cosmetic dentist. Minimal-prep, never bulky or fake, and backed by a written warranty. Book a free veneer consult and walk away with a custom plan and your exact cost.";
 
+// The reviews-count line under the Google logo. Built here and shipped as ONE
+// expression: a text node beside an expression compresses differently from a
+// plain text node, and this is the only form that measured byte-identical.
+const reviewsLine = "\n" + googleReviewCount + " five-star reviews\n";
 ---
 
 <LandingLayout title={pageTitle} description={pageDescription} typeformPopupId="dzCZRKFT">
@@ -256,7 +260,7 @@ const pageDescription =
           </div>
           <p class="vlp-hero-microcopy">Free · ~30 min with Dr. Richardson · No obligation</p>
           <ul class="vlp-hero-trust">
-            <li><strong>5.0 ★</strong><span>300+ Google reviews</span></li>
+            <li><strong>{googleRating} ★</strong><span>{googleReviewCount} Google reviews</span></li>
             <li><strong>Top 1%</strong><span>Cosmetic dentists U.S.</span></li>
             <li><strong>AACD</strong><span>Member dentist</span></li>
           </ul>
@@ -654,7 +658,7 @@ const pageDescription =
         <div class="vlp-reviews-head" data-vs-reveal-batch>
           <span class="vlp-eyebrow"><span class="vlp-eyebrow-rule"></span>Patient reviews</span>
           <div class="vlp-reviews-rating">
-            <span class="vlp-reviews-score">5.0</span>
+            <span class="vlp-reviews-score">{googleRating}</span>
             <span class="vlp-reviews-stars">★★★★★</span>
             <span class="vlp-reviews-count">
               <Image
@@ -663,9 +667,7 @@ const pageDescription =
                 class="vlp-reviews-google"
                 widths={[120]}
                 sizes="80px"
-              />
-              300+ five-star reviews
-            </span>
+              />{reviewsLine}</span>
           </div>
         </div>
       </div>

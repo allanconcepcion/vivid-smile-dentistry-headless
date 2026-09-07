@@ -42,7 +42,7 @@ import Button from '../../components/Button.astro';
 import FinalBand from '../../components/FinalBand.astro';
 import VirtualConsult from '../../components/VirtualConsult.astro';
 import PricingTiers from '../../components/PricingTiers.astro';
-import { phoneHref, phoneLabel, bookNowHref } from '../../data/contact';
+import { phoneHref, phoneLabel, bookNowHref, googleRating, googleReviewCount } from "../../data/contact";
 import { getSmiles } from '../../lib/smiles';
 import '../../styles/pages/single-tooth-dental-implants.css';
 
@@ -79,7 +79,7 @@ const whyCards = [
   },
   {
     num: '04',
-    title: '300+ five-star Google reviews',
+    title: `${googleReviewCount} five-star Google reviews`,
     body: 'Consistent feedback about advanced technology, a welcoming environment, and natural-looking, long-lasting results.',
   },
   {
@@ -231,7 +231,7 @@ for (const block of blocks) {
               >
               {hero.showRatings && <div class="ratings">
                 <span class="stars" aria-hidden="true">★★★★★</span>
-                <span>5.0 · 300+ reviews</span>
+                <span>{googleRating} · {googleReviewCount} reviews</span>
               </div>}
             </div>
           </div>

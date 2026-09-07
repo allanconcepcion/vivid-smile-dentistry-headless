@@ -122,6 +122,25 @@ function register_fields(): void {
 						. 'the site sends people here, so changing it here changes all of them.',
 				],
 				[
+					'key'          => 'field_vs_google_rating',
+					'label'        => 'Google star rating',
+					'name'         => 'google_rating',
+					'type'         => 'text',
+					'placeholder'  => '5.0',
+					'instructions' => 'The number beside the stars in every badge, stat strip and the footer — 5.0, 4.9. Just the number. '
+						. 'Leave it blank and the site keeps the number it shows today.',
+				],
+				[
+					'key'          => 'field_vs_google_review_count',
+					'label'        => 'How many Google reviews',
+					'name'         => 'google_review_count',
+					'type'         => 'text',
+					'placeholder'  => '300+',
+					'instructions' => 'Written the way it should read — 300+, 350+. Every badge, stat strip and the footer follow this box. '
+						. 'A sentence inside a page section that mentions the number is edited on that page. '
+						. 'Leave it blank and the site keeps what it shows today.',
+				],
+				[
 					'key'   => 'field_vs_addr_tab',
 					'label' => 'Address',
 					'type'  => 'tab',

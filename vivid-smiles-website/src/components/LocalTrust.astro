@@ -9,15 +9,7 @@
  */
 
 import Button from "./Button.astro";
-import {
-  bookNowHref,
-  directionsHref,
-  addressStreet,
-  addressCity,
-  addressState,
-  addressZip,
-  addressLine,
-} from "../data/contact";
+import { bookNowHref, directionsHref, addressStreet, addressCity, addressState, addressZip, addressLine, googleReviewCount } from "../data/contact";
 
 type ButtonVariant = "sage" | "ghost" | "ghost-light" | "light" | "outline-light";
 
@@ -110,7 +102,7 @@ const mapEmbedSrc = `https://maps.google.com/maps?q=${encodeURIComponent(address
         <div class="vs-lt-reviews" aria-label="Patient reviews summary">
           <span class="vs-lt-stars" aria-hidden="true">★★★★★</span>
           <div class="vs-lt-reviews-meta">
-            <b class="vs-lt-reviews-count">300+</b>
+            <b class="vs-lt-reviews-count">{googleReviewCount}</b>
             <small class="vs-lt-reviews-label">Five-Star Reviews</small>
           </div>
         </div>

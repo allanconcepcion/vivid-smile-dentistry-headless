@@ -35,7 +35,7 @@ import FinalBand from '../../components/FinalBand.astro';
 import VirtualConsult from '../../components/VirtualConsult.astro';
 import LocalTrust from '../../components/LocalTrust.astro';
 import PricingTiers from '../../components/PricingTiers.astro';
-import { phoneHref, phoneLabel, bookNowHref } from '../../data/contact';
+import { phoneHref, phoneLabel, bookNowHref, googleRating, googleReviewCount } from "../../data/contact";
 import { getSmiles } from '../../lib/smiles';
 import { getPageContent, type TocLink } from '../../lib/page-content';
 import PageBlocks from '../../blocks/PageBlocks.astro';
@@ -172,7 +172,7 @@ for (const block of blocks) {
               >
               {hero.showRatings && <div class="ratings">
                 <span class="stars" aria-hidden="true">★★★★★</span>
-                <span>5.0 · 300+ reviews</span>
+                <span>{googleRating} · {googleReviewCount} reviews</span>
               </div>}
             </div>
           </div>
@@ -502,7 +502,7 @@ for (const block of blocks) {
           heading="Veneers Designed"
           headingItalic="in Parker, Colorado"
           intro="Dr. Richardson is a Parker resident who built Vivid Smiles Dentistry to bring high-level cosmetic care to patients locally and from across the country."
-          body="Located on Cedar Gulch Parkway, the practice welcomes patients locally and from out of state — many travel in for their veneer treatment. With 300+ five-star reviews, it has a reputation for consistent results and genuine attention to every patient."
+          body={`Located on Cedar Gulch Parkway, the practice welcomes patients locally and from out of state — many travel in for their veneer treatment. With ${googleReviewCount} five-star reviews, it has a reputation for consistent results and genuine attention to every patient.`}
         />
       )}
 

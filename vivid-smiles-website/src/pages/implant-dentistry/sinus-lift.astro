@@ -40,7 +40,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Button from '../../components/Button.astro';
 import FinalBand from '../../components/FinalBand.astro';
 import VirtualConsult from '../../components/VirtualConsult.astro';
-import { phoneHref, phoneLabel, bookNowHref } from '../../data/contact';
+import { phoneHref, phoneLabel, bookNowHref, googleRating, googleReviewCount } from "../../data/contact";
 import { getSmiles } from '../../lib/smiles';
 import PageBlocks from '../../blocks/PageBlocks.astro';
 import '../../styles/pages/sinus-lift.css';
@@ -226,7 +226,7 @@ for (const block of blocks) {
               >
               {hero.showRatings && <div class="ratings">
                 <span class="stars" aria-hidden="true">★★★★★</span>
-                <span>5.0 · 300+ reviews</span>
+                <span>{googleRating} · {googleReviewCount} reviews</span>
               </div>}
             </div>
           </div>
@@ -332,7 +332,7 @@ for (const block of blocks) {
                 </div>
                 <div class="cred">
                   <div class="cred-stat">
-                    300+ <span class="stars" aria-hidden="true">★★★★★</span>
+                    {googleReviewCount} <span class="stars" aria-hidden="true">★★★★★</span>
                   </div>
                   <div class="cred-label">Five-Star Google Reviews</div>
                 </div>

@@ -50,3 +50,11 @@ export const contactTypeformId = settings.contactTypeformId;
  * blank form on the site's primary lead capture.
  */
 export const consultTypeformId = settings.consultTypeformId;
+
+/**
+ * The review line every page repeats — "5.0 · 300+ reviews". Two Practice
+ * Settings boxes; a blank box keeps the number the templates have always shown,
+ * so the 48 routes build byte-identical until someone types a new figure.
+ */
+export const googleRating = settings.googleRating || "5.0";
+export const googleReviewCount = settings.googleReviewCount || "300+";

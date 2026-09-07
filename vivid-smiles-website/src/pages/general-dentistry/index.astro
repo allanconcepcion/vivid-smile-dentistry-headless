@@ -34,18 +34,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Button from '../../components/Button.astro';
 import VirtualConsult from '../../components/VirtualConsult.astro';
 import FinalBand from '../../components/FinalBand.astro';
-import {
-  phoneHref,
-  phoneLabel,
-  phoneE164,
-  bookNowHref,
-  addressStreet,
-  addressCity,
-  addressState,
-  addressZip,
-  addressLine,
-  directionsHref,
-} from '../../data/contact';
+import { phoneHref, phoneLabel, phoneE164, bookNowHref, addressStreet, addressCity, addressState, addressZip, addressLine, directionsHref, googleRating, googleReviewCount } from "../../data/contact";
 import '../../styles/pages/general-dentistry.css';
 
 // Hero — a hygienist polishing a patient's teeth. A real chairside moment, so
@@ -280,7 +269,7 @@ for (const block of blocks) {
               >
               {hero.showRatings && <div class="ratings">
                 <span class="stars" aria-hidden="true">★★★★★</span>
-                <span>5.0 · 300+ reviews</span>
+                <span>{googleRating} · {googleReviewCount} reviews</span>
               </div>}
             </div>
           </div>
@@ -462,7 +451,7 @@ for (const block of blocks) {
             </p>
             <p class="trust-attr">
               <span class="stars" aria-hidden="true">★★★★★</span>
-              <span>5.0 · 300+ Google reviews</span>
+              <span>{googleRating} · {googleReviewCount} Google reviews</span>
             </p>
           </div>
         </div>
@@ -663,7 +652,7 @@ for (const block of blocks) {
       <FinalBand>
         <p>{closing.note ? closing.note : <>
           Vivid Smiles Dentistry in Parker offers comprehensive general care from a dual-doctor team
-          backed by advanced diagnostic technology and 300+ five-star Google reviews.
+          backed by advanced diagnostic technology and {googleReviewCount} five-star Google reviews.
         </>}</p>
       </FinalBand>
     </main>

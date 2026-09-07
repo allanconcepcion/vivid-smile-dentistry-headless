@@ -35,7 +35,7 @@ import ReviewCard from "../components/cards/ReviewCard.astro";
 import ProcessStep from "../components/ProcessStep.astro";
 import ProcessStepGrid from "../components/ProcessStepGrid.astro";
 import { getSmiles } from "../lib/smiles";
-import { phoneHref, phoneLabel } from "../data/contact";
+import { phoneHref, phoneLabel, googleRating, googleReviewCount } from "../data/contact";
 
 // Doctor portrait (hero attribution chip + philosophy section)
 
@@ -139,7 +139,7 @@ const trustBar = [
   { logo: image("logoFAM"),  alt: "Full Arch Masters", title: "Full Arch Masters", sub: "Clinical Mentor" },
   { logo: image("logoYomi"), alt: "Yomi Robotics", title: "Yomi Robotics", sub: "Certified Surgeon" },
   { logo: image("logoADA"),  alt: "American Dental Association", title: "ADA", sub: "American Dental Association" },
-  { logo: image("logoGoogle"), alt: "Google Reviews", title: "5.0 · 300+ Reviews", sub: "Google Verified" },
+  { logo: image("logoGoogle"), alt: "Google Reviews", title: `${googleRating} · ${googleReviewCount} Reviews`, sub: "Google Verified" },
 ];
 const trustTrack = [...trustBar, ...trustBar];
 
@@ -152,6 +152,10 @@ const pageTitle = seo.title || "General & Family Dentistry in Parker, CO — Viv
 const pageDescription =
   seo.description || "Comprehensive general and family dentistry in Parker, CO — cleanings, same-day crowns, periodontal care, and emergencies, led by Dr. Bryce Richardson. 300+ five-star reviews. Request a new-patient appointment.";
 
+// The reviews-count line under the Google logo. Built here and shipped as ONE
+// expression: a text node beside an expression compresses differently from a
+// plain text node, and this is the only form that measured byte-identical.
+const reviewsLine = "\n" + googleReviewCount + " five-star reviews\n";
 ---
 
 <LandingLayout
@@ -206,7 +210,7 @@ const pageDescription =
         </div>
         <p class="glp-hero-microcopy">Free · New patients & same-day emergencies welcome</p>
         <ul class="glp-hero-trust">
-          <li><strong>5.0 ★</strong><span>300+ Google reviews</span></li>
+          <li><strong>{googleRating} ★</strong><span>{googleReviewCount} Google reviews</span></li>
           <li><strong>Same‑Day</strong><span>Crowns in one visit</span></li>
           <li><strong>CBCT</strong><span>3D imaging on site</span></li>
         </ul>
@@ -417,7 +421,7 @@ const pageDescription =
             <span>Hours of advanced post-doctoral training</span>
           </div>
           <div>
-            <strong>300+</strong>
+            <strong>{googleReviewCount}</strong>
             <span>Five-star Google reviews</span>
           </div>
           <div>
@@ -435,12 +439,10 @@ const pageDescription =
       <div class="glp-reviews-head" data-vs-reveal-batch>
         <span class="glp-eyebrow"><span class="glp-eyebrow-rule"></span>Patient reviews</span>
         <div class="glp-reviews-rating">
-          <span class="glp-reviews-score">5.0</span>
+          <span class="glp-reviews-score">{googleRating}</span>
           <span class="glp-reviews-stars">★★★★★</span>
           <span class="glp-reviews-count">
-            <Image src={image("logoGoogle").url} width={image("logoGoogle").width} height={image("logoGoogle").height} alt="Google" class="glp-reviews-google" widths={[120]} sizes="80px" />
-            300+ five-star reviews
-          </span>
+            <Image src={image("logoGoogle").url} width={image("logoGoogle").width} height={image("logoGoogle").height} alt="Google" class="glp-reviews-google" widths={[120]} sizes="80px" />{reviewsLine}</span>
         </div>
       </div>
     </div>

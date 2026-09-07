@@ -7,18 +7,7 @@ import { getMenu } from "../lib/menus";
 const vsLogo = await getLogo("darkBg");
 // Footer link columns come from WordPress (Appearance -> Menus -> Footer Links).
 const footerCols = await getMenu("FOOTER");
-import {
-  bookNowHref,
-  emailAddress,
-  emailHref,
-  phoneHref,
-  phoneLabel,
-  directionsHref,
-  addressStreet,
-  addressCity,
-  addressState,
-  addressZip,
-} from "../data/contact";
+import { bookNowHref, emailAddress, emailHref, phoneHref, phoneLabel, directionsHref, addressStreet, addressCity, addressState, addressZip, googleRating, googleReviewCount } from "../data/contact";
 import { officeHours, openSchedule } from "../data/hours";
 ---
 
@@ -44,7 +33,7 @@ import { officeHours, openSchedule } from "../data/hours";
         <p>Cosmetic, implant, and family dentistry crafted in Parker, Colorado — where artistry meets precision.</p>
         <div class="badges">
           <span class="stars">★★★★★</span>
-          <span class="b-text"><b>5.0 · 300+</b>Google Verified Reviews</span>
+          <span class="b-text"><b>{googleRating} · {googleReviewCount}</b>Google Verified Reviews</span>
         </div>
       </div>
 

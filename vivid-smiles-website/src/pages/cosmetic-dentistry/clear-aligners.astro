@@ -32,7 +32,7 @@ import Button from '../../components/Button.astro';
 import FinalBand from '../../components/FinalBand.astro';
 import VirtualConsult from '../../components/VirtualConsult.astro';
 import LocalTrust from '../../components/LocalTrust.astro';
-import { phoneHref, phoneLabel, bookNowHref } from '../../data/contact';
+import { phoneHref, phoneLabel, bookNowHref, googleRating, googleReviewCount } from "../../data/contact";
 import '../../styles/pages/clear-aligners.css';
 
 // "What are clear aligners" — real patient portrait outdoors by a Colorado
@@ -194,7 +194,7 @@ for (const block of blocks) {
               >
               {hero.showRatings && <div class="ratings">
                 <span class="stars" aria-hidden="true">★★★★★</span>
-                <span>5.0 · 300+ reviews</span>
+                <span>{googleRating} · {googleReviewCount} reviews</span>
               </div>}
             </div>
           </div>
@@ -511,7 +511,7 @@ for (const block of blocks) {
           heading="Why Patients Choose Vivid Smiles"
           headingItalic="for Clear Aligners"
           intro="Dr. Bryce Richardson is a Parker resident who built Vivid Smiles Dentistry on the values of his hometown — and that shows in every visit, whether patients drive across town or fly in for treatment."
-          body="With 300+ five-star Google reviews and a welcoming office at 17167 Cedar Gulch Pkwy Ste 102, patients receive individual attention that larger groups cannot replicate. Many patients discover additional smile possibilities during treatment."
+          body={`With ${googleReviewCount} five-star Google reviews and a welcoming office at 17167 Cedar Gulch Pkwy Ste 102, patients receive individual attention that larger groups cannot replicate. Many patients discover additional smile possibilities during treatment.`}
         />
       )}
 

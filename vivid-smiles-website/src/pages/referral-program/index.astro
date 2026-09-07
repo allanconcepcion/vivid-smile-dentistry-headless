@@ -9,7 +9,7 @@ import { Image } from "astro:assets";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import Button from "../../components/Button.astro";
 import FinalBand from "../../components/FinalBand.astro";
-import { phoneHref, phoneLabel } from "../../data/contact";
+import { phoneHref, phoneLabel, googleRating, googleReviewCount } from "../../data/contact";
 import "../../styles/pages/referral-program.css";
 
 import { getPageContent } from '../../lib/page-content';
@@ -148,7 +148,7 @@ const description =
             <Button variant="ghost" href={hero.cta(1) ? hero.cta(1)!.href : phoneHref} hoverLabel="Tap to Dial">{hero.cta(1) ? hero.cta(1)!.label : <>Call {phoneLabel}</>}</Button>
             {hero.showRatings && <div class="ratings">
               <span class="stars" aria-hidden="true">★★★★★</span>
-              <span>5.0 · 300+ reviews</span>
+              <span>{googleRating} · {googleReviewCount} reviews</span>
             </div>}
           </div>
         </div>

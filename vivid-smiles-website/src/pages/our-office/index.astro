@@ -4,20 +4,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import Button from "../../components/Button.astro";
 import ImageFrame from "../../components/ImageFrame.astro";
 import VirtualConsult from "../../components/VirtualConsult.astro";
-import {
-  phoneHref,
-  phoneLabel,
-  phoneE164,
-  bookNowHref,
-  directionsHref,
-  addressStreet,
-  addressCity,
-  addressState,
-  addressZip,
-  addressLine,
-  emailAddress,
-  emailHref,
-} from "../../data/contact";
+import { phoneHref, phoneLabel, phoneE164, bookNowHref, directionsHref, addressStreet, addressCity, addressState, addressZip, addressLine, emailAddress, emailHref, googleRating, googleReviewCount } from "../../data/contact";
 import { officeHours, openingHoursSpecification } from "../../data/hours";
 import "../../styles/pages/our-office.css";
 
@@ -105,7 +92,7 @@ const expectTiles = [
   },
   {
     icon: "fa-solid fa-star",
-    title: "300+ five-star reviews",
+    title: `${googleReviewCount} five-star reviews`,
     body: "From patients across Parker and beyond — locally and from out of state.",
   },
 ];
@@ -182,7 +169,7 @@ const faqEntities: { q: string; a: string }[] = hasBlocks
             <Button variant="ghost" href={hero.cta(1) ? hero.cta(1)!.href : directionsHref} hoverLabel="Open Map">{hero.cta(1) ? hero.cta(1)!.label : "Get Directions"}</Button>
             {hero.showRatings && <div class="ratings">
               <span class="stars" aria-hidden="true">★★★★★</span>
-              <span>5.0 · 300+ reviews</span>
+              <span>{googleRating} · {googleReviewCount} reviews</span>
             </div>}
           </div>
         </div>

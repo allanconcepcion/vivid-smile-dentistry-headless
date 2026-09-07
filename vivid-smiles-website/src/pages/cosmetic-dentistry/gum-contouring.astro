@@ -65,17 +65,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import Button from "../../components/Button.astro";
 import FinalBand from "../../components/FinalBand.astro";
 import VirtualConsult from "../../components/VirtualConsult.astro";
-import {
-  phoneHref,
-  phoneLabel,
-  phoneE164,
-  bookNowHref,
-  directionsHref,
-  addressStreet,
-  addressCity,
-  addressState,
-  addressZip,
-} from "../../data/contact";
+import { phoneHref, phoneLabel, phoneE164, bookNowHref, directionsHref, addressStreet, addressCity, addressState, addressZip, googleRating, googleReviewCount } from "../../data/contact";
 import PageBlocks from "../../blocks/PageBlocks.astro";
 import "../../styles/pages/gum-contouring.css";
 
@@ -202,7 +192,7 @@ for (const block of blocks) {
             <Button variant="ghost-light" href={hero.cta(1) ? hero.cta(1)!.href : "#consult"} hoverLabel="Get a Video">{hero.cta(1) ? hero.cta(1)!.label : "Free Virtual Consult"}</Button>
             {hero.showRatings && <div class="ratings">
               <span class="stars" aria-hidden="true">★★★★★</span>
-              <span>5.0 · 300+ reviews</span>
+              <span>{googleRating} · {googleReviewCount} reviews</span>
             </div>}
           </div>
         </div>

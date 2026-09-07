@@ -64,16 +64,7 @@ import BaseLayout from "../../layouts/BaseLayout.astro";
 import Button from "../../components/Button.astro";
 import FinalBand from "../../components/FinalBand.astro";
 import VirtualConsult from "../../components/VirtualConsult.astro";
-import {
-  phoneHref,
-  phoneLabel,
-  phoneE164,
-  bookNowHref,
-  addressStreet,
-  addressCity,
-  addressState,
-  addressZip,
-} from "../../data/contact";
+import { phoneHref, phoneLabel, phoneE164, bookNowHref, addressStreet, addressCity, addressState, addressZip, googleRating, googleReviewCount } from "../../data/contact";
 import "../../styles/pages/full-mouth-rehabilitation.css";
 
 // "What is full-mouth rehabilitation" — a real full-arch restoration on a
@@ -113,7 +104,7 @@ const whyUsCards = [
   },
   {
     tag: "Patient Reputation",
-    title: "300+ five-star reviews",
+    title: `${googleReviewCount} five-star reviews`,
     body: "Consistent outcomes across Parker and Douglas County reflect the genuine care patients experience at every stage of treatment.",
   },
 ];
@@ -224,7 +215,7 @@ for (const block of blocks) {
             <Button variant="ghost-light" href={hero.cta(1) ? hero.cta(1)!.href : "#consult"} hoverLabel="Get a Video">{hero.cta(1) ? hero.cta(1)!.label : "Free Virtual Consult"}</Button>
             {hero.showRatings && <div class="ratings">
               <span class="stars" aria-hidden="true">★★★★★</span>
-              <span>5.0 · 300+ reviews</span>
+              <span>{googleRating} · {googleReviewCount} reviews</span>
             </div>}
           </div>
         </div>
@@ -246,7 +237,7 @@ for (const block of blocks) {
         <div class="keys-item"><div class="k">3–6 mo</div><div class="v">Typical Timeline</div></div>
         <div class="keys-item"><div class="k">4–6 implants</div><div class="v">Per Arch (Typical)</div></div>
         <div class="keys-item"><div class="k">600+ hrs</div><div class="v">Implant Pathway Training</div></div>
-        <div class="keys-item"><div class="k">300+ reviews</div><div class="v">Five-Star Care</div></div>
+        <div class="keys-item"><div class="k">{googleReviewCount} reviews</div><div class="v">Five-Star Care</div></div>
       </div>
     </section>
 

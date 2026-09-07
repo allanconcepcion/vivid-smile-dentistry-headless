@@ -48,7 +48,7 @@ import FinalBand from '../../components/FinalBand.astro';
 import VirtualConsult from '../../components/VirtualConsult.astro';
 import LocalTrust from '../../components/LocalTrust.astro';
 import PricingTiers from '../../components/PricingTiers.astro';
-import { phoneHref, phoneLabel, bookNowHref } from '../../data/contact';
+import { phoneHref, phoneLabel, bookNowHref, googleRating, googleReviewCount } from "../../data/contact";
 import '../../styles/pages/teeth-whitening.css';
 
 // "What is whitening" — a real chairside shade guide held against teeth,
@@ -216,7 +216,7 @@ for (const block of blocks) {
               >
               {hero.showRatings && <div class="ratings">
                 <span class="stars" aria-hidden="true">★★★★★</span>
-                <span>5.0 · 300+ reviews</span>
+                <span>{googleRating} · {googleReviewCount} reviews</span>
               </div>}
             </div>
           </div>
@@ -325,12 +325,12 @@ for (const block of blocks) {
               <div class="num">02</div>
               <h3>Trained, Reviewed, and Previewable</h3>
               <p class="lead">
-                Six-hundred-plus training hours, 300+ five-star reviews, and a digital preview
+                Six-hundred-plus training hours, {googleReviewCount} five-star reviews, and a digital preview
                 before any treatment begins.
               </p>
               <p>
                 Dr. Bryce Richardson completed 600+ hours of specialized esthetic training and the
-                practice holds a 5-star rating backed by 300+ verified patient reviews. Digital
+                practice holds a 5-star rating backed by {googleReviewCount} verified patient reviews. Digital
                 smile design lets patients preview expected results before any treatment begins, a
                 step most whitening providers skip entirely.
               </p>

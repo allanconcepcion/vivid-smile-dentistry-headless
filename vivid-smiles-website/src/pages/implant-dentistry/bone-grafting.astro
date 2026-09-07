@@ -44,7 +44,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Button from '../../components/Button.astro';
 import FinalBand from '../../components/FinalBand.astro';
 import VirtualConsult from '../../components/VirtualConsult.astro';
-import { phoneHref, phoneLabel, bookNowHref, directionsHref } from '../../data/contact';
+import { phoneHref, phoneLabel, bookNowHref, directionsHref, googleRating, googleReviewCount } from "../../data/contact";
 import { getSmiles } from '../../lib/smiles';
 import '../../styles/pages/bone-grafting.css';
 
@@ -80,8 +80,8 @@ const whyCards = [
   },
   {
     num: '03',
-    title: '5-Star · 300+ Reviews',
-    body: 'Vivid Smiles holds a 5-star rating across 300+ Google reviews, reflecting the precision and patient-first care Parker patients receive at every stage.',
+    title: `5-Star · ${googleReviewCount} Reviews`,
+    body: `Vivid Smiles holds a 5-star rating across ${googleReviewCount} Google reviews, reflecting the precision and patient-first care Parker patients receive at every stage.`,
   },
   {
     num: '04',
@@ -130,7 +130,7 @@ const keyStats: [string, string][] = [
   ['CBCT', '3D Imaging Guided'],
   ['3–6 mo', 'Healing Window'],
   ['600+ hrs', 'Surgical Training'],
-  ['5.0★ · 300+', 'Google Reviews'],
+  [`${googleRating}★ · ${googleReviewCount}`, 'Google Reviews'],
 ];
 
 /**
@@ -240,7 +240,7 @@ for (const block of blocks) {
               >
               {hero.showRatings && <div class="ratings">
                 <span class="stars" aria-hidden="true">★★★★★</span>
-                <span>5.0 · 300+ reviews</span>
+                <span>{googleRating} · {googleReviewCount} reviews</span>
               </div>}
             </div>
           </div>

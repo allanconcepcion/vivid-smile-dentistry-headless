@@ -65,16 +65,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import Button from '../../components/Button.astro';
 import FinalBand from '../../components/FinalBand.astro';
 import VirtualConsult from '../../components/VirtualConsult.astro';
-import {
-  phoneHref,
-  phoneLabel,
-  phoneE164,
-  bookNowHref,
-  addressStreet,
-  addressCity,
-  addressState,
-  addressZip,
-} from '../../data/contact';
+import { phoneHref, phoneLabel, phoneE164, bookNowHref, addressStreet, addressCity, addressState, addressZip, googleRating, googleReviewCount } from "../../data/contact";
 import '../../styles/pages/smile-makeover.css';
 
 // "What is a smile makeover" — finished-smile macro, three-quarter angle.
@@ -218,7 +209,7 @@ for (const block of blocks) {
               >
               {hero.showRatings && <div class="ratings">
                 <span class="stars" aria-hidden="true">★★★★★</span>
-                <span>5.0 · 300+ reviews</span>
+                <span>{googleRating} · {googleReviewCount} reviews</span>
               </div>}
             </div>
           </div>
@@ -247,7 +238,7 @@ for (const block of blocks) {
             <div class="k">Digital Preview</div><div class="v">Before You Commit</div>
           </div>
           <div class="keys-item">
-            <div class="k">300+</div><div class="v">Five-Star Reviews</div>
+            <div class="k">{googleReviewCount}</div><div class="v">Five-Star Reviews</div>
           </div>
         </div>
       </section>
@@ -737,7 +728,7 @@ for (const block of blocks) {
       {/* ---------- CLOSING BAND ---------- */}
       <FinalBand>
         <p>{closing.note ? closing.note : <>
-          Vivid Smiles is located in Parker, CO and has earned 300+ five-star Google reviews from
+          Vivid Smiles is located in Parker, CO and has earned {googleReviewCount} five-star Google reviews from
           patients who wanted natural, lasting results and got them.
         </>}</p>
       </FinalBand>
